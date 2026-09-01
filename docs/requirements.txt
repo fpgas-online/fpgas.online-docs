@@ -1,0 +1,7 @@
+# Pinned so a Read the Docs build cannot break from an upstream release landing
+# between commits. Bump deliberately.
+sphinx==8.1.3
+myst-parser==4.0.0
+furo==2024.8.6
+sphinx-copybutton==0.5.2
+linkify-it-py==2.0.3
