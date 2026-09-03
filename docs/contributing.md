@@ -59,3 +59,11 @@ Things that do **not** belong here:
 When a page records a measurement — a pinout, a device ID, a fault — say when
 it was taken and on which host. A pinout with no date is impossible to trust
 later.
+
+## Open items
+
+Every unresolved question found while writing these pages is a `{todo}` on
+the page it belongs to. They are collected here:
+
+```{todolist}
+```
