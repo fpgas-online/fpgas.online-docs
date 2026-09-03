@@ -108,6 +108,7 @@ def main(argv: list[str]) -> int:
         if key not in REPOS:
             print(f"unknown repo {key!r}; known: {', '.join(REPOS)}", file=sys.stderr)
             return 2
+    for key in keys:
         export(key)
     return 0
 

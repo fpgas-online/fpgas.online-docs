@@ -2,15 +2,16 @@
 """Report Markdown table rows present in SOURCE files but absent from DEST files.
 
 Usage: check_tables.py SOURCE.md [SOURCE.md ...] -- DEST.md [DEST.md ...]
+       check_tables.py --self-test
 
 Rows are compared after normalisation: links reduced to their text, backticks
 and bold markers removed, whitespace collapsed, trailing pipes stripped.
-Separator rows (|---|) and header rows are ignored. Exit status is 1 when any
-row is missing so the check can gate a commit.
+Separator rows (|---|) and header rows are ignored, and rows inside fenced
+code blocks are skipped. Exit status is 1 when any row is missing, 2 on a
+usage error.
 """
 import re
 import sys
-from collections import Counter
 from pathlib import Path
 
 LINK = re.compile(r"\[([^\]]*)\]\([^)]*\)")
@@ -41,6 +42,9 @@ def rows(path: Path) -> list[str]:
         if i + 1 < len(lines) and SEP.match(lines[i + 1].lstrip()):
             continue
         out.append(normalise(line))
+    if in_fence:
+        print(f"{path}: unterminated code fence", file=sys.stderr)
+        sys.exit(2)
     return out
 
 
@@ -54,7 +58,7 @@ def main(argv: list[str]) -> int:
     if not sources or not dests:
         print("need at least one SOURCE and one DEST")
         return 2
-    have = Counter()
+    have = set()
     for d in dests:
         have.update(rows(d))
     checked = 0
@@ -62,9 +66,7 @@ def main(argv: list[str]) -> int:
     for s in sources:
         for r in rows(s):
             checked += 1
-            if have[r] > 0:
-                have[r] -= 1
-            else:
+            if r not in have:
                 missing += 1
                 print(f"{s}: {r}")
     print(f"{checked} row(s) checked, {missing} missing")
