@@ -14,7 +14,8 @@ site is [The web application](webapp.md).
 
 ## Overview
 
-The design spec draws the whole path from browser to chip like this:
+The whole path from browser to chip, redrawn from the design spec with the
+Welland host and switch names generalised:
 
 ```
 browser ──https──▶ gateway (nginx, vhost tinytapeout.fpgas.online)
@@ -52,10 +53,12 @@ Four properties of that picture matter more than the boxes:
 `fpgas-tt` opens `/dev/ttboard` at 115200 baud and keeps retrying every second
 until a board appears, so a Pi whose board is unplugged simply waits. The device
 node is a udev symlink for the demo board's RP2040/RP2350 USB-CDC port; the rule
-and the VID:PID behind it are described under
+that creates it ships in the same package and is quoted under
+[Serial consoles](pi.md#serial-consoles). What the daemon holding that port open
+means for anything else that wants it — and how to take it back, and why to give
+it straight back — is under
 [Serial port ownership](../boards/tt-fpga.md#serial-port-ownership) and
-[Connection to the Pi](../boards/tt-asic.md#connection-to-the-pi), which also
-carry the rule for taking the port away from the daemon by hand.
+[Connection to the Pi](../boards/tt-asic.md#connection-to-the-pi).
 
 One object owns that port. `WS /serial` is the bridge: every connected client
 receives the same bytes from the board and may write bytes to it, with no
@@ -73,9 +76,9 @@ collide, and the task is the one that fails.
 "config_error"}`. `vid_pid` is the board's USB `idVendor:idProduct` read from
 sysfs, `null` when the device is not a USB tty; `config_error` is non-null when
 the board map could not be read and the daemon fell back to a plain `asic`
-bridge instead of restart-looping. The site's
-`/board/<slug>/status.json` is a cached proxy of this, which is what the status
-pill on a board page reflects.
+bridge instead of restart-looping. The site's `/board/<slug>/status.json` is a
+cached summary of it, with `reachable` added, which is what the status pill on a
+board page reflects.
 
 The daemon works out which board it is on its own: it reads its short hostname,
 decomposes it into `(switch, port)`, and looks itself up in
@@ -111,19 +114,15 @@ freshly baked image comes up with the demo set already on the board.
 
 ### Installation
 
-The daemon is a deb, installed into the shared Pi NFS root by
-`onpi/tasks/tt.yml` alongside the demo package:
-
-```console
-$ apt install fpgas-online-tt
-$ systemctl enable fpgas-tt.service
-```
-
-Both packages install with `state: latest` because they are rolling releases,
-and the unit is only enabled where the site actually defines Tiny Tapeout
-boards. What the two packages contain, and how `fpgas-tt.service` is invoked,
-are in the [package](pi.md#packages) and [service](pi.md#services) tables on
-[What runs on a Pi host](pi.md).
+The daemon is a deb, and nobody installs it by hand. `onpi/tasks/tt.yml` adds
+`fpgas-online-tt` and `fpgas-online-tt-demos` to the shared Pi NFS root and
+enables `fpgas-tt.service` there, and it does that in the provisioning chroot on
+the gateway rather than on a booted Pi. Installing either package on a running
+Pi would write into the tmpfs overlay above that read-only root and be gone at
+the next reboot, and enabling the unit by hand would only duplicate what Ansible
+already manages. What the two packages contain, how the install is gated, and
+how `fpgas-tt.service` is invoked are in the [package](pi.md#packages) and
+[service](pi.md#services) tables on [What runs on a Pi host](pi.md).
 
 ## The board catalogue
 
@@ -153,7 +152,7 @@ On the gateway the file is loaded into the site database by a management
 command:
 
 ```console
-$ python manage.py ttsite_loadboards /etc/fpgas-online/tt-boards.yaml --prune
+$ uv run python manage.py ttsite_loadboards /etc/fpgas-online/tt-boards.yaml --prune
 ```
 
 The load is an idempotent upsert by slug. `--prune` additionally deletes rows
@@ -198,8 +197,9 @@ $ icepack out.asc <name>.bin
 The resulting `.bin` is checked for the iCE40 bitstream preamble
 `7E AA 99 7E` before it is accepted. The same tool writes `bundle/index.json` —
 the shape the daemon reads back from `/usr/share/fpgas-tt/demos/index.json` —
-and `bundle/VERSION`. CI lints, runs the index-derivation unit tests, runs every
-demo's cocotb bench, and builds the full bundle and a trial deb on every push.
+and `bundle/VERSION`. CI lints, runs the index-derivation unit tests, runs the
+cocotb bench of every demo that has one, and builds the full bundle and a trial
+deb on every push.
 
 :::{todo}
 The design spec lists six demos plus a stretch goal (`tt_um_wokwi_example` and
@@ -324,10 +324,12 @@ FPGA emulation boards — have shipped. What has not:
   baud is achievable — before the sequence is encoded as a daemon task. Neither
   `POST /kianv/boot` nor the fork's `kianv` kind exists yet, and both READMEs
   say so.
-- **Verilog compiled on the Pi.** The spec reserves `POST /build` for phase 4,
-  taking Verilog instead of a finished bitstream. It needs an arm64 NFS root,
-  because oss-cad-suite only ships `linux-arm64`, and the root is still built
-  from an armhf image.
+- **Verilog compiled on the Pi.** The spec reserves `POST /build` as later
+  work, taking Verilog instead of a finished bitstream. It needs an arm64 NFS
+  root, because oss-cad-suite only ships `linux-arm64`, and the root is still
+  built from an armhf image. The spec numbers this step inconsistently: §11
+  lists it under phase 4, while §5.3 and §7.3 still label it phase 2. Either
+  way it has not shipped.
 - **PMOD HAT features.** The spec's topology has each Pi carrying a PMOD HAT
   alongside the USB link, explicitly reserved and unused by everything above.
   Driving pins or capturing logic from the Pi is listed as later work.
