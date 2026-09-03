@@ -10,7 +10,9 @@ running at Welland and four pending deployment at PS1.
 This page covers the board itself, how it is wired and programmed, the test
 infrastructure built around it, the workarounds its firmware needs, and the
 measured [pin mapping](#pin-mapping) from iCE40 ball through PMOD HAT to
-Raspberry Pi GPIO.
+Raspberry Pi GPIO. Before running anything against a deployed board, read
+[Serial port ownership](#serial-port-ownership) — a daemon holds the port open
+and the board is on a public web site while you work.
 
 ## Where they are
 
@@ -57,9 +59,18 @@ Pi daemon's `/health` plus `reachable`, and is the quickest liveness check.
 The controller row above is the generic Tiny Tapeout demo PCB specification,
 which describes the RP2040-based demo board v2. Every board in this fleet is a
 demo board **v3 (TTDBv3)** carrying an **RP2350B**, and the
-[pin mapping](#pin-mapping) below is the v3 mapping. The two chips are
-pin-compatible in this role; where the sources say "RP2040" for a deployed
-board, read RP2350.
+[pin mapping](#pin-mapping) below is the v3 mapping. The two are *not*
+interchangeable: [Tiny Tapeout PMOD layouts](pmod/tinytapeout.md) shows the
+clock on GPIO0 for v2 against GPIO16 for v3, and a different GPIO block for
+every signal group. Where the sources here say "RP2040" for a deployed board,
+read RP2350.
+:::
+
+:::{todo}
+The two sources disagree on how the iCE40UP5K's block RAM is divided. The table
+above says 15 × 8 Kbit EBR blocks; [FPGA Device](#fpga-device) under the pin
+mapping says 30 EBR blocks. The totals agree (120 Kbit ≈ 15 KB), so one of the
+block counts is wrong. Check against the Lattice datasheet and fix the loser.
 :::
 
 Source: [TinyTapeout PCB Specs](https://tinytapeout.com/specs/pcb/),
@@ -159,7 +170,8 @@ Source: [TinyTapeout PCB Specs](https://tinytapeout.com/specs/pcb/)
 
 ## Clock
 
-The RP2040 generates a 50 MHz clock via PWM on GPIO16 (`RP_PROJCLK`). The
+The RP2350 (RP2040 on v2 boards) generates a 50 MHz clock via PWM on GPIO16
+(`RP_PROJCLK`) — GPIO16 is the v3 pin. The
 iCE40UP5K's internal PLL divides this down to a 12 MHz system clock for
 LiteX SoC designs (see the
 [clock and reset generator](https://github.com/fpgas-online/fpgas.online-test-designs/blob/main/designs/_shared/tt_fpga_crg.py)).
@@ -189,8 +201,8 @@ input to the FPGA design during development and testing.
 
 ## Programming
 
-The RP2040 programs the iCE40UP5K over SPI using the `fabricfox` MicroPython
-module (PIO-accelerated or bitbang fallback).
+The RP2350 (RP2040 on v2 boards) programs the iCE40UP5K over SPI using the
+`fabricfox` MicroPython module (PIO-accelerated or bitbang fallback).
 
 ```console
 # The fpgas-tt daemon holds the serial port open; stop it before programming
@@ -202,12 +214,15 @@ $ sudo systemctl start fpgas-tt
 
 **Programming workflow:**
 
-1. Upload `.bin` to `/bitstreams/custom.bin` on the RP2040 via `mpremote`. This
-   step includes `reset_rp2350()` (Ctrl-C to break any stuck MicroPython
-   script) and a USB power-cycle retry.
+1. Upload `.bin` to `/bitstreams/custom.bin` on the RP2350 (RP2040 on v2
+   boards) via `mpremote`. The
+   [UART test wrapper](https://github.com/fpgas-online/fpgas.online-test-designs/blob/main/designs/_host/tt_test_wrapper.py) additionally calls
+   its `reset_rp2350()` (Ctrl-C to break any stuck MicroPython script) and
+   retries after a USB power cycle.
 2. Enter raw REPL and execute a MicroPython script that:
    - Asserts `CRESET` (GPIO1) to reset the FPGA
-   - Transfers the bitstream over SPI (SCK=GPIO6, MOSI=GPIO3, SS=GPIO5)
+   - Transfers the bitstream over SPI (SCK=GPIO6, MOSI=GPIO3, SS=GPIO5 — the
+     v3 values, hardcoded as `TTDBv3` in the programming script)
    - Releases `CRESET` and waits for FPGA `CDONE`
    - Starts the 50 MHz clock on GPIO16
 3. For PMOD tests: release all GPIO pins to high-Z (`--gpio-release`). All
@@ -300,8 +315,11 @@ which uploads the wrapper scripts and bitstreams to the RPi, then runs the
 appropriate test:
 
 ```console
-# Stop fpgas-tt on the target host first; the wrapper needs the serial port.
+# The wrapper opens the serial port on the target host, so fpgas-tt has to be
+# stopped -- and started again after, or the board drops off the public site.
+$ ssh root@10.21.2.36 systemctl stop fpgas-tt
 $ uv run python verify_hardware.py --board tt --host welland-pi33
+$ ssh root@10.21.2.36 systemctl start fpgas-tt
 ```
 
 :::{todo}
@@ -343,12 +361,15 @@ tinytapeout.fpgas.online until the SDK files are restored.
 If a board does hang, a PoE cycle of its switch port (the S3300 write community
 is in gdoc2netcfg) resets it; the RP2's mass-storage bootloader path stalls on
 Pi 3B+ hosts, so reflashing from a Pi 3B+ needs the PICOBOOT path rather than
-MSC.
+MSC (no TT FPGA host is a Pi 3B+ today; all four are Pi 4).
 
-### RP2040 PWM first-call bug
+### RP2350 PWM first-call bug
 
 The first `PWM()` call on GPIO16 produces a stuck-HIGH output instead of
-oscillation. **Workaround:** deinit and recreate the PWM object:
+oscillation. The source text calls this an RP2040 bug, but the
+[programming script](https://github.com/fpgas-online/fpgas.online-test-designs/blob/main/designs/_host/tt_fpga_program.py) that carries the
+workaround labels it "Workaround for RP2350 PWM bug", and every deployed board
+is an RP2350B. **Workaround:** deinit and recreate the PWM object:
 
 ```python
 clk = PWM(Pin(16))
@@ -363,6 +384,11 @@ RPi GPIO7-11 overlap with the SPI0 bus and conflict with PMOD HAT pins
 (JA/JB pins 2-4). **Workaround:** unload `spidev` and `spi_bcm2835`
 kernel modules before running PMOD tests.
 
+```console
+# Nothing else on the Pi may be using SPI0 -- this takes the bus away from it.
+$ sudo rmmod spidev spi_bcm2835
+```
+
 ## Pin mapping
 
 Pin mapping for the TinyTapeout FPGA demo board v3 (TTDBv3) as connected in the
@@ -375,7 +401,15 @@ straight through (bit 0 → pin 1, bit 7 → pin 10).
 
 The TTDBv3 consists of two boards: the **FPGA breakout board** (iCE40UP5K + SPI
 flash + clock oscillator) and the **TT demo PCB** (RP2350B controller, PMOD
-headers, 7-segment display, DIP switches).
+headers, 7-segment display, DIP switches). The demo PCB carries three PMOD
+headers, one per signal group — [Key Specifications](#key-specifications)
+counts only the two the Tiny Tapeout PCB spec calls standard, and the third is
+the bidirectional (`uio`) one.
+
+Cabling, from the
+[loopback test's board config](https://github.com/fpgas-online/fpgas.online-test-designs/blob/main/designs/pmod-loopback/host/test_pmod_loopback.py):
+HAT **JC** → TT `ui_in`, HAT **JA** → TT `uo_out`, and (per the mapping below)
+HAT **JB** → TT `uio`.
 
 :::{note}
 The shipped RP2350 firmware loaded `GPIOMapTT04` instead of `GPIOMapTTDBv3`,
@@ -481,23 +515,48 @@ HAT.
 | uo_out[6] | 47        | 39          | JA9          | 20       | pin-id   |
 | uo_out[7] | 48        | 40          | JA10         | 18       | pin-id   |
 
-(\*\*) uo_out[1:3] are on JA pins 2-4 which share RPi GPIOs with JB pins 2-4.
+(\*\*) uo_out[1:3] are on JA pins 2-4 which share RPi GPIOs with JB pins 2-4
+(see the JA/JB pin sharing warning under [uio](#uio) below).
 The pin-id decode on these GPIOs is corrupted by JA/JB contention. Positions
 inferred from the pattern — the JA connector pin numbering matches the TT bit
 ordering straight through (bit 0 → pin 1, bit 7 → pin 10).
 
 :::{todo}
-The
-[hardware verification walkthrough](https://github.com/fpgas-online/fpgas.online-test-designs/blob/main/docs/verify-hardware.md)
-carries a different ui_in/uo_out mapping in its "Pin Mapping: iCE40 ↔ PMOD HAT ↔
-RPi GPIO" section. The iCE40 pin numbers agree in every row, but every PMOD HAT
-port and RPi GPIO differs: it puts ui_in on JA1/JA7/JA8/JB1/JC1/JC3/JC4/JC9
-(RPi GPIO 6, 12, 16, 5, 17, 4, 14, 15) and uo_out on
-JC2/JA10/JB8/JA9/JB2/JA3/JB4/JB3 (RPi GPIO 18, 21, 8, 20, 11, 19, 10, 9), and
-its UART pair is ui_in[3] on RPi GPIO 5 with uo_out[4] on RPi GPIO 11. The
-tables above are the measured TTDBv3 mapping and are what this page uses;
-`verify-hardware.md` looks like an earlier cabling. Re-measure and correct the
-losing copy.
+**Two live sources disagree about this permutation, and neither is stale.** The
+tables above are the measured TTDBv3 mapping. The
+[hardware verification walkthrough](https://github.com/fpgas-online/fpgas.online-test-designs/blob/main/docs/verify-hardware.md) and the `tt` entry in the
+[loopback test's board config](https://github.com/fpgas-online/fpgas.online-test-designs/blob/main/designs/pmod-loopback/host/test_pmod_loopback.py) on `main` both carry a different one:
+
+```python
+"tt": {
+    #   ui_in[0:7] drive GPIOs: JC10, JC8, JC1, JC9, JC4, JC7, JC2, JC3
+    #   uo_out[0:7] read GPIOs: JA10, JA8, JA1, JA9, JA4, JA7, JA2, JA3
+    "drive_pins": [6, 12, 16, 5, 17, 4, 14, 15],
+    "read_pins": [18, 21, 8, 20, 11, 19, 10, 9],
+```
+
+The iCE40 pin numbers agree in every row, and both mappings use the same eight
+JC pins for `ui_in` and the same eight JA pins for `uo_out` — only the bit
+order differs. Under the tables above `ui_in[0]` is JC1/GPIO16 and `uo_out[0]`
+is JA1/GPIO8; under `test_pmod_loopback.py` `ui_in[0]` is JC10/GPIO6 and
+`uo_out[0]` is JA10/GPIO18.
+
+**The loopback test cannot arbitrate this.** It drives `drive_pins` and reads
+`read_pins` position by position, and the FPGA returns `uo_out = ~ui_in` bit
+for bit, so any permutation that is consistent between the two lists passes.
+The "empirically confirmed (4-transition verification on pi33)" claim therefore
+confirms that the cables are connected, not that the bit order is right.
+
+**The pin-ID design does arbitrate.** It transmits a distinct identifier on
+each pin, so the decode names the bit at each GPIO. Run `designs/pmod-pin-id`
+through
+[`tt_pmod_wrapper.py`](https://github.com/fpgas-online/fpgas.online-test-designs/blob/main/designs/_host/tt_pmod_wrapper.py) on `pi-sw2-p33`,
+read the decode (see [Pin identification](pin-id.md)), then correct whichever
+of the three copies loses: the tables on this page, the mapping in
+`verify-hardware.md`, or `drive_pins`/`read_pins` in `test_pmod_loopback.py`.
+Everything on this page that quotes RPi GPIO numbers — the
+[UART Interface](#uart-interface) rows and the loopback pre-test note — depends
+on the answer.
 :::
 
 ### uio
@@ -559,6 +618,16 @@ The TT standard UART uses ui_in[3] (RX) and uo_out[4] (TX), following the
 | Serial RX (FPGA receives) | 21        | ui_in[3]  | GPIO20      | JC9          | 5        |
 | Serial TX (FPGA sends)    | 45        | uo_out[4] | GPIO37      | JA4          | 11       |
 
+:::{note}
+These GPIO numbers follow the mapping in `verify-hardware.md` and
+`test_pmod_loopback.py`, which differs from the measured tables above; see
+the todo under [Pin mapping](#pin-mapping).
+:::
+
+Under the tables above the same two signals land on JC4/GPIO17 and JA7/GPIO19
+instead. The iCE40 pins (21, 45), the TT signals and the RP2350 GPIOs (20, 37)
+are the same either way; only the PMOD HAT pin and RPi GPIO move.
+
 #### Access via the RP2350 USB bridge (recommended)
 
 The RP2350 connects to the same FPGA pins via GPIO20/GPIO37 and can bridge UART
@@ -566,7 +635,10 @@ data to the USB CDC serial port (`/dev/ttyACM0`). This is the recommended
 approach since:
 
 - RPi GPIO5/11 are **not hardware UART pins** — the BCM2711 has no UART
-  peripheral assignable to this GPIO pair.
+  peripheral assignable to this GPIO pair. If the measured tables are the right
+  ones the pair is GPIO17/19 instead, which is no better: neither is a BCM2711
+  UART pin either, so the conclusion holds whichever mapping wins, but the
+  specific pin argument below has to be redone against the surviving one.
 - The NFS boot image has no device tree overlay files, and the root filesystem
   is read-only.
 - Software bit-bang UART at 115200 baud is unreliable under a non-RT Linux
@@ -604,6 +676,16 @@ Before running the test:
 - RP2350 GPIOs must be released to high-Z after FPGA programming (the
   programming wrapper handles this automatically)
 
+:::{note}
+These GPIO numbers follow the mapping in `verify-hardware.md` and
+`test_pmod_loopback.py`, which differs from the measured tables above; see
+the todo under [Pin mapping](#pin-mapping).
+:::
+
+Under the tables above GPIO7-11 carry JB1/`uio[0]` and JA1-4/`uo_out[0:3]`
+instead. Either way the same five RPi GPIOs are contended and the `rmmod` is
+required; only the names of the signals on them change.
+
 ### SPI Flash
 
 Dedicated iCE40 SPI pins on the FPGA breakout board (not shared with PMOD).
@@ -615,7 +697,7 @@ Dedicated iCE40 SPI pins on the FPGA breakout board (not shared with PMOD).
 | MISO   | 17        |
 | MOSI   | 14        |
 
-### 7-Segment Display
+### 7-segment display pins
 
 The TT demo PCB has a 7-segment LED display connected to uo_out[0:6]. These
 share the same PMOD traces — when the RPi is driving GPIO tests, the display
