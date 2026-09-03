@@ -53,7 +53,7 @@ Four properties of that picture matter more than the boxes:
 `fpgas-tt` opens `/dev/ttboard` at 115200 baud and keeps retrying every second
 until a board appears, so a Pi whose board is unplugged simply waits. The device
 node is a udev symlink for the demo board's RP2040/RP2350 USB-CDC port; the rule
-that creates it ships in the same package and is quoted under
+that creates it ships in the same package and is described under
 [Serial consoles](pi.md#serial-consoles). What the daemon holding that port open
 means for anything else that wants it — and how to take it back, and why to give
 it straight back — is under
