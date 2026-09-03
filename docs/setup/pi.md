@@ -5,10 +5,11 @@ Every Pi in the fleet boots the same read-only NFS root over the network
 boot time. The root is built once on the server, in two phases: `fixpi` shapes
 the extracted tree in place — the boot files, the `pi` account, the
 hostname-to-`/etc/hosts` unit, the `timesyncd` drop-in and the `ifupdown` masks
-— and then `fpgas-apt`, `cam/pi` and `onpi` run against a `systemd-nspawn`
-container holding that same tree to install packages into it. A running Pi only
-adds a tmpfs upper layer over the result, which is discarded on the next power
-cycle.
+— and then `fpgas-apt`, `cam/pi` and `onpi` run against that same tree through
+a chroot reached over SSH; see
+[The provisioning container](netboot.md#the-provisioning-container). A running
+Pi only adds a tmpfs upper layer over the result, which is discarded on the next
+power cycle.
 
 This page is the inventory of what that converge leaves behind — the packages,
 the systemd units, and the `config.txt` and `cmdline.txt` settings the firmware
@@ -26,10 +27,18 @@ From it:
 
 | Package | Installed by | Purpose |
 | --- | --- | --- |
-| `fpgas-online-setup-pi` | `onpi/tasks/main.yml` | The pistat and Arty units, the USB gadget console, the FEL-boot host, the `.link` interface names, the `/etc/profile.d` banner scripts, the zsh/tmux skeleton and the sshd drop-in. It also drags in the packages those need but `apt.yml` never names: `sunxi-tools` (for `sunxi-fel`), `expect` (for the Arty detection script), `zsh`, `tmux`, `vim` and `python3`, all `depends:` entries in `nfpm.yaml`. |
+| `fpgas-online-setup-pi` | `onpi/tasks/main.yml` | The pistat and Arty units, the USB gadget console, the FEL-boot host, the `.link` interface names, the `/etc/profile.d` banner scripts, the zsh/tmux skeleton and the sshd drop-in. |
 | `fpgas-online-tt` | `onpi/tasks/tt.yml` | The `fpgas-tt` daemon: it owns `/dev/ttboard` and fans it out as a WebSocket on port 8765. See [The Tiny Tapeout stack](tinytapeout.md). |
 | `fpgas-online-tt-demos` | `onpi/tasks/tt.yml` | The demo bitstream set under `/usr/share/fpgas-tt/demos` (`index.json` plus one `.bin` per design), which the daemon syncs onto an `fpga` board. |
 | `fpgas-online-cam` | `cam/pi` role | `/usr/local/bin/fpgas-gst-libcam.sh` and `fpgas-cam.service`. See [Camera](#camera). |
+
+`fpgas-online-setup-pi` also drags in four packages that `apt.yml` never names,
+through `depends:` in its `nfpm.yaml`: `sunxi-tools` for `sunxi-fel`, `expect`
+for the Arty detection script, `zsh` for the shell it ships a skeleton for, and
+`python3`. `expect` in particular has no other route onto a Pi — the only
+explicit `apt install` of it is in the orphaned `arty_here.yml` task file. The
+other two `depends:` entries, `tmux` and `vim`, are installed by `apt.yml`
+itself and appear in the Debian table below.
 
 Both Tiny Tapeout packages are installed with `state: latest`, deliberately —
 they are rolling releases, so re-running the Pi play picks up a newer daemon
@@ -107,7 +116,7 @@ else.
 | `atftpd.socket`, `atftpd.service` | Debian `atftpd` | TFTP on the Pi. `tftpd.yml` rewrites `ListenDatagram=` and `--port` to `tftpd_port`. | Package default; `onpi` only changes the port. |
 | `ssh.service` | Debian `openssh-server` | Remote access. `fpgas-online-setup-pi` adds an `/etc/ssh/sshd_config.d/` drop-in. | Image default. |
 | `fpgas-hostname-hosts.service` | `fixpi` role | Appends the DHCP-assigned hostname to `/etc/hosts` on boot, so `sudo`'s per-invocation `getaddrinfo()` of the machine name is instant instead of stalling on DNS. | Not `onpi` — `fixpi` enables it by planting the `multi-user.target.wants` symlink directly in the root. |
-| `systemd-timesyncd.service` | Debian systemd | NTP, with a `fixpi`-written drop-in pointing it at the gateway. | Image default; `onpi` does not touch it. |
+| `systemd-timesyncd.service` | Debian systemd | NTP, with a `fixpi`-written drop-in pointing it at the gateway. The drop-in is needed because "Pis have no internet and timesyncd does not reliably consume the DHCP ntp-server option under dhcpcd", so without it every Pi's clock sits on the fake-hwclock date. | Image default; `onpi` does not touch it. |
 | `fpgas-pistat-ssh.service` | `fpgas-online-setup-pi` | One-shot `curl` to `https://${pistat_host}/pistat/stat/%l/ssh/`, bound to `ssh.service`. | Shipped in the deb, not enabled by any included task. |
 | `fpgas-pistat-cam.service` | `fpgas-online-setup-pi` | The same for `/cam/`, but ordered after `cam.target` and bound to `cam.service` — neither exists, the camera unit having been renamed `fpgas-cam.service`. | Shipped in the deb, not enabled by any included task. |
 | `fpgas-pistat-info.service` | `fpgas-online-setup-pi` | Reports the device-tree model string, so the server knows which Pi model answered on that port. | Shipped in the deb, not enabled by any included task. |
@@ -358,7 +367,7 @@ fpgas.online-infra, `main`:
 
 - [`ansible/site.yml`](https://github.com/fpgas-online/fpgas.online-infra/blob/main/ansible/site.yml)
   — the `pi` play: `fpgas-apt`, then `cam/pi`, then `onpi`, run against the
-  `nspawn-pi` container on the NFS root.
+  `piroot` chroot the `nspawn-pi` role sets up on the NFS root.
 - [`ansible/roles/onpi/tasks/main.yml`](https://github.com/fpgas-online/fpgas.online-infra/blob/main/ansible/roles/onpi/tasks/main.yml)
   — the include list (`apt.yml`, `nonfs.yml`, `tt.yml`, `tftpd.yml`,
   `sshkeys.yml`, `tweeks.yml`) and the `fpgas-online-setup-pi` install; the
