@@ -2,10 +2,13 @@
 
 Every Pi in the fleet boots the same read-only NFS root over the network
 ([Netboot and the NFS root](netboot.md)), so nothing on a Pi is installed at
-boot time: the root was built once, on the server, by running the `fpgas-apt`,
-`cam/pi` and `onpi` roles against a `systemd-nspawn` container holding that
-root. A running Pi only adds a tmpfs upper layer over it, which is discarded on
-the next power cycle.
+boot time. The root is built once on the server, in two phases: `fixpi` shapes
+the extracted tree in place — the boot files, the `pi` account, the
+hostname-to-`/etc/hosts` unit, the `timesyncd` drop-in and the `ifupdown` masks
+— and then `fpgas-apt`, `cam/pi` and `onpi` run against a `systemd-nspawn`
+container holding that same tree to install packages into it. A running Pi only
+adds a tmpfs upper layer over the result, which is discarded on the next power
+cycle.
 
 This page is the inventory of what that converge leaves behind — the packages,
 the systemd units, and the `config.txt` and `cmdline.txt` settings the firmware
@@ -23,17 +26,21 @@ From it:
 
 | Package | Installed by | Purpose |
 | --- | --- | --- |
-| `fpgas-online-setup-pi` | `onpi/tasks/main.yml` | Everything in the [Services](#services) table below that is not Debian's: the pistat and Arty units, the USB gadget console, the FEL-boot host, the `.link` interface names, the `/etc/profile.d` banner scripts, the zsh/tmux skeleton and the sshd drop-in. |
+| `fpgas-online-setup-pi` | `onpi/tasks/main.yml` | The pistat and Arty units, the USB gadget console, the FEL-boot host, the `.link` interface names, the `/etc/profile.d` banner scripts, the zsh/tmux skeleton and the sshd drop-in. It also drags in the packages those need but `apt.yml` never names: `sunxi-tools` (for `sunxi-fel`), `expect` (for the Arty detection script), `zsh`, `tmux`, `vim` and `python3`, all `depends:` entries in `nfpm.yaml`. |
 | `fpgas-online-tt` | `onpi/tasks/tt.yml` | The `fpgas-tt` daemon: it owns `/dev/ttboard` and fans it out as a WebSocket on port 8765. See [The Tiny Tapeout stack](tinytapeout.md). |
 | `fpgas-online-tt-demos` | `onpi/tasks/tt.yml` | The demo bitstream set under `/usr/share/fpgas-tt/demos` (`index.json` plus one `.bin` per design), which the daemon syncs onto an `fpga` board. |
 | `fpgas-online-cam` | `cam/pi` role | `/usr/local/bin/fpgas-gst-libcam.sh` and `fpgas-cam.service`. See [Camera](#camera). |
 
 Both Tiny Tapeout packages are installed with `state: latest`, deliberately —
 they are rolling releases, so re-running the Pi play picks up a newer daemon
-and demo set. They go into every Pi root, not just the Tiny Tapeout ones: a Pi
-with no `/dev/ttboard` simply waits for one. Only the *site catalogue*
-(`/etc/fpgas-online/tt-boards.yaml`) and the *enablement* of `fpgas-tt.service`
-are gated on the site actually defining `tt_boards`.
+and demo set. Their install is gated on
+`tt_install | default(tt_boards is defined)`, so a site with TT boards gets them
+automatically and a build with none — the CI nfsroot build — can force them in
+by setting `tt_install: true`. That is the point of the split: the daemon and
+demos are generic fleet content, and a Pi with no `/dev/ttboard` simply waits
+for one. The *site catalogue* (`/etc/fpgas-online/tt-boards.yaml`) and the
+*enablement* of `fpgas-tt.service` are gated on `tt_boards` alone, because a
+service enabled without its catalogue would change behaviour on a non-TT site.
 
 From Debian, by `onpi/tasks/apt.yml`:
 
@@ -47,7 +54,6 @@ From Debian, by `onpi/tasks/apt.yml`:
 | `fxload`, `openwince-jtag` | Older USB firmware-loading and JTAG tooling. |
 | `uhubctl` | Per-port USB power control. |
 | `tio`, `minicom`, `picocom`, `screen` | Serial terminals. |
-| `expect` | Drives the Arty detection script (`fpgas-arty-here.exp`). |
 | `tmux`, `vim`, `git`, `tree`, `ack`, `rsync`, `sshfs` | Interactive shell environment for someone SSHed into a node. |
 | `nmap`, `tcpdump` | Network diagnosis from inside a per-port VLAN. |
 | `ssh-import-id` | Used by `onpi/tasks/sshkeys.yml` to pull the operators' public keys for the `pi` account from the `ssh_imports` inventory list. |
@@ -71,9 +77,10 @@ no user's `PATH`, which made the chroot-built and CI-built roots disagree.
 [Packages](../packages.md) describes. Swapping the default in the NFS root is
 [fpgas.online-infra PR #48](https://github.com/fpgas-online/fpgas.online-infra/pull/48),
 still open. Until it lands, the NFS root has no `rp1pio` cable and no
-`--read-dna`, which is why the
-[Acorn wiring page](../boards/acorn/wiring.md) and the
-[NeTV2 page](../boards/netv2.md) both carry workarounds for 0.10.0.
+`--read-dna`, which is why the [Acorn wiring page](../boards/acorn/wiring.md)
+carries workarounds for 0.10.0 — the `/dev/gpiochip15` symlink over
+`/dev/gpiochip0`, and a hand-rolled `ISC_ENABLE` + `ISC_DNA` OpenOCD sequence
+standing in for `--read-dna`.
 :::
 
 The `cam/pi` role adds the streaming stack on top: `gstreamer1.0-tools`, the
@@ -90,37 +97,56 @@ else.
 
 | Unit | Installed by | Purpose | Enabled by `onpi`? |
 | --- | --- | --- | --- |
-| `fpgas-tt.service` | `fpgas-online-tt`, `debian/fpgas-tt.service` | Runs `fpgas-tt --device /dev/ttboard --boards /etc/fpgas-online/tt-boards.yaml` as the `pi` user with the `dialout` group, restarting always. | Yes, by `tt.yml`, but only when the site defines `tt_boards`. |
-| `fpgas-cam.service` | `fpgas-online-cam`, `cam.service` | Runs `/usr/local/bin/fpgas-gst-libcam.sh`, restarting always, after `network-online.target`. | No — the `cam/pi` role enables it, not `onpi`. |
-| `fpgas-usb-console.service` | `fpgas-online-setup-pi`, `usb-console/fpgas-usb-console.service` | `dmesg --follow` onto `/dev/ttyGS0`, so a laptop on the USB-C port gets the kernel log replayed from the start of boot. | Not enabled; `70-fpgas-usb-console.rules` starts it when `ttyGS0` appears. |
-| `serial-getty@ttyGS1.service` | systemd's template unit | The login console on the second gadget port. Separate from `ttyGS0` because `agetty` flushes its tty on start, which would drop queued log data. | Not enabled; the same udev rule pulls it in. |
-| `fpgas-usb-console-log@.service` | `fpgas-online-setup-pi`, `usb-console/fpgas-usb-console-log@.service` | Host side only: captures an attached board's log port to `/var/log/fpgas-usb-console/`, from the first byte, because the board's ring buffer wraps within minutes under debug logging. | Not enabled; `71-fpgas-usb-console-host.rules` starts one instance per matching `ttyACM*`. |
-| `fpgas-felboot@.service` | `fpgas-online-setup-pi`, `felboot/fpgas-felboot@.service` | Host side only: runs `sunxi-fel uboot` against an Allwinner board that enumerated in BROM FEL mode on this Pi's USB, so a PoE-cycled Orange Pi netboots without an operator. | Not enabled; `60-fpgas-felboot.rules` starts it on `1f3a:efe8`. |
+| `fpgas-tt.service` | `fpgas-online-tt` | Runs `fpgas-tt --device /dev/ttboard --boards /etc/fpgas-online/tt-boards.yaml` as the `pi` user with the `dialout` group, restarting always. | Yes, by `tt.yml`, but only when the site defines `tt_boards`. |
+| `fpgas-cam.service` | `fpgas-online-cam` | Runs `/usr/local/bin/fpgas-gst-libcam.sh`, restarting always, after `network-online.target`. | No — the `cam/pi` role enables it, not `onpi`. |
+| `fpgas-usb-console.service` | `fpgas-online-setup-pi` | `dmesg --follow` onto `/dev/ttyGS0`, so a laptop on the USB-C port gets the kernel log replayed from the start of boot. | Not enabled; `70-fpgas-usb-console.rules` starts it when `ttyGS0` appears. |
+| `serial-getty@ttyGS1.service` | systemd (pulled in by the usb-console udev rule) | The login console on the second gadget port. Separate from `ttyGS0` because `agetty` flushes its tty on start, which would drop queued log data. | Not enabled; udev-started. |
+| `fpgas-usb-console-log@.service` | `fpgas-online-setup-pi` | Host side only: captures an attached board's log port to `/var/log/fpgas-usb-console/`, from the first byte, because the board's ring buffer wraps within minutes under debug logging. | Not enabled; `71-fpgas-usb-console-host.rules` starts one instance per matching `ttyACM*`. |
+| `fpgas-felboot@.service` | `fpgas-online-setup-pi` | Host side only: runs `sunxi-fel uboot` against an Allwinner board that enumerated in BROM FEL mode on this Pi's USB, so a PoE-cycled Orange Pi netboots without an operator. | Not enabled; `60-fpgas-felboot.rules` starts it on `1f3a:efe8`. |
 | `lldpd.service` | Debian `lldpd` | The LLDP advertisement described above. | Package default. |
 | `atftpd.socket`, `atftpd.service` | Debian `atftpd` | TFTP on the Pi. `tftpd.yml` rewrites `ListenDatagram=` and `--port` to `tftpd_port`. | Package default; `onpi` only changes the port. |
-| `ssh.service` | Debian `openssh-server`, from the base image | Remote access. `fpgas-online-setup-pi` adds `/etc/ssh/sshd_config.d/fpgas-password.conf` as a drop-in. | Image default. |
-| `fpgas-hostname-hosts.service` | `fixpi` role, `tasks/netboot.yml` | Appends the DHCP-assigned hostname to `/etc/hosts` on boot, so `sudo`'s per-invocation `getaddrinfo()` of the machine name is instant instead of stalling on DNS. | Not `onpi` — `fixpi` enables it by planting the `multi-user.target.wants` symlink directly in the root. |
-| `systemd-timesyncd.service` | Debian systemd | NTP. `fixpi/tasks/netboot.yml` writes `/etc/systemd/timesyncd.conf.d/fpgas.conf` with `NTP=10.21.0.1`, the gateway, because the Pis have no internet and timesyncd does not reliably consume the DHCP `ntp-server` option under dhcpcd. | Image default; `onpi` does not touch it. |
-| `fpgas-pistat-ssh.service` | `fpgas-online-setup-pi`, `onpi/pistat_ssh.service` | One-shot `curl` to `https://${pistat_host}/pistat/stat/%l/ssh/`, bound to `ssh.service`. | Shipped in the deb, not enabled by any included task. |
-| `fpgas-pistat-cam.service` | `fpgas-online-setup-pi`, `onpi/pistat_cam.service` | The same for `/cam/`, bound to `cam.service` — a unit name that no longer exists, the camera unit having been renamed `fpgas-cam.service`. | Shipped in the deb, not enabled by any included task. |
-| `fpgas-pistat-info.service` | `fpgas-online-setup-pi`, `onpi/pistat_info.service` | Reports the device-tree model string, so the server knows which Pi model answered on that port. | Shipped in the deb, not enabled by any included task. |
-| `fpgas-pistat-shutdown.service` | `fpgas-online-setup-pi`, `onpi/pistat_shutdown.service` | `RemainAfterExit` unit whose `ExecStop` reports `/shutdown/` on the way down. | Shipped in the deb, not enabled by any included task. |
-| `fpgas-arty-here.service` | `fpgas-online-setup-pi`, `onpi/is_arty/arty_here.service` | Runs `fpgas-arty-here.sh`, which drives `fpgas-arty-here.exp` to decide whether an Arty is attached, and reports the answer. | Shipped in the deb, not enabled by any included task. |
-| `fpgas-arty-wire.service` | `fpgas-online-setup-pi`, `onpi/is_wire/arty_wire.service` | Checks that the Pi-to-Arty wiring is actually in place, after `arty_here`. | Shipped in the deb, not enabled by any included task. |
-| `fpgas-arty-blink.service` | `fpgas-online-setup-pi`, `onpi/arty_blink/arty_blink.service` | Runs the Arty counter demo from `/home/pi/Demos/counter_test`, after `arty_wire`. | Shipped in the deb, not enabled by any included task. |
+| `ssh.service` | Debian `openssh-server` | Remote access. `fpgas-online-setup-pi` adds an `/etc/ssh/sshd_config.d/` drop-in. | Image default. |
+| `fpgas-hostname-hosts.service` | `fixpi` role | Appends the DHCP-assigned hostname to `/etc/hosts` on boot, so `sudo`'s per-invocation `getaddrinfo()` of the machine name is instant instead of stalling on DNS. | Not `onpi` — `fixpi` enables it by planting the `multi-user.target.wants` symlink directly in the root. |
+| `systemd-timesyncd.service` | Debian systemd | NTP, with a `fixpi`-written drop-in pointing it at the gateway. | Image default; `onpi` does not touch it. |
+| `fpgas-pistat-ssh.service` | `fpgas-online-setup-pi` | One-shot `curl` to `https://${pistat_host}/pistat/stat/%l/ssh/`, bound to `ssh.service`. | Shipped in the deb, not enabled by any included task. |
+| `fpgas-pistat-cam.service` | `fpgas-online-setup-pi` | The same for `/cam/`, but ordered after `cam.target` and bound to `cam.service` — neither exists, the camera unit having been renamed `fpgas-cam.service`. | Shipped in the deb, not enabled by any included task. |
+| `fpgas-pistat-info.service` | `fpgas-online-setup-pi` | Reports the device-tree model string, so the server knows which Pi model answered on that port. | Shipped in the deb, not enabled by any included task. |
+| `fpgas-pistat-shutdown.service` | `fpgas-online-setup-pi` | `RemainAfterExit` unit whose `ExecStop` reports `/shutdown/` on the way down. | Shipped in the deb, not enabled by any included task. |
+| `fpgas-arty-here.service` | `fpgas-online-setup-pi` | Meant to report whether an Arty is attached, but its `ExecStart` is `/usr/local/bin/arty_here.sh` and the deb installs the script as `fpgas-arty-here.sh` — which in turn calls `/usr/local/bin/arty_here.exp`, installed as `fpgas-arty-here.exp`. | Shipped in the deb, not enabled by any included task — and would not run if it were. |
+| `fpgas-arty-wire.service` | `fpgas-online-setup-pi` | Meant to check the Pi-to-Arty wiring. `ExecStart` is `/usr/local/bin/arty_wire.sh` against an installed `fpgas-arty-wire.sh`, and it orders `After=arty_here.target`, a target that does not exist. | Shipped in the deb, not enabled by any included task — and would not run if it were. |
+| `fpgas-arty-blink.service` | `fpgas-online-setup-pi` | Meant to run the Arty counter demo from `/home/pi/Demos/counter_test`. `ExecStart` is `/usr/local/bin/arty_blink.sh` against an installed `fpgas-arty-blink.sh`, and it orders `After=arty_wire.target`, also nonexistent. | Shipped in the deb, not enabled by any included task — and would not run if it were. |
 
 :::{todo}
 The `fpgas-pistat-*` and `fpgas-arty-*` families are shipped in
 `fpgas-online-setup-pi` but enabled by nothing. The role files that used to
 enable them — `onpi/tasks/pistat.yml`, `arty_here.yml`, `arty_wire.yml`,
-`arty_blink.yml` — still exist in the infra repo, still template the units
-under their **old** names (`pistat_ssh.service`, `arty_here.service`) into
-`/etc/systemd/system/`, and are not in `onpi/tasks/main.yml`'s include list.
-So status reporting for the per-port fleet may not be wired up at all on the
-current roots: nothing reports SSH-ready, camera-ready, model or shutdown, and
-no Arty presence check runs. Decide whether the pistat path is still wanted;
-if it is, add an include that enables the `fpgas-`-prefixed units, and delete
-the four orphaned task files either way.
+`arty_blink.yml` — still exist in the infra repo, still copy or template the
+units under their **old** names (`pistat_ssh.service`, `arty_here.service`)
+into `/etc/systemd/system/`, and are not in `onpi/tasks/main.yml`'s include
+list. So status reporting for the per-port fleet may not be wired up at all on
+the current roots: nothing reports SSH-ready, camera-ready, model or shutdown,
+and no Arty presence check runs.
+
+Enabling them is not a one-line fix for the Arty three. Their unit bodies were
+never updated when the package took over installation, so all three would fail
+with **203/EXEC**: each `ExecStart` names the pre-package script path
+(`/usr/local/bin/arty_here.sh`) while `nfpm.yaml` installs `fpgas-arty-here.sh`,
+and there is no postinstall script or compatibility symlink in the deb to
+bridge the two. `arty_here.sh` has the same problem one level down — it calls
+`/usr/local/bin/arty_here.exp`, installed as `fpgas-arty-here.exp`. On top of
+that, `arty_wire` and `arty_blink` order themselves after `arty_here.target`
+and `arty_wire.target`, targets that do not exist anywhere in the package. The
+unit bodies need the `fpgas-` names and those two `After=` targets removed
+before enabling them would achieve anything.
+
+The four pistat units do **not** share the path problem: their `ExecStart`
+lines invoke `/usr/bin/curl` (and `/usr/bin/bash` in the `info` case) directly,
+so enabling them is sufficient. `fpgas-pistat-cam.service` would still be inert,
+because it is bound to `cam.service`, which was renamed `fpgas-cam.service`.
+
+Decide whether the pistat path is still wanted; if it is, fix the unit bodies
+in `fpgas.online-setup-pi`, add an include that enables the `fpgas-`-prefixed
+units, and delete the four orphaned task files either way.
 :::
 
 Two smaller oddities in the same package. The `pistat-scripts/` Python files
@@ -171,10 +197,9 @@ dtoverlay=dwc2,dr_mode=peripheral
   [EEPROM write protect](netboot.md#eeprom-write-protect).
 
 `dtoverlay=disable-wifi`, `dtoverlay=disable-bt`
-: The onboard radios off. Two lines cover Pi 4 and Pi 5 because the Pi 5
-  firmware auto-remaps them to `disable-wifi-pi5` and `disable-bt-pi5` through
-  `overlay_map.dtb`. On the Pi 4 `disable-wifi` disables `&mmc`/`&mmcnr` and on
-  the Pi 5 `&sdio2`, so WLAN never enumerates at all.
+: The onboard radios off, on both Pi 4 and Pi 5 — the per-generation overlay
+  remapping is under
+  [How the root is built](netboot.md#how-the-root-is-built).
 
 `dtoverlay=uart0-pi5` and the `[pi5]` console
 : `disable-bt` frees the 40-pin header UART as a side effect on Pi 0–4 only —
@@ -207,16 +232,19 @@ dtoverlay=dwc2,dr_mode=peripheral
   undecided: 500 might bring the PoE boot problem back, or the PoE problem
   might never have been real.
 
-`tweeks.yml` also removes and masks a few things in the root itself, all for
-the same reason — a netbooted Pi has no console to watch a unit fail on.
-`console-setup.service` and `profile.d/wifi-check.sh` are deleted (a failed
-console-setup and an "Wi-Fi is blocked by rfkill" warning respectively);
-`/etc/hostname` is deleted so the DHCP-supplied name wins; `pistat_host` is
-written into `/etc/environment`, which is where every pistat and Arty unit
-reads it from; and `networking.service` and `ifupdown-pre.service` are masked
-to `/dev/null`, because `ifupdown` is unused under `ip=dhcp` plus
-NetworkManager and `ifupdown-pre` sat through its full two-minute `udevadm
-settle` on an Orange Pi before anything else could start.
+`tweeks.yml` also edits the root itself, mostly to stop units failing where
+nobody can see them. `console-setup.service` and `profile.d/wifi-check.sh` are
+deleted (a failed console-setup, and a "Wi-Fi is blocked by rfkill" warning on
+every login); `/etc/hostname` is deleted so the DHCP-supplied name wins; and
+`networking.service` and `ifupdown-pre.service` are masked to `/dev/null`,
+because `ifupdown` is unused under `ip=dhcp` plus NetworkManager and
+`ifupdown-pre` sat through its full two-minute `udevadm settle` on an Orange Pi
+before anything else could start. It also writes `pistat_host` into
+`/etc/environment`, which is where every pistat and Arty unit reads the server
+name from. The `fpgas-hostname-hosts.service` unit and the `timesyncd` drop-in
+that pins the Pi's clock at the gateway are `fixpi`'s too, from `netboot.yml`,
+and are described under
+[How the root is built](netboot.md#how-the-root-is-built).
 
 ## Model differences
 
@@ -388,7 +416,11 @@ fpgas.online-infra, `main`:
 
 - [`nfpm.yaml`](https://github.com/fpgas-online/fpgas.online-setup-pi/blob/main/nfpm.yaml)
   — the authoritative list of what the deb installs and where, including the
-  `fpgas-`-prefixed unit names and the `pistat-scripts` destinations.
+  `fpgas-`-prefixed script and unit names and the `pistat-scripts` destinations;
+  the `depends:` list (`sunxi-tools`, `zsh`, `tmux`, `vim`, `expect`,
+  `python3`), which is the only route by which `expect` reaches a Pi; and the
+  absence of any `scripts:` block, so there is no postinstall to symlink the
+  old script names.
 - [`README.md`](https://github.com/fpgas-online/fpgas.online-setup-pi/blob/main/README.md)
   — the summary of what the package provides and the directory layout.
 - [`usb-console/70-fpgas-usb-console.rules`](https://github.com/fpgas-online/fpgas.online-setup-pi/blob/main/usb-console/70-fpgas-usb-console.rules),
@@ -411,7 +443,13 @@ fpgas.online-infra, `main`:
   [`is_arty/arty_here.service`](https://github.com/fpgas-online/fpgas.online-setup-pi/blob/main/onpi/is_arty/arty_here.service),
   [`is_wire/arty_wire.service`](https://github.com/fpgas-online/fpgas.online-setup-pi/blob/main/onpi/is_wire/arty_wire.service),
   [`arty_blink/arty_blink.service`](https://github.com/fpgas-online/fpgas.online-setup-pi/blob/main/onpi/arty_blink/arty_blink.service))
-  — what each reports and what it orders after.
+  — what each reports, the `ExecStart` paths that no longer match what
+  `nfpm.yaml` installs, the `curl`-only pistat `ExecStart` lines, the
+  `cam.target`/`cam.service` references in `pistat_cam.service`, and the
+  `arty_here.target` and `arty_wire.target` orderings.
+- [`onpi/is_arty/arty_here.sh`](https://github.com/fpgas-online/fpgas.online-setup-pi/blob/main/onpi/is_arty/arty_here.sh)
+  — its call to `/usr/local/bin/arty_here.exp`, installed as
+  `fpgas-arty-here.exp`.
 - [`pistat-scripts/send.py`](https://github.com/fpgas-online/fpgas.online-setup-pi/blob/main/pistat-scripts/send.py),
   [`send_stat.py`](https://github.com/fpgas-online/fpgas.online-setup-pi/blob/main/pistat-scripts/send_stat.py)
   and [`send_ncc.py`](https://github.com/fpgas-online/fpgas.online-setup-pi/blob/main/pistat-scripts/send_ncc.py)
