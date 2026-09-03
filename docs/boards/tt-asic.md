@@ -40,7 +40,7 @@ addresses and serial numbers are on the Welland page, not here.
 | TT06   | [tt06](https://tinytapeout.com/chips/tt06/) | RP2040 (v2) | **deployed ×1** | pending ×1 | [tt06](https://tinytapeout.fpgas.online/board/tt06/) |
 | TT07   | [tt07](https://tinytapeout.com/chips/tt07/) | RP2040 (v2) | **deployed ×1** | pending ×1 | [tt07](https://tinytapeout.fpgas.online/board/tt07/) |
 | TT08   | [tt08](https://tinytapeout.com/chips/tt08/) | RP2040 (v2) | **deployed ×1** | pending ×1 | [tt08](https://tinytapeout.fpgas.online/board/tt08/) |
-| TT09   | [tt09](https://tinytapeout.com/chips/tt09/) | RP2350 (v3) | pending ×1 | pending ×1 | [tt09](https://tinytapeout.fpgas.online/board/tt09/) |
+| TT09   | [tt09](https://tinytapeout.com/chips/tt09/) | RP2350 (v3) | pending ×1 | pending ×1 | [tt09](https://tinytapeout.fpgas.online/board/tt09/) (placeholder) |
 
 Counts as of 2026-09-03 from the test-designs hardware README and the Welland
 host table.
@@ -60,7 +60,9 @@ Two disagreements between the sources, neither resolved:
   board is deployed, so nothing has been measured either way.
 - The README's PS1 column has a pending TT08, while the PS1 board summary counts
   seven pending ASIC boards, "one each: TT02-TT09 except TT08" — which is what
-  [PS1 pending](../sites/ps1.md#pending) repeats.
+  [PS1 pending](../sites/ps1.md#pending) repeats. The PS1 column above follows
+  the README, so it totals **eight** pending boards where
+  [PS1 pending](../sites/ps1.md#pending) says seven.
 :::
 
 ## Connection to the Pi
@@ -73,10 +75,18 @@ mode", VID:PID `2e8a:0005`, at
 `/dev/serial/by-id/usb-MicroPython_Board_in_FS_mode_<serial>-if00`, with a udev
 symlink **`/dev/ttboard`** to `/dev/ttyACM0`. That port has a permanent owner:
 every TT host runs the `fpgas-tt` daemon, which holds it open and republishes it
-as a WebSocket on port 8765 for the web Commander, so `mpremote` and anything
-else that wants the port has to stop the daemon first — and start it again
-afterwards, or the board drops off the public site. The mechanics are the same
-as for the FPGA boards; see
+as a WebSocket on port 8765 for the web Commander (all probed 2026-09-03), so
+`mpremote` and anything else that wants the port has to stop the daemon first —
+and start it again afterwards, or the board drops off the public site:
+
+```console
+# Stopping the daemon takes the board off tinytapeout.fpgas.online until it is
+# started again -- do not leave it stopped.
+$ sudo systemctl stop fpgas-tt
+$ sudo systemctl start fpgas-tt
+```
+
+The mechanics are the same as for the FPGA boards; see
 [Serial port ownership](tt-fpga.md#serial-port-ownership) for the endpoints and
 the stop/start rule, and [The Tiny Tapeout stack](../setup/tinytapeout.md) for
 how the daemon is installed. Each board's
@@ -84,8 +94,9 @@ how the daemon is installed. Each board's
 `/health` plus `reachable`, and is the quickest liveness check.
 
 **A Digilent Pmod HAT ribbon, for GPIO-level access.** Every ASIC host also
-carries a [Raspberry Pi PMOD HAT](pmod/rpi-hat.md), which brings the demo
-board's three PMOD connectors onto the Pi's GPIO header so the TT I/O pins can
+carries a [Raspberry Pi PMOD HAT](pmod/rpi-hat.md), which can bring the demo
+board's PMOD connectors onto the Pi's GPIO header; how they are cabled on these
+hosts has not been recorded. Where the ribbons are in place, the TT I/O pins can
 be driven and sampled from Linux rather than through the MicroPython REPL. Every
 host has an ov5647 camera pointed at the board as well.
 

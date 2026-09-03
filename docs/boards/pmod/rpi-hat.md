@@ -114,7 +114,7 @@ The PMOD HAT does not include any level shifters or buffers -- signals pass dire
 
 ## Usage in fpgas.online
 
-The PMOD HAT is installed on RPi hosts that have **Arty A7** or **Tiny Tapeout FPGA Demo Board** hardware attached. It connects the RPi's GPIO pins to the PMOD connectors on these FPGA boards, enabling the RPi to directly drive and read FPGA I/O pins for testing (GPIO loopback, SPI, UART, etc.).
+The PMOD HAT is installed on RPi hosts that have **Arty A7**, **Tiny Tapeout FPGA Demo Board** or [**Tiny Tapeout ASIC demo board**](../tt-asic.md) hardware attached — every one of the six Tiny Tapeout ASIC hosts at Welland carries one. It connects the RPi's GPIO pins to the PMOD connectors on these FPGA boards, enabling the RPi to directly drive and read FPGA I/O pins for testing (GPIO loopback, SPI, UART, etc.).
 
 ### Wiring
 
