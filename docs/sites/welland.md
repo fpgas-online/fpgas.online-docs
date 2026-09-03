@@ -32,8 +32,9 @@ Internet ─── eth-uplink ──│  Debian 13 (trixie)                │
 ```
 
 Every Raspberry Pi netboots over PXE/TFTP from tweed. Since **2026-08-23** the
-site runs the **VLAN-per-port** scheme: every Pi-facing switch port is an
-untagged access port in its own VLAN, tweed isolates Pi↔Pi traffic with
+site runs the **VLAN-per-port** scheme
+([fpgas.online-infra PR #10](https://github.com/fpgas-online/fpgas.online-infra/pull/10)):
+every Pi-facing switch port is an untagged access port in its own VLAN, tweed isolates Pi↔Pi traffic with
 nftables, and a Pi's identity comes from the port it is plugged into rather
 than from its MAC.
 
@@ -375,7 +376,9 @@ against, and the full per-pin survey behind them, are on
 `dtoverlay=disable-bt`
 : A no-op on the Pi 5. The overlay is `compatible="brcm,bcm2835"` and resolves
   to `disable-bt-pi5.dtbo`, which only touches the `bluetooth` node; the header
-  UART stays disabled. Use `dtoverlay=uart0-pi5` instead.
+  UART stays disabled. Use `dtoverlay=uart0-pi5` instead, which is what the NFS
+  root now carries
+  ([infra PR #32](https://github.com/fpgas-online/fpgas.online-infra/pull/32)).
 
 `/dev/ttyAMA0` vs `/dev/ttyAMA10`
 : `ttyAMA0` is the RP1 header UART; `ttyAMA10` is the dedicated debug UART. The
@@ -387,7 +390,7 @@ Reconfiguring the FPGA over JTAG while its PCIe endpoint is enumerated crashes
 the BCM2712 root complex. Detach the endpoint first:
 
 ```console
-$ echo 1 | sudo tee /sys/bus/pci/devices/0000:01:00.0/remove
+$ echo 1 | sudo tee /sys/bus/pci/devices/0001:01:00.0/remove
 ```
 
 Restore it with `/sys/bus/pci/rescan`, or by rebooting.
@@ -493,9 +496,13 @@ Source: `pibs.conf` on tweed.
 - **All Acorn hosts**: openFPGALoader is 0.10.0, which predates `--read-dna`,
   `--read-xadc` and `--read-register` and needs the `gpiochip15 → gpiochip0`
   symlink on a Pi 5. That is why device DNA cannot be read here while it can at
-  PS1. See [Packages](../packages.md) for the replacement.
+  PS1. See [Packages](../packages.md) for the replacement, which arrives with
+  [infra PR #48](https://github.com/fpgas-online/fpgas.online-infra/pull/48).
 - **pi-sw2-p3** (tt03p5): the web Commander does not support demo-board
-  firmware 1.2.x yet, so that board is camera-only.
+  firmware 1.2.x yet, so that board is camera-only. It needs the upstream
+  `legacy` branch port —
+  [tt-commander-app #9](https://github.com/fpgas-online/tt-commander-app/pull/9)
+  and [#10](https://github.com/fpgas-online/tt-commander-app/pull/10).
 - **Stale NFS handles after package upgrades in the shared NFS root**: on
   2026-08-30, upgrading `fpgas-online-cam` under running Pis left them with
   `ESTALE` on the replaced files — cameras off air on 11 boards; on 2026-09-03
