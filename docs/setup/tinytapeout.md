@@ -1,5 +1,5 @@
 # The Tiny Tapeout stack
 
-```{todo}
+:::{todo}
 Not yet ported. See the port plan.
-```
+:::

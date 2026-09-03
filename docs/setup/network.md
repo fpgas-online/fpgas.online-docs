@@ -1,5 +1,5 @@
 # Network and power
 
-```{todo}
+:::{todo}
 Not yet ported. See the port plan.
-```
+:::

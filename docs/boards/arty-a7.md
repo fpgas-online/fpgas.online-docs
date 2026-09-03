@@ -1,5 +1,5 @@
 # Digilent Arty A7
 
-```{todo}
+:::{todo}
 Not yet ported. See the port plan.
-```
+:::

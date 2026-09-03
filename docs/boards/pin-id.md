@@ -1,5 +1,5 @@
 # Verifying wiring with the pin-id design
 
-```{todo}
+:::{todo}
 Not yet ported. See the port plan.
-```
+:::

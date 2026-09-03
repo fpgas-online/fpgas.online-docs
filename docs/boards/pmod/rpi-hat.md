@@ -1,5 +1,5 @@
 # Raspberry Pi PMOD HAT
 
-```{todo}
+:::{todo}
 Not yet ported. See the port plan.
-```
+:::

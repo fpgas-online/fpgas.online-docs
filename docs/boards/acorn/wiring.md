@@ -1,5 +1,5 @@
 # Acorn wiring
 
-```{todo}
+:::{todo}
 Not yet ported. See the port plan.
-```
+:::

@@ -1,5 +1,5 @@
 # Netboot and the NFS root
 
-```{todo}
+:::{todo}
 Not yet ported. See the port plan.
-```
+:::

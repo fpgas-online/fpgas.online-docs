@@ -1,5 +1,5 @@
 # Verifying a deployment
 
-```{todo}
+:::{todo}
 Not yet ported. See the port plan.
-```
+:::

@@ -1,5 +1,5 @@
 # Tiny Tapeout FPGA demo board
 
-```{todo}
+:::{todo}
 Not yet ported. See the port plan.
-```
+:::
