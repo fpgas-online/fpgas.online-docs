@@ -1,13 +1,13 @@
 # Fomu EVT
 
 The Fomu is a tiny FPGA board that fits inside a USB Type-A port, designed by
-Sean Cross (xobs) and Tim Ansell; the EVT (Engineering Validation Test)
-revision is the one used in the fpgas.online test infrastructure. It is built
-around a Lattice iCE40UP5K with native USB — the FPGA has dedicated USB I/O
-pins, so there is no external PHY and no FTDI — which means the board enumerates
-as a USB device by itself and is programmed over USB DFU rather than over JTAG.
-Two boards are installed, both at Welland, on Raspberry Pi 3B+ hosts with a USB
-protocol analyser inline; their addresses, MACs and analysers are in the
+Sean Cross (xobs) and Tim Ansell; the EVT (Engineering Validation Test) revision
+is the one used in the fpgas.online test infrastructure. It is built around a
+Lattice iCE40UP5K with native USB: the FPGA has dedicated USB I/O pins, so there
+is no external PHY and no FTDI. The board therefore enumerates as a USB device
+by itself, and it is programmed over USB DFU rather than over JTAG. Two boards
+are installed, both at Welland, on Raspberry Pi 3B+ hosts with a USB protocol
+analyser inline; their addresses, MACs and analysers are in the
 [Fomu EVT host table](../sites/welland.md#fomu-evt). This page covers the board
 itself, its iCE40 pin assignments for each on-board peripheral, how it is
 programmed and monitored, and how it is wired to its Raspberry Pi.
@@ -33,11 +33,17 @@ programmed and monitored, and how it is wired to its Raspberry Pi.
 | Form factor          | Fits inside a USB Type-A port             |
 
 :::{note}
-The two source documents disagree about the block RAM. The board specification
-above says 120 Kbit as 15 blocks of 8 Kbit; the pin-mapping document says 30 EBR
-blocks totalling 15 KB. The totals agree (120 Kbit is 15 KB) — it is the block
-count and block size that differ, and the iCE40UP5K datasheet is the tie-breaker
-before either figure is quoted elsewhere.
+The two source documents disagree about the block RAM: the row above says 120
+Kbit as 15 blocks of 8 Kbit, the pin-mapping document says 30 EBR blocks
+totalling 15 KB. The totals agree (120 Kbit is 15 KB); only the block count and
+block size differ.
+:::
+
+:::{todo}
+Confirm the EBR geometry against the Lattice iCE40 UltraPlus family datasheet
+(<https://www.latticesemi.com/Products/FPGAandCPLD/iCE40UltraPlus>): it gives 30
+EBR blocks of 4 Kbit (120 Kbit), which makes the Key Specifications table's
+"15 x 8 Kbit blocks" the suspect figure; correct it once confirmed.
 :::
 
 Source: [LiteX platform file for the Fomu EVT](https://github.com/litex-hub/litex-boards/blob/master/litex_boards/platforms/kosagi_fomu_evt.py),
@@ -60,16 +66,23 @@ All USB pins use the LVCMOS33 I/O standard.
 
 The USB interface supports DFU (Device Firmware Upgrade) for bitstream loading,
 as well as acting as a CDC-ACM serial port or a custom USB device depending on
-the loaded design.
+the loaded design. When this interface is live on a fleet host, and what happens
+to it once a test bitstream is loaded, is under
+[USB connection to the Pi](#usb-connection-to-the-pi).
 
 Source: [LiteX platform file for the Fomu EVT](https://github.com/litex-hub/litex-boards/blob/master/litex_boards/platforms/kosagi_fomu_evt.py)
 
 ## Serial (UART)
 
-The EVT board has a serial port that can be used for debugging. In practice the
-USB interface (CDC-ACM or DFU) is the primary communication channel. How these
-two pins reach the Pi is covered under
-[UART interface](#uart-interface).
+The EVT board has a serial port on two iCE40 pins. The board documentation
+treats it as a debugging extra, on the grounds that USB (CDC-ACM or DFU) is the
+Fomu's primary channel — but that is not how the fleet uses it. The test
+bitstreams contain no USB core, so the Fomu leaves USB the moment one is loaded,
+and the harness talks to the design over these two pins, wired to the Pi's own
+GPIO UART and opened as `/dev/serial0`. This is the reconciliation of the two
+statements you will find elsewhere: the Fomu has no USB serial device, and it
+does have a serial port — on the GPIO header. How the pins reach the Pi is
+covered under [UART interface](#uart-interface).
 
 | Signal | FPGA Pin | I/O Standard | Notes       |
 | ------ | -------- | ------------ | ----------- |
@@ -100,7 +113,7 @@ Source: [LiteX platform file for the Fomu EVT](https://github.com/litex-hub/lite
 ## RGB LED
 
 The Fomu has a single RGB LED driven by the iCE40UP5K's internal LED driver IP
-(active-low accent LED and the `SB_RGBA_DRV` primitive).
+(an active-low LED driven through the `SB_RGBA_DRV` primitive).
 
 | Color | FPGA Pin | Active |
 | ----- | -------- | ------ |
@@ -186,6 +199,16 @@ The Fomu EVT has a debug connector with 6 pins:
 
 ## Programming
 
+Three tools appear below and they are not interchangeable. The fleet programs
+the board from its Pi host with `openFPGALoader -b fomu design.bin`, which
+speaks DFU itself and needs nothing else installed on the Fomu side; that is the
+path the test harness takes and the one described under
+[Programming interface](#programming-interface). `dfu-util -D design.dfu` is the
+upstream manual equivalent of the same DFU transfer, but it takes a `.dfu`
+container rather than the raw `.bin`. `iceprog` writes the SPI flash directly
+and needs external SPI programming hardware, so it cannot be used on these hosts
+at all.
+
 ### USB DFU (primary method)
 
 The Fomu is programmed over USB using the DFU (Device Firmware Upgrade)
@@ -204,6 +227,9 @@ The DFU bootloader resides in the SPI flash and provides a USB DFU interface
 when no valid application is present or when the user triggers DFU mode. The
 test infrastructure drives the same interface through `openFPGALoader` instead;
 see [Programming interface](#programming-interface).
+
+If `dfu-util -l` shows nothing, the bootloader has probably timed out; see
+[DFU bootloader timeout](#dfu-bootloader-timeout).
 
 ### IceStorm Programmer (iceprog)
 
@@ -225,7 +251,7 @@ design or the host software. Which analyser is on which host, along with the
 hosts' addresses and the Fomu's `1209:5bf0` VID:PID and DFU version, is in the
 [Fomu EVT host table](../sites/welland.md#fomu-evt).
 
-| Host | Analyzer     | USB VID:PID |
+| Host | Analyser     | USB VID:PID |
 | ---- | ------------ | ----------- |
 | pi17 | OpenVizsla   | `1d50:607c` |
 | pi21 | Cythion/LUNA | `16d0:05a5` |
@@ -233,7 +259,7 @@ hosts' addresses and the Fomu's `1209:5bf0` VID:PID and DFU version, is in the
 ### OpenVizsla (pi17)
 
 The [OpenVizsla](https://github.com/openvizsla/ov_ftdi) is an open-source USB
-protocol analyzer. It captures USB traffic between the Fomu and the RPi host for
+protocol analyser. It captures USB traffic between the Fomu and the RPi host for
 debugging and test verification.
 
 ### Cythion/LUNA (pi21)
@@ -269,6 +295,13 @@ Source: dnsmasq `pibs.conf` on tweed, verified 2026-03-17.
 The pin-mapping notes give the toolchain as `icestorm` / `nextpnr-ice40`, which
 is the same open-source flow.
 
+:::{note}
+The `Programmer | IceStorm (iceprog)` row is the LiteX platform default, not the
+path this fleet uses. `iceprog` needs external SPI programming hardware; the
+hosts program the board over USB DFU with `openFPGALoader`, as described under
+[Programming](#programming).
+:::
+
 Source: [LiteX platform file for the Fomu EVT](https://github.com/litex-hub/litex-boards/blob/master/litex_boards/platforms/kosagi_fomu_evt.py)
 
 ## Wiring to the Raspberry Pi
@@ -300,21 +333,28 @@ bitstream into volatile SRAM over USB DFU.
 | Bitstream type | `.bin` (volatile SRAM load)          |
 | Bootloader     | DFU Bootloader v2.0.4                |
 
+(dfu-bootloader-timeout)=
+
 #### DFU bootloader timeout
 
-The DFU bootloader has a timeout of about 3 minutes. If no DFU activity occurs
-within that window, the bootloader warm-boots the iCE40 to load the user
-bitstream from SPI flash. The user bitstream typically has no USB, so the Fomu
-disappears from USB.
+If no DFU activity occurs within the bootloader's window, the bootloader
+warm-boots the iCE40 to load the user bitstream from SPI flash. The user
+bitstream typically has no USB, so the Fomu disappears from USB.
 
 :::{warning}
 A Fomu that has vanished from `lsusb` is usually not broken — it has timed out
-of DFU, or it is running a test bitstream with no USB core. The recovery is a
-PoE power cycle, which resets the Fomu and restarts the DFU bootloader.
-The
+of DFU after about 3 minutes, or it is running a test bitstream with no USB
+core. The recovery is a PoE power cycle, which resets the Fomu and restarts the
+DFU bootloader. The
 [hardware verification script](https://github.com/fpgas-online/fpgas.online-test-designs/blob/main/verify_hardware.py)
 (`verify_hardware.py`) does this automatically: it triggers a PoE reset and
-retries programming when DFU is unavailable. Do not go looking for a dead board before power-cycling it.
+retries programming when DFU is unavailable. Do not go looking for a dead board
+before power-cycling it.
+
+The round trip is worth spelling out: the PoE cycle brings DFU back, but it
+also discards the volatile SRAM load, so whatever was programmed is gone and
+the roughly three-minute window starts over — reprogram inside it or the board
+drops off USB again.
 :::
 
 ### USB connection to the Pi
@@ -341,9 +381,23 @@ header. This is a direct connection, **not** through USB.
 | Baud rate  | 115200                                           |
 | Test args  | `--port /dev/serial0 --board fomu --skip-banner` |
 
-On pi17 and pi21 (Raspberry Pi 3) `hciuart` is inactive, so `/dev/ttyAMA0` (the
-PL011) is available on GPIO14/GPIO15 for the FPGA UART. `serial-getty` must be
-masked, not just stopped, or it will come back and consume the serial data.
+`--port /dev/serial0` is the model-agnostic form and is the one to use:
+`/dev/serial0` is the symlink the Pi points at whichever UART is on
+GPIO14/GPIO15, so it is right on every host regardless of which kernel device
+that turns out to be.
+
+Which device it resolves to is less certain. The survey recorded
+`/dev/ttyAMA0`, on the grounds that `hciuart` is inactive on pi17 and pi21 so
+the PL011 is free for the FPGA UART — but that is
+**recorded as `/dev/ttyAMA0` by the 2026-03-17 survey and unverified**. On a
+stock Raspberry Pi 3B+ Bluetooth holds the PL011 and the GPIO UART is the mini
+UART at `/dev/ttyS0`; the same hedge applies to the NeTV2 hosts, which are the
+same model from the same survey — see
+[Serial Device by Host](netv2.md#serial-device-by-host). Resolve the symlink on
+the host before assuming either name.
+
+`serial-getty` must be masked, not just stopped, or it will come back and
+consume the serial data.
 
 :::{todo}
 Document the exact Fomu-to-RPi GPIO header pin mapping from iCE40 pins 13, 21 to
@@ -357,15 +411,21 @@ carries which FPGA pin's identity.
 #### UART pre-test requirements
 
 ```console
+# Resolve serial0 to the real device so this works whether the GPIO UART is
+# the PL011 (ttyAMA0) or the mini UART (ttyS0) on this host.
+$ GETTY="serial-getty@$(basename $(readlink -f /dev/serial0)).service"
 # Mask prevents systemd from restarting the serial login console.
-$ sudo systemctl mask serial-getty@ttyAMA0
+$ sudo systemctl mask "$GETTY"
 # Stop the currently running instance.
-$ sudo systemctl stop serial-getty@ttyAMA0
+$ sudo systemctl stop "$GETTY"
 # Kill any remaining process holding the port.
 $ sudo fuser -k /dev/serial0
 # Fix permissions after serial-getty releases the device.
 $ sudo chmod 666 /dev/serial0
 ```
+
+The survey wrote these as `serial-getty@ttyAMA0`; the form above masks whichever
+unit actually owns the port on the host.
 
 ### PMOD / GPIO loopback
 
