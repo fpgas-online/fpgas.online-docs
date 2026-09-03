@@ -74,7 +74,7 @@ and a rebuild log. That is the primary source for the Setup section.
 **A. Mirror the test-designs `docs/hardware/` tree as-is.** Copy the 24 files
 into `docs/hardware/` on the docs site and add a toctree. Fast, but the
 files mix board wiring with per-host inventory (six board pages carry host
-tables), two NeTV2 files duplicate each other almost entirely, and the
+tables), the two NeTV2 files repeat most of each other's tables, and the
 netboot and web-app content would still be missing. It does not produce the
 three sections requested.
 
@@ -193,6 +193,8 @@ documentation; its links are updated to point at docs.fpgas.online.
 | `CLAUDE.md` "Deployment Targets" | keep | Facts cross-checked into `sites/*.md` |
 | `docs/superpowers/specs/2026-08-14-vlan-per-port-network-design.md` | keep (design history) | Addressing formulas, topology and failure modes into `setup/network.md` |
 | `docs/superpowers/specs/2026-08-22-tinytapeout-fpgas-online-design.md` | keep (design history) | Architecture into `setup/tinytapeout.md` |
+| `docs/superpowers/specs/2026-08-14-vlan-per-port-prototype-runbook.md` | keep (design history) | The isolation-matrix and port-identity checks (stages 7 and 8) become the verification section of `setup/network.md`. The tag gotchas (`pibs` not `pxe`, `nftables` not `firewall`) go on `setup/gateway.md`. |
+| `docs/superpowers/specs/2026-08-28-orange-pi-netboot-design.md` | keep (design history) | The shared-root decision and the FEL mechanism into `setup/orange-pi.md`. The open "PC vs PC Plus needs a physical check" question becomes a `{todo}` there. |
 | `docs/superpowers/runbooks/2026-08-31-eeprom-write-protect.md` | stub | `setup/netboot.md` section |
 | `docs/superpowers/runbooks/2026-08-28-orange-pi-netboot.md` | stub | `setup/orange-pi.md` |
 | `docs/superpowers/runbooks/2026-08-23-tweed-web-deploy.md` | stub | `setup/webapp.md` deployment section, `setup/gateway.md` |
@@ -275,6 +277,7 @@ as `{todo}` items rather than resolved by the port.
 
 | Item | Page |
 |---|---|
+| Orange Pi boards: whether they are PC or PC Plus needs a physical check | `setup/orange-pi.md` |
 | Fomu EVT: iCE40 pin to RPi GPIO header mapping for UART and for the GPIO27/GPIO9 loopback pair is undocumented | `boards/fomu-evt.md` |
 | Arty A7: only 4 of 8 PMOD loopback lanes verified; JC pins 1 and 2 swapped in the cable on pi9 | `boards/arty-a7.md` |
 | Acorn wiring diagram PNGs still show the pre-crossover P2 serial wiring | `boards/acorn/wiring.md` |
@@ -342,7 +345,7 @@ from `wc -l`.
 | `fpgas.online-test-designs/docs/hardware/` | 24 | about 6,000 | all Markdown; data and image files stay |
 | `fpgas.online-test-designs` (tests, toolchains, plans, designs READMEs, `verify-hardware.md`, `resources.md`, `plan.md`) | 27 | about 8,900 | none; links updated, one section replaced |
 | `fpgas.online-infra` (README, CLAUDE.md, notes, TECHDEBT, role READMEs) | 13 | about 800 | selected facts |
-| `fpgas.online-infra/docs/` (specs, runbooks, rebuild log, hardware) | 12 | about 6,700 | 4 files ported, 2 specs summarised, rest kept |
+| `fpgas.online-infra/docs/` (specs, runbooks, rebuild log, hardware, plans) | 14 | about 7,400 | 4 files ported, 4 specs summarised, rest kept |
 | `fpgas.online-site` | 9 | about 400 | README summarised, 2 stub READMEs left alone |
 | `fpgas.online-tt`, `tinytapeout-fpga-demos`, `tt-commander-app`, `fpgas.online-gw` | 8 | about 600 | summarised |
 | `fpgas.online-setup-pi`, `fpgas.online-cam`, `fpgas.online-poe`, `apt`, `netboot-pi`, `tools` | 14 | about 700 | service table and two paragraphs |
