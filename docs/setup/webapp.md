@@ -26,36 +26,43 @@ The board page (`fpga.html`) is one screen with everything on it:
   "reset ssh" reloads the terminal, and "ping" asks the server to ping the Pi
   and stream the output back.
 - **Demos** — "Blink LEDs", "Load MicroPython", "Boot Linux" and "Check Wire".
-  These are not server calls: `demos.js` types the demo commands into the
-  browser terminal below, so a demo is exactly what an operator would have typed
-  (`cd ~/Demos/counter_test && ./run_demo.sh`, and for the wire check
-  `openFPGALoader -b arty top.bit` followed by `python3 t1.py`).
+  These are not server calls: `demos.js` pushes the demo into the browser
+  terminal below with `wssh.send()`, one call per line, so a demo is exactly
+  what an operator would have typed. Each of the first three sends two lines, a
+  `cd` into a directory under `~/Demos` and `./run_demo.sh`; "Check Wire" sends
+  four, ending in `python3 t1.py` and `echo $?`.
 - **The camera** — the board's HLS stream, played inline.
 - **The terminal** — a WebSSH iframe connected to the Pi as the `pi` user,
   filling most of the page.
-- **Upload** — a form that takes a file and drops it into the Pi's `Uploads`
-  directory over SFTP, optionally running it.
+- **Upload** — a form that is meant to take a file and drop it into the Pi's
+  `Uploads` directory over SFTP. It does not work; see
+  [Known gaps](#known-gaps).
 - **A status log** — a read-only text area fed by the status WebSocket, with a
   box for sending a test message and a "Check PoE" button that reads the switch
   port's power state.
 - **Where the board is** — the Pi's location and patch cable colour, so someone
   standing in the room can find it.
 
-Some of that happens without being asked. The page's WebSocket client checks the
-PoE state as soon as it connects, reconnects the terminal when the Pi reports
-that its ssh server has started, and reloads the video player when the Pi
-reports its camera is up — so a board that has just been reset comes back on its
-own.
+Some of that happens without being asked. `dcws.js`, the WebSocket client that
+ships with `pistat` but drives this `pibfpgas` page, checks the PoE state as
+soon as it connects, reconnects the terminal when the Pi reports that its ssh
+server has started, and reloads the video player when the Pi reports its camera
+is up — so a board that has just been reset comes back on its own.
 
 Below that is an "Accessing directly" block with the commands to bypass the page
 entirely: an ssh command with the board's own forwarded port, the matching `scp`
-into `Uploads`, and the playlist URL for a desktop player.
+into `Uploads`, and a playlist URL for a desktop player.
 
 ```console
 $ ssh -p <port> pi@<site>
 $ scp -P <port> * pi@<site>:Uploads
 $ vlc https://<site>/live/pi<N>.m3u8
 ```
+
+The `vlc` line is legacy-only. The template hard-codes `pi<port>` into it, which
+is the hostname a board has only on a site still using the flat numbering; on a
+per-port-VLAN site the playlist is `pi-sw<switch>-p<port>.m3u8`, which is what
+the page's own video element uses. See [Known gaps](#known-gaps).
 
 The Tiny Tapeout board page is laid out the same way but built from different
 parts — the chip, the RP2040 and the Pi-side daemon behind it are
@@ -83,13 +90,16 @@ board record is what supplies the hostname, IP, stream URL, forwarded ssh port,
 location and cable colour that the templates render. It also ships the page
 JavaScript and the fixtures that seed the boards.
 
-**`pistat`** is the live status channel. A `stat/<name>/<status>` request from
-anywhere on the Pi network is turned into a message on the Django Channels group
-for that board and pushed to every browser watching it, with a lookup table that
-expands terse statuses into sentences ("Arty board detected", "ssh server
-started", and a warning that a kernel boot can take two minutes). The `ping`
-view runs `ping -c 3` at the board and streams each output line through the same
-group. The WebSocket end is `PiStatConsumer`, one group per board name.
+**`pistat`** is the live status channel. A `stat/<name>/<status>` request is
+turned into a message on the Django Channels group for that board and pushed to
+every browser watching it, with a lookup table that expands terse statuses into
+sentences ("Arty board detected", "ssh server started", and a warning that a
+kernel boot can take two minutes). The `ping` view runs `ping -c 3` at the board
+and streams each output line through the same group. The WebSocket end is
+`PiStatConsumer`, one group per board name. Neither view is authenticated:
+nginx proxies `/pistat/` unconditionally and both views are `@csrf_exempt`, so
+anyone who can reach the site can post a status line into a board's log or make
+the server ping a board.
 
 **`pibdemos`** is the server-side counterpart of the demo buttons: views that ssh
 to a Pi and run `openFPGALoader` or stage a LiteX Linux image. It is in the
@@ -97,9 +107,12 @@ repository, but it is not in `INSTALLED_APPS` and no urlconf includes it, so
 nothing on the deployed site reaches it — the demo buttons go through the
 terminal instead. See [Known gaps](#known-gaps).
 
-**`pibup`** is the upload form. It takes the file and the board's switch port,
-looks the board's IP up in the `pibfpgas` model, opens an SFTP session to the Pi
-as `pi` and writes the file into `Uploads`, then redirects to a success page.
+**`pibup`** is the upload form. It is meant to take the file and the board's
+switch port, look the board's IP up in the `pibfpgas` model, open an SFTP
+session to the Pi as `pi`, write the file into `Uploads` and redirect to a
+success page. As shipped it cannot: the view reads a form field the form no
+longer declares, so the POST raises before the transfer starts. See
+[Known gaps](#known-gaps).
 
 **`ttsite`** is the Tiny Tapeout catalogue: an index that buckets boards into
 ASIC, FPGA-emulation and KianV sections, a board page, a curated documentation
@@ -133,23 +146,25 @@ the apps it includes:
 
 | Path | App | What it serves |
 | --- | --- | --- |
-| `/` | — | redirect to `/fpgas/` (nginx returns the 301; Django has a `RedirectView` for the same path) |
+| `/` | — | a redirect to the board grid. nginx answers first with `301 /fpgas`, no trailing slash; Django's own `RedirectView` on the same path targets `/fpgas/` and is never reached |
 | `/fpgas/` | `pibfpgas` | the board grid, one card per board |
 | `/fpgas/pi<N>.html` | `pibfpgas` | the board page, `<N>` being the switch port the Pi is plugged into |
 | `/fpgas/tt.html` | `pibfpgas` | the legacy Tiny Tapeout page, rendered for port 21 |
 | `/pistat/stat/<name>/<status>` | `pistat` | accepts a status from a Pi and fans it out to that board's WebSocket group |
 | `/pistat/ping/<name>` | `pistat` | pings the board and streams each line to the group |
-| `/pibup/upload` | `pibup` | the upload form, and the SFTP write on POST |
+| `/pibup/upload` | `pibup` | the upload form; the SFTP write on POST does not work |
 | `/pibup/success` | `pibup` | the post-upload confirmation |
 | `/snmp/status` | `snmp_switch` | read one port's PoE state |
 | `/snmp/toggle` | `snmp_switch` | power-cycle one port |
 | `/snmp/toggle_all`, `/snmp/off_all` | `snmp_switch` | the same for every port |
-| `/admin/` | Django | the admin site |
+| `/admin/` | Django | the admin site — in the urlconf only. There is no nginx location for it on this host, so it is unreachable here; it is reachable on the Tiny Tapeout host through that vhost's `location /` catch-all |
 
-Three more paths on the same host are served beside Django rather than by it:
-`/ws/pistat/<name>/` is the status WebSocket, routed by `pistat/routing.py` and
-proxied to daphne; `/wssh/` is the browser terminal from the `wssh` role; and
-`/live/` is the HLS output described under [Camera streams](#camera-streams).
+Three more paths on this host do not come from the urlconf.
+`/ws/pistat/<name>/` is the Django Channels WebSocket: nginx proxies `/ws/` to
+daphne, which routes it with `pistat/routing.py` rather than `pib/urls.py`.
+`/wssh/` is the browser terminal, proxied to the `wssh` role's own service.
+`/live/` is the HLS output, served straight from disk — see
+[Camera streams](#camera-streams).
 
 Tiny Tapeout host (`tinytapeout.fpgas.online`), from `ttsite/urls.py`:
 
@@ -164,6 +179,17 @@ Tiny Tapeout host (`tinytapeout.fpgas.online`), from `ttsite/urls.py`:
 | `/api/board/<slug>/bitstream` | `ttsite` | proxy that uploads a bitstream |
 | `/pistat/…`, `/pibup/…`, `/snmp/…`, `/admin/` | as above | re-included so the existing apps keep working on this host |
 
+This host has its own vhost, so the paths beside Django differ. `/static/` is
+served from the static root by an `alias` (the default vhost has no such
+location); `/ws/pistat/` goes to daphne as on the other host; the shared
+`live-hls` include supplies `/live/`; and a generated
+`<domain>-ws-boards.conf` adds one `location = /ws/board/<slug>/serial` per
+live board, each proxied straight to that board's Pi daemon — which is what the
+Commander embed talks to, and is covered in
+[The Tiny Tapeout stack](tinytapeout.md). The vhost also caps request bodies at
+`client_max_body_size 1m`, comfortably above the 256 KiB the bitstream proxy
+accepts.
+
 ## Deployment
 
 The application is installed on the gateway by the infra `site` role, which runs
@@ -172,14 +198,15 @@ in the `pig` play — see
 surrounding services and [Deploying](gateway.md#deploying) for the command
 lines. The role installs `fpgas-online-site` and `fpgas-online-poe[cli]` into
 `/srv/www/pib/venv` straight from their git repositories with pip, at
-`state: forcereinstall` — the requirement is a git URL with no version in it, so
-this is what makes a re-run take a new commit. The web tier is installed from
-git this way; the Pi side, by contrast, arrives as debs from the
-[apt repository](../packages.md). The app servers — gunicorn, uvicorn and daphne — plus
-`channels-redis` are installed into the same venv first, deliberately, so that
-gunicorn's first start with the uvicorn worker class cannot race the uvicorn
-install. `channels_redis` is a settings dependency the site package does not
-declare.
+`state: forcereinstall`. The role does not say why that flag is there; the
+requirement is a git URL with no version in it, so a plain install would find it
+already satisfied and not take a new commit. The web tier is installed from git
+this way; the Pi side, by contrast, arrives as debs from the
+[apt repository](../packages.md). The same task file then installs the app
+servers — gunicorn, uvicorn and daphne — plus `channels-redis`, before the unit
+files are written, so that gunicorn's first start with the uvicorn worker class
+cannot race the uvicorn install. `channels_redis` is a settings dependency the
+site package does not declare.
 
 The wheel ships the `pib` project package as well as the apps, so the role
 copies `__init__.py`, `settings.py`, `urls.py` and `asgi.py` back out of the
@@ -191,7 +218,9 @@ and the static root, and derive `ALLOWED_HOSTS` from the host's own uplink
 address, its `domain_name`, its streaming front-end aliases and — only when the
 host defines `tt_boards` — the Tiny Tapeout domain. `CSRF_TRUSTED_ORIGINS` is
 the same list with the bare IP and any wildcard entry dropped and `https://`
-prefixed.
+prefixed. It also carries the host's `SECRET_KEY`, which the role generates once
+into `<django_dir>/.secret_key`, keeps out of the inventory, and never rotates;
+the wheel's own settings ship Django's insecure development default.
 
 The role then writes a `manage.py` whose shebang is the venv interpreter and
 runs, as the service user so the SQLite file and the static root end up owned by
@@ -209,20 +238,23 @@ split the copy silently stopped matching. The 2026-08-26 tweed reinstall seeded
 zero boards and `welland.fpgas.online` came up with an empty board list.
 :::
 
-Every task that changes code or settings notifies a `restart django services`
-handler, because a new wheel means new templates and new code that the running
-gunicorn, daphne and uvicorn keep serving the old versions of until they are
-restarted. `--tags django` narrows a deploy to the application, and is also the
-rollback path: pip an older `fpgas-online-site` reference into the venv and
-re-run with that tag. `local_settings.py` survives both directions.
+Not every task restarts the application. The `restart django services` handler
+is notified by the pip install, the copy of the project files out of the wheel,
+and the `SECRET_KEY`/`DEBUG`, `ALLOWED_HOSTS` and `CSRF_TRUSTED_ORIGINS` lines —
+but not by the `DOMAIN_NAME`, `PI_PW` or `STATIC_ROOT` lines, nor by the
+generated `manage.py`, so a change to any of those is not picked up until
+something else restarts the services. What the handler is for, and the
+`--tags django` rollback path, are under
+[Deploying](gateway.md#deploying).
 
 nginx routes to the application through per-app location includes rendered by
 the same role — one file each for `pibfpgas`, `pistat`, `pibup` and
 `snmp_switch`. All of them proxy to gunicorn on `/run/gunicorn.sock`; the
 `pistat` include additionally proxies `/ws/` to daphne on port 8085 with the
-upgrade headers, and the `pibfpgas` include carries the `/` to `/fpgas` redirect.
-The vhost itself is nothing but an `include` of that directory, so an app that
-has no include is unreachable no matter what the urlconf says.
+upgrade headers, and the `pibfpgas` include carries the `301 /fpgas` redirect.
+The vhost itself is a `root` pointing at the static directory and an `include`
+of that directory, so a path with no include is unreachable no matter what the
+urlconf says — which is why `/admin/` and `/static/` do not work on this host.
 
 The Tiny Tapeout host is a separate role, `ttsite`, which runs only where
 `tt_boards` is defined. It renders the board catalogue to
@@ -253,17 +285,18 @@ that taught them, are in
 
 ## Camera streams
 
-Video is not Django's problem. Each Pi with a camera pushes an RTMP stream to
-the gateway, which republishes it as HLS under `/live/` — the capture side is
-[Camera](pi.md#camera), and the gateway side is the `cam/stream-server` role
-listed in [What runs on the gateway](gateway.md#what-runs-on-the-gateway). The
-role installs nginx's RTMP and fancyindex modules, pins nginx to a single worker
-(the RTMP module needs it), and accepts publishes only from the Pi network.
-Fragments land in `/…/hls/source`, which is mounted `tmpfs` from `/etc/fstab` so
-the constant rewriting never touches the disk, and are served from `/live` with
-`Cache-Control: no-cache` because a live playlist is stale as soon as it is
-written. All the templates do is point a video.js `<source>` at the board's
-playlist.
+Video never passes through Django. Each Pi with a camera pushes RTMP to the
+gateway and the gateway republishes it as HLS under `/live/`: the capture side
+is [Camera](pi.md#camera), and the `cam/stream-server` role that does the
+republishing is listed under
+[What runs on the gateway](gateway.md#what-runs-on-the-gateway). Fragments are
+written to a `tmpfs` mount and served with `Cache-Control: no-cache`, and the
+same nginx include supplies `/live/` on both vhosts.
+
+All the application contributes is the URL. The board model derives
+`stream_url` as `/live/<hostname>.m3u8` — `pi<port>` on a flat-numbered site,
+`pi-sw<switch>-p<port>` on a per-port-VLAN one — and the templates drop that
+into a video.js `<source>`. Nothing else in the request path is Django's.
 
 ## Gateway API
 
@@ -280,6 +313,30 @@ README says the API and its configuration land with the implementation on the
 
 ## Known gaps
 
+- **The classic upload form is broken end to end.** `UploadFileForm` declares
+  only `file`; its `run` field is commented out. `pibup.pibup` still does
+  `run = form.cleaned_data['run']` on a valid POST, so every upload raises
+  `KeyError` before the SFTP session is opened. The form renders on the board
+  page and the button works — nothing arrives on the Pi. The Tiny Tapeout
+  bitstream upload is a different code path and is unaffected.
+- **`pibfpgas` looks boards up by port alone.** The `one` view is
+  `get_object_or_404(Pi, port=pino)`, and the model has no unique constraint on
+  `port`. On a flat-numbered site the port is unique and this is fine; on a
+  per-port-VLAN site the identity is `(switch, port)`, so two boards on the same
+  port number of different switches are indistinguishable to the URL, and one of
+  them is unreachable. The URLs are `pi<N>.html` with no switch in them at all.
+- **The direct-access `vlc` command is legacy-only.** `fpga.html` hard-codes
+  `/live/pi{{pi.port}}.m3u8` in the click-to-copy block while the page's own
+  video element uses `pi.stream_url`, which is `/live/pi-sw<s>-p<p>.m3u8` on a
+  per-port-VLAN site. Copying the command from a Welland board page gives a
+  playlist that does not exist.
+- **`/static/` is dead on the default vhost.** That vhost sets
+  `root <static_dir>` and has no `location /static/`, so a request for
+  `/static/x` resolves to `<static_dir>/static/x` and 404s. The classic
+  templates work around it by loading their JavaScript and CSS from the site
+  root (`/dcws.js`, `/demos.js`, `/pib.css`) rather than from `STATIC_URL`. The
+  Tiny Tapeout vhost has the `alias` the default one is missing, which is why
+  the Commander embed and `board.js` load there.
 - **`pistat`'s ping view assumes the legacy names.** It derives the address by
   slicing the digits off a `pi<N>` name and building `10.21.0.<100+N>`, so it
   works only for hosts on the flat network under the old numbering. The
@@ -305,8 +362,8 @@ README says the API and its configuration land with the implementation on the
 - **`tt.html` is hard-coded to one board.** The `tt` view is
   `return one(request, 21, 'tt.html')` — port 21, literally. It predates
   `ttsite`, which does the same job from the database.
-- **The Arty page has empty links.** Two entries under "Toolchains", for OpenXC7
-  and for Vivado, have `href=""` and go nowhere.
+- **The board page has empty links.** Two entries under "Toolchains", for
+  OpenXC7 and for Vivado, have `href=""` and go nowhere.
 - **Two templates pull assets from another project's docs site.** `fpga.html`
   and `tt.html` load jQuery, a stylesheet and a script from
   `f4pga-examples.readthedocs.io`, so the pages depend on an unrelated
@@ -334,8 +391,12 @@ fpgas.online-site, `main`:
   and [`ttsite/src/ttsite/urls.py`](https://github.com/fpgas-online/fpgas.online-site/blob/main/ttsite/src/ttsite/urls.py)
   — the URL map for both hosts, and the fact that nothing includes `pibdemos`.
 - [`pibfpgas/src/pibfpgas/views.py`](https://github.com/fpgas-online/fpgas.online-site/blob/main/pibfpgas/src/pibfpgas/views.py)
-  — the three views, the port-as-board-id comment, and `tt` calling `one` with a
-  literal 21.
+  — the three views, the lookup by `port` alone, the port-as-board-id comment,
+  and `tt` calling `one` with a literal 21.
+- [`pibfpgas/src/pibfpgas/models.py`](https://github.com/fpgas-online/fpgas.online-site/blob/main/pibfpgas/src/pibfpgas/models.py)
+  — the `(switch, port)` identity, the absence of a unique constraint on `port`,
+  and the derived `hostname`, `ip`, `ssh_port` and `stream_url` properties for
+  both the flat and the per-port-VLAN schemes.
 - [`pibfpgas/src/pibfpgas/templates/index.html`](https://github.com/fpgas-online/fpgas.online-site/blob/main/pibfpgas/src/pibfpgas/templates/index.html)
   and [`fpga.html`](https://github.com/fpgas-online/fpgas.online-site/blob/main/pibfpgas/src/pibfpgas/templates/fpga.html)
   — the card grid and its video element; the control, demo, camera, terminal,
@@ -354,7 +415,9 @@ fpgas.online-site, `main`:
   — the group fan-out, the humanising table, the ping loop with its
   `10.21.0.<100+N>` derivation, and the WebSocket path.
 - [`pibup/src/pibup/views.py`](https://github.com/fpgas-online/fpgas.online-site/blob/main/pibup/src/pibup/views.py)
-  — the form, the model lookup by port and the SFTP write into `Uploads`.
+  and [`forms.py`](https://github.com/fpgas-online/fpgas.online-site/blob/main/pibup/src/pibup/forms.py)
+  — the intended flow (model lookup by port, SFTP write into `Uploads`) and the
+  commented-out `run` field the view still reads, which is what breaks the POST.
 - [`pibdemos/src/pibdemos/views.py`](https://github.com/fpgas-online/fpgas.online-site/blob/main/pibdemos/src/pibdemos/views.py),
   [`nginx/pibdemos.conf`](https://github.com/fpgas-online/fpgas.online-site/blob/main/pibdemos/nginx/pibdemos.conf)
   and [`README.md`](https://github.com/fpgas-online/fpgas.online-site/blob/main/pibdemos/README.md)
@@ -390,23 +453,38 @@ fpgas.online-infra, `main`:
 - [`ansible/roles/site/tasks/main.yml`](https://github.com/fpgas-online/fpgas.online-infra/blob/main/ansible/roles/site/tasks/main.yml)
   — the include order of the role.
 - [`ansible/roles/site/tasks/fpgas-online-site.yml`](https://github.com/fpgas-online/fpgas.online-infra/blob/main/ansible/roles/site/tasks/fpgas-online-site.yml)
-  — the two pip installs, `state: forcereinstall` with its comment, the app
-  servers and `channels-redis`, and the ordering rationale.
+  — the two pip installs with `state: forcereinstall`, the app servers and
+  `channels-redis` in the same file, and the ordering rationale. The file's only
+  comment explains the restart notification, not the flag; why
+  `forcereinstall` is needed for a git requirement is this page's inference,
+  flagged as such above.
 - [`ansible/roles/site/tasks/django.yml`](https://github.com/fpgas-online/fpgas.online-infra/blob/main/ansible/roles/site/tasks/django.yml)
   — the directories, the copy of the project files out of the wheel and why,
-  `local_settings.py` created with `force: false`, the `ALLOWED_HOSTS` and
+  `local_settings.py` created with `force: false`, the once-generated
+  `.secret_key` that Ansible never rotates, the `ALLOWED_HOSTS` and
   `CSRF_TRUSTED_ORIGINS` derivations, the generated `manage.py`, and the
-  `migrate` / `collectstatic` / `loaddata` tasks with the fixture history.
+  `migrate` / `collectstatic` / `loaddata` tasks with the fixture history. Which
+  tasks carry `notify: restart django services` and which do not is read off the
+  task list directly.
 - [`ansible/roles/site/tasks/nginx.yml`](https://github.com/fpgas-online/fpgas.online-infra/blob/main/ansible/roles/site/tasks/nginx.yml)
   and the [`templates/includes/`](https://github.com/fpgas-online/fpgas.online-infra/tree/main/ansible/roles/site/templates/includes)
   files — the four location includes, the gunicorn socket, the daphne `/ws/`
   proxy and the `/` to `/fpgas` redirect.
-- [`ansible/roles/site/tasks/pistat.yml`](https://github.com/fpgas-online/fpgas.online-infra/blob/main/ansible/roles/site/tasks/pistat.yml),
-  [`pibup.yml`](https://github.com/fpgas-online/fpgas.online-infra/blob/main/ansible/roles/site/tasks/pibup.yml),
+- [`ansible/roles/site/tasks/pibup.yml`](https://github.com/fpgas-online/fpgas.online-infra/blob/main/ansible/roles/site/tasks/pibup.yml),
   [`pibfpgas.yml`](https://github.com/fpgas-online/fpgas.online-infra/blob/main/ansible/roles/site/tasks/pibfpgas.yml),
   [`pibdemos.yml`](https://github.com/fpgas-online/fpgas.online-infra/blob/main/ansible/roles/site/tasks/pibdemos.yml)
   and [`snmp.yml`](https://github.com/fpgas-online/fpgas.online-infra/blob/main/ansible/roles/site/tasks/snmp.yml)
-  — that the per-app task files carry no installs of their own.
+  — that these per-app task files install nothing themselves, the pip install
+  being handled in `fpgas-online-site.yml`.
+  [`pistat.yml`](https://github.com/fpgas-online/fpgas.online-infra/blob/main/ansible/roles/site/tasks/pistat.yml)
+  is the exception: it installs redis and the dnsmasq `send_stat.conf` hook.
+- [`ansible/roles/site/templates/vhost.conf.j2`](https://github.com/fpgas-online/fpgas.online-infra/blob/main/ansible/roles/site/templates/vhost.conf.j2)
+  and [`roles/ttsite/templates/vhost.conf.j2`](https://github.com/fpgas-online/fpgas.online-infra/blob/main/ansible/roles/ttsite/templates/vhost.conf.j2)
+  / [`ws-board.conf.j2`](https://github.com/fpgas-online/fpgas.online-infra/blob/main/ansible/roles/ttsite/templates/ws-board.conf.j2)
+  — the default vhost's bare `root` with no `/static/` location and no
+  `location /`, against the Tiny Tapeout vhost's `/static/` alias, `/ws/pistat/`,
+  `/api/`, `location /` catch-all and `client_max_body_size 1m`, plus the
+  generated per-board `location = /ws/board/<slug>/serial` proxies.
 - [`ansible/roles/ttsite/tasks/main.yml`](https://github.com/fpgas-online/fpgas.online-infra/blob/main/ansible/roles/ttsite/tasks/main.yml),
   [`boards.yml`](https://github.com/fpgas-online/fpgas.online-infra/blob/main/ansible/roles/ttsite/tasks/boards.yml),
   [`django.yml`](https://github.com/fpgas-online/fpgas.online-infra/blob/main/ansible/roles/ttsite/tasks/django.yml),
@@ -446,5 +524,6 @@ fpgas.online-gw, `main`:
 fpgas.online-cam, `main`:
 
 - [`README.md`](https://github.com/fpgas-online/fpgas.online-cam/blob/main/README.md)
-  — the capture scripts that feed the RTMP endpoint, and that the gateway side
-  is the `cam/stream-server` role.
+  — the capture scripts and the deb that feed the RTMP endpoint. It names the
+  `cam/pi` role for installation and lists `cam/stream-server` only among the
+  infra roles; the gateway-side behaviour above is from that role itself.
