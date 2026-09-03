@@ -7,9 +7,8 @@ Eight Arty A7 boards on Raspberry Pi 3B/3B+/4B hosts, and four Raspberry Pi
 Compute Modules on [Compute Blade](https://computeblade.com/) carriers with SQRL
 Acorn boards in the M.2 slot.
 
-The blades are **pi14** and **pi18** (CM4) and **pi16** and **pi20** (CM5 Lite).
-pi14, pi16 and pi20 carry an Acorn; pi18's M.2 slot is empty, and the full row
-for each is under [Compute blades](#compute-blades).
+Of the four [blades](#compute-blades), **pi14**, **pi16** and **pi20** carry an
+Acorn; **pi18**'s M.2 slot is empty.
 
 ## CM4 and CM5 are not interchangeable
 
@@ -54,25 +53,33 @@ The P2 serial pair is wired as a **null modem crossover**, measured with the
 :::{note}
 This is the **same** as at [Welland](welland.md#wiring). The crossover is the
 fleet standard, not a Compute Blade special case, so one cable design works on
-both carrier types. `fpgas.online-test-designs` issue #4 originally recorded the
-opposite, and the cable was evidently swapped after that issue was filed; this
-page said the same thing until 2026-09-03.
+both carrier types. `fpgas.online-test-designs` issue #4 recorded the opposite,
+and this page said so until 2026-09-03. That was a documentation error, not a
+difference between the sites: it wired transmitter into transmitter, which
+cannot work with the hardware UART (`/dev/ttyAMA0`) that every host and test
+script uses.
 :::
 
-Only the JTAG pins and the two missing spare GPIOs (J5, H5) differ from the Pi 5
-wiring. The connector pinout and the full per-pin survey are on
+Only the JTAG pins differ from the Pi 5 wiring, along with the two spare GPIOs
+(J5, H5), which the Compute Blade expansion port does not expose. The connector
+pinout and the full per-pin survey are on
 [Acorn wiring](../boards/acorn/wiring.md).
 
 ## Two traps
 
+:::{warning}
 **Loading a design that drives the serial TX costs you JTAG.** GPIO14 is TMS.
 Once the FPGA drives it, `openFPGALoader` cannot use it, and the only way back
-is a PoE cycle of the blade's switch port.
+is [a PoE cycle](#power-control) of the blade's switch port. The pin-ID design
+drives J2, so it triggers this every time.
+:::
 
+:::{note}
 **The kernel console used to make this fatal.** With `console=ttyAMA0`, a
 1200-baud FPGA transmitting into a 115200-baud console produced garbage that
 the kernel read as SysRq commands, eventually hitting `reboot` or `poweroff`.
 All four blades now boot with `console=tty1`, so this no longer happens.
+:::
 
 ## Gateway: val2
 
@@ -99,6 +106,13 @@ Two NFS roots, because the site runs two generations of hardware:
 - **trixie** (arm64): `/srv/nfs/rpi/trixie/{boot,root}` — the Compute Blades,
   kernel 6.12.75+rpt-rpi-v8.
 
+:::{warning}
+Both roots are read-only NFS exports with a tmpfs overlay, so anything staged
+under `/home/pi` is gone after a reboot or a PoE cycle. A bitstream that loaded
+a minute ago fails with `Open file … FAIL` in under 0.1 s because the file no
+longer exists — re-copy it.
+:::
+
 val2 is a flat `/24` with the legacy `piNN` / `10.21.0.1NN` naming. Welland's
 VLAN-per-port scheme has not been applied here, so a Pi's identity still comes
 from its MAC rather than from the port it is plugged into. dnsmasq hands
@@ -116,7 +130,8 @@ Programming commands for each board type live on the board pages; see
 
 ### Boards
 
-Probed 2026-08-31. The pending counts are allocations, not hardware on site.
+Counts as of 2026-08-31; the Arty rows are from configuration, not a probe. The
+pending counts are allocations, not hardware on site.
 
 | Board Type    | Deployed | Pending | Hosts                     |
 |---------------|----------|---------|---------------------------|
@@ -125,31 +140,41 @@ Probed 2026-08-31. The pending counts are allocations, not hardware on site.
 | TT FPGA Demo  | —        | ×4      | TBD                       |
 | TT ASIC       | —        | ×7      | TBD (one each: TT02-TT09 except TT08) |
 
+Source: the FPGA board summary in `site-ps1.md`.
+
 ### Arty A7 hosts
 
-From the site configuration; not re-probed. Eight boards, on RPi 3B / 3B+ / 4B
-hosts.
+Configuration from `/etc/dnsmasq.d/pibs.conf`. Eight boards, on RPi 3B / 3B+ /
+4B hosts. The source gives no provenance or date for the `Status` column.
 
-| Host | Switch Port | IP          | RPi MAC           | RPi Model       | Arty Serial  | USB Eth MAC       | USB Eth Type | Status  |
-|------|------|-------------|-------------------|-----------------|--------------|-------------------|--------------|---------|
-| [pi2](https://ps1.fpgas.online/fpgas/pi2.html)   | e2   | 10.21.0.102 | b8:27:eb:2f:5d:08 | RPi 3B Rev 1.2  | 210319B301E0 | —                 | Apple A1277  | Offline |
-| [pi3](https://ps1.fpgas.online/fpgas/pi3.html)   | e3   | 10.21.0.103 | dc:a6:32:05:32:45 | RPi 4B Rev 1.1  | 210319A43AD3 | 00:05:1b:b0:47:9d | ASIX AX88179 | Online  |
-| [pi5](https://ps1.fpgas.online/fpgas/pi5.html)   | e5   | 10.21.0.105 | b8:27:eb:d4:f1:74 | RPi 3B Rev 1.2  | 210319B58381 | f8:e4:3b:a6:a8:62 | ASIX AX88179 | Online  |
-| [pi7](https://ps1.fpgas.online/fpgas/pi7.html)   | e7   | 10.21.0.107 | b8:27:eb:33:51:27 | RPi 3B+ Rev 1.3 | 210319A764F5 | 00:05:1b:b0:46:51 | ASIX AX88179 | Online  |
-| [pi9](https://ps1.fpgas.online/fpgas/pi9.html)   | e9   | 10.21.0.109 | b8:27:eb:a3:51:b4 | RPi 3B+ Rev 1.3 | 210319B58379 | f8:e4:3b:a0:55:af | ASIX AX88179 | Online  |
-| [pi11](https://ps1.fpgas.online/fpgas/pi11.html) | e11  | 10.21.0.111 | b8:27:eb:51:01:df | RPi 3B Rev 1.2  | 210319B5835B | f8:e4:3b:a6:c6:a9 | ASIX AX88179 | Online  |
-| [pi13](https://ps1.fpgas.online/fpgas/pi13.html) | e13  | 10.21.0.113 | b8:27:eb:68:fc:e7 | RPi 3B Rev 1.2  | 210319B3E5C3 | f8:e4:3b:a6:cf:b1 | ASIX AX88179 | Online  |
-| pi17 | e17  | 10.21.0.117 | b8:27:eb:5f:de:85 | RPi 3B Rev 1.2  | 210319B58370 | f8:e4:3b:a6:c6:10 | ASIX AX88179 | Online  |
+| Host | Switch Port | IP          | RPi MAC           | RPi Model       | Arty Serial  | USB Ethernet                     | Status  |
+|------|------|-------------|-------------------|-----------------|--------------|----------------------------------|---------|
+| [pi2](https://ps1.fpgas.online/fpgas/pi2.html)   | e2   | 10.21.0.102 | b8:27:eb:2f:5d:08 | RPi 3B Rev 1.2  | 210319B301E0 | Apple A1277 (no MAC recorded)    | Offline |
+| [pi3](https://ps1.fpgas.online/fpgas/pi3.html)   | e3   | 10.21.0.103 | dc:a6:32:05:32:45 | RPi 4B Rev 1.1  | 210319A43AD3 | ASIX AX88179 (00:05:1b:b0:47:9d) | Online  |
+| [pi5](https://ps1.fpgas.online/fpgas/pi5.html)   | e5   | 10.21.0.105 | b8:27:eb:d4:f1:74 | RPi 3B Rev 1.2  | 210319B58381 | ASIX AX88179 (f8:e4:3b:a6:a8:62) | Online  |
+| [pi7](https://ps1.fpgas.online/fpgas/pi7.html)   | e7   | 10.21.0.107 | b8:27:eb:33:51:27 | RPi 3B+ Rev 1.3 | 210319A764F5 | ASIX AX88179 (00:05:1b:b0:46:51) | Online  |
+| [pi9](https://ps1.fpgas.online/fpgas/pi9.html)   | e9   | 10.21.0.109 | b8:27:eb:a3:51:b4 | RPi 3B+ Rev 1.3 | 210319B58379 | ASIX AX88179 (f8:e4:3b:a0:55:af) | Online  |
+| [pi11](https://ps1.fpgas.online/fpgas/pi11.html) | e11  | 10.21.0.111 | b8:27:eb:51:01:df | RPi 3B Rev 1.2  | 210319B5835B | ASIX AX88179 (f8:e4:3b:a6:c6:a9) | Online  |
+| [pi13](https://ps1.fpgas.online/fpgas/pi13.html) | e13  | 10.21.0.113 | b8:27:eb:68:fc:e7 | RPi 3B Rev 1.2  | 210319B3E5C3 | ASIX AX88179 (f8:e4:3b:a6:cf:b1) | Online  |
+| pi17 | e17  | 10.21.0.117 | b8:27:eb:5f:de:85 | RPi 3B Rev 1.2  | 210319B58370 | ASIX AX88179 (f8:e4:3b:a6:c6:10) | Online  |
 
 Every Arty connects through an FTDI FT2232C/D/H (`0403:6010`), which gives the
 host `/dev/ttyUSB0` for JTAG and `/dev/ttyUSB1` for the 115200-baud console.
 Each RPi also carries a separate USB Ethernet adapter wired to the Arty's own
 Ethernet port. See [Arty A7](../boards/arty-a7.md).
 
+The Arty boards are the ones with a camera: the public pages carry live feeds of
+their LEDs. The source records no per-host camera inventory for PS1, so which
+Pi holds which camera is not documented — but no blade has one.
+
 :::{todo}
-These rows come from the site configuration, not from a live probe. Probe the
-eight Arty hosts and record the date here, as the blade rows do.
+These rows are configuration, not measurement. Nothing here has been probed
+live, and the source does not say where the `Status` column came from or when.
+Probe the eight Arty hosts, record the date, and note where a camera is fitted.
 :::
+
+Source: `/etc/dnsmasq.d/pibs.conf` on val2, via `site-ps1.md`; `Status` column
+provenance unknown.
 
 ### Compute blades
 
@@ -177,17 +202,42 @@ XC7A100T with 512 MB of DDR3. See [SQRL Acorn](../boards/acorn/index.md).
 
 All four netboot the trixie arm64 NFS root with overlayroot and run
 **openFPGALoader 0.13.1** — so `--read-dna` works here, unlike Welland. JTAG
-goes over the expansion module port with pin order `2:3:4:14`, and the FPGA UART
-is `/dev/ttyAMA0` on GPIO14/15. All four have `console=tty1` with
+goes over the expansion module port ([Wiring](#wiring)), and the FPGA UART is
+`/dev/ttyAMA0` on GPIO14/15. All four have `console=tty1` with
 `serial-getty@ttyAMA0` inactive, so the SysRq crash above cannot recur. PCIe is
 through the M.2 slot. The per-pin measurements behind the JTAG and P2 columns
 are on [Acorn wiring](../boards/acorn/wiring.md).
 
+:::{warning}
+Reconfiguring the FPGA over JTAG while its PCIe endpoint is enumerated is a
+surprise removal. Detach the endpoint first, using the host's own bus from the
+`PCIe Bus` column above — `0000:01:00.0` on pi14, `0001:01:00.0` on pi16 and
+pi20:
+
+```console
+$ echo 1 | sudo tee /sys/bus/pci/devices/0001:01:00.0/remove
+```
+
+Restore it with `/sys/bus/pci/rescan`, or by rebooting. `--detect` and the other
+read-only queries are safe without this; **loading a bitstream is not**.
+:::
+
+:::{note}
+This crash was measured at Welland, not here: on 2026-08-31 an undetached load
+crashed a Pi 5's BCM2712 root complex outright. No PS1 blade has been recorded
+hitting it, and pi20 is the only one where the combination can arise today,
+since pi14 and pi16 do not answer JTAG at all.
+:::
+
 :::{note}
 The blades have no page under `https://ps1.fpgas.online/fpgas/` — pi14, pi16,
-pi18 and pi20 all return 404 (checked 2026-09-03). Only the Arty hosts and pi21
+pi18 and pi20 all return 404 (checked 2026-09-03). Only the linked hosts above
 are published.
 :::
+
+Source: live probe 2026-08-31 via `site-ps1.md` and `acorn.md`; JTAG and P2
+columns from the 2026-08-31 pin-ID survey; MACs and switch ports cross-checked
+against infra `host_vars/ps1.fpgas.online.yml`.
 
 ### Other hosts
 
@@ -199,11 +249,20 @@ From `pibs.conf` and the 2026-08-31 switch dump.
 | [pi21](https://ps1.fpgas.online/fpgas/pi21.html) | e21  | 10.21.0.121 | 2c:cf:67:39:18:66 | RPi 5 Rev 1.0 4 GB | No FPGA, development host  | Online  |
 | pi24 | —    | 10.21.0.124 | b8:27:eb:85:ab:d9  | (unknown)          | Registered but not on switch | Offline |
 
+`Dead` and `Offline` describe the host, not the cable. The 2026-08-31 switch
+dump shows e19 with link up and PoE delivering, yet pi19 does not respond; pi24
+is not on the switch at all. Nothing in the sources reconciles the two, so both
+readings are recorded as they were taken.
+
+Source: `/etc/dnsmasq.d/pibs.conf` on val2 and the 2026-08-31 switch dump, via
+`site-ps1.md`.
+
 ### Pending
 
-Four Tiny Tapeout FPGA demo boards are allocated to PS1 and not yet installed.
-The source inventory carries four identical rows for them — host, switch port,
-IP, RPi MAC and RP2350 serial are all TBD, and there is no board page yet:
+Probed live 2026-09-03; the PS1 rows were still TBD at that probe. Four Tiny
+Tapeout FPGA demo boards are allocated to PS1 and not yet installed. The source
+inventory carries four identical rows for them — host, switch port, IP, RPi MAC
+and RP2350 serial are all TBD, and there is no board page yet:
 
 | Site | Board | Count | Host | Switch Port | IP | RPi MAC | RP2350 Serial | Board page |
 |---|---|---|---|---|---|---|---|---|
@@ -213,6 +272,9 @@ Seven Tiny Tapeout ASIC boards are pending as well (one each for TT02-TT09
 except TT08), and pi18's M.2 slot is still waiting for an Acorn. See
 [Tiny Tapeout FPGA demo board](../boards/tt-fpga.md) and
 [Tiny Tapeout ASIC boards](../boards/tt-asic.md).
+
+Source: the deployment table in `tt-fpga.md` (probed live 2026-09-03) and the
+board summary in `site-ps1.md`.
 
 ## PoE switch
 
@@ -284,6 +346,13 @@ $ /srv/www/pib/venv/bin/python3 \
 `1` is on, `2` is off; omit the value to read the current state. A blade takes
 about 60 seconds to come back.
 
+## Public site
+
+PS1 is the public site. `https://ps1.fpgas.online/fpgas/` serves a page per
+board — web SSH terminal, reset button, bitstream upload, PoE power cycle, and
+an HLS video feed at `/live/piN.m3u8` — all behind nginx on val2. How that is
+built and deployed is in [The web application](../setup/webapp.md).
+
 ## Known faults
 
 - **pi14 and pi16 do not respond to JTAG on any pin order.** All 24 permutations
@@ -293,16 +362,14 @@ about 60 seconds to come back.
   is the Acorn's own and should be present whenever the connector is mated.
   Both boards enumerate over PCIe, so the boards are alive — reseating P1 is the
   thing to try. Their P2 serial is untested until JTAG works.
-- **pi2** (Arty A7): offline since before the 2026-08-31 survey. It is also the
-  only host with an Apple A1277 USB Ethernet adapter rather than an ASIX
-  AX88179.
-- **pi19**: dead hardware. The port still delivers PoE.
+- **pi2** (Arty A7): recorded Offline. Port e2 shows link up and PoE delivering
+  in the 2026-08-31 switch dump, so "offline" is the host, not the link. pi2 is
+  also the only host with an Apple A1277 USB Ethernet adapter rather than an
+  ASIX AX88179, and its adapter MAC was never recorded.
+- **pi19**: dead hardware. Port e19 likewise shows link up and PoE delivering,
+  so again this is the host and not the cable.
 - **pi24**: registered in `pibs.conf` at 10.21.0.124 but on no switch port, and
   offline. Its model is unknown.
 - **e15**: PoE is delivering into a port with no link.
-- No cameras on any blade.
-
-PS1 is the public site. `https://ps1.fpgas.online/fpgas/` serves a page per
-board — web SSH terminal, reset button, bitstream upload, PoE power cycle, and
-an HLS video feed at `/live/piN.m3u8` — all behind nginx on val2. How that is
-built and deployed is in [The web application](../setup/webapp.md).
+- No cameras on any blade. The camera feeds on the public pages are the Arty
+  boards'.
