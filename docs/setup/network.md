@@ -1,18 +1,13 @@
 # Network and power
 
 Every Raspberry Pi in the fleet sits behind its site's gateway on a private
-`10.21.0.0/16` network, and at Welland each Pi has that network to itself: one
-switch port, one VLAN, one address, with the gateway as the only thing it can
-talk to. Two addressing schemes exist across the fleet — the port-derived one
-at Welland and the older MAC-table one at PS1 — and which a host uses is
+`10.21.x.x` network, but the two sites lay that network out differently: PS1 is
+one flat `/24` with every Pi on it, while Welland spreads a `/16` across one
+VLAN per switch port, so each Pi has a segment to itself with the gateway as
+the only thing on the local network it can reach. Which scheme a host uses is
 decided by a single inventory variable. Power is PoE from the same managed
 switches that carry the network, so "reboot the board" and "cut its Ethernet
 power" are the same operation.
-
-This page covers the two schemes and their formulas, why per-port isolation
-exists and what it does and does not promise a user, what provisions the
-switches, how PoE is cycled, how the Pi's own interfaces get their names, and
-how to prove the isolation actually holds.
 
 ## Two addressing schemes
 
@@ -22,14 +17,25 @@ address, and its identity travels with the board rather than with the socket.
 
 The switch is a single inventory variable. A host that defines `switches:` in
 its `host_vars` gets the per-port scheme; a host that does not falls through to
-the legacy path. That one `is defined` test appears in the `firewall` role's
-nftables template, in the `tftp_root` expression, in `dnsmasq-base.conf.j2`'s
-choice of a flat `dhcp_range`, and it is what makes the `vlan-ports` and
-`switch-vlans` roles produce anything at all. Today exactly one production host
-defines it: `fpgas.online`, the Welland gateway [tweed](../sites/welland.md#gateway-tweed).
-`ps1.fpgas.online`, `slf.sytes.net` and the QEMU CI VM do not — although the CI
-VM defines `switches:` with `switches_manage: false`, so it exercises the
-address derivation against an emulated switch without a real one to write to.
+the legacy path. That one `is defined` test decides the `tftp_root` expression
+in `group_vars/all/srv.yml`, picks which half of the `firewall` role's nftables
+template is rendered, and gates the `vlan-ports` and `switch-vlans` roles in
+`site.yml` — without it neither role runs at all.
+
+The only production host that defines `switches:` is `fpgas.online`, the
+Welland gateway [tweed](../sites/welland.md#gateway-tweed); `ps1.fpgas.online`
+and `slf.sytes.net` do not. The QEMU CI VM defines one switch of a single
+access port with `switches_manage: false`, so every role runs and the address
+derivation is exercised against an emulated switch, with only the SNMP converge
+step skipped for want of real hardware.
+
+:::{note}
+dnsmasq's own coupling to this is indirect. `dnsmasq-base.conf.j2` tests
+`dhcp_range is defined`, not `switches` — it emits a flat pool if the host has
+one and nothing if it does not. The two line up only because a per-port host's
+`host_vars` deliberately omits `dhcp_range`, with a comment saying why, so that
+every port gets its own range from `ports.conf.j2` instead.
+:::
 
 For switch index `s` and port `p`, and for legacy port `N`:
 
@@ -137,9 +143,11 @@ network, so users can't interfere with each other". That claim is about the
 network and nothing else. It means a user with a shell on one Pi cannot reach
 another Pi, at either address family; combined with the read-only NFS root it
 means the damage a user can do is bounded and reverts on the next power cycle.
-It does **not** mean exclusive access to a board: nothing on the network
-arbitrates who is driving which FPGA, and two people can be on the same Pi at
-once.
+It does **not** mean exclusive access to a board: nothing in the network design
+arbitrates who is driving which FPGA. Nothing in the sources reviewed here
+describes a lock or a booking mechanism either, so read "two users could be on
+one Pi at the same time" as an inference from their absence rather than a
+documented behaviour.
 :::
 
 ## Switches
@@ -169,6 +177,8 @@ are the interface to Ansible: `0` means in sync or applied cleanly, `2` means
 check mode found drift, `1` means error.
 
 ```console
+$ # set this interactively - it is a write credential, never in a file or a commit
+$ export FPGAS_SWITCH_COMMUNITY=<switch-write-community>
 $ # check mode - prints the pending actions, writes nothing
 $ fpgas-switch-setup --config /etc/fpgas/switches.yml --switch 1
 $ fpgas-switch-setup --config /etc/fpgas/switches.yml --switch 1 --apply
@@ -178,10 +188,10 @@ $ fpgas-switch-setup --config /etc/fpgas/switches.yml --switch 1
 
 The `switch-vlans` role installs the CLI into its own venv at
 `/opt/fpgas-switch/venv`, renders `/etc/fpgas/switches.yml` from the
-`switches:` list, and runs the converge once per switch. The SNMP write
-community comes from a per-switch vaulted variable through the
-`FPGAS_SWITCH_COMMUNITY` environment variable; the two switches use different
-communities and neither is written in plaintext anywhere.
+`switches:` list, and runs the converge once per switch, passing that same
+variable per switch. The two switches use different write communities, held as
+vaulted variables and looked up out of band. Do not copy either value into
+documentation or a commit.
 
 :::{note}
 Two operational quirks are recorded as verified, not as bugs. The switches'
@@ -191,19 +201,21 @@ what is still missing. And each SNMP operation takes roughly two seconds, so a
 full 48-port converge runs for several minutes. That is not a hang.
 :::
 
-PS1 has no per-port provisioning at all. Its single **Netgear FS728TPv2** is a
-Plus-series switch that the design spec put explicitly out of scope, and it does
-not answer the standard PoE MIB — it uses a Netgear-private OID from a draft of
+PS1 has no per-port provisioning at all. Its single switch is a **Netgear
+FS728TPv2** — the live PoE OID and the recorded management MAC both identify
+it, although stale comments in its `host_vars` name two other models as well,
+which the [PoE switch](../sites/ps1.md#poe-switch) section notes. It is a
+Plus-series unit that the design spec put explicitly out of scope, and it does
+not answer the standard PoE MIB: it uses a Netgear-private OID from a draft of
 the spec. The OID and the working command are on the PS1 page under
-[Power control](../sites/ps1.md#power-control). Which switch model is physically
-installed there is not settled; that question is tracked on the
-[PoE switch](../sites/ps1.md#poe-switch) section of the same page.
+[Power control](../sites/ps1.md#power-control).
 
 ## PoE power control
 
-The Pis have no power button. Cutting PoE on the port is the reset, and it is
-also the only way to recover a wedged board — at Welland a hung Pi 5 shows up as
-drawing about 0.4 W instead of about 8 W.
+There is no remote power control other than PoE. Cutting power on the switch
+port is the reset, and it is also the only way to recover a wedged board — at
+Welland a hung Pi 5 shows up as
+[drawing about 0.4 W instead of about 8 W](../sites/welland.md#sqrl-acorn-cle-215).
 
 The scripted path ships in `fpgas.online-poe` and runs **on the gateway**, which
 is where the SNMP credentials live and the only host with a route to the switch:
@@ -218,21 +230,47 @@ $ # every port in pi_ports, one second apart
 $ allpoe.sh 1 1
 ```
 
-`poe.sh <port>` reads the port and `poe.sh <port> 1|2` sets it, with `1` on and
-`2` off; `allpoe.sh <1|2> [sleep]` loops the same call over the `pi_ports` list
-and sleeps between them, defaulting to one second. There is also an
-`allpoeoff.sh`. Both `source /etc/environment.export` for the switch host, OID
-and SNMPv3 credentials.
+The three scripts do not share a mechanism, and the differences matter:
+
+`poe.sh <port> [1|2]`
+: Reads the port, or sets it when given a value, with `1` on and `2` off. It
+  sources `/etc/environment.export` (line 39), but its live path is line 57: it
+  shells out to `snmp_switch/utils.py` inside the Django venv at
+  `/srv/www/pib/venv`, which is what actually reads `SNMP_SWITCH_*` from the
+  environment. Everything below the script's `exit` — the hand-written
+  `snmpget.py` / `snmpset.py` invocations with the credentials spelled out as
+  flags — is dead code kept as a reference.
+
+`allpoe.sh <1|2> [sleep]`
+: Sources the same file (line 8) purely for `pi_ports`, then loops `poe.sh $p
+  $1` over it with a sleep between calls, defaulting to one second.
+
+`allpoeoff.sh [sleep]`
+: Does **not** source anything. It hardcodes `pi_ports=$(seq 1 48)` (line 7)
+  and the legacy `ip_base=10.21.0` / `o_base=100` (lines 8–9), then powers every
+  one of those 48 ports off. Its single argument is the sleep time, not an
+  on/off value, and the active loop never uses it; the loop that would have
+  issued a clean shutdown first is commented out, on the grounds that an
+  overlayrooted Pi has nothing to flush.
 
 :::{warning}
-Those variables are written by the `site` role's `snmp.yml`, and that task is
-guarded by `when: switch.mpi_port is defined` — a field the per-port scheme
-removed. So the whole task is skipped on tweed, and `pi_ports` is built from
-`switch.nos`, which tweed does not have either. `poe.sh` and `allpoe.sh` are a
-working path at PS1 and an unconverged one at Welland. The `switch:` block still
-in Welland's `host_vars` points at `10.21.0.200`, an address the per-port
-firewall no longer DNATs to, since switch management moved to the house network.
+`SNMP_SWITCH_*` and `pi_ports` are written by the `site` role's `snmp.yml`, and
+that task is guarded by `when: switch.mpi_port is defined` — a field the
+per-port scheme removed. The whole task is therefore skipped on tweed, and
+`pi_ports` is built from `switch.nos`, which tweed does not have either. These
+scripts are a working path at PS1 and a non-working one at Welland: **`poe.sh`
+does not work on tweed until `snmp.yml` is fixed.** The `switch:` block still in
+Welland's `host_vars` points at `10.21.0.200`, an address the per-port firewall
+no longer DNATs to, since switch management moved to the house network.
 :::
+
+So a PoE cycle at Welland today is a manual one. The
+[test-designs troubleshooting table](https://github.com/fpgas-online/fpgas.online-test-designs/blob/main/docs/hardware/acorn-pinmap.md)
+gives the actual procedure for a wedged board: an SNMP set against the S3300,
+using that switch's write community, looked up out of band with `gdoc2netcfg`.
+Run it from [tweed](../sites/welland.md#gateway-tweed) or from any other host
+that can reach the switch management VLAN, the same reachability
+`fpgas-switch-setup` needs.
 
 :::{note}
 The two halves also disagree about the filename. `snmp.yml` writes
@@ -250,12 +288,13 @@ a kernel and an NFS root over the network, not resuming from disk. Roughly two
 minutes from power-on to SSH is the figure the automation uses.
 
 The replacement for all of this is the gateway service in
-[fpgas.online-gw](https://github.com/fpgas-online/fpgas.online-gw): PoE control
-by board slug over `POST /api/board/<slug>/power`, with SNMP staying on the
+[fpgas.online-gw](https://github.com/fpgas-online/fpgas.online-gw), which is to
+expose PoE control per board slug over its HTTP API, with SNMP staying on the
 gateway so the web tier never holds a credential or a route to the Pi network.
-The repository's `main` branch describes the contract; the implementation and
-its full API documentation are on an unmerged branch, so treat the endpoint as
-planned rather than deployed.
+Its `main` branch describes that much and says the full API documentation lands
+with the implementation on a separate branch, so treat the whole interface as
+planned rather than deployed, and take the request shape from the repository
+rather than from here.
 
 :::{note}
 A PoE cycle is not optional after a converge. Re-running the playbook changes
@@ -304,7 +343,10 @@ carry their old names.
 These are the hardware checks from the prototype runbook: stage 6 proves the
 isolation matrix, stage 7 proves that identity follows the port, and stage 8
 proves an unconfigured port lands in quarantine. Run them after any change to
-the switch config or the firewall.
+the switch config or the firewall. Mind the index mismatch flagged
+[above](#two-addressing-schemes) as you read the runbook: the switch it calls
+"switch 1" is the S3300, which in the deployed inventory — and in the addresses
+below — is switch 2.
 
 **1. The isolation matrix.** From a Pi on switch 1 port 1, try to reach a Pi on
 switch 2 port 1 and then reach the gateway and the internet. Every reachability
@@ -377,16 +419,24 @@ fpgas.online-infra, `main`:
   — stages 6, 7 and 8 (isolation matrix, port identity, quarantine), the
   per-VLAN gateway IPv6 address, the CLI exit codes, and the `commitFailed` and
   two-seconds-per-operation quirks.
+- [`ansible/site.yml`](https://github.com/fpgas-online/fpgas.online-infra/blob/main/ansible/site.yml)
+  — `vlan-ports` and `switch-vlans` both gated on `when: switches is defined`.
 - [`ansible/inventory/hosts`](https://github.com/fpgas-online/fpgas.online-infra/blob/main/ansible/inventory/hosts)
-  — the host groups.
+  — the hosts that exist, including `slf.sytes.net`.
+- [`ansible/inventory/group_vars/all/srv.yml`](https://github.com/fpgas-online/fpgas.online-infra/blob/main/ansible/inventory/group_vars/all/srv.yml)
+  — the `tftp_root` expression, the other place `switches is defined` decides
+  behaviour.
 - [`ansible/inventory/host_vars/fpgas.online.yml`](https://github.com/fpgas-online/fpgas.online-infra/blob/main/ansible/inventory/host_vars/fpgas.online.yml)
   — the `switches:` list, the confirmed 2026-08-22 cabling and access-port
   counts, `pib_network`, `pib_network6_base`, the `/16` `eth_local_netmask` and
-  why it is not `/24`, and the note that `dhcp_range` is absent because this
-  host defines `switches:`.
+  why it is not `/24`, the note that `dhcp_range` is deliberately absent, and
+  the vaulted per-switch write communities.
 - [`ansible/inventory/host_vars/ps1.fpgas.online.yml`](https://github.com/fpgas-online/fpgas.online-infra/blob/main/ansible/inventory/host_vars/ps1.fpgas.online.yml)
-  — the legacy `pib_network: 10.21.0`, the flat `dhcp_range`, `switch.nos` and
-  the `100+port` address expression.
+  — the legacy `pib_network: 10.21.0`, the flat `/24` `eth_local_netmask` and
+  `dhcp_range`, `switch.nos` and the `100+port` address expression.
+- [`tests/inventory/host_vars/test-vm.yml`](https://github.com/fpgas-online/fpgas.online-infra/blob/main/tests/inventory/host_vars/test-vm.yml)
+  — the CI VM's single-access-port `switches:` entry and `switches_manage:
+  false`.
 - [`ansible/filter_plugins/port_vlans.py`](https://github.com/fpgas-online/fpgas.online-infra/blob/main/ansible/filter_plugins/port_vlans.py)
   — the single implementation of the per-port formulas.
 - [`ansible/roles/vlan-ports/tasks/main.yml`](https://github.com/fpgas-online/fpgas.online-infra/blob/main/ansible/roles/vlan-ports/tasks/main.yml)
@@ -414,15 +464,21 @@ fpgas.online-infra, `main`:
 - [`TECHDEBT.md`](https://github.com/fpgas-online/fpgas.online-infra/blob/main/TECHDEBT.md)
   — the onboard-versus-dongle enumeration incident and the `eth-uplink` /
   `eth-fpga` naming that followed.
-- [`README.md`](https://github.com/fpgas-online/fpgas.online-infra/blob/main/README.md)
-  — the host groups and roles tables.
 
 Other repositories:
 
 - [fpgas.online-poe](https://github.com/fpgas-online/fpgas.online-poe) —
   `README.md` for the `fpgas-switch-setup` invocation, its owned VLAN range and
-  exit codes, and the SNMP environment variables; `scripts/poe.sh`,
-  `scripts/allpoe.sh` and `scripts/allpoeoff.sh` for the PoE control path.
+  exit codes, and the SNMP environment variables; `scripts/poe.sh` (lines 37–65:
+  the sourced env file, the `utils.py` call and the dead `snmpget.py` block
+  after `exit`), `scripts/allpoe.sh` (lines 6–14) and `scripts/allpoeoff.sh`
+  (lines 5–30: the hardcoded `seq 1 48` and legacy `10.21.0` / `100` bases, and
+  the commented-out shutdown loop).
+- [fpgas.online-test-designs](https://github.com/fpgas-online/fpgas.online-test-designs)
+  — `docs/hardware/acorn-pinmap.md`, the troubleshooting table, for the
+  0.4 W wedged-Pi symptom and the manual S3300 PoE cycle with the write
+  community from `gdoc2netcfg`; `docs/verify-hardware.md` for the two-minute
+  power-on-to-SSH figure.
 - [fpgas.online-setup-pi](https://github.com/fpgas-online/fpgas.online-setup-pi)
   — `README.md` for the package contents, `nfpm.yaml` for where the `.link`
   files are installed, and
