@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Export documentation files from origin/main of sibling repositories.
+"""Export documentation files from the pinned origin ref of sibling repositories.
 
 Usage: export_sources.py [REPO ...]
 
@@ -91,17 +91,23 @@ def export(key: str) -> None:
     for path in paths:
         out = DOCS / "tmp" / "src" / key / path
         out.parent.mkdir(parents=True, exist_ok=True)
-        blob = subprocess.run(
+        proc = subprocess.run(
             ["git", "-C", str(repo_dir), "show", f"{ref}:{path}"],
-            check=True, capture_output=True,
-        ).stdout
-        out.write_bytes(blob)
+            capture_output=True,
+        )
+        if proc.returncode != 0:
+            print(f"{repo} {ref}:{path}: {proc.stderr.decode().strip()}", file=sys.stderr)
+            sys.exit(1)
+        out.write_bytes(proc.stdout)
         print(out.relative_to(DOCS))
 
 
 def main(argv: list[str]) -> int:
     keys = argv or list(REPOS)
     for key in keys:
+        if key not in REPOS:
+            print(f"unknown repo {key!r}; known: {', '.join(REPOS)}", file=sys.stderr)
+            return 2
         export(key)
     return 0
 
