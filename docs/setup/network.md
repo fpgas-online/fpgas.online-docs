@@ -178,7 +178,7 @@ check mode found drift, `1` means error.
 
 ```console
 $ # set this interactively - it is a write credential, never in a file or a commit
-$ export FPGAS_SWITCH_COMMUNITY=<switch-write-community>
+$ export FPGAS_SWITCH_COMMUNITY='<switch-write-community>'
 $ # check mode - prints the pending actions, writes nothing
 $ fpgas-switch-setup --config /etc/fpgas/switches.yml --switch 1
 $ fpgas-switch-setup --config /etc/fpgas/switches.yml --switch 1 --apply
@@ -266,11 +266,26 @@ no longer DNATs to, since switch management moved to the house network.
 
 So a PoE cycle at Welland today is a manual one. The
 [test-designs troubleshooting table](https://github.com/fpgas-online/fpgas.online-test-designs/blob/main/docs/hardware/acorn-pinmap.md)
-gives the actual procedure for a wedged board: an SNMP set against the S3300,
-using that switch's write community, looked up out of band with `gdoc2netcfg`.
-Run it from [tweed](../sites/welland.md#gateway-tweed) or from any other host
-that can reach the switch management VLAN, the same reachability
-`fpgas-switch-setup` needs.
+records the remedy for a wedged board: an SNMP set against the S3300, using that
+switch's write community, looked up out of band with `gdoc2netcfg`. Run it from
+[tweed](../sites/welland.md#gateway-tweed) or from any other host that can reach
+the switch management VLAN, the same reachability `fpgas-switch-setup` needs.
+
+That row is about the Acorn hosts, and every Acorn at Welland is on switch 2,
+the S3300 — so it covers switch 2 only. Switch 1, the GSM7252PS, carries Pis of
+its own (the NeTV2 hosts and the Fomu), and fleet Pis are PoE-powered, so it
+supplies PoE too and has its own separate write community. A board on switch 1
+needs that one, not the S3300's.
+
+:::{todo}
+No runnable command for the Welland manual PoE cycle is recorded anywhere —
+not in the infra repository, not in test-designs, not on the site pages. The
+remedy above names the switch and the credential but not the invocation. Record
+one: the management host to target, the PoE OID for the S3300, and the on/off
+values to set — and the same three for the GSM7252PS. Until then the only
+written PoE procedure that can be pasted is the PS1 one, which points at a
+different switch with a different OID.
+:::
 
 :::{note}
 The two halves also disagree about the filename. `snmp.yml` writes
@@ -469,9 +484,10 @@ Other repositories:
 
 - [fpgas.online-poe](https://github.com/fpgas-online/fpgas.online-poe) —
   `README.md` for the `fpgas-switch-setup` invocation, its owned VLAN range and
-  exit codes, and the SNMP environment variables; `scripts/poe.sh` (lines 37–65:
-  the sourced env file, the `utils.py` call and the dead `snmpget.py` block
-  after `exit`), `scripts/allpoe.sh` (lines 6–14) and `scripts/allpoeoff.sh`
+  exit codes, and the SNMP environment variables; `scripts/poe.sh` (lines 37–88:
+  the sourced env file, the `utils.py` call, and the dead `snmpget.py` /
+  `snmpset.py` block at 67–88, after the `exit` on line 65),
+  `scripts/allpoe.sh` (lines 6–14) and `scripts/allpoeoff.sh`
   (lines 5–30: the hardcoded `seq 1 48` and legacy `10.21.0` / `100` bases, and
   the commented-out shutdown loop).
 - [fpgas.online-test-designs](https://github.com/fpgas-online/fpgas.online-test-designs)
