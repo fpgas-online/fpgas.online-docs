@@ -305,6 +305,8 @@ as `{todo}` items rather than resolved by the port.
 | The infra README describes the Pi provisioning container as systemd-nspawn with sshd on port 2200; the role implements a chroot behind an SSH login shell on port 22 | `setup/netboot.md` (documents the real mechanism; the README is corrected in the same change) |
 | pi14 and pi16 at PS1 do not answer JTAG on any pin order | `sites/ps1.md` (already present) |
 | The TT FPGA `pmod-tt.md` RP2350 table is spec-derived while `tt-fpga-pin-mapping.md` is measured; they agree numerically | `boards/tt-fpga.md` links to `boards/pmod/tinytapeout.md` with a note on provenance |
+| `verify-hardware.md`'s TT FPGA "iCE40 ↔ PMOD HAT ↔ RPi GPIO" table disagrees with `tt-fpga-pin-mapping.md` on every PMOD HAT port and most RPi GPIOs (iCE40 pins agree). One describes dead cabling. Recorded as a todo in Task 12. | `boards/tt-fpga.md` |
+| `tt-fpga.md` describes the board with an RP2040 (v2) throughout; the fleet and `tt-fpga-pin-mapping.md` are RP2350B demo board v3. The RP2040-specific facts (66 MHz max clock, PWM first-call bug) need re-verifying on v3. | `boards/tt-fpga.md` |
 
 ## Ordering
 
