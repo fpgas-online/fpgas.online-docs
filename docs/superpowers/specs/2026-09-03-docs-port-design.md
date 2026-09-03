@@ -32,8 +32,9 @@ else is spread over other repositories. An inventory of every documentation
 file in those repositories was taken on 2026-09-03 and is summarised in the
 [source inventory](#source-inventory) below.
 
-The `fpgas.online-test-designs` repository holds by far the most: 24 files
-under `docs/hardware/` (about 6,000 lines), of which 12 were edited on
+The `fpgas.online-test-designs` repository holds by far the most: 21
+Markdown files under `docs/hardware/` (about 6,000 lines, plus two wiring
+images, a Makefile and two data files), of which 12 were edited on
 2026-09-03. That directory is the primary source for the Boards and Sites
 sections. Its `docs/tests/`, `docs/toolchains/`, `docs/plans/` and
 `designs/*/README.md` files are developer documentation and are not ported.
@@ -71,7 +72,7 @@ and a rebuild log. That is the primary source for the Setup section.
 
 ## Approaches considered
 
-**A. Mirror the test-designs `docs/hardware/` tree as-is.** Copy the 24 files
+**A. Mirror the test-designs `docs/hardware/` tree as-is.** Copy the 21 files
 into `docs/hardware/` on the docs site and add a toctree. Fast, but the
 files mix board wiring with per-host inventory (six board pages carry host
 tables), the two NeTV2 files repeat most of each other's tables, and the
@@ -342,9 +343,9 @@ from `wc -l`.
 
 | Repository | Files | Lines | Ported |
 |---|---|---|---|
-| `fpgas.online-test-designs/docs/hardware/` | 24 | about 6,000 | all Markdown; data and image files stay |
-| `fpgas.online-test-designs` (tests, toolchains, plans, designs READMEs, `verify-hardware.md`, `resources.md`, `plan.md`) | 27 | about 8,900 | none; links updated, one section replaced |
-| `fpgas.online-infra` (README, CLAUDE.md, notes, TECHDEBT, role READMEs) | 13 | about 800 | selected facts |
+| `fpgas.online-test-designs/docs/hardware/` | 21 Markdown, 2 images, 1 Makefile, 2 data files | about 6,000 | all 21 Markdown files; images copied; Makefile and data files stay |
+| `fpgas.online-test-designs` (README, tests, toolchains, plans, designs READMEs, `verify-hardware.md`, `resources.md`, `plan.md`) | 30 | about 8,900 | none; links updated, one section replaced |
+| `fpgas.online-infra` (README, CLAUDE.md, notes, TECHDEBT, role READMEs and notes) | 11 | about 800 | selected facts |
 | `fpgas.online-infra/docs/` (specs, runbooks, rebuild log, hardware, plans) | 14 | about 7,400 | 4 files ported, 4 specs summarised, rest kept |
 | `fpgas.online-site` | 9 | about 400 | README summarised, 2 stub READMEs left alone |
 | `fpgas.online-tt`, `tinytapeout-fpga-demos`, `tt-commander-app`, `fpgas.online-gw` | 8 | about 600 | summarised |
