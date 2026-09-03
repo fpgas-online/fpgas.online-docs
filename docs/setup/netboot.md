@@ -152,6 +152,14 @@ built by the roles described below. How it is maintained is not recorded in the
 infra repository.
 :::
 
+:::{todo}
+Record how the trixie arm64 root is built and maintained. `group_vars/all/srv.yml`
+pins `dist: bookworm` for every host and nothing in `fpgas.online-infra` builds a
+trixie root, yet the PS1 Compute Blades boot `/srv/nfs/rpi/trixie/`
+([Two NFS roots](../sites/ps1.md#gateway-val2)). Either the roles gain a second
+`dist`, or the procedure that made that root by hand needs writing down.
+:::
+
 ## How the root is built
 
 The root is built and configured **on the gateway**, before any Pi boots. No

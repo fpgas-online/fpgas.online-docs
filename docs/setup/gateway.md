@@ -33,6 +33,15 @@ the `pxe` *role*, which runs from the `nbp` play, while the `pxe` *group* is
 matched by nothing in the repo.
 
 :::{todo}
+Three inventory-versus-README mismatches are unresolved upstream: the
+`[uhubctl]` group contains only `slf.sytes.net`, so the `uhubctl` role never
+runs on tweed or val2 despite the infra README calling it a server role; the
+`[pxe]` group is declared but no playbook targets it; and the README calls the
+chroot group `pi` while the inventory group is `onpi` with a *host* named `pi`.
+Either fix the groups or fix the README, in `fpgas.online-infra`.
+:::
+
+:::{todo}
 `slf.sytes.net` is in both `nbp` and `uhubctl`, so a full-scope `site.yml` run
 tries to reach it. The 2026-08-25 tweed rebuild log records, in its rebuild #2
 entry P2-9 of 2026-08-26, that it no longer resolves — dead dynamic DNS — and
@@ -244,6 +253,16 @@ unconditionally on the input chain and an empty ruleset accepts everything.
 
 The `--check --diff` preview above is the real safeguard — run it and read the
 rendered file before applying.
+:::
+
+:::{todo}
+Fix the fail-open converge upstream in `fpgas.online-infra`: the `firewall`
+role's `Enable nftables service` task is `state: restarted` under the
+`nftables` tag, and Debian's `nftables.service` has
+`ExecStop=nft flush ruleset`, so a converge with a bad rendered ruleset flushes
+the old rules and loads nothing. The notify handler's `state: reloaded` is the
+safe form. Nobody has decided whether the task should become `state: started`,
+gain a validation step, or both.
 :::
 
 ### Checking and reconnecting

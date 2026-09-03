@@ -65,6 +65,14 @@ Two disagreements between the sources, neither resolved:
   [PS1 pending](../sites/ps1.md#pending) says seven.
 :::
 
+:::{todo}
+Fix the test-designs hardware README to match: its TT09 row says USB (RP2040)
+where the demo-PCB version rule puts TT09 on v3 with an RP2350; its PS1 column
+carries a pending TT08 that `site-ps1.md` excludes; and it links
+`tinytapeout.com/chips/tt03p5/`, which is a 404 — that is why the TT03p5 row
+above has no shuttle link.
+:::
+
 ## Connection to the Pi
 
 Each board is wired to its Raspberry Pi two ways.

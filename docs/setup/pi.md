@@ -92,6 +92,15 @@ carries workarounds for 0.10.0 — the `/dev/gpiochip15` symlink over
 standing in for `--read-dna`.
 :::
 
+:::{todo}
+Two package-and-firmware decisions are still open in `fpgas.online-infra`. The
+`openfpgaloader-rp1pio` swap is only on PR #48, so the roots keep shipping
+Debian's 0.10.0 until it lands or is closed. And `core_freq=500` is not set
+anywhere: `TECHDEBT.md` records the PoE-versus-camera trade-off undecided — see
+[`core_freq` under boot-time configuration](#boot-time-configuration) — so
+whichever way it goes, one of the two failure modes stays possible.
+:::
+
 The `cam/pi` role adds the streaming stack on top: `gstreamer1.0-tools`, the
 `base`, `good`, `bad`, `ugly`, `base-apps` and `libcamera` plugin sets,
 `rpicam-apps-lite`, `jq` (the publisher script reads the default route out of

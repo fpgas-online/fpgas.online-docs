@@ -100,6 +100,16 @@ switches' own LLDP on 2026-08-22, is tweed `eth-local` into GSM 1/0/47 and GSM
 also not what shipped: switch 1 carries 40 access ports, switch 2 carries 48.
 :::
 
+:::{todo}
+Nobody has corrected the losing copy. The VLAN-per-port design spec
+(2026-08-14) still numbers the S3300 as switch 1 and the GSM7252PS as switch 2,
+still says trunk 49 with `access_ports: 48` on both, and the prototype runbook
+still follows it — while the deployed `host_vars`, the LLDP survey of
+2026-08-22 and the [Welland page](../sites/welland.md#network) say the
+opposite. Update the spec and the runbook in `fpgas.online-infra`, or mark them
+superseded.
+:::
+
 ## Why per-port
 
 The isolation goal is stated first in the design spec and everything else
@@ -300,6 +310,16 @@ The two halves also disagree about the filename. `snmp.yml` writes
 that name. The [PS1 procedure](../sites/ps1.md#power-control) sources the
 singular name and works, so the file exists on val2 — but it is not one the
 roles put there, and a rebuilt gateway would not have it.
+:::
+
+:::{todo}
+Both halves of that mismatch are still unfixed in `fpgas.online-infra`:
+`site/tasks/snmp.yml` is guarded by `switch.mpi_port is defined`, a field the
+per-port scheme removed, so nothing writes `SNMP_SWITCH_*` or `pi_ports` on
+tweed; and the role writes `/etc/environment.exports` while `poe.sh` sources
+`/etc/environment.export`. PS1 works by history, not by converge — a rebuilt
+val2 would lose the file too. Fix the guard, settle on one filename, and
+converge both gateways.
 :::
 
 Expect the board to be gone for a while. A Compute Blade at PS1 takes about

@@ -67,6 +67,15 @@ read RP2350.
 :::
 
 :::{todo}
+The RP2040-specific facts inherited from that v2 specification have not been
+re-verified on a v3 board: the ~66 MHz maximum clock in the table above, and
+the PWM first-call bug the source calls an RP2040 bug while the deployed
+workaround calls it an RP2350 bug (see [RP2350 PWM first-call
+bug](#rp2350-pwm-first-call-bug)). Measure both on a TTDBv3 in the fleet and
+record the date.
+:::
+
+:::{todo}
 The two sources disagree on how the iCE40UP5K's block RAM is divided. The table
 above says 15 × 8 Kbit EBR blocks; [FPGA Device](#fpga-device) under the pin
 mapping says 30 EBR blocks. The totals agree (120 Kbit ≈ 15 KB), so one of the

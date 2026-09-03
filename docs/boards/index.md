@@ -100,6 +100,15 @@ page is the measured source.
   TT09 board is deployed, so nothing has been measured either way.
 :::
 
+:::{todo}
+Reconcile those counts at the source. The test-designs hardware README is the
+only record of the pending Welland TT02/TT03/TT09, the four pending PCIe NeTV2
+hosts and the four pending ButterStick and ULX3S boards, and none of them
+appears on the [Welland page](../sites/welland.md); the README's eight pending
+PS1 ASIC boards are seven there. Either the README is a wish list and should
+say so, or the allocations exist and belong on the site page.
+:::
+
 ## Guides
 
 The interconnects and the cross-board procedures, in the order they are usually
