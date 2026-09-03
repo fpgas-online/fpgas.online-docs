@@ -220,7 +220,10 @@ multiboot](pcie-programming.md).
 
 LiteX provides PCIe-based programming via `litepcie_util` when a LiteX bitstream
 with PCIe support is already loaded. Only pi-sw2-p44 currently boots such a
-design; the other Welland boards still carry the SQRL factory firmware. At PS1,
+design, but p44 scans an empty JTAG chain and must not be flashed over PCIe
+until that is fixed; see [safety
+rules](pcie-programming.md#safety-rules). The other Welland boards still carry
+the SQRL factory firmware. At PS1,
 pi20 is the candidate — it is the one blade whose flash holds a `10ee:7011`
 XC7A100T design rather than the SQRL factory firmware.
 
