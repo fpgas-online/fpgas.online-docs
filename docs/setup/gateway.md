@@ -34,10 +34,10 @@ matched by nothing in the repo.
 
 :::{todo}
 `slf.sytes.net` is in both `nbp` and `uhubctl`, so a full-scope `site.yml` run
-tries to reach it. The 2026-08-26 rebuild log (P2-9) records that it no longer
-resolves — dead dynamic DNS — and left it failing as out of scope. Nobody has
-decided whether the host is retired, has a new address, or should come out of
-the inventory.
+tries to reach it. The 2026-08-25 tweed rebuild log records, in its rebuild #2
+entry P2-9 of 2026-08-26, that it no longer resolves — dead dynamic DNS — and
+left it failing as out of scope. Nobody has decided whether the host is retired,
+has a new address, or should come out of the inventory.
 :::
 
 The inventory's fourth entry is not a machine. Group `onpi` contains a single
@@ -55,16 +55,19 @@ One line per service, with the role that installs it.
 
 **Boot and storage** — the `nbp` play:
 
-- **dnsmasq** (`pxe`) provides DHCP, TFTP and DNS on the Pi network. It runs
+- **dnsmasq** (`pxe`, `dnsmasq.service`) provides DHCP, TFTP and DNS on the Pi
+  network. It runs
   `no-resolv` with an explicit upstream, so it is the network's resolver; it
   binds with `bind-dynamic` rather than `bind-interfaces` so it survives the
   ~150 per-port VLAN interfaces that mostly have no carrier; and its lease
   database is pinned to an absolute path. See
   [The boot chain](netboot.md#the-boot-chain).
-- **nfs-kernel-server and rpcbind** (`nfs`) export the read-only NFS roots, with
-  `host=` in `/etc/default/nfs-kernel-server` set to the local NIC so the export
-  is not offered on the uplink.
-- **chrony** (`pxe`) serves NTP to the Pi LAN, allowed for `10.21.0.0/16`, and
+- **nfs-kernel-server and rpcbind** (`nfs`, `nfs-kernel-server.service` and
+  `rpcbind.service`) export the read-only NFS roots, with `host=` in
+  `/etc/default/nfs-kernel-server` set to the local NIC so the export is not
+  offered on the uplink.
+- **chrony** (`pxe`, `chrony.service`) serves NTP to the Pi LAN, allowed for
+  `10.21.0.0/16`, and
   dnsmasq advertises the gateway as the time source with
   `dhcp-option ntp-server`. The Pis have no route to the internet, so without a
   LAN time source their clocks never leave the `fake-hwclock` date.
@@ -74,16 +77,16 @@ One line per service, with the role that installs it.
 
 **Network** — also the `nbp` play:
 
-- **netif** gives the two NICs their `eth-local` / `eth-uplink` names via
-  MAC-matched systemd `.link` files, moves the uplink from `ifupdown` to
-  systemd-networkd, and reboots once if a NIC still carries its installer-era
-  name.
-- **nftables** (`firewall`) carries the whole isolation policy; the role also
-  installs `nmap` for probing it. See
+- **netif** (`systemd-networkd.service`) gives the two NICs their `eth-local` /
+  `eth-uplink` names via MAC-matched systemd `.link` files, moves the uplink
+  from `ifupdown` to systemd-networkd, and reboots once if a NIC still carries
+  its installer-era name.
+- **nftables** (`firewall`, `nftables.service`) carries the whole isolation
+  policy; the role also installs `nmap` for probing it. See
   [Verifying isolation](network.md#verifying-isolation).
-- **lldpd** (`lldp`) advertises the gateway on every attached link and records
-  what the switches advertise back, so the cabling can be confirmed rather than
-  assumed.
+- **lldpd** (`lldp`, `lldpd.service`) advertises the gateway on every attached
+  link and records what the switches advertise back, so the cabling can be
+  confirmed rather than assumed.
 - **The per-port VLAN interfaces** (`vlan-ports`) are systemd-networkd `.netdev`
   and `.network` files, one pair per switch port, on the `eth-local` trunk;
   stale `40-v*` files for ports no longer in the plan are removed. The role runs
@@ -97,22 +100,30 @@ One line per service, with the role that installs it.
 
 **Web tier** — the `pig` play, all of `web.yml`:
 
-- **nginx** (`site`, from `nginx-extras`) is installed first in the play,
-  because the later web roles write into `/etc/nginx`. The role owns the port-80
-  catch-all vhost that serves ACME challenges and redirects everything else to
-  HTTPS, plus the location includes that route each Django app.
-- **gunicorn** with the uvicorn worker class behind `/run/gunicorn.sock`,
-  **daphne** for the status WebSocket, and **uvicorn**, all pip-installed into
-  the Django venv and run as systemd units (`site`).
-- **redis** (`site`) backs the `channels_redis` layer the live Pi status page
-  uses.
-- **certbot** (`site`) obtains the TLS certificate — see
+- **nginx** (`site`, from `nginx-extras`, `nginx.service`) is installed first in
+  the play, because the later web roles write into `/etc/nginx`. The role owns
+  the port-80 catch-all vhost that serves ACME challenges and redirects
+  everything else to HTTPS, plus the location includes that route each Django
+  app.
+- **gunicorn** with the uvicorn worker class behind `/run/gunicorn.sock`
+  (`gunicorn.socket` and `gunicorn.service`), **daphne** for the status
+  WebSocket (`daphne.socket` and `daphne.service`), and **uvicorn**
+  (`uvicorn.service`), all pip-installed into the Django venv and run as
+  systemd units (`site`).
+- **redis** (`site`, `redis-server.service` — the role installs the Debian
+  `redis` package without naming a unit, and its own verify tasks assert
+  `redis-server.service`) backs the `channels_redis` layer the live Pi status
+  page uses.
+- **certbot** (`site`; the role writes no unit of its own — renewal is whatever
+  the installed certbot ships, and on tweed that is the snap build) obtains the
+  TLS certificate — see
   [Web topology at Welland](#web-topology-at-welland).
-- **webssh** (`wssh`) runs in its own venv behind a systemd socket, with an
-  nginx include that publishes the browser terminal.
-- **nginx-rtmp and fancyindex** (`cam/stream-server`) take the RTMP feeds the
-  Pis push and republish them as HLS from a tmpfs, with the front-end nginx
-  include beside it.
+- **webssh** (`wssh`, `wssh.socket` and `wssh.service`) runs in its own venv
+  behind a systemd socket, with an nginx include that publishes the browser
+  terminal.
+- **nginx-rtmp and fancyindex** (`cam/stream-server`, modules inside
+  `nginx.service`) take the RTMP feeds the Pis push and republish them as HLS
+  from a tmpfs, with the front-end nginx include beside it.
 - **The Tiny Tapeout site** (`ttsite`, only where `tt_boards` is defined) loads
   the board catalogue into Django, pins the Commander embed bundle by version
   and SHA-256, and renders the `tinytapeout.fpgas.online` vhost with one
@@ -151,23 +162,38 @@ $ # the web tier alone: Django site, web SSH, camera front end, tinytapeout
 $ uv run ansible-playbook ansible/web.yml --limit fpgas.online
 ```
 
-A third inventory exists for CI: `ansible/ci-nfsroot.yml` with
-`ansible/inventory-ci-nfsroot` runs the same `img`, `fixpi`, `fpgas-apt`,
-`cam/pi` and `onpi` roles on a GitHub arm64 runner to build the NFS root alone,
-reaching the root through the `community.general.chroot` connection plugin
-instead of the `piroot` SSH wrapper — only the inventory differs.
+Re-running `web.yml` reinstalls the `fpgas-online-site` wheel with
+`state: forcereinstall`, and a new wheel means new code and templates that the
+running `gunicorn`, `daphne` and `uvicorn` keep serving the old versions of
+until they are restarted — so the install task notifies a `restart django
+services` handler that restarts all three. `--tags django` narrows a run to the
+application itself, which is also the way back: pip an older
+`fpgas-online-site` reference into the Django venv and re-run with that tag.
+The host's `local_settings.py`, which carries the production settings, is
+created once and never overwritten, so it survives both directions.
+
+A second inventory exists for CI. The `ansible/ci-nfsroot.yml` playbook, run
+against `ansible/inventory-ci-nfsroot`, runs the same `img`, `fixpi`,
+`fpgas-apt`, `cam/pi` and `onpi` roles on a GitHub arm64 runner to build the
+NFS root alone, reaching the root through the `community.general.chroot`
+connection plugin instead of the `piroot` SSH wrapper — only the inventory
+differs.
 
 ### The tags do not match the role names
 
 A tag-restricted run is the usual way to touch one part of the gateway, and the
 tags are not named after the roles that carry them. The prototype runbook
-verified three traps:
+verified these traps:
 
 - The `pxe` role's per-port work — writing `/etc/dnsmasq.d/ports.conf`, and the
-  legacy `pibs.conf` and `switch.conf` it replaces — is tagged **`pibs`**, a
-  name carried over from the MAC-table scheme, not `pxe`.
+  `pibs.conf` it replaces — is tagged **`pibs`**, a name carried over from the
+  MAC-table scheme, not `pxe`. The neighbouring task that writes the legacy
+  `switch.conf` carries **no tag at all** on `main`.
 - The `firewall` role's ruleset write and service enable are tagged
-  **`nftables`**. There is no `firewall` tag anywhere in the repo.
+  **`nftables`**, not `firewall`. The role's converge tasks carry no `firewall`
+  tag at all; the one place that name is a tag is `verify-server.yml`, whose
+  firewall verify include is tagged `verify, firewall` — so `--tags firewall`
+  checks the ruleset without ever writing it.
 - The task that removes the legacy `pibs.conf`, `switch.conf` and hand-written
   `local.conf` from a per-port host is recorded in the runbook as carrying **no
   tag at all**, so a tag-restricted run skips it and the stale files keep
@@ -175,27 +201,63 @@ verified three traps:
   with `base.conf`'s `bind-dynamic` badly enough that dnsmasq refuses to start
   with both. On `main` today that task is tagged `pxe` and `pibs`. Either way,
   check the directory afterwards.
+- Two more consequential tasks carry no tag on `main` and so run only in a
+  fully untagged play: the `firewall` role's `Install nftables` (which also
+  pulls in `nmap`), and the `pxe` role's `enable Raspberry Pi Boot`, which drops
+  `rpi.conf` into `/etc/dnsmasq.d/`. On a host that already has both, a tagged
+  run is fine; on a fresh one it writes rules for a package that is not there
+  and serves DHCP without the Raspberry Pi boot options.
 
-So the tag list that actually deploys the per-port network is:
+So the tag list that actually deploys the per-port network is the following.
+Preview it first:
 
 ```console
-$ # preview first with --check --diff
+$ # check mode: changes nothing, prints the diff
+$ uv run ansible-playbook ansible/site.yml --limit fpgas.online \
+    --tags vlan-ports,pxe,pibs,switch-vlans,nftables --check --diff
+```
+
+Then apply it:
+
+```console
+$ # writes the config and reloads dnsmasq, networkd and nftables
 $ uv run ansible-playbook ansible/site.yml --limit fpgas.online \
     --tags vlan-ports,pxe,pibs,switch-vlans,nftables
 ```
 
 `fpgas.online` is in both `nbp` and `pig`, but none of the web roles' tasks
-carry any of those tags, so the web tier is left alone.
+carry any of those tags, so the web tier is left alone. An nftables reload is
+safe to get wrong: the ruleset load is atomic, so a rendered file with a syntax
+error leaves the previous ruleset active, and both templates accept SSH
+unconditionally on the input chain.
 
 ### Checking and reconnecting
 
-`verify-server.yml` runs each server role's own `verify/` tasks — operators,
-lldp, firewall, nfs, img, fixpi, pxe — then asserts the per-port state on hosts
-with `switches:` (a `v*` interface in `networkctl list`, `dnsmasq --test`
-clean, the `forward` chain at `policy drop`, `ports.conf` present) and finally
-that the NFS root really contains what the Pis need. `verify-pi.yml` checks a
-running Pi instead, and takes the same inventory or an ad hoc address. Both are
-[Verifying a deployment](verification.md).
+`verify-server.yml` has three plays, one per group. The `nbp` play runs each
+server role's own `verify/` tasks — `operators`, `lldp`, `firewall`, `nfs`,
+`img`, `fixpi`, `pxe` — then asserts the per-port state on hosts with
+`switches:` (a `v*` interface in `networkctl list`, `dnsmasq --test` clean, the
+`forward` chain at `policy drop`, `ports.conf` present) and finally that the NFS
+root really contains what the Pis need. The `uhubctl` play runs that role's
+verify tasks. The `pig` play verifies the web tier: `site`, then `ttsite` where
+`tt_boards` is defined, then `wssh` and `cam/stream-server`.
+
+Three roles have no verify tasks at all — `netif`, `vlan-ports` and
+`switch-vlans` ship no `tasks/verify/` directory. The per-port network is
+covered only by the inline assertions in the `nbp` play, tagged
+`switch-vlans`, and nothing checks the NIC naming or the switch converge
+directly.
+
+After a web deploy, the narrower check is worth running on its own:
+
+```console
+$ # read-only: asserts the deployed web tier, changes nothing
+$ uv run ansible-playbook ansible/verify-server.yml --limit fpgas.online \
+    --tags site,ttsite,wssh
+```
+
+`verify-pi.yml` checks a running Pi instead, and takes the same inventory or an
+ad hoc address. Both are [Verifying a deployment](verification.md).
 
 `ansible/ssh.cfg` gives the automation its own `known_hosts` file, separate from
 the operator's and from the host-wide one the site's network tooling generates,
@@ -227,8 +289,18 @@ over the private ten64-to-tweed link, so the playbooks are run from inside the
 Welland network.
 
 :::{warning}
-Certbot's nginx plugin is deliberately not used, and `python3-certbot-nginx` is
-deliberately not installed. `certbot --nginx` does not merely fetch a
+Three rules keep certbot away from the nginx configuration:
+
+- Obtain certificates with `certbot certonly --webroot` only. Never
+  `certbot --nginx`.
+- Never install `python3-certbot-nginx`. The plugin is the thing that rewrites
+  nginx config, and nothing on the host should be able to.
+- Repoint any certificate lineage that was created by the old `--nginx` path at
+  the webroot authenticator. Renewal otherwise runs the nginx installer again
+  and undoes the Ansible-owned vhost.
+:::
+
+The reason is a two-stage failure. `certbot --nginx` does not merely fetch a
 certificate: it rewrites the nginx server blocks, copying the `listen`
 directives it finds in the port-80 block into the HTTPS block it generates. The
 port-80 template had its IPv6 line commented out, so certbot emitted an
@@ -237,12 +309,9 @@ nothing else listened on `[::]:443` — IPv6 clients were refused and fell back 
 IPv4. When the `ttsite` role added the first `listen [::]:443 ssl` on the box on
 2026-08-23, its vhost became the only, and therefore default, server on that
 socket, and every IPv6 client asking for `welland.fpgas.online` was handed the
-`tinytapeout.fpgas.online` certificate and dropped the connection. Fixed
-2026-08-30 by using `certbot certonly --webroot` only, with the vhost rendered
-and owned by Ansible. A certificate lineage created by the old `--nginx` path
-must also be repointed at the webroot authenticator, or the nginx installer runs
-again at renewal time and undoes the vhost.
-:::
+`tinytapeout.fpgas.online` certificate and dropped the connection. It was fixed
+on 2026-08-30 by moving to the webroot method with the vhost rendered and owned
+by Ansible.
 
 Tweed runs the snap build of certbot, whose renewal configurations an older
 Debian package cannot read, so the role installs Debian's `certbot` only when no
@@ -251,7 +320,10 @@ Debian package cannot read, so the role installs Debian's `certbot` only when no
 ## Rebuilding from scratch
 
 Tweed was rebuilt from bare metal three times between 2026-08-25 and
-2026-08-26. The durable lessons, as a checklist for the next one:
+2026-08-26. The operating-system install itself — the pxelinux menus, the
+preseed and the boot overrides, all of which live on ten64 rather than in the
+infra repo — is out of scope for this page; what follows are the lessons that
+bear on the gateway coming back correctly. As a checklist for the next one:
 
 - **Enable the PXE option ROM on the uplink NIC in the BIOS, and disable it on
   the others.** The first attempt never reached the installer because the only
@@ -268,9 +340,9 @@ Tweed was rebuilt from bare metal three times between 2026-08-25 and
   interface selection picks the first NIC with carrier and does not fall back,
   which is the same failure as the option ROM one a layer higher up.
 - **Keep the vault password location the deployment documents in step with the
-  one that actually decrypts the inventory.** Two converge runs were lost to
-  three different candidate locations coexisting in the ecosystem, only one of
-  which worked. CI cannot catch this class at all — the test inventory has no
+  one that actually decrypts the inventory.** A converge run was lost to three
+  different candidate locations coexisting in the ecosystem, only one of which
+  worked. CI cannot catch this class at all — the test inventory has no
   encrypted variables, so password and path drift only ever bites a production
   run.
 - **The kernel and the initramfs served over TFTP must be the matching pair.**
@@ -280,12 +352,14 @@ Tweed was rebuilt from bare metal three times between 2026-08-25 and
   [How the root is built](netboot.md#how-the-root-is-built).
 - **Run `refresh-known-hosts.yml` after the reinstall and before the next
   `site.yml`.** A reinstalled host has new keys, and the pinned old ones make it
-  unreachable to automation.
+  unreachable to automation — see
+  [Checking and reconnecting](#checking-and-reconnecting). Only then converge,
+  with the commands in [Deploying](#deploying).
 
 Rebuild #3, on the evening of 2026-08-26 and run from merged `main`, was a full
 pass with **zero manual interventions**: 7m41s from power cycle to login, a cold
 converge of 2h57m with no failures on either the server or the NFS root play,
-`verify-server.yml` at 104 checks and no failures, `verify-pi.yml` at 21 checks
+`verify-server.yml` at `ok=104 failed=0`, `verify-pi.yml` at `ok=21 failed=0`
 including the camera and FPGA assertions. That is the bar a rebuild is expected
 to clear.
 
@@ -332,9 +406,12 @@ fpgas.online-infra, `main`:
 - [`ansible/web.yml`](https://github.com/fpgas-online/fpgas.online-infra/blob/main/ansible/web.yml)
   — the `pig` play's four roles and the `tt_boards` condition on `ttsite`.
 - [`ansible/verify-server.yml`](https://github.com/fpgas-online/fpgas.online-infra/blob/main/ansible/verify-server.yml)
-  — the per-role verify includes, the per-port assertions gated on `switches is
-  defined`, the NFS-root package and configuration checks, and the separate
-  `uhubctl` and `pig` plays.
+  — the three plays, the per-role verify includes and the `verify, firewall`
+  tag on one of them, the per-port assertions gated on `switches is defined`,
+  the NFS-root package and configuration checks, and the `pig` play's `site`,
+  `ttsite`, `wssh` and `cam/stream-server` order. The absence of
+  `tasks/verify/` under `netif`, `vlan-ports` and `switch-vlans` is from the
+  role trees themselves.
 - [`ansible/verify-pi.yml`](https://github.com/fpgas-online/fpgas.online-infra/blob/main/ansible/verify-pi.yml)
   — the host pattern and the documented ad hoc invocation.
 - [`ansible/refresh-known-hosts.yml`](https://github.com/fpgas-online/fpgas.online-infra/blob/main/ansible/refresh-known-hosts.yml)
@@ -381,9 +458,13 @@ fpgas.online-infra, `main`:
   — `bind-dynamic`, the pinned lease path, `no-resolv`, and the NTP DHCP option.
 - [`docs/superpowers/runbooks/2026-08-23-tweed-web-deploy.md`](https://github.com/fpgas-online/fpgas.online-infra/blob/main/docs/superpowers/runbooks/2026-08-23-tweed-web-deploy.md)
   — the ten64 edge, the SNI passthrough, the webroot challenge path, the alias
-  list and the `tinytapeout.fpgas.online` CNAME, and the deploy commands.
+  list and the `tinytapeout.fpgas.online` CNAME, the deploy commands and the
+  narrowed `--tags site,ttsite,wssh` verify command, and the rollback note that
+  `local_settings.py` is never overwritten.
 - [`docs/superpowers/specs/2026-08-14-vlan-per-port-prototype-runbook.md`](https://github.com/fpgas-online/fpgas.online-infra/blob/main/docs/superpowers/specs/2026-08-14-vlan-per-port-prototype-runbook.md)
-  — stage 4's verified tag caveats and the working tag list.
+  — stage 4's verified tag caveats, the working tag list, the check-mode
+  preview, and the atomic nftables reload with SSH always accepted. The current
+  tagging of each task named there was re-checked against `main`.
 - [`docs/rebuilds/2026-08-25-tweed-rebuild.md`](https://github.com/fpgas-online/fpgas.online-infra/blob/main/docs/rebuilds/2026-08-25-tweed-rebuild.md)
   — the option ROM (A1-1), console order and dead UARTs (A1-2, A1-3), the
   interface pin (A1-4), the vault-location drift (B1-2), the kernel and

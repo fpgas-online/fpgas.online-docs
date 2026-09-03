@@ -161,6 +161,12 @@ which is a separate path from the fpgas trunk — nothing management-related rid
 the trunk, and the provisioning tool never touches the house-facing port. Which
 board is on which port is on the [Welland page](../sites/welland.md#network).
 
+Ansible drives all of this from the gateway, and a tag-restricted converge is
+the usual way to touch just the network — but the tags are not named after the
+roles, so read
+[The tags do not match the role names](gateway.md#the-tags-do-not-match-the-role-names)
+before running one.
+
 Provisioning is `fpgas-switch-setup`, the CLI in
 [fpgas.online-poe](https://github.com/fpgas-online/fpgas.online-poe). It reads
 the same `switches:` schema the inventory uses, connects over SNMP, reads the
