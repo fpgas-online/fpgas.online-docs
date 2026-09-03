@@ -119,6 +119,8 @@ boards/pmod/index.md             PMOD interface standard (types 1 to 6, I2C exte
 boards/pmod/rpi-hat.md           Digilent PMOD HAT: RPi GPIO to PMOD pin tables
 boards/pmod/tinytapeout.md       Tiny Tapeout PMOD layouts and RP2040/RP2350 GPIO maps
 boards/pin-id.md                 how wiring is verified: the pin-id design and scanner
+boards/butterstick.md            planned board: spec only, no wiring (added in Task 18 review)
+boards/ulx3s.md                  planned board: spec only, no wiring (added in Task 18 review)
 setup/index.md                   how the platform fits together (architecture diagram)
 setup/netboot.md                 DHCP/TFTP/NFS root chain, overlayroot, how the root is built,
                                  updates need a reboot, stale handles, EEPROM write protect
@@ -177,7 +179,7 @@ documentation; its links are updated to point at docs.fpgas.online.
 | `pmod-tt.md` | stub | `boards/pmod/tinytapeout.md` |
 | `gpio-connectivity-analysis.md` | stub | `boards/pin-id.md` |
 | `deployment-checklist.md` | stub | `setup/verification.md`. File paths in the checklist are updated to the new docs pages. |
-| `butterstick.md`, `ulx3s.md` | stub | "Planned boards" section of `boards/index.md` (specs only, no wiring exists) |
+| `butterstick.md`, `ulx3s.md` | stub | `boards/butterstick.md`, `boards/ulx3s.md` (specs only, no wiring exists), summarised under "Planned boards" on `boards/index.md` |
 
 ### fpgas.online-test-designs (other)
 
