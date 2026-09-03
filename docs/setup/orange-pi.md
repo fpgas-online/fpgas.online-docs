@@ -16,15 +16,15 @@ design behind the shared root.
 ## How it works
 
 The boards have no SD or eMMC, so on power-up the Allwinner BROM waits in USB
-FEL mode (`1f3a:efe8`). Their OTG cables go to the hub host **pi-sw2-p30**; its
-`fpgas-online-setup-pi` package ships a udev rule that starts
-`fpgas-felboot@<usb-device>.service`, which loads U-Boot with `sunxi-fel`.
-U-Boot's distro-boot then DHCPs — the per-port VLAN scheme hands it
-`pi-sw2-p<port>` / `10.21.2.<port>` exactly as it would a Pi — and fetches
-`pxelinux.cfg/default-arm-sunxi` plus `sunxi/{vmlinuz,initrd.img,dtbs/…}` from
-tweed's TFTP root, then boots the [shared Pi NFS
-root](netboot.md#the-nfs-root-is-shared-and-read-only) with the Debian `armmp`
-kernel that `fixpi/tasks/sunxi.yml` bakes into it.
+FEL mode (`1f3a:efe8`). Their OTG cables go to the hub host **pi-sw2-p30**,
+whose `fpgas-online-setup-pi` package ships a udev rule that starts
+`fpgas-felboot@<usb-device>.service`. That service loads U-Boot into the board
+with `sunxi-fel`, and U-Boot's distro-boot takes over from there: it DHCPs, and
+the per-port VLAN scheme hands it `pi-sw2-p<port>` / `10.21.2.<port>` exactly as
+it would a Pi. It then fetches `pxelinux.cfg/default-arm-sunxi` plus
+`sunxi/{vmlinuz,initrd.img,dtbs/…}` from tweed's TFTP root and boots the [shared
+Pi NFS root](netboot.md#the-nfs-root-is-shared-and-read-only) with the Debian
+`armmp` kernel that `fixpi/tasks/sunxi.yml` bakes into it.
 
 U-Boot looks for `pxelinux.cfg/01-<mac>` first, then the IP-hex names, then
 `default-arm-sunxi`, `default-arm` and `default` — so a different sunxi board
@@ -56,8 +56,10 @@ guarded by `when: sunxi_boards is defined` so no other site is touched. It adds
 a Debian bookworm armhf apt source to the root pinned so that only
 `linux-image-*-armmp` and `linux-base` may come from it, installs
 `linux-image-armmp` into the root through `chroot-mount-pi-fs.bash`, and copies
-`vmlinuz-*-armmp`, `initrd.img-*-armmp` and the three
-`sun8i-h3-orangepi-{pc,pc-plus,one}.dtb` files into `<tftp_root>/sunxi/`. The
+`vmlinuz-*-armmp` and `initrd.img-*-armmp` into `<tftp_root>/sunxi/` and the
+three `sun8i-h3-orangepi-{pc,pc-plus,one}.dtb` files into
+`<tftp_root>/sunxi/dtbs/`, which is where the `fdt` line above looks for them.
+The
 install is safe for the Pi fleet: Raspbian's `z50-raspi-firmware` kernel hook
 prints "Unsupported kernel version (6.1.0-50-armmp) - skipping setup" and leaves
 `/boot/firmware` untouched (verified 2026-08-28 in the spike).
@@ -92,15 +94,30 @@ Check the result on tweed:
 ```console
 $ # the boot payload and the PXE file
 $ ls /srv/nfs/rpi/bookworm/boot/sunxi /srv/nfs/rpi/bookworm/boot/pxelinux.cfg
-$ # the packages the hub host and the boards need
+$ # the packages in the boards own root -- not the hub host
 $ chroot /srv/nfs/rpi/bookworm/root dpkg -l fpgas-online-setup-pi sunxi-tools
 ```
 
+That `chroot` checks the shared NFS root, which is what the five boards run. It
+says nothing about the hub host: since the 2026-08-28-evening move described
+below, `pi-sw2-p30` installs `fpgas-online-setup-pi` and `sunxi-tools` from the
+`https://fpgas.online/apt trixie main` source on its own SD image, so check
+those with a plain `dpkg -l` over ssh to that host instead.
+
 :::{warning}
-Running Pis do not see NFS-root changes until they reboot, and it is worse than
-stale: a file the converge replaced becomes `Stale file handle` on a running
-host, and udev then drops the felboot rule for hot-plugged boards. **Always
-PoE-cycle pi-sw2-p30 (port 30) after a converge**, then the boards.
+**Always PoE-cycle pi-sw2-p30 (port 30) after a converge**, then the boards.
+Cycling the hub host is what re-triggers every board's FEL enumeration, so the
+boards pick up the new root without being touched individually; and the boards
+themselves do not see NFS-root changes until they reboot.
+:::
+
+:::{note}
+The runbook's reason for cycling p30 first was that it was an NFS-root Pi
+itself: a file the converge replaced became a `Stale file handle` on it, and
+udev then dropped the felboot rule for hot-plugged boards. That rationale is
+pre-addendum — p30 boots its own SD card now (see [The hub
+host](#the-hub-host)) and no longer reads the NFS root at all. The instruction
+survives the reason.
 :::
 
 ## Reading a console
@@ -114,9 +131,13 @@ the log port to `/var/log/fpgas-usb-console/<hub port>.log` from the moment the
 gadget enumerates. Both units are described under [Pi
 services](pi.md#services); here they are the only console the boards have.
 
+Every path below is keyed by the board's **hub port**, not by its hostname or
+its switch port, so start from the [board mapping](#board-mapping) to turn the
+board you care about into a `1-1.x.y` string: `1-1.3.1` is pi-sw2-p21.
+
 ```console
 $ # the hub host
-$ ssh 10.21.2.30
+$ ssh tim@10.21.2.30
 $ # hub port :2.0 is the kernel log, :2.2 the getty
 $ ls -l /dev/serial/by-path/ | grep ':2.0'
 $ # captured from the first byte -- 1-1.3.1 is pi-sw2-p21
@@ -124,6 +145,13 @@ $ tail -f /var/log/fpgas-usb-console/1-1.3.1.log
 $ # the login getty on the same cable
 $ picocom /dev/serial/by-path/platform-xhci-hcd.0-usb-0:1.3.1:2.2
 ```
+
+What a healthy boot looks like on the clock: a board reaches `multi-user` about
+35–52 s after power-on and its gadget enumerates on the hub host at about 55 s,
+so the log file starts appearing then (2026-08-28 and 2026-08-29); sshd answers
+at about 96 s (2026-08-29). A board PoE-cycled while the SD-booted hub host was
+already up was back in 72 s (2026-08-28 evening). Anything much past that is the
+flake under [Known issues](#known-issues), not a slow boot.
 
 - The board replays its whole ring buffer to every *USB attach*. A second reader
   on an already-attached port sees only new lines; to replay again, restart
@@ -166,8 +194,8 @@ captures from enumeration rather than reading on demand.
 ## Verifying
 
 ```console
-$ # from the infra checkout, against the boards and the hub host
-$ uv run ansible-playbook -i 10.21.2.20,10.21.2.21,10.21.2.23,10.21.2.24,10.21.2.30, \
+$ # from the infra checkout, against all five boards -- not the hub host
+$ uv run ansible-playbook -i 10.21.2.20,10.21.2.21,10.21.2.22,10.21.2.23,10.21.2.24, \
     ansible/verify-pi.yml -u pi -e verify_pi_hosts=all --skip-tags hw-camera,hw-fpga
 ```
 
@@ -179,13 +207,14 @@ rotates fast, `fpgas-felboot.sh` writes a per-board success marker under
 `/run/fpgas-felboot/` and that is what the check reads.
 
 :::{note}
-The inventory line above is the runbook's, written when there were four boards;
-it does not include `10.21.2.22`, the fifth board resolved on 2026-08-28
-evening. Add it when running the check today.
-
-It also predates the hub host's move to an SD card: `verify-pi.yml` no longer
-applies to `pi-sw2-p30` at all (no `pi` user, not the NFS root), so the hub-host
-half of `hw-sunxi` has to target it as another user or move to the fleet repo.
+The runbook's own line is
+`-i 10.21.2.20,10.21.2.21,10.21.2.23,10.21.2.24,10.21.2.30,` — four boards plus
+the hub host. Both halves of it are now stale. It was written before `1/g22` was
+resolved, so it misses `10.21.2.22`, the fifth board; and it predates the hub
+host's move to an SD card the same evening, after which `verify-pi.yml` does not
+apply to `pi-sw2-p30` at all (no `pi` user, not the NFS root). The hub-host half
+of `hw-sunxi` therefore has to target p30 as another account or move to the
+fleet repository; until it does, run the boards only, as above.
 :::
 
 Deployment result on 2026-08-28: a hub-host reboot fired `fpgas-felboot@` for
@@ -197,9 +226,11 @@ boards and the hub host, p21 after its second cycle.
 
 ## Recovery
 
-There is no remote power control other than PoE; see [PoE power
-control](network.md#poe-power-control) for the scripted paths and the switch
-credentials, which are not repeated here.
+There is no remote power control other than PoE. The scripted `fpgas.online-poe`
+path is not available here: [PoE power control](network.md#poe-power-control)
+records that **`poe.sh` does not work on tweed until `snmp.yml` is fixed**, so
+the Orange Pis are cycled with `ngsw`, the CLI from
+[`python3-netgear-switch-library`](../packages.md).
 
 ```console
 $ # off, then on -- the board is back in FEL about 3 s later
@@ -209,10 +240,22 @@ $ # what the hub host did about it
 $ journalctl -u 'fpgas-felboot@*'
 ```
 
+The runbook spells these two lines with an explicit `--write-community` flag.
+It is left out here on purpose: the S3300's write community is a per-switch
+credential "looked up out of band with `gdoc2netcfg`", in the words of [PoE
+power control](network.md#poe-power-control), and belongs in the `ngsw`
+inventory file the `--config` flag names rather than in a pasted command or in
+these pages. Run it from a host that can reach the switch management VLAN.
+
 - **Board unreachable** — PoE-cycle its switch port. It re-enumerates in FEL on
   the hub host within about 3 s and is FEL-booted automatically; the
   `fpgas-felboot@` journal on pi-sw2-p30 shows the attempts (three tries, two
   seconds apart).
+- **Still unreachable after the first cycle** — expect this. Roughly one cold
+  FEL boot in four crawls and never reaches sshd (see [Known
+  issues](#known-issues)), and a second cycle has fixed it every time. Treat
+  "board not up after 5 minutes" as "cycle it again", not as an infrastructure
+  fault.
 - **Hub host unreachable** — PoE-cycle port 30. Every board re-enumerates when
   the hub host comes back and is booted then.
 - **No early console** — `netconsole=` is inert on sunxi, and the H3's UART0
@@ -233,6 +276,11 @@ $ journalctl -u 'fpgas-felboot@*'
    `usb`, `model`, `mac`) and to the inventory sheet tool
    (`welland-ansible-rpi` `tools/rpi_hardware_sheet.py`: a `FPGAS_PORT_MAC`
    entry plus a `KNOWN_BOARDS` entry) so the RPi Hardware sheet names it.
+   Add it to `hw_udev_files` in `welland-ansible-rpi`
+   `inventory/host_vars/rpi5-new-13f59c.yml` as well — that is the source of
+   truth for the hub host's [udev symlinks](#udev-symlinks-on-the-hub-host), so
+   without an entry the new board gets only the fallback `usb-<port>` link and
+   no `sw2-pNN`, `sid-…` or `mac-…` name.
 4. A different sunxi board model needs its own U-Boot build, vendored in
    `fpgas.online-setup-pi/felboot/u-boot/`, and possibly a per-MAC
    `pxelinux.cfg/01-<mac>` naming its DTB — U-Boot looks for that file first.
@@ -243,9 +291,12 @@ $ journalctl -u 'fpgas-felboot@*'
 after a power cycle and never reach sshd: U-Boot loads, the kernel boots and
 mounts the NFS root (the kernel DHCP is visible on tweed), but userspace reads
 about 40 MB from NFS in 10 minutes where a healthy sibling reads about 170 MB in
-2 minutes, and sshd never starts. Seen twice on p21 and once on p24 on
-2026-08-28 — 2 of 3 first boots that day — so it is a general flake of roughly
-1 in 4 cold FEL boots, not a bad board. A second PoE cycle boots it normally in
+2 minutes, and sshd never starts. Three bad boots are recorded, all on
+2026-08-28: 2 of 3 first boots after a power cycle that day, both on p21, and
+then p24 in the evening after being held in FEL for about 20 s. The first two
+looked board-specific to p21; p24 doing the same is what makes it a general
+flake of roughly 1 in 4 cold FEL boots rather than a bad board. A second PoE
+cycle boots it normally in
 about 87–90 s every time. Treat "board not up after 5 minutes" as "cycle it
 again", not as an infrastructure fault.
 
@@ -359,6 +410,16 @@ the handle for anything that has to talk to a board *before* it boots.
 `udevadm info` on the device also carries `FPGAS_SWITCH_PORT=sw2-pNN`. Verified
 by masking p24's felboot instance, holding it in FEL and reading the links.
 
+:::{todo}
+Record the phantom-PoE lesson from the same mapping work on
+[Network](network.md#poe-power-control) or [Welland](../sites/welland.md), where
+an operator reading a port would find it: s3300-1 port `1/g16` has nothing
+connected, yet the switch reported it `delivering` 1.1–1.4 W for days
+(2026-08-28). A PoE off/on cleared the reading to `searching` and 0 mW, so it
+was a stale PoE-controller reading. Cycle a port before believing a small
+phantom load. Neither page says this today.
+:::
+
 ## The hub host
 
 `pi-sw2-p30` is a Raspberry Pi 5 Rev 1.1, 1 GB, serial `3c1fc2b41d68ae81`, eth0
@@ -406,10 +467,11 @@ test above. On the SD-booted OS, `rpi-eeprom-config --apply` flashes directly.
 ## Design
 
 The 2026-08-28 spike chose a **shared NFS root plus a second kernel** over a
-dedicated Orange Pi root, because the Raspbian bookworm armhf userland runs
-unchanged on an ARMv7 H3 and only the kernel, initrd and DTB are board-specific,
-so the boards get every fleet change for free from one image pipeline, one `pi`
-play, one set of packages and one `verify-pi`. The cost is one extra kernel
+dedicated Orange Pi root. The reason it is possible at all is that the Raspbian
+bookworm armhf userland runs unchanged on an ARMv7 H3, leaving only the kernel,
+initrd and DTB board-specific. The reason it was preferred is that the boards
+then get every fleet change for free, from one image pipeline, one `pi` play,
+one set of packages and one `verify-pi`. The cost is one extra kernel
 package in the root (about 250 MB of modules and the one-off 30-minute
 qemu-emulated `update-initramfs`), a `sunxi/` TFTP directory and one PXE file —
 against a dedicated root, which would have doubled the roughly 100-minute apt

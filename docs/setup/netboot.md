@@ -351,7 +351,9 @@ on one board before relying on it fleet-wide.
 A netbooted Pi has no console and no disk to inspect, so the roles build four
 ways to watch one boot. Full procedures belong on
 [Verification](verification.md) and [Pi hosts](pi.md); this is what exists and
-where it comes from.
+where it comes from. None of it applies to the Allwinner hosts, which do not
+run this boot chain and have their own console and recovery path — see
+[Orange Pi H3 hosts](orange-pi.md).
 
 **Did it get a lease?** dnsmasq runs with `log-dhcp`, so every DHCP transaction
 is journalled on the gateway, and the lease database is pinned to the absolute
