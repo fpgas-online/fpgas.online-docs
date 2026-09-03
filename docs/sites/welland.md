@@ -184,7 +184,8 @@ The Acorn, Tiny Tapeout ASIC and Tiny Tapeout FPGA sections were re-verified
 live on 2026-09-03 under the VLAN-per-port scheme. The Arty A7, NeTV2 and Fomu
 sections still carry the pre-cutover names and addresses from the 2026-03-17
 survey; their `Switch Port` values are the old flat port numbers, which did not
-carry a switch index, so they are written `p7` rather than `sw1 p7`.
+carry a switch index, so they are written `p7` rather than `sw1 p7` — and `p7`
+in the stale Arty table is not the `sw2 p7` that now carries TT07.
 
 :::{todo}
 Re-probe the Arty, NeTV2 and Fomu hosts under the VLAN-per-port scheme and
@@ -206,26 +207,26 @@ Programming commands for each board type live on the board pages; see
 
 Surveyed 2026-03-17.
 
-| Host | Switch Port | IP (retired) | RPi MAC           | RPi Model (rev) | Role                                         |
+| Host | Switch Port | IP (retired) | RPi MAC           | RPi Model   | Role                                         |
 | ---- | ----------- | ------------ | ----------------- | --------------- | -------------------------------------------- |
-| pi1  | p1          | 10.21.0.101  | b8:27:eb:ec:c2:c9 | RPi 3B+ 1GB     | Always-on NFS maintenance system (RW access) |
+| pi1  | p1          | 10.21.0.101  | b8:27:eb:ec:c2:c9 | RPi 3B+ 1 GB     | Always-on NFS maintenance system (RW access) |
 
 :::{note}
-These addresses no longer resolve; derive the current name and address from the
-switch port using [Network and power](../setup/network.md).
+This address no longer resolves. This host has not been located on the new
+scheme.
 :::
 
 ### Arty A7-35T
 
 Surveyed 2026-03-17. Five boards, on RPi 4 / 3B+ hosts with PMOD HATs.
 
-| Host | Switch Port | IP (retired) | RPi MAC           | RPi Model (rev) | Arty Serial         | Arty DNA           | USB Ethernet                     | Serial Devices   |
+| Host | Switch Port | IP (retired) | RPi MAC           | RPi Model   | Arty Serial         | Arty DNA           | USB Ethernet                     | Serial Devices   |
 | ---- | ----------- | ------------ | ----------------- | --------------- | ------------------- | ------------------ | -------------------------------- | ---------------- |
-| pi7  | p7          | 10.21.0.107  | e4:5f:01:96:f8:a5 | RPi 4 2GB       | 210319B301DE        | 0x00628502251ea85c | ASIX AX88179 (f8:e4:3b:0f:c1:e6) | ttyUSB0, ttyUSB1 |
-| pi9  | p9          | 10.21.0.109  | b8:27:eb:86:39:63 | RPi 3B+ 1GB     | (FTDI disconnected) | —                  | Apple Eth (48:d7:05:e9:40:52)    | **none**         |
-| pi11 | p11         | 10.21.0.111  | e4:5f:01:8d:f7:17 | RPi 4 8GB       | 210319B3E5C5        | 0x002c8d02251ea854 | DM9601 (00:e0:4c:53:44:58)       | ttyUSB0, ttyUSB1 |
-| pi13 | p13         | 10.21.0.113  | b8:27:eb:6d:27:f6 | RPi 3B+ 1GB     | 210319A43ADB        | 0x0002f54832290854 | ASIX (8a:ce:4c:ff:ae:83)         | ttyUSB0, ttyUSB1 |
-| pi26 | p26         | 10.21.0.126  | e4:5f:01:97:1f:7e | RPi 4 2GB       | 210319B0C238        | 0x0144cd2a47442854 | Linksys GbE (60:38:e0:e3:56:4f)  | ttyUSB0, ttyUSB1 |
+| pi7  | p7          | 10.21.0.107  | e4:5f:01:96:f8:a5 | RPi 4 2 GB       | 210319B301DE        | 0x00628502251ea85c | ASIX AX88179 (f8:e4:3b:0f:c1:e6) | ttyUSB0, ttyUSB1 |
+| pi9  | p9          | 10.21.0.109  | b8:27:eb:86:39:63 | RPi 3B+ 1 GB     | (FTDI disconnected) | —                  | Apple Eth (48:d7:05:e9:40:52)    | **none**         |
+| pi11 | p11         | 10.21.0.111  | e4:5f:01:8d:f7:17 | RPi 4 8 GB       | 210319B3E5C5        | 0x002c8d02251ea854 | DM9601 (00:e0:4c:53:44:58)       | ttyUSB0, ttyUSB1 |
+| pi13 | p13         | 10.21.0.113  | b8:27:eb:6d:27:f6 | RPi 3B+ 1 GB     | 210319A43ADB        | 0x0002f54832290854 | ASIX (8a:ce:4c:ff:ae:83)         | ttyUSB0, ttyUSB1 |
+| pi26 | p26         | 10.21.0.126  | e4:5f:01:97:1f:7e | RPi 4 2 GB       | 210319B0C238        | 0x0144cd2a47442854 | Linksys GbE (60:38:e0:e3:56:4f)  | ttyUSB0, ttyUSB1 |
 
 :::{note}
 The 2026-08-30 hardware inventory sheet places the Arty `210319B3E5C5` (was
@@ -246,13 +247,13 @@ are the working fleet; **pi18** is the odd one out — it was already offline at
 the survey and the 2026-08-30 inventory sheet does not place it on a port, which
 is why the network diagram counts only four NeTV2 hosts on sw1.
 
-| Host | Switch Port | IP (retired) | RPi MAC           | RPi Model (rev) | FPGA    | FPGA DNA           |
+| Host | Switch Port | IP (retired) | RPi MAC           | RPi Model   | FPGA    | FPGA DNA           |
 | ---- | ----------- | ------------ | ----------------- | --------------- | ------- | ------------------ |
-| pi10 | p10         | 10.21.0.110  | b8:27:eb:e3:e7:e4 | RPi 3B+ 1GB     | XC7A35T | 0x2a11a4c662251c6f |
-| pi12 | p12         | 10.21.0.112  | b8:27:eb:eb:5d:bf | RPi 3B+ 1GB     | XC7A35T | 0x3a11a4c662372a6b |
-| pi14 | p14         | 10.21.0.114  | b8:27:eb:e3:7c:3c | RPi 3B+ 1GB     | XC7A35T | 0x3a11dcc864222e93 |
-| pi16 | p16         | 10.21.0.116  | b8:27:eb:c6:29:79 | RPi 3B+ 1GB     | XC7A35T | 0x2a11a4c662372a53 |
-| pi18 | p18         | 10.21.0.118  | b8:27:eb:2c:e8:de | RPi 3B+ 1GB     | XC7A35T | 0x3a11dcc864241c0b |
+| pi10 | p10         | 10.21.0.110  | b8:27:eb:e3:e7:e4 | RPi 3B+ 1 GB     | XC7A35T | 0x2a11a4c662251c6f |
+| pi12 | p12         | 10.21.0.112  | b8:27:eb:eb:5d:bf | RPi 3B+ 1 GB     | XC7A35T | 0x3a11a4c662372a6b |
+| pi14 | p14         | 10.21.0.114  | b8:27:eb:e3:7c:3c | RPi 3B+ 1 GB     | XC7A35T | 0x3a11dcc864222e93 |
+| pi16 | p16         | 10.21.0.116  | b8:27:eb:c6:29:79 | RPi 3B+ 1 GB     | XC7A35T | 0x2a11a4c662372a53 |
+| pi18 | p18         | 10.21.0.118  | b8:27:eb:2c:e8:de | RPi 3B+ 1 GB     | XC7A35T | 0x3a11dcc864241c0b |
 
 :::{note}
 The 2026-08-30 hardware inventory sheet places the other four NeTV2 Pis at
@@ -300,10 +301,10 @@ JTAG and P2 columns from the 2026-08-31 pin-ID survey.
 
 Surveyed 2026-03-17. Two boards, on RPi 3B+ hosts.
 
-| Host | Switch Port | IP (retired) | RPi MAC           | RPi Model (rev) | Fomu USB VID:PID | DFU Version | USB Analyzer             |
+| Host | Switch Port | IP (retired) | RPi MAC           | RPi Model   | Fomu USB VID:PID | DFU Version | USB Analyzer             |
 | ---- | ----------- | ------------ | ----------------- | --------------- | ---------------- | ----------- | ------------------------ |
-| pi17 | p17         | 10.21.0.117  | b8:27:eb:47:9f:d1 | RPi 3B+ 1GB     | 1209:5bf0        | v2.0.4      | OpenVizsla (1d50:607c)   |
-| pi21 | p21         | 10.21.0.121  | b8:27:eb:fc:4d:f8 | RPi 3B+ 1GB     | 1209:5bf0        | v2.0.4      | Cythion/LUNA (16d0:05a5) |
+| pi17 | p17         | 10.21.0.117  | b8:27:eb:47:9f:d1 | RPi 3B+ 1 GB     | 1209:5bf0        | v2.0.4      | OpenVizsla (1d50:607c)   |
+| pi21 | p21         | 10.21.0.121  | b8:27:eb:fc:4d:f8 | RPi 3B+ 1 GB     | 1209:5bf0        | v2.0.4      | Cythion/LUNA (16d0:05a5) |
 
 :::{note}
 The 2026-08-30 hardware inventory sheet places the Fomu and its OpenVizsla (was
@@ -397,7 +398,7 @@ Probed 2026-03-09. Two NeTV2 hosts sit outside the tweed network, on
 `iot.welland.mithis.com`, reachable over `wg-desktop` rather than through the
 gateway.
 
-| Host                              | IP (via DNS)    | RPi Model (rev)       | Board                  | Connections         | SSH                                                        |
+| Host                              | IP (via DNS)    | RPi Model             | Board                  | Connections         | SSH                                                        |
 | --------------------------------- | --------------- | --------------------- | ---------------------- | ------------------- | ---------------------------------------------------------- |
 | rpi5-netv2.iot.welland.mithis.com | 10.1.90.210/211 | RPi 5 Model B Rev 1.0 | NeTV2 (bare developer) | GPIO + PCIe Gen2 x1 | `tim@rpi5-netv2.iot.welland.mithis.com` (via `wg-desktop`) |
 | rpi3-netv2.iot.welland.mithis.com | 10.1.90.212/213 | RPi 3                 | NeTV2 (stock packaged) | GPIO only           | `pi@rpi3-netv2.iot.welland.mithis.com` (via `wg-desktop`)  |
@@ -412,7 +413,7 @@ bridge is visible on PCIe, so the NeTV2 FPGA is not enumerating.
 
 Surveyed 2026-03-17.
 
-| Host                             | RPi Model (rev) | Notes             |
+| Host                             | RPi Model | Notes             |
 | -------------------------------- | --------------- | ----------------- |
 | rpi5-pmod.iot.welland.mithis.com | RPi 5           | PMOD HAT dev host |
 | rpi4-pmod.iot.welland.mithis.com | RPi 4           | PMOD HAT dev host |
@@ -457,8 +458,8 @@ Surveyed 2026-03-17.
 | pi44 | dc:a6:32:b4:5e:c9 | 10.21.0.144  | Not connected (old MAC, may be reassigned) |
 
 :::{note}
-These addresses no longer resolve; derive the current name and address from the
-switch port using [Network and power](../setup/network.md).
+This address no longer resolves. This host has not been located on the new
+scheme.
 :::
 
 Source: `pibs.conf` on tweed.
