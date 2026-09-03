@@ -68,7 +68,8 @@ and a rebuild log. That is the primary source for the Setup section.
 - Building a generator for per-host inventory. The inventory tables are
   ported as hand-maintained tables with a "probed on" date until a generator
   exists.
-- Changing the docs toolchain (theme, extensions, RTD configuration).
+- Changing the docs toolchain (theme, extensions, RTD configuration). A
+  single site stylesheet for wide tables is the one exception.
 
 ## Approaches considered
 
@@ -237,12 +238,20 @@ These apply to every ported page and extend `contributing.md`.
   and are collected by `sphinx.ext.todo`. The list of known ones is in
   [Open items carried into the docs](#open-items-carried-into-the-docs).
 - Board pages do not list hosts. They link to the site page section. Site
-  pages list hosts in a table with a "probed" date in the section heading.
+  pages list hosts in a table with a "Probed YYYY-MM-DD." line directly
+  under the section heading. The date is not in the heading itself, because
+  MyST derives anchors from headings and a re-probe would break inbound
+  links.
 - Command blocks use `console` fences with a `$` prompt so `sphinx-copybutton`
   strips the prompt.
 - Cross-page links are relative Markdown links with `.md` and, where needed,
   a heading anchor (`myst_heading_anchors = 3`).
 - Images live next to the page that uses them.
+- Tables wider than the Furo content column scroll horizontally via
+  `docs/_static/custom.css` (added during Task 3); do not split a table to
+  make it fit.
+- Site pages lead with the surprises (wiring, host quirks, traps) and put
+  the host inventory tables after them, as `sites/ps1.md` already does.
 - Pages record which repository a fact came from only when the reader has to
   go there (for example to run a script). Provenance is otherwise in git.
 
