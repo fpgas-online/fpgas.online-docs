@@ -314,12 +314,17 @@ Tests are orchestrated by the
 which uploads the wrapper scripts and bitstreams to the RPi, then runs the
 appropriate test:
 
+The Pis are not routable from outside tweed, so reaching one to stop its daemon
+means jumping through the gateway; the form is in
+[Gateway: tweed](../sites/welland.md#gateway-tweed) on the Welland page.
+
 ```console
+# <host-ip> is the current address of the board, from the Welland host table.
 # The wrapper opens the serial port on the target host, so fpgas-tt has to be
 # stopped -- and started again after, or the board drops off the public site.
-$ ssh root@10.21.2.36 systemctl stop fpgas-tt
+$ ssh -o ProxyCommand='ssh -W %h:%p ansible@10.99.21.2' pi@<host-ip> sudo systemctl stop fpgas-tt
 $ uv run python verify_hardware.py --board tt --host welland-pi33
-$ ssh root@10.21.2.36 systemctl start fpgas-tt
+$ ssh -o ProxyCommand='ssh -W %h:%p ansible@10.99.21.2' pi@<host-ip> sudo systemctl start fpgas-tt
 ```
 
 :::{todo}
@@ -343,7 +348,8 @@ hardcoded pins are correct either way.
 
 ### DemoBoard() hang on boot
 
-The stock RP2040 `main.py` calls `DemoBoard()` which probes I2C and can
+The stock RP2350 (RP2040 on v2 boards) `main.py` calls `DemoBoard()` which
+probes I2C and can
 hang permanently, making the board unrecoverable without a physical reset.
 The shipped `ttdbv3` firmware did exactly this on all four boards; SDK 3.1.0
 boots cleanly and all four report `board present` as of 2026-09-03.
@@ -541,6 +547,17 @@ order differs. Under the tables above `ui_in[0]` is JC1/GPIO16 and `uo_out[0]`
 is JA1/GPIO8; under `test_pmod_loopback.py` `ui_in[0]` is JC10/GPIO6 and
 `uo_out[0]` is JA10/GPIO18.
 
+`verify-hardware.md` adds a **third, separately wrong** set of numbers. Only its
+GPIO column agrees with the loopback config; its PMOD HAT port labels
+(`ui_in` on JA1/JA7/JA8/JB1/JC1/JC3/JC4/JC9, `uo_out` on
+JC2/JA10/JB8/JA9/JB2/JA3/JB4/JB3) contradict
+[Raspberry Pi PMOD HAT](pmod/rpi-hat.md) in every row — JA1 is GPIO8 there, not
+GPIO6; JA7 is GPIO19, not GPIO12; JB1 is GPIO7, not GPIO5. The GPIOs it lists
+for `ui_in` are in fact all JC pins and the ones it lists for `uo_out` are all
+JA pins, exactly as `test_pmod_loopback.py` labels them, so the port column in
+`verify-hardware.md` can be discarded outright; the disagreement worth
+resolving is the bit order.
+
 **The loopback test cannot arbitrate this.** It drives `drive_pins` and reads
 `read_pins` position by position, and the FPGA returns `uo_out = ~ui_in` bit
 for bit, so any permutation that is consistent between the two lists passes.
@@ -636,9 +653,10 @@ approach since:
 
 - RPi GPIO5/11 are **not hardware UART pins** — the BCM2711 has no UART
   peripheral assignable to this GPIO pair. If the measured tables are the right
-  ones the pair is GPIO17/19 instead, which is no better: neither is a BCM2711
-  UART pin either, so the conclusion holds whichever mapping wins, but the
-  specific pin argument below has to be redone against the surviving one.
+  ones the pair is GPIO17/19 instead, which is no better: GPIO17 is RTS0 and
+  GPIO19 is PCM_FS, so neither is a UART data pin. The conclusion holds
+  whichever mapping wins, but the specific pin argument below has to be redone
+  against the surviving one.
 - The NFS boot image has no device tree overlay files, and the root filesystem
   is read-only.
 - Software bit-bang UART at 115200 baud is unreliable under a non-RT Linux
