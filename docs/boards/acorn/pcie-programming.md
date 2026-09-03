@@ -198,6 +198,11 @@ pi-sw2-p43 and pi-sw2-p44 at Welland scan an empty JTAG chain, and PS1's pi14
 and pi16 do not answer JTAG at all (2026-08-31). If a flash write leaves a bad
 golden image on any of those four, nothing can rescue it — see [safety
 rules](#safety-rules).
+
+That leaves no Welland Acorn that can safely be flashed over PCIe as of
+2026-09-03: pi-sw2-p44 is the only one running a LiteX design, and it is one of
+the boards with no JTAG recovery. The other five cannot be reached over PCIe at
+all until a LiteX bitstream is in their flash.
 :::
 
 ### Prerequisites
@@ -290,9 +295,13 @@ were added on port, 2026-09-03; the source omitted them. They follow [Step
    # Pi 5 with openFPGALoader 0.10.0: the 40-pin header is /dev/gpiochip15
    $ sudo ln -sfn /dev/gpiochip15 /dev/gpiochip0
    $ openFPGALoader --cable libgpiod --pins 10:9:11:8 --detect
-   # Expected: idcode 0x3636093 (XC7A200T)
+   # Expected on a CLE-215+: idcode 0x3636093 (XC7A200T)
    # PS1 Compute Blades: --pins 2:3:4:14
    ```
+
+   That IDCODE is the XC7A200T on a CLE-215+. A CLE-101 or LiteFury carries an
+   XC7A100T and reports a different IDCODE; read the value off `--detect` on the
+   board in hand rather than expecting `0x3636093` there.
 
    `found 0 devices` means this board cannot be rescued over JTAG at all. Stop
    here and read safety rule 4.
@@ -300,7 +309,9 @@ were added on port, 2026-09-03; the source omitted them. They follow [Step
 1. **Load a PCIe-capable bitstream to SRAM via JTAG** (volatile — lost on power cycle):
 
    ```console
-   # Detach anything that is enumerated before reconfiguring
+   # Detach anything that is enumerated before reconfiguring. With a corrupt
+   # golden image nothing enumerates, so this reports "No such file or
+   # directory" — that is expected, carry on.
    $ echo 1 | sudo tee /sys/bus/pci/devices/0001:01:00.0/remove
    # Pi 0-4 hosts only. Not needed on the Pi 5 fleet, where GPIO8-11 are
    # unclaimed even with the modules loaded, but harmless there.
@@ -342,8 +353,14 @@ were added on port, 2026-09-03; the source omitted them. They follow [Step
 
 5. **Power cycle** the board. The FPGA boots from the new golden image in flash,
    chain-loads operational, and PCIe comes up persistently. Confirm with
-   `lspci -nn -s 0001:01:00.0` after the reboot: `10ee:7011` again, this time
-   without any JTAG load.
+   `lspci -nn -s 0001:01:00.0` afterwards: `10ee:7011` again, this time without
+   any JTAG load.
+
+   `sudo reboot` is not necessarily enough — it need not drop the M.2 rail, so
+   the FPGA can keep its configuration across it. The reliable power cycle is a
+   PoE cycle of the host's switch port, which takes a Pi 5 more than 90 s to
+   come back; see [SQRL Acorn
+   CLE-215+](../../sites/welland.md#sqrl-acorn-cle-215).
 
 :::{warning}
 Between steps 1 and 5 the board **must not lose power**. The SRAM-loaded
@@ -413,7 +430,9 @@ on port, 2026-09-03; the source omitted them. They follow [Step
    $ litepcie_util flash_write operational.bin 0x400000
    ```
 
-5. **Power cycle** — golden boots from flash, chain-loads operational, PCIe comes up persistently.
+5. **Power cycle** — golden boots from flash, chain-loads operational, PCIe
+   comes up persistently. Use a PoE cycle of the switch port, not `sudo reboot`,
+   for the reason given in the SRAM bootstrap above.
 
 6. **Verify** multiboot works by intentionally writing a bad operational image, confirming watchdog fallback, then reprogramming:
 
@@ -481,7 +500,8 @@ write_cfgmem -force -format bin -interface spix4 -size 16 -loadbit "up 0x0 opera
 golden image at 0x0 is the recovery mechanism. Overwrite it and the only way
 back is the SRAM bootstrap over JTAG — and on a board whose JTAG does not
 answer, there is no way back at all. Write to 0x0 only during initial setup or
-golden recovery, and have the wrapper script validate the target address.
+golden recovery. A wrapper script should validate the target address; no such
+script exists today.
 :::
 
 All six rules:
