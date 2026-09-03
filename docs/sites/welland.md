@@ -342,16 +342,28 @@ drives the FPGA's TX does not cost you JTAG the way it does at
 $ openFPGALoader --cable libgpiod --pins 10:9:11:8 --detect
 ```
 
-The P2 serial pair is wired straight through, **without** the crossover used at
-PS1 (pin-ID survey, 2026-08-31):
+The P2 serial pair is a **null-modem crossover**, the same as at PS1: the
+crossover is the fleet standard, not a Compute Blade special case. Measured on
+2026-08-31 with the pin-ID design on pi-sw2-p29, p46 and p48; p47 has both
+pairs transposed (see [Known faults](#known-faults)), and p43 and p44 could not
+be read because JTAG scans an empty chain there.
 
 | P2 ball | lands on | RPi function |
 |---|---|---|
-| K2 | GPIO14 | TXD0 |
-| J2 | GPIO15 | RXD0 |
+| K2 (FPGA TX) | GPIO15 | RXD0 — the Pi receives |
+| J2 (FPGA RX) | GPIO14 | TXD0 — the Pi sends |
+
+:::{note}
+Until 2026-09-03 this page recorded the opposite — K2 straight through to
+GPIO14 — and called the crossover a PS1 peculiarity. That was a documentation
+error, not a difference between the sites: it wired transmitter into
+transmitter, which cannot work with the hardware UART (`/dev/ttyAMA0`) every
+host and test script uses. Corrected here from the 2026-08-31 pin-ID
+measurements.
+:::
 
 Both tables are the Acorn on a Pi 5; the connector pinout they are measured
-against, and the per-pin survey behind them, are on
+against, and the full per-pin survey behind them, are on
 [Acorn wiring](../boards/acorn/wiring.md).
 
 ## Raspberry Pi 5 specifics
