@@ -47,6 +47,14 @@ symlink per Pi serial number pointing at the NFS root's `boot/`, plus a
 `bootcode.bin` symlink at the top because, in the role's own words, Pi netboot
 is not too smart.
 
+That difference decides what an operator does to add a Pi. On a per-port-VLAN
+site: nothing — plug it into the port, and the cleared TFTP prefix means it
+gets the shared `boot/` without being registered anywhere. On a legacy
+MAC-table site: add a `{port, mac, sn, model, loc, cable_color}` entry to
+`switch.nos` in the site's `host_vars`, then re-converge so `netboot.yml`
+creates that serial's symlink. See [Network](network.md) for the two addressing
+schemes, and [Verification](verification.md) for the checklist afterwards.
+
 ### The kernel command line
 
 `cmdline.txt` is templated into the NFS root's `boot/`:
@@ -58,16 +66,25 @@ root=/dev/nfs nfsroot=10.21.0.1:{{ nfs_root }}/root,nfsvers=3,tcp ro ip=dhcp roo
 Three parts are load-bearing:
 
 `nfsvers=3,tcp`
-: The gateway runs trixie, whose `nfsd` serves v3 over TCP only, while the
-  initramfs `nfsmount` from klibc defaults to UDP. Without this the mount hangs
-  in the initramfs. The bookworm VM used in CI does not reproduce it, so this
-  was only found on real hardware (tweed rebuild, 2026-08-25).
+: Welland's gateway [tweed](../sites/welland.md#gateway-tweed) runs trixie,
+  whose `nfsd` serves v3 over TCP only, while the initramfs `nfsmount` from
+  klibc defaults to UDP. Without this the mount hangs in the initramfs. The
+  bookworm VM used in CI does not reproduce it, so it was only found on real
+  hardware (tweed rebuild, 2026-08-25). PS1's gateway
+  [val2](../sites/ps1.md#gateway-val2) is still on bookworm, so the constraint
+  is a tweed one, not a fleet-wide one. The flag is in the shared template all
+  the same, because there is one template for every site.
 
 `overlayroot=tmpfs`
 : The writable layer. See [below](#the-nfs-root-is-shared-and-read-only).
 
 `console=serial0,115200`
 : Fine on a Pi 4 and below, wrong on a Pi 5.
+
+This template is what the bookworm root boots. The PS1 Compute Blades boot the
+separate trixie root and have `console=tty1` with `serial-getty@ttyAMA0`
+inactive, so none of the console reasoning below applies to them — see
+[Compute blades](../sites/ps1.md#compute-blades).
 
 On a Pi 5 `dtoverlay=disable-bt` does not free the header UART, so the `fixpi`
 role enables it explicitly and points the kernel console somewhere else:
@@ -123,7 +140,7 @@ bootloader has timed out, and after the Pi comes back (roughly two minutes) it
 re-uploads every file, because the tmpfs is empty again, and re-runs its
 pre-test, because the `serial-getty` mask is lost too.
 
-Two roots exist at [PS1](../sites/ps1.md#compute-blades), because the site runs
+Two roots exist at [PS1](../sites/ps1.md#gateway-val2), because the site runs
 two generations of hardware: a bookworm armhf root for the RPi 3B/3B+/4B, and a
 separate trixie arm64 root that the Compute Blades boot. Both are read-only with
 an overlay.
@@ -151,6 +168,15 @@ configuration is applied to a running Pi.
 
   - Saves the stock `cmdline.txt`, `user-data` and `fstab` aside as `.org`, then
     templates the netboot versions over them.
+  - Appends to `config.txt`: `dtoverlay=disable-wifi` and `dtoverlay=disable-bt`
+    to turn the onboard radios off, plus `enable_uart=1` and `uart_2ndstage=1`.
+    The two overlay lines cover both generations, because on a Pi 5 (BCM2712)
+    the firmware auto-remaps them to `disable-wifi-pi5` and `disable-bt-pi5` via
+    `overlay_map.dtb` — on a Pi 4 they disable `&mmc`/`&mmcnr` and `&bt`, on a
+    Pi 5 `&sdio2` (so WLAN never enumerates) and `&bluetooth`. Since
+    `config.txt` is served read-only over TFTP, these are re-applied on every
+    boot: a root user can bring a radio up for the life of a session, but the
+    change never survives a reboot.
   - Creates the `pi` user directly, with a `sudoers.d` drop-in granting it
     passwordless sudo. On stock Raspberry Pi OS that comes from the first-boot
     `userconf` mechanism, which this root never runs; without the drop-in,
@@ -185,7 +211,7 @@ configuration is applied to a running Pi.
     swap generator, `dphys-swapfile` and `resize2fs_once`. None of them make
     sense on a read-only NFS root.
 
-:::{warning}
+:::{note}
 Sync the *whole* firmware payload, not just the initramfs. Historically `fixpi`
 copied only `initramfs8` across, so after a kernel upgrade inside the chroot the
 TFTP boot directory served `kernel8.img` 6.6.31 with a 6.12.96 initramfs. The
@@ -210,7 +236,7 @@ Those three roles need to run ARM package scripts on an x86 gateway. What the
   start services inside the root.
 - A `piroot` Unix user is created on the gateway whose login shell is a wrapper
   script that immediately `chroot`s into the NFS root, with a `sudoers.d` rule
-  permitting just that one command.
+  permitting that one binary, with any arguments.
 - The inventory host named `pi` is `ansible_user=piroot` at the gateway's own
   address, with no port override — so Ansible reaches the chroot over the
   gateway's ordinary sshd on port 22, and every command it runs lands inside the
@@ -290,18 +316,17 @@ the bar and, combined with grounding `TP5`, becomes a real lock too.
 
 ### Verify
 
-On a running board:
+On a running board, these should show the protected config and refuse to write:
 
 ```console
-# Should show the protected config and refuse to write.
 $ vcgencmd bootloader_config
 $ sudo rpi-eeprom-update
 $ sudo rpi-eeprom-update -a
 ```
 
-The last command reports the current state on a normal board and fails to write
-the flash on a protected one. The build is checked in CI too: `verify-server.yml`
-asserts the built NFS-root `config.txt` contains `eeprom_write_protect=1`.
+`rpi-eeprom-update` reports the current state; `-a` fails to write the flash on
+a protected board. The build is checked in CI too: `verify-server.yml` asserts
+the built NFS-root `config.txt` contains `eeprom_write_protect=1`.
 
 ### Legitimately updating an EEPROM later
 
@@ -320,6 +345,47 @@ just clear it on the board. To update a board's bootloader EEPROM:
 
 A change here takes effect when a board next netboots the rebuilt image. Confirm
 on one board before relying on it fleet-wide.
+
+## When a Pi does not boot
+
+A netbooted Pi has no console and no disk to inspect, so the roles build four
+ways to watch one boot. Full procedures belong on
+[Verification](verification.md) and [Pi hosts](pi.md); this is what exists and
+where it comes from.
+
+**Did it get a lease?** dnsmasq runs with `log-dhcp`, so every DHCP transaction
+is journalled on the gateway, and the lease database is pinned to the absolute
+path `/var/lib/misc/dnsmasq.leases`. The absolute path is deliberate: dnsmasq
+daemonises and `chdir()`s to `/` before opening a relative lease, pid or log
+path, and silently fails if one is given relative.
+
+**Kernel log over the network.** Both command lines carry
+`netconsole=@/,@10.21.0.1/`, which points the kernel log at the gateway over
+UDP.
+
+:::{note}
+The tweed rebuild log records this both ways within one night: entry C1-3 calls
+netconsole's dynamic cmdline form "a dead cmdline feature" that never transmits,
+and C1-3b then reports netconsole working on the next boot. Treat it as worth
+trying, not as a guarantee — the same log's fallback was to plant a unit in the
+NFS root that streams the journal early.
+:::
+
+**Serial from the gateway.** `tweeks.yml` sets the gateway up as the watching
+station: it installs `tio`, adds the operator account to the `dialout` group so
+`tio` can open the tty, masks `serial-getty@ttyAMA0` so a getty does not eat the
+boot messages, and removes `brltty`, which grabs serial ports greedily and makes
+`ftdi_sio` lose the connection ([Debian #667616](https://bugs.debian.org/667616)).
+When the gateway is itself a Pi, it also adds `dtoverlay=disable-bt` to the
+gateway's own `/boot/firmware/config.txt` to free `/dev/serial0`.
+
+**USB-C gadget console.** `tweeks.yml` puts the Pi 4 and Pi 5 USB-C port into
+peripheral mode with `dtoverlay=dwc2,dr_mode=peripheral`, so a laptop plugged
+into that port gets the kernel log and a getty. Only those two models: their
+USB-A ports hang off separate controllers (VL805 on the Pi 4, RP1 on the Pi 5),
+so nothing is lost, whereas on a Pi 3 or a Zero `dwc2` is the only USB
+controller there is — on a 3B+ that includes the Ethernet. Fleet nodes are
+PoE-powered, so their USB-C port is free.
 
 ## Historical tooling
 
@@ -356,9 +422,11 @@ fpgas.online-infra, `main`:
 - [`ansible/inventory/group_vars/all/srv.yml`](https://github.com/fpgas-online/fpgas.online-infra/blob/main/ansible/inventory/group_vars/all/srv.yml)
   — pinned image name and date, `dist`, `nfs_root`, the `tftp_root` expression.
 - [`ansible/inventory/host_vars/ps1.fpgas.online.yml`](https://github.com/fpgas-online/fpgas.online-infra/blob/main/ansible/inventory/host_vars/ps1.fpgas.online.yml)
-  — PS1 does not override `dist`.
+  — PS1 does not override `dist`; the `switch.nos` list and the shape of its
+  entries.
 - [`ansible/roles/pxe/templates/dnsmasq-base.conf.j2`](https://github.com/fpgas-online/fpgas.online-infra/blob/main/ansible/roles/pxe/templates/dnsmasq-base.conf.j2)
-  — DHCP/TFTP on the internal NIC, `bind-dynamic`, the NTP option.
+  — DHCP/TFTP on the internal NIC, `bind-dynamic`, `log-dhcp`, the pinned
+  absolute `dhcp-leasefile` path, the NTP option.
 - [`ansible/roles/nfs/templates/exports.j2`](https://github.com/fpgas-online/fpgas.online-infra/blob/main/ansible/roles/nfs/templates/exports.j2)
   — both exports read-only.
 - [`ansible/roles/img/tasks/main.yml`](https://github.com/fpgas-online/fpgas.online-infra/blob/main/ansible/roles/img/tasks/main.yml)
@@ -374,8 +442,11 @@ fpgas.online-infra, `main`:
   drop-in, `nfs-common` and `overlayroot`, the firmware-payload sync, ssh
   enablement, the masked wizard, pre-generated host keys.
 - [`ansible/roles/fixpi/tasks/tweeks.yml`](https://github.com/fpgas-online/fpgas.online-infra/blob/main/ansible/roles/fixpi/tasks/tweeks.yml)
-  — `config.txt` edits: radios off, `eeprom_write_protect=1`, the `[pi5]`
-  header-UART and `cmdline=` stanza.
+  — `config.txt` edits: onboard Wi-Fi and Bluetooth off and the Pi 5 overlay
+  remapping (lines 70-86), `eeprom_write_protect=1`, the `[pi5]` header-UART and
+  `cmdline=` stanza, the Pi 4 / Pi 5 USB gadget console (lines 145-161), and the
+  gateway-side serial watch: `brltty` removed, `tio` installed, operator in
+  `dialout`, `serial-getty@ttyAMA0` masked (lines 176-218).
 - [`ansible/roles/fixpi/tasks/nogrow.yml`](https://github.com/fpgas-online/fpgas.online-infra/blob/main/ansible/roles/fixpi/tasks/nogrow.yml)
   — root-resize and swap machinery disabled.
 - [`ansible/roles/fixpi/templates/boot/cmdline.txt.j2`](https://github.com/fpgas-online/fpgas.online-infra/blob/main/ansible/roles/fixpi/templates/boot/cmdline.txt.j2)
@@ -394,7 +465,8 @@ fpgas.online-infra, `main`:
 - [`docs/rebuilds/2026-08-25-tweed-rebuild.md`](https://github.com/fpgas-online/fpgas.online-infra/blob/main/docs/rebuilds/2026-08-25-tweed-rebuild.md)
   — kernel/initramfs mismatch (C1-3), `nfsvers=3,tcp` (C1-3c), the host devpts
   unmount (B1-10), Pi clocks with no LAN NTP (C2-2), and the lesson that a
-  running overlayroot Pi does not see lower-filesystem changes.
+  running overlayroot Pi does not see lower-filesystem changes, and the two
+  conflicting readings of netconsole (C1-3 versus C1-3b).
 
 fpgas.online-test-designs, `main`:
 
@@ -411,5 +483,8 @@ Other repositories:
 - [fpgas.online-tools](https://github.com/fpgas-online/fpgas.online-tools)
   — `README.md` for the DHCP and netconsole utilities.
 
-Pages on this site: [Welland](../sites/welland.md#gateway-tweed),
-[PS1](../sites/ps1.md#compute-blades), [Packages](../packages.md).
+Pages on this site: [Welland](../sites/welland.md#gateway-tweed) (tweed on
+trixie, Pi 5 console, stale NFS handles),
+[PS1](../sites/ps1.md#gateway-val2) (val2 on bookworm, the two roots) and
+[Compute blades](../sites/ps1.md#compute-blades) (`console=tty1` on the trixie
+root), [Packages](../packages.md).
