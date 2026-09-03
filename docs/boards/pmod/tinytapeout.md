@@ -2,6 +2,8 @@
 
 Standard PMOD pin layouts recommended by TinyTapeout for use on its demo board PMOD headers. These follow the [Digilent PMOD Interface Specification](index.md) and are used across the TinyTapeout community to ensure interoperability between designs and peripheral boards.
 
+This page covers the demo board's three PMOD connectors and signal groups, the standard protocol and peripheral layouts built on them, and community PMOD boards. It also documents the RP2350 (demo board v3, TT09+) and RP2040 (v2, TT06 to TT08) GPIO maps behind those connectors.
+
 ## TinyTapeout I/O Signal Groups
 
 TinyTapeout projects have three groups of 8 signals (24 total):
@@ -171,7 +173,7 @@ Board: [TT Audio Pmod](https://github.com/MichaelBell/tt-audio-pmod) — compati
 | ui_in[6]  | DATA     |
 
 :::{note}
-This table is derived from the Tiny Tapeout specification. The mapping
+These tables are derived from the Tiny Tapeout specification. The mapping
 measured on the Welland FPGA demo boards is on the
 [Tiny Tapeout FPGA demo board](../tt-fpga.md#pin-mapping) page; the two agree.
 :::
