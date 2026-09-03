@@ -12,47 +12,52 @@ rather than a released version. Where a page records a measurement, it says
 when it was taken.
 :::
 
-## Where things live
+## Finding your way
 
-The documentation is assembled here, but most of the systems it describes have
-their own repositories under the
-[fpgas-online](https://github.com/fpgas-online) organisation:
+[Sites](sites/index.md)
+: Where the hardware is: Welland (South Australia) and PS1 (Chicago). Network,
+  gateway, switches, which host carries which board, and the faults known on
+  each host.
 
-`fpgas.online-infra`
-: Ansible for the servers and the Raspberry Pi NFS root.
+[Boards](boards/index.md)
+: Each FPGA board type: specification, wiring to its Raspberry Pi, how to
+  program it, and how to check the wiring.
 
-`fpgas.online-test-designs`
-: FPGA designs used to verify that a board is wired up correctly, plus the
-  hardware pinout documentation.
-
-`fpgas.online-site`
-: The Django web application.
-
-`fpgas.online-cam`
-: Camera capture and streaming for the Pi hosts.
-
-`apt`
-: The APT package repository served at <https://apt.fpgas.online>.
+[Setup](setup/index.md)
+: How the platform works: netboot and the NFS root, the network, what runs on
+  the Pi hosts and on the gateway, and the web application.
 
 ```{toctree}
 :maxdepth: 2
 :caption: Contents
 
 sites/index
+boards/index
+setup/index
 packages
 contributing
 ```
 
-## Sites
+## Where the code lives
 
-There are two of them, and they are wired differently — which matters more
-often than you would expect.
+The systems described here have their own repositories under the
+[fpgas-online](https://github.com/fpgas-online) organisation. The main ones:
 
-[Welland](sites/welland.md)
-: The private test lab in South Australia. Raspberry Pi 5 hosts with SQRL Acorn
-  boards on mPCIe adapters.
+`fpgas.online-infra`
+: Ansible for the gateway servers and the Raspberry Pi NFS root.
 
-[PS1](sites/ps1.md)
-: The public service at the Pumping Station: One hackerspace in Chicago.
-  Compute Blade carriers with CM4 and CM5 modules, and a different JTAG and
-  serial pinout from Welland.
+`fpgas.online-test-designs`
+: FPGA designs that verify a board is wired up correctly.
+
+`fpgas.online-site`
+: The Django web application, including the Tiny Tapeout catalogue.
+
+`fpgas.online-tt`, `tinytapeout-fpga-demos`, `tt-commander-app`
+: The Pi-side Tiny Tapeout bridge daemon, the demo bitstreams, and the
+  browser Commander it serves.
+
+`fpgas.online-setup-pi`, `fpgas.online-cam`, `fpgas.online-poe`
+: Packages installed on the Pi hosts and the PoE switch control library.
+
+`apt`
+: The package repository at <https://apt.fpgas.online>. See [Packages](packages.md).
