@@ -306,6 +306,7 @@ as `{todo}` items rather than resolved by the port.
 | pi14 and pi16 at PS1 do not answer JTAG on any pin order | `sites/ps1.md` (already present) |
 | The TT FPGA `pmod-tt.md` RP2350 table is spec-derived while `tt-fpga-pin-mapping.md` is measured; they agree numerically | `boards/tt-fpga.md` links to `boards/pmod/tinytapeout.md` with a note on provenance |
 | `verify-hardware.md`'s TT FPGA "iCE40 ↔ PMOD HAT ↔ RPi GPIO" table disagrees with `tt-fpga-pin-mapping.md` on every PMOD HAT port and most RPi GPIOs (iCE40 pins agree). `designs/pmod-loopback/host/test_pmod_loopback.py` on main uses the verify-hardware numbers, so this is a live permutation between three copies; the loopback test cannot arbitrate it (same permutation on drive and read), the pin-id design can. Recorded as a todo in Task 12. | `boards/tt-fpga.md` |
+| The test-designs hardware README's TT09 row says USB (RP2040) but the demo-PCB version rule puts TT09 on v3 with an RP2350; the README's PS1 column shows a pending TT08 while `site-ps1.md` says "TT02-TT09 except TT08"; the README links `tinytapeout.com/chips/tt03p5/`, which is 404. | `boards/tt-asic.md` |
 | `tt-fpga.md` describes the board with an RP2040 (v2) throughout; the fleet and `tt-fpga-pin-mapping.md` are RP2350B demo board v3. The RP2040-specific facts (66 MHz max clock, PWM first-call bug) need re-verifying on v3. | `boards/tt-fpga.md` |
 
 ## Ordering
