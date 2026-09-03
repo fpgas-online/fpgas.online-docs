@@ -20,29 +20,29 @@ pin-id
 
 ## Boards at a glance
 
-Counts as of 2026-09-03 from the test-designs hardware README; the site pages
-carry the per-host tables.
+Counts are the test-designs hardware README as read on 2026-09-03; where a site
+page disagrees, the site page is the measured source and wins.
 
 | Board | Docs | [Welland](../sites/welland.md#hosts-and-boards) | [PS1](../sites/ps1.md#hosts-and-boards) | FPGA | Features |
 |-------|------|---------|-----|------|----------|
-| [Digilent Arty A7-35T](https://digilent.com/shop/arty-a7-artix-7-fpga-development-board/) | [Arty A7](arty-a7.md), [wiring to the Pi](arty-a7.md#wiring-to-the-raspberry-pi), [litex-boards platform](https://github.com/litex-hub/litex-boards/blob/master/litex_boards/platforms/digilent_arty.py) | ×5 | ×8 | Xilinx XC7A35T | DDR3, Ethernet, PMOD, USB&nbsp;JTAG+UART |
-| [Kosagi NeTV2](https://www.crowdsupply.com/alphamax/netv2) (GPIO&nbsp;JTAG) | [Kosagi NeTV2](netv2.md), [JTAG via RPi GPIO](netv2.md#jtag-via-rpi-gpio), [litex-boards platform](https://github.com/litex-hub/litex-boards/blob/master/litex_boards/platforms/kosagi_netv2.py) | ×5 | — | Xilinx XC7A35T | DDR3, Ethernet, PCIe, HDMI, GPIO&nbsp;JTAG+UART |
-| [Kosagi NeTV2](https://www.crowdsupply.com/alphamax/netv2) (RPi5&nbsp;PCIe) | [Kosagi NeTV2](netv2.md), [JTAG via RPi GPIO](netv2.md#jtag-via-rpi-gpio), [litex-boards platform](https://github.com/litex-hub/litex-boards/blob/master/litex_boards/platforms/kosagi_netv2.py) | —&nbsp;(+×4) | — | Xilinx XC7A35T | DDR3, Ethernet, PCIe, HDMI, GPIO&nbsp;JTAG+UART |
-| [Sqrl Acorn CLE-215+](https://github.com/enjoy-digital/litex/wiki/Use-LiteX-on-the-Acorn-CLE-215) | [SQRL Acorn](acorn/index.md), [Acorn wiring](acorn/wiring.md), [PCIe programming](acorn/pcie-programming.md), [litex-boards platform](https://github.com/litex-hub/litex-boards/blob/master/litex_boards/platforms/sqrl_acorn.py) | ×6 | — | Xilinx XC7A200T | DDR3, PCIe, SPI&nbsp;Flash, GPIO&nbsp;JTAG+UART |
-| [LiteFury](https://github.com/RHSResearchLLC/NiteFury-and-LiteFury) / Acorn CLE-101 | [SQRL Acorn](acorn/index.md), [Acorn wiring](acorn/wiring.md), [PCIe programming](acorn/pcie-programming.md), [litex-boards platform](https://github.com/litex-hub/litex-boards/blob/master/litex_boards/platforms/sqrl_acorn.py) | — | ×3&nbsp;(+×1) | Xilinx XC7A100T | DDR3, PCIe, SPI&nbsp;Flash, GPIO&nbsp;JTAG+UART |
-| [Fomu EVT](https://www.crowdsupply.com/sutajio-kosagi/fomu) | [Fomu EVT](fomu-evt.md), [wiring to the Pi](fomu-evt.md#wiring-to-the-raspberry-pi), [litex-boards platform](https://github.com/litex-hub/litex-boards/blob/master/litex_boards/platforms/kosagi_fomu_evt.py) | ×2 | — | Lattice iCE40UP5K | USB&nbsp;1.1, SPI&nbsp;Flash, PMOD, I2C |
-| [TT FPGA Demo Board](https://tinytapeout.com/guides/fpga-breakout/) | [TT FPGA demo board](tt-fpga.md), [pin mapping](tt-fpga.md#pin-mapping), [LiteX platform file](https://github.com/fpgas-online/fpgas.online-test-designs/blob/main/designs/_shared/tt_fpga_platform.py), [live board page](https://tinytapeout.fpgas.online/board/fpga-1/) | ×4 | —&nbsp;(+×4) | Lattice iCE40UP5K | PMOD, USB&nbsp;(RP2350), SPI&nbsp;Flash |
-| [ButterStick](https://butterstick.io/) | [ButterStick](#butterstick), [litex-boards platform](https://github.com/litex-hub/litex-boards/blob/master/litex_boards/platforms/gsd_butterstick.py) | —&nbsp;(+×4) | — | Lattice ECP5UM5G-85F | DDR3, GbE, USB&nbsp;2.0, SYZYGY |
-| [ULX3S](https://radiona.org/ulx3s/) | [ULX3S](#ulx3s), [litex-boards platform](https://github.com/litex-hub/litex-boards/blob/master/litex_boards/platforms/radiona_ulx3s.py) | —&nbsp;(+×4) | — | Lattice ECP5 (various) | SDRAM, USB, WiFi, PMOD |
-| [TT02](https://tinytapeout.com/chips/tt02/) | [TT ASIC boards](tt-asic.md) | —&nbsp;(+×1) | —&nbsp;(+×1) | SKY130 ASIC | PMOD, USB&nbsp;(RP2040) |
-| [TT03](https://tinytapeout.com/chips/tt03/) | [TT ASIC boards](tt-asic.md) | —&nbsp;(+×1) | —&nbsp;(+×1) | SKY130 ASIC | PMOD, USB&nbsp;(RP2040) |
-| TT03p5 | [TT ASIC boards](tt-asic.md), [live board page](https://tinytapeout.fpgas.online/board/tt03p5/) | ×1 | — | SKY130 ASIC | PMOD, USB&nbsp;(RP2040, fw 1.2.2) |
-| [TT04](https://tinytapeout.com/chips/tt04/) | [TT ASIC boards](tt-asic.md), [live board page](https://tinytapeout.fpgas.online/board/tt04/) | ×1 | —&nbsp;(+×1) | SKY130 ASIC | PMOD, USB&nbsp;(RP2040) |
-| [TT05](https://tinytapeout.com/chips/tt05/) | [TT ASIC boards](tt-asic.md), [live board page](https://tinytapeout.fpgas.online/board/tt05/) | ×1 | —&nbsp;(+×1) | SKY130 ASIC | PMOD, USB&nbsp;(RP2040) |
-| [TT06](https://tinytapeout.com/chips/tt06/) | [TT ASIC boards](tt-asic.md), [live board page](https://tinytapeout.fpgas.online/board/tt06/) | ×1 | —&nbsp;(+×1) | SKY130 ASIC | PMOD, USB&nbsp;(RP2040) |
-| [TT07](https://tinytapeout.com/chips/tt07/) | [TT ASIC boards](tt-asic.md), [live board page](https://tinytapeout.fpgas.online/board/tt07/) | ×1 | —&nbsp;(+×1) | SKY130 ASIC | PMOD, USB&nbsp;(RP2040) |
-| [TT08](https://tinytapeout.com/chips/tt08/) | [TT ASIC boards](tt-asic.md), [live board page](https://tinytapeout.fpgas.online/board/tt08/) | ×1 | —&nbsp;(+×1) | SKY130 ASIC | PMOD, USB&nbsp;(RP2040) |
-| [TT09](https://tinytapeout.com/chips/tt09/) | [TT ASIC boards](tt-asic.md) | —&nbsp;(+×1) | —&nbsp;(+×1) | SKY130 ASIC | PMOD, USB&nbsp;(RP2040) |
+| [Digilent Arty A7-35T](https://digilent.com/shop/arty-a7-artix-7-fpga-development-board/) | [Arty A7](arty-a7.md), [wiring to the Pi](arty-a7.md#wiring-to-the-raspberry-pi) | ×5 | ×8 | Xilinx XC7A35T | DDR3, Ethernet, PMOD, USB&nbsp;JTAG+UART |
+| [Kosagi NeTV2](https://www.crowdsupply.com/alphamax/netv2) (GPIO&nbsp;JTAG) | [Kosagi NeTV2](netv2.md), [JTAG via RPi GPIO](netv2.md#jtag-via-rpi-gpio) | ×5 | — | Xilinx XC7A35T | DDR3, Ethernet, PCIe, HDMI, GPIO&nbsp;JTAG+UART |
+| [Kosagi NeTV2](https://www.crowdsupply.com/alphamax/netv2) (RPi5&nbsp;PCIe) | [Kosagi NeTV2](netv2.md), [JTAG via RPi GPIO](netv2.md#jtag-via-rpi-gpio) | —&nbsp;(+×4) | — | Xilinx XC7A35T | DDR3, Ethernet, PCIe, HDMI, GPIO&nbsp;JTAG+UART |
+| [Sqrl Acorn CLE-215+](https://github.com/enjoy-digital/litex/wiki/Use-LiteX-on-the-Acorn-CLE-215) | [SQRL Acorn](acorn/index.md), [Acorn wiring](acorn/wiring.md), [PCIe programming](acorn/pcie-programming.md) | ×6 | — | Xilinx XC7A200T | DDR3, PCIe, SPI&nbsp;Flash, GPIO&nbsp;JTAG+UART |
+| [LiteFury](https://github.com/RHSResearchLLC/NiteFury-and-LiteFury) / Acorn CLE-101 | [SQRL Acorn](acorn/index.md), [Acorn wiring](acorn/wiring.md), [PCIe programming](acorn/pcie-programming.md) | — | ×3&nbsp;(+×1) | Xilinx XC7A100T | DDR3, PCIe, SPI&nbsp;Flash, GPIO&nbsp;JTAG+UART |
+| [Fomu EVT](https://www.crowdsupply.com/sutajio-kosagi/fomu) | [Fomu EVT](fomu-evt.md), [wiring to the Pi](fomu-evt.md#wiring-to-the-raspberry-pi) | ×2 | — | Lattice iCE40UP5K | USB&nbsp;1.1, SPI&nbsp;Flash, PMOD, I2C |
+| [TT FPGA Demo Board](https://tinytapeout.com/guides/fpga-breakout/) | [TT FPGA demo board](tt-fpga.md), [pin mapping](tt-fpga.md#pin-mapping), [live board page](https://tinytapeout.fpgas.online/board/fpga-1/) | ×4 | —&nbsp;(+×4) | Lattice iCE40UP5K | PMOD, USB&nbsp;(RP2350), SPI&nbsp;Flash |
+| [ButterStick](https://github.com/butterstick-fpga) | [ButterStick](butterstick.md) | —&nbsp;(+×4) | — | Lattice ECP5UM5G-85F | DDR3, GbE, USB&nbsp;2.0, SYZYGY |
+| [ULX3S](https://radiona.org/ulx3s/) | [ULX3S](ulx3s.md) | —&nbsp;(+×4) | — | Lattice ECP5 (various) | SDRAM, USB, WiFi, PMOD |
+| [TT02](https://tinytapeout.com/chips/tt02/) | [TT ASIC boards](tt-asic.md), [connection to the Pi](tt-asic.md#connection-to-the-pi) | —&nbsp;(+×1) | —&nbsp;(+×1) | SKY130 ASIC | PMOD, USB&nbsp;(RP2040) |
+| [TT03](https://tinytapeout.com/chips/tt03/) | [TT ASIC boards](tt-asic.md), [connection to the Pi](tt-asic.md#connection-to-the-pi) | —&nbsp;(+×1) | —&nbsp;(+×1) | SKY130 ASIC | PMOD, USB&nbsp;(RP2040) |
+| TT03p5 | [TT ASIC boards](tt-asic.md), [connection to the Pi](tt-asic.md#connection-to-the-pi), [live board page](https://tinytapeout.fpgas.online/board/tt03p5/) | ×1 | — | SKY130 ASIC | PMOD, USB&nbsp;(RP2040, fw 1.2.2) |
+| [TT04](https://tinytapeout.com/chips/tt04/) | [TT ASIC boards](tt-asic.md), [connection to the Pi](tt-asic.md#connection-to-the-pi), [live board page](https://tinytapeout.fpgas.online/board/tt04/) | ×1 | —&nbsp;(+×1) | SKY130 ASIC | PMOD, USB&nbsp;(RP2040) |
+| [TT05](https://tinytapeout.com/chips/tt05/) | [TT ASIC boards](tt-asic.md), [connection to the Pi](tt-asic.md#connection-to-the-pi), [live board page](https://tinytapeout.fpgas.online/board/tt05/) | ×1 | —&nbsp;(+×1) | SKY130 ASIC | PMOD, USB&nbsp;(RP2040) |
+| [TT06](https://tinytapeout.com/chips/tt06/) | [TT ASIC boards](tt-asic.md), [connection to the Pi](tt-asic.md#connection-to-the-pi), [live board page](https://tinytapeout.fpgas.online/board/tt06/) | ×1 | —&nbsp;(+×1) | SKY130 ASIC | PMOD, USB&nbsp;(RP2040) |
+| [TT07](https://tinytapeout.com/chips/tt07/) | [TT ASIC boards](tt-asic.md), [connection to the Pi](tt-asic.md#connection-to-the-pi), [live board page](https://tinytapeout.fpgas.online/board/tt07/) | ×1 | —&nbsp;(+×1) | SKY130 ASIC | PMOD, USB&nbsp;(RP2040) |
+| [TT08](https://tinytapeout.com/chips/tt08/) | [TT ASIC boards](tt-asic.md), [connection to the Pi](tt-asic.md#connection-to-the-pi), [live board page](https://tinytapeout.fpgas.online/board/tt08/) | ×1 | —&nbsp;(+×1) | SKY130 ASIC | PMOD, USB&nbsp;(RP2040) |
+| [TT09](https://tinytapeout.com/chips/tt09/) | [TT ASIC boards](tt-asic.md), [connection to the Pi](tt-asic.md#connection-to-the-pi) | —&nbsp;(+×1) | —&nbsp;(+×1) | SKY130 ASIC | PMOD, USB&nbsp;(RP2040)&nbsp;[†](#count-and-controller-disagreements) |
 
 Deployment counts: `×N` = deployed, `(+×N)` = pending deployment, `—` = none.
 The Welland TT ASIC and TT FPGA boards are the public boards on
@@ -50,14 +50,31 @@ The Welland TT ASIC and TT FPGA boards are the public boards on
 ports 3–8 and 33–36 (`pi-sw2-p<port>`); see
 [Welland hosts and boards](../sites/welland.md#hosts-and-boards).
 
-The `TT03p5` row had no chip page in the source table either; the
-`tinytapeout.com/chips/tt03p5/` link the source carried returns 404 and has been
-dropped.
+The Docs column links the board pages rather than the litex-boards platform
+files the source listed; every board page carries its own platform link in its
+LiteX section. Two source links are not reproduced. The source linked
+`tinytapeout.com/chips/tt03p5/` from the TT03p5 row; that page returns 404
+(checked 2026-09-03), so the row carries plain text here. The source's
+ButterStick row linked `butterstick.io`, whose domain no longer resolves at all
+(NXDOMAIN, checked 2026-09-03), so that row links the
+[ButterStick GitHub organisation](https://github.com/butterstick-fpga) instead;
+see [ButterStick](butterstick.md).
 
 :::{note}
-Cross-checking the counts above against the site pages, which are dated
-separately, leaves four disagreements. The README numbers are reproduced
-unchanged.
+The Arty row's vendor link is the source's, and it still answers, but Digilent
+now redirects `shop/arty-a7-artix-7-fpga-development-board/` to the **A7-100T**
+product page. The deployed boards are A7-35T. The obvious replacement,
+`digilent.com/reference/programmable-logic/arty-a7/start`, could not be
+substituted: the whole `digilent.com/reference/` tree returns 403 to a
+command-line fetch, so no replacement could be confirmed reachable.
+:::
+
+(count-and-controller-disagreements)=
+
+:::{note}
+Cross-checking the table against the site pages leaves five disagreements. The
+README numbers are reproduced unchanged; where a site page disagrees, the site
+page is the measured source.
 
 - **TT ASIC at PS1.** The table above has a pending TT08 at PS1, so it totals
   eight pending ASIC boards there. The PS1 board summary counts seven, "one
@@ -76,6 +93,11 @@ unchanged.
 - **ButterStick and ULX3S at Welland.** Four of each are pending here. Neither
   board appears anywhere on the [Welland page](../sites/welland.md), and neither
   has a host, a switch port or an allocation recorded.
+- **† TT09's controller.** The TT09 row's Features cell says `USB (RP2040)`,
+  following the README. The demo-PCB version rule puts TT09 on demo board v3
+  with an **RP2350**, which is what
+  [Tiny Tapeout ASIC demo boards](tt-asic.md#shuttles-and-boards) records. No
+  TT09 board is deployed, so nothing has been measured either way.
 :::
 
 ## Guides
@@ -114,10 +136,20 @@ Analysis:
 
 ## Planned boards
 
-Two boards have been specified and allocated but never wired to a Raspberry Pi.
-Neither has a wiring guide, because neither has been wired: the sections below
-are what the litex-boards platform files and the vendor pages say, not measured
-facts.
+Two boards have been specified but never wired to a Raspberry Pi. Each carries a
+pending count of four at Welland in the test-designs hardware README, but
+neither appears on the [Welland page](../sites/welland.md) at all: no host, no
+switch port, no allocation. Neither has a wiring guide, because neither has been
+wired — their pages are what the litex-boards platform files and the vendor
+material say, not measured facts.
+
+```{toctree}
+:maxdepth: 1
+:hidden:
+
+butterstick
+ulx3s
+```
 
 ### ButterStick
 
@@ -126,31 +158,7 @@ facts.
 fpgas.online infrastructure, and no wiring to a Raspberry Pi exists for it.
 :::
 
-The ButterStick is a high-performance ECP5 development board designed by Greg
-Davill (Great Scott Gadgets / gsg). It features a Lattice ECP5 with SERDES
-capabilities, DDR3 memory, Gigabit Ethernet, and a SYZYGY high-speed connector.
-
-#### Key specifications
-
-| Parameter | Value |
-|-----------|-------|
-| FPGA | Lattice ECP5UM5G-85F-8BG381C |
-| Package | BG381 |
-| SERDES | Up to 5 Gbps (ECP5UM5G variant) |
-| Logic cells | 84,000 |
-| DDR3 SDRAM | 1 GB (32-bit bus) |
-| Ethernet | RGMII Gigabit Ethernet (1000Base-T) |
-| USB | ULPI USB 2.0 PHY |
-| Expansion | SYZYGY connector (high-speed, not PMOD) |
-| LEDs | User LEDs |
-| JTAG | On-board USB-JTAG |
-| Power | USB-C powered |
-
-Source: the
-[gsd_butterstick platform file](https://github.com/litex-hub/litex-boards/blob/master/litex_boards/platforms/gsd_butterstick.py)
-and the [ButterStick website](https://butterstick.io).
-
-#### Notable differences from other boards
+Notable differences from other boards:
 
 - **ECP5UM5G with SERDES**: The `5G` variant includes high-speed
   serializer/deserializer blocks, enabling protocols like PCIe Gen1, SATA, or
@@ -163,30 +171,8 @@ and the [ButterStick website](https://butterstick.io).
 - **ULPI USB**: External USB 2.0 PHY, unlike the Fomu's native USB.
 - **DDR3**: Full DDR3 with 32-bit bus, similar to NeTV2 but larger capacity.
 
-#### LiteX integration
-
-| Property | Value |
-|----------|-------|
-| Platform module | `litex_boards.platforms.gsd_butterstick` |
-| Target module | `litex_boards.targets.gsd_butterstick` |
-| Toolchain | Yosys + nextpnr-ecp5 (open source, Project Trellis) |
-
-#### Programming
-
-```bash
-# Via openFPGALoader
-openFPGALoader -b butterstick design.bit
-
-# Via DFU (ButterStick has a DFU bootloader)
-dfu-util -D design.bit
-```
-
-#### References
-
-- LiteX platform file:
-  <https://github.com/litex-hub/litex-boards/blob/master/litex_boards/platforms/gsd_butterstick.py>
-- ButterStick website: <https://butterstick.io>
-- ButterStick GitHub: <https://github.com/butterstick-fpga>
+Specifications, LiteX modules, programming commands and the state of the vendor
+site are on the [ButterStick page](butterstick.md).
 
 ### ULX3S
 
@@ -195,42 +181,7 @@ dfu-util -D design.bit
 fpgas.online infrastructure, and no wiring to a Raspberry Pi exists for it.
 :::
 
-The ULX3S is an open-source ECP5 FPGA development board designed by Radiona.org.
-It is a feature-rich board with SDRAM, video output, WiFi, and USB.
-
-#### Key specifications
-
-| Parameter | Value |
-|-----------|-------|
-| FPGA | Lattice ECP5 (LFE5U-12F, 25F, 45F, or 85F variants) |
-| Package | BG381 |
-| SDRAM | 32 MB SDR SDRAM (AS4C32M16SB-7TCN or similar) |
-| Video output | GPDI (HDMI-compatible differential pairs) |
-| USB | USB 1.1 Full Speed (directly on FPGA, US1/US2 connectors) |
-| WiFi/BT | ESP32 module (WROOM-32) |
-| Audio | 3.5mm headphone jack (I2S DAC) |
-| MicroSD | MicroSD card slot |
-| LEDs | 8 user LEDs |
-| Buttons | 7 buttons (power, fire1, fire2, up, down, left, right) |
-| GPIO | 28 GPIO pins on pin headers |
-| PMOD | No standard PMOD connectors |
-| JTAG | On-board FTDI FT231X USB-JTAG |
-| Power | USB powered |
-
-Source: the
-[radiona_ulx3s platform file](https://github.com/litex-hub/litex-boards/blob/master/litex_boards/platforms/radiona_ulx3s.py)
-and the [ULX3S project page](https://radiona.org/ulx3s/).
-
-#### ECP5 variants
-
-| Variant | Device | Logic Cells | LUTs |
-|---------|--------|------------|------|
-| 12F | LFE5U-12F-6BG381C | 12,000 | 12,000 |
-| 25F | LFE5U-25F-6BG381C | 24,000 | 24,000 |
-| 45F | LFE5U-45F-6BG381C | 44,000 | 44,000 |
-| 85F | LFE5U-85F-6BG381C | 84,000 | 84,000 |
-
-#### Notable differences from other boards
+Notable differences from other boards:
 
 - **No PMOD connectors**: Uses pin headers instead. PMOD-based tests cannot run
   on this board without an adapter.
@@ -240,27 +191,5 @@ and the [ULX3S project page](https://radiona.org/ulx3s/).
   reporting without wired Ethernet.
 - **GPDI video**: HDMI-compatible output using differential pairs.
 
-#### LiteX integration
-
-| Property | Value |
-|----------|-------|
-| Platform module | `litex_boards.platforms.radiona_ulx3s` |
-| Target module | `litex_boards.targets.radiona_ulx3s` |
-| Toolchain | Yosys + nextpnr-ecp5 (open source, Project Trellis) |
-
-#### Programming
-
-```bash
-# Via openFPGALoader (USB-JTAG)
-openFPGALoader -b ulx3s design.bit
-
-# Via fujprog
-fujprog design.bit
-```
-
-#### References
-
-- LiteX platform file:
-  <https://github.com/litex-hub/litex-boards/blob/master/litex_boards/platforms/radiona_ulx3s.py>
-- ULX3S project page: <https://radiona.org/ulx3s/>
-- ULX3S GitHub: <https://github.com/emard/ulx3s>
+Specifications, the ECP5 variant table, LiteX modules and programming commands
+are on the [ULX3S page](ulx3s.md).
