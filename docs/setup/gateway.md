@@ -183,7 +183,7 @@ differs.
 
 A tag-restricted run is the usual way to touch one part of the gateway, and the
 tags are not named after the roles that carry them. The prototype runbook
-verified these traps:
+verified the first three of these traps; the fourth was found against `main`:
 
 - The `pxe` role's per-port work — writing `/etc/dnsmasq.d/ports.conf`, and the
   `pibs.conf` it replaces — is tagged **`pibs`**, a name carried over from the
@@ -226,10 +226,25 @@ $ uv run ansible-playbook ansible/site.yml --limit fpgas.online \
 ```
 
 `fpgas.online` is in both `nbp` and `pig`, but none of the web roles' tasks
-carry any of those tags, so the web tier is left alone. An nftables reload is
-safe to get wrong: the ruleset load is atomic, so a rendered file with a syntax
-error leaves the previous ruleset active, and both templates accept SSH
-unconditionally on the input chain.
+carry any of those tags, so the web tier is left alone.
+
+:::{warning}
+A bad `/etc/nftables.conf` leaves the gateway with **no ruleset at all**, not
+with the previous one. The two paths differ. The role's notify handler reloads
+(`state: reloaded` → `ExecReload=nft -f /etc/nftables.conf`), and that load is
+atomic: a parse error fails and the running ruleset stays up. But the role's
+`Enable nftables service` task **restarts** the unit (`state: restarted`),
+unconditionally and under the same `nftables` tag, and Debian's
+`nftables.service` has `ExecStop=/usr/sbin/nft flush ruleset` — so a restart
+flushes the ruleset first and then fails to load the replacement. What is left
+is an empty ruleset: no `forward` chain, no `policy drop`, no Pi isolation, and
+the failure is fail-open rather than fail-closed. SSH surviving is not
+reassurance here; it survives either way, because both templates accept it
+unconditionally on the input chain and an empty ruleset accepts everything.
+
+The `--check --diff` preview above is the real safeguard — run it and read the
+rendered file before applying.
+:::
 
 ### Checking and reconnecting
 
@@ -429,7 +444,8 @@ fpgas.online-infra, `main`:
   [`operators`](https://github.com/fpgas-online/fpgas.online-infra/blob/main/ansible/roles/operators/tasks/main.yml),
   [`lldp`](https://github.com/fpgas-online/fpgas.online-infra/blob/main/ansible/roles/lldp/tasks/main.yml),
   [`firewall`](https://github.com/fpgas-online/fpgas.online-infra/blob/main/ansible/roles/firewall/tasks/main.yml)
-  (the `nftables` tag),
+  (the `nftables` tag, the untagged install, and the `state: restarted` on
+  `Enable nftables service`),
   [`vlan-ports`](https://github.com/fpgas-online/fpgas.online-infra/blob/main/ansible/roles/vlan-ports/tasks/main.yml),
   [`switch-vlans`](https://github.com/fpgas-online/fpgas.online-infra/blob/main/ansible/roles/switch-vlans/tasks/main.yml),
   [`nfs`](https://github.com/fpgas-online/fpgas.online-infra/blob/main/ansible/roles/nfs/tasks/main.yml),
@@ -445,10 +461,19 @@ fpgas.online-infra, `main`:
 - [`ansible/roles/site/tasks/nginx.yml`](https://github.com/fpgas-online/fpgas.online-infra/blob/main/ansible/roles/site/tasks/nginx.yml),
   [`certbot.yml`](https://github.com/fpgas-online/fpgas.online-infra/blob/main/ansible/roles/site/tasks/certbot.yml),
   [`fpgas-online-site.yml`](https://github.com/fpgas-online/fpgas.online-infra/blob/main/ansible/roles/site/tasks/fpgas-online-site.yml)
-  and [`pistat.yml`](https://github.com/fpgas-online/fpgas.online-infra/blob/main/ansible/roles/site/tasks/pistat.yml)
+  [`pistat.yml`](https://github.com/fpgas-online/fpgas.online-infra/blob/main/ansible/roles/site/tasks/pistat.yml),
+  [`django.yml`](https://github.com/fpgas-online/fpgas.online-infra/blob/main/ansible/roles/site/tasks/django.yml),
+  [`handlers/main.yml`](https://github.com/fpgas-online/fpgas.online-infra/blob/main/ansible/roles/site/handlers/main.yml)
+  and [`tasks/verify/main.yml`](https://github.com/fpgas-online/fpgas.online-infra/blob/main/ansible/roles/site/tasks/verify/main.yml)
   — `nginx-extras`, the port-80 ACME vhost, the certbot history and the
   deliberate omission of the nginx plugin, the gunicorn/uvicorn/daphne and
-  channels-redis installs, and redis.
+  channels-redis installs, redis, the `local_settings.py` that is created once
+  and never overwritten, the `restart django services` handler and the three
+  units it restarts, and the verify loop that names `redis-server.service`.
+- [`ansible/roles/firewall/handlers/main.yml`](https://github.com/fpgas-online/fpgas.online-infra/blob/main/ansible/roles/firewall/handlers/main.yml)
+  — the `state: reloaded` notify handler, against the role's `state: restarted`
+  converge task. Debian's `nftables.service` supplies the rest: `ExecReload` is
+  a plain `nft -f`, while `ExecStop` is `nft flush ruleset`.
 - [`ansible/roles/cam/stream-server/tasks/base.yml`](https://github.com/fpgas-online/fpgas.online-infra/blob/main/ansible/roles/cam/stream-server/tasks/base.yml)
   and [`back.yml`](https://github.com/fpgas-online/fpgas.online-infra/blob/main/ansible/roles/cam/stream-server/tasks/back.yml)
   — the rtmp and fancyindex modules and the tmpfs HLS directory.
@@ -462,9 +487,11 @@ fpgas.online-infra, `main`:
   narrowed `--tags site,ttsite,wssh` verify command, and the rollback note that
   `local_settings.py` is never overwritten.
 - [`docs/superpowers/specs/2026-08-14-vlan-per-port-prototype-runbook.md`](https://github.com/fpgas-online/fpgas.online-infra/blob/main/docs/superpowers/specs/2026-08-14-vlan-per-port-prototype-runbook.md)
-  — stage 4's verified tag caveats, the working tag list, the check-mode
-  preview, and the atomic nftables reload with SSH always accepted. The current
-  tagging of each task named there was re-checked against `main`.
+  — stage 4's verified tag caveats, the working tag list and the check-mode
+  preview. The current tagging of each task named there was re-checked against
+  `main`. Its "firewall reload safety" note describes the handler's reload
+  only; the converge task restarts the unit, so the fail-open case above is not
+  covered there.
 - [`docs/rebuilds/2026-08-25-tweed-rebuild.md`](https://github.com/fpgas-online/fpgas.online-infra/blob/main/docs/rebuilds/2026-08-25-tweed-rebuild.md)
   — the option ROM (A1-1), console order and dead UARTs (A1-2, A1-3), the
   interface pin (A1-4), the vault-location drift (B1-2), the kernel and
