@@ -288,6 +288,8 @@ as `{todo}` items rather than resolved by the port.
 | Item | Page |
 |---|---|
 | Orange Pi boards: whether they are PC or PC Plus needs a physical check | `setup/orange-pi.md` |
+| `acorn.md`'s DDR3 pin table disagrees with `sqrl_acorn.py` on 11 of 14 rows (16-bit `dq`, not 32; four listed DQ pins belong to SD MOSI, LED 1, PCIe reset, UART TX; `ba`, `ras_n`, `we_n`, `cke`, `reset_n` differ; DM/DQS absent). Found in Task 9 review; recorded as a todo on the page and to be fixed upstream in test-designs. | `boards/acorn/index.md` |
+| `acorn.md` lists the CLE-101 package as FBG484; `sqrl_acorn.py` uses fgg484 | `boards/acorn/index.md` |
 | The docs site's 2026-09-01 Welland page recorded the P2 serial pair as straight-through (K2 to GPIO14). The 2026-08-31 pin-ID survey and the 2026-09-03 revision of `acorn-pinmap.md` show the null-modem crossover (K2 to GPIO15) is the fleet standard at both sites. Corrected during Task 3; `sites/ps1.md`'s "opposite of Welland" note is removed in Task 4. | `sites/welland.md`, `sites/index.md`, `sites/ps1.md` |
 | Fomu EVT: iCE40 pin to RPi GPIO header mapping for UART and for the GPIO27/GPIO9 loopback pair is undocumented | `boards/fomu-evt.md` |
 | Arty A7: only 4 of 8 PMOD loopback lanes verified; JC pins 1 and 2 swapped in the cable on pi9 | `boards/arty-a7.md` |
