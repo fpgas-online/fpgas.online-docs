@@ -1,9 +1,19 @@
 # Acorn wiring
 
 Pinmap and step-by-step wiring instructions for connecting a SQRL Acorn
-CLE-215+ (or LiteFury/NiteFury) to a Raspberry Pi 5 in the fpgas.online test
-infrastructure. See [SQRL Acorn and LiteFury](index.md) for board specs and
-deployment inventory.
+CLE-215+ (or LiteFury/NiteFury) to its Raspberry Pi host in the fpgas.online
+test infrastructure. See [SQRL Acorn and LiteFury](index.md) for board specs
+and deployment inventory.
+
+This is the canonical Acorn-to-Pi wiring, and it comes in two variants. The
+**Raspberry Pi 5 variant** below plugs P2 into header pins 5-10 and P1 into
+header pins 19-26, giving JTAG on `--pins 10:9:11:8` plus two spare GPIOs; that
+is what [Welland](../../sites/welland.md#wiring) runs. The [Compute Blade
+variant](#compute-blade-wiring-variant) puts both connectors on the expansion
+port instead, giving JTAG on `--pins 2:3:4:14` and no spare GPIOs, with TMS
+time-shared on GPIO14; that is what [PS1](../../sites/ps1.md#wiring) runs. The
+P2 serial crossover is identical on both — K2 (FPGA TX) to GPIO15, J2 (FPGA RX)
+to GPIO14 — so one cable design works everywhere.
 
 :::{note}
 **Revised 2026-09-03.** The P2 serial wiring below was corrected after the
@@ -20,13 +30,20 @@ special case.
 ![Acorn to RPi wiring diagram](acorn-pinmap-rpi5-wiring.png)
 
 :::{warning}
-The diagram still shows the old, non-crossover P2 serial wiring (P2:1 → pin 8).
-Follow the tables below, not the picture, until the drawing is updated.
+**Both drawings on this page are out of date. Follow the tables, not the
+pictures.** This one still shows the old, non-crossover P2 serial wiring
+(P2:1 → pin 8), and its connector legend has the FPGA ball labels the wrong way
+round — it reads "UART RX (K2)" and "UART TX (J2)", where K2 is the FPGA's
+transmitter and J2 its receiver ([FPGA Pins](#fpga-pins)). The [Compute Blade
+drawing](#compute-blade-wiring-variant) labels TMS against GPIO15 on its
+expansion-port panel, where every table on this page puts TMS on GPIO14.
 :::
 
 :::{todo}
-Update the Google Drawing so the picture matches the crossover. The edit links
-live in `docs/hardware/Makefile` in `fpgas.online-test-designs`: [RPi 5 wiring
+Redraw both Google Drawings so the pictures match the tables: the RPi 5 diagram
+needs the P2 crossover **and** its K2/J2 ball labels swapped, and the Compute
+Blade diagram needs TMS moved from GPIO15 to GPIO14. The edit links live in
+`docs/hardware/Makefile` in `fpgas.online-test-designs`: [RPi 5 wiring
 diagram](https://docs.google.com/drawings/d/1HCOHrvFzj1fIf6DqDMzcqoQgjaD5ZvM39MtgvrAjqEU/edit)
 and [Compute Blade wiring
 diagram](https://docs.google.com/drawings/d/1hKt7O_IR60R6uT8VOg2O9PEAp4a8fNmp7BFqi3YYjgQ/edit).
@@ -79,7 +96,7 @@ connectors onto a **2×3 pin header** arranged to plug into RPi header pins 5-10
 | 5      | GND      | Ground                      | —            |
 | 6      | VCC      | 3.3V                        | —            |
 
-### RPi GPIO Header Connection
+### RPi GPIO Header Connection (P2)
 
 The serial pair is a **null-modem crossover**: the FPGA's transmitter (K2) lands
 on the Pi's receiver (GPIO15 / RXD0) and the FPGA's receiver (J2) on the Pi's
@@ -190,7 +207,7 @@ connectors onto a **2×4 pin header** arranged to plug into RPi header pins
 | 5      | GND      | —                |
 | 6      | VCC      | 3.3V (N/C)       |
 
-### RPi GPIO Header Connection
+### RPi GPIO Header Connection (P1)
 
 ```text
 RPi 40-pin header (top view, showing pins 17-28):
@@ -305,15 +322,18 @@ the same load completes cleanly and the host is unaffected.
 :::
 
 ```console
-$ echo 1 | sudo tee /sys/bus/pci/devices/0001:01:00.0/remove   # 0. detach (rescan or reboot to restore)
-$ sudo ln -sfn /dev/gpiochip15 /dev/gpiochip0                  # openFPGALoader 0.10.0 on Pi 5 only
-$ openFPGALoader --cable libgpiod --pins 10:9:11:8 --detect    # 1. read-only, safe even without step 0
+# 0. Detach the endpoint (restore later with a rescan, or just reboot)
+$ echo 1 | sudo tee /sys/bus/pci/devices/0001:01:00.0/remove
+# openFPGALoader 0.10.0 on Pi 5 only
+$ sudo ln -sfn /dev/gpiochip15 /dev/gpiochip0
+# 1. Read-only sanity check (safe even without step 0)
+$ openFPGALoader --cable libgpiod --pins 10:9:11:8 --detect
 # Expected: idcode 0x3636093 (XC7A200T; the .bit header reads 7a200tfbg484)
-$ openFPGALoader --cable libgpiod --pins 10:9:11:8 <bitstream.bit>
 # 2. Load to SRAM (volatile). Pin order: TDI(GPIO10):TDO(GPIO9):TCK(GPIO11):TMS(GPIO8)
 # ~16 s for a 1.6 MB XC7A200T bitstream over bit-banged libgpiod (measured 2026-08-31)
+$ openFPGALoader --cable libgpiod --pins 10:9:11:8 <bitstream.bit>
+# With the rp1pio build (openFPGALoader 0.12+, infra PR #48):
 $ openFPGALoader -c rp1pio --pins 10:9:11:8 <bitstream.bit>
-# With the rp1pio build (openFPGALoader 0.12+, infra PR #48)
 ```
 
 Never pass `--write-flash` here: SRAM loads are lost on power cycle, so a
@@ -332,14 +352,14 @@ printing `Open file … FAIL` in under 0.1 s — re-copy the bitstream.
 ```console
 $ sudo systemctl stop serial-getty@ttyAMA0
 $ sudo systemctl mask serial-getty@ttyAMA0
-$ openFPGALoader --cable libgpiod --pins 10:9:11:8 gpio-loopback-acorn.bit
 # Program the loopback bitstream (detach PCIe first, see Step 2)
+$ openFPGALoader --cable libgpiod --pins 10:9:11:8 gpio-loopback-acorn.bit
+# Test UART (loopback inverts)
 $ stty -F /dev/ttyAMA0 115200 raw -echo
 $ echo "test" > /dev/ttyAMA0
-# Test UART (loopback inverts)
+# Test GPIO (loopback inverts). The header is gpiochip15 on a Pi 5 (line N == GPIO N).
 $ gpioset gpiochip15 3=1
 $ gpioget gpiochip15 4
-# Test GPIO (loopback inverts). The header is gpiochip15 on a Pi 5 (line N == GPIO N).
 # Expected: 0 (inverted)
 ```
 
@@ -355,8 +375,8 @@ $ openFPGALoader --cable libgpiod --pins 10:9:11:8 pmod-pin-id-acorn.bit
 ```
 
 Only GPIO15 can be a hardware UART receiver on a Pi 5, so decode the other
-three from sampled GPIO values (the repo scanner
-[`designs/pmod-pin-id/host/identify_pmod_pins.py`](https://github.com/fpgas-online/fpgas.online-test-designs/blob/main/designs/pmod-pin-id/host/identify_pmod_pins.py)
+three from sampled GPIO values ([the repository's pin-ID host
+scanner](https://github.com/fpgas-online/fpgas.online-test-designs/blob/main/designs/pmod-pin-id/host/identify_pmod_pins.py)
 bit-bangs 1200 baud over gpiod and finds the header chip by label, so it works
 on a Pi 5) or from `gpiomon` edge timestamps (833 µs per bit against nanosecond
 stamps). Keep GPIO14 as an input throughout — see the hazard above. Validate the
@@ -479,13 +499,18 @@ Compute Blade Expansion Module Port
   P1:3 TDO     ← │  Pin 5      Pin 6    │ → P1:5 GND
                   │ (GPIO3)    ( GND  )  │
                   │                      │
-  P1:1 TCK     ← │  Pin 7      Pin 8    │ → P1:4 TMS / P2:1 TX
-                  │ (GPIO4)    (GPIO14)  │
+  P1:1 TCK     ← │  Pin 7      Pin 8    │ → P1:4 TMS / P2:2 RX (J2)
+                  │ (GPIO4)    (GPIO14)  │     Pi TXD0 → FPGA
                   │                      │
-  P2:5 GND     ← │  Pin 9      Pin 10   │ → P2:2 RX
-                  │ ( GND  )   (GPIO15)  │
+  P2:5 GND     ← │  Pin 9      Pin 10   │ → P2:1 TX (K2)
+                  │ ( GND  )   (GPIO15)  │     FPGA → Pi RXD0
                   └──────────────────────┘
 ```
+
+:::{note}
+The diagram was corrected on 2026-09-03 when this page was ported; the source
+revision showed the pair reversed.
+:::
 
 **P1 (JTAG) → Expansion Port:**
 
@@ -549,9 +574,13 @@ traps](../../sites/ps1.md#two-traps).
 **JTAG programming:**
 
 ```console
-$ openFPGALoader --cable libgpiod --pins 2:3:4:14 <bitstream.bit>
 # Compute Blade JTAG pin order: TDI(GPIO2):TDO(GPIO3):TCK(GPIO4):TMS(GPIO14)
+$ openFPGALoader --cable libgpiod --pins 2:3:4:14 <bitstream.bit>
 ```
+
+Detach the PCIe endpoint first here too, and note that the bus address differs
+per host — `0000:01:00.0` on pi14, `0001:01:00.0` on pi16 and pi20 — so take
+the host's own bus from [Compute blades](../../sites/ps1.md#compute-blades).
 
 **UART testing** (after openFPGALoader exits and releases GPIOs):
 
@@ -629,9 +658,11 @@ bitstream reloads, `--detect` and DNA read again, PCIe endpoint back).
 ### Known Issue: Kernel Console SysRq on the FPGA UART
 
 :::{warning}
-If the host's kernel cmdline puts the console on the FPGA's UART
-(`console=ttyAMA0`, or `console=serial0` on a Pi 5 once `uart0-pi5` is enabled),
-loading any FPGA design that drives serial TX will **reboot/crash the system**.
+**Fixed fleet-wide as of 2026-09-03** (every host boots with `console=tty1` or
+`ttyAMA10`); check this on any new host. If the host's kernel cmdline puts the
+console on the FPGA's UART (`console=ttyAMA0`, or `console=serial0` on a Pi 5
+once `uart0-pi5` is enabled), loading any FPGA design that drives serial TX will
+**reboot/crash the system**.
 This affects all designs with serial output (UART SoC, Pin-ID, GPIO loopback)
 and applies to Pi 5 hosts as much as to Compute Blades.
 :::
