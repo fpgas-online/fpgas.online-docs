@@ -87,8 +87,8 @@ login required. Be nice: others may be driving the same board at the same time."
 **`pibfpgas`** owns the board model and the classic pages. It has three views:
 the grid, one board by switch port, and a hard-coded Tiny Tapeout variant. The
 board record is what supplies the hostname, IP, stream URL, forwarded ssh port,
-location and cable colour that the templates render. It also ships the page
-JavaScript and the fixtures that seed the boards.
+location and cable colour that the templates render. It also ships `demos.js`
+and the page CSS, and the fixtures that seed the boards.
 
 **`pistat`** is the live status channel. A `stat/<name>/<status>` request is
 turned into a message on the Django Channels group for that board and pushed to
@@ -323,8 +323,10 @@ README says the API and its configuration land with the implementation on the
   `get_object_or_404(Pi, port=pino)`, and the model has no unique constraint on
   `port`. On a flat-numbered site the port is unique and this is fine; on a
   per-port-VLAN site the identity is `(switch, port)`, so two boards on the same
-  port number of different switches are indistinguishable to the URL, and one of
-  them is unreachable. The URLs are `pi<N>.html` with no switch in them at all.
+  port number of different switches are indistinguishable to the URL, and the
+  page returns 500 for both: `get_object_or_404` catches only `DoesNotExist`, so
+  the `MultipleObjectsReturned` that `QuerySet.get()` raises propagates. The
+  URLs are `pi<N>.html` with no switch in them at all.
 - **The direct-access `vlc` command is legacy-only.** `fpga.html` hard-codes
   `/live/pi{{pi.port}}.m3u8` in the click-to-copy block while the page's own
   video element uses `pi.stream_url`, which is `/live/pi-sw<s>-p<p>.m3u8` on a
