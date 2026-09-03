@@ -144,7 +144,7 @@ Note: Type 3 is defined from a different perspective than Type 4. Type 3 "Out" m
 UART with hardware flow control. Direction is from the **device's** perspective (device asserts CTS when ready to receive, asserts RTS when ready to send).
 
 | Pin | Signal | Direction | Description                       |
-| --- | ------ | --------- | ---------------------------------- |
+| --- | ------ | --------- | --------------------------------- |
 | 1   | CTS    | In        | Device transmits only when active |
 | 2   | TXD    | Out       | Data from peripheral to host      |
 | 3   | RXD    | In        | Data from host to peripheral      |
@@ -233,7 +233,11 @@ Source: [High Speed PMOD Spreadsheet](https://docs.google.com/spreadsheets/d/1D-
 - Digilent PMOD Interface Specification 1.3.1: <https://digilent.com/reference/pmod/pmod-interface-specification>
 - Digilent PMOD product listing: <https://digilent.com/reference/pmod/start>
 - High Speed PMOD Spreadsheet: <https://docs.google.com/spreadsheets/d/1D-GboyrP57VVpejQzEm0P1WEORo1LAIt92hk1bZGEoo/edit?gid=0#gid=0>
-- Digilent PMOD HAT Adapter (for RPi): [rpi-hat.md](rpi-hat.md)
+- Digilent PMOD HAT Adapter (for RPi): [Raspberry Pi PMOD HAT](rpi-hat.md)
+
+## Board-specific pinouts
+
+How the PMOD signals map onto the Raspberry Pi HAT and onto Tiny Tapeout demo boards:
 
 ```{toctree}
 :maxdepth: 1
