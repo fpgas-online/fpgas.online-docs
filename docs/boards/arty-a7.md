@@ -51,6 +51,10 @@ transcription error in the pin-mapping notes rather than a second board type.
 Confirm against a board and delete the loser.
 :::
 
+The bold **I** in the A7-35 device string is the temperature grade: the boards
+in the fleet are the industrial-grade, low-power part, which is the `a7-35`
+variant below.
+
 Source: [Digilent Arty A7 Reference Manual](https://digilent.com/reference/programmable-logic/arty-a7/reference-manual)
 
 ## FPGA Device Variants
@@ -320,7 +324,7 @@ PMODB (output).
 | 9        | pmodc:6      | T13      | LVCMOS33    |
 | 10       | pmodc:7      | U13      | LVCMOS33    |
 
-#### PMODD
+#### PMODD (not cabled to the HAT)
 
 | PMOD Pin | Signal Index | FPGA Pin | IO Standard |
 | -------- | ------------ | -------- | ----------- |
@@ -354,15 +358,23 @@ names and FPGA pin names) cross-validated.
 
 :::{note}
 These scans are from the 2026-03-17 survey and name their hosts by the flat
-`piNN` names used before the 2026-08-23 renumbering. They have not been
-re-probed since, and the addresses quoted below no longer resolve; derive the
-current name of a host from its switch port using the
-[Arty A7-35T host table](../sites/welland.md#arty-a7-35t). The routing itself is
-a property of the cables and the board, not of the host, so it is recorded here
+`piNN` names used before the 2026-08-23 renumbering, and they have not been
+re-probed since. Which site they were run from is not settled — see
+[the todo below](#which-site-were-these-hosts-at). If these are Welland hosts,
+the addresses quoted below no longer resolve and the current name of a host has
+to be derived from its switch port using the
+[Arty A7-35T host table](../sites/welland.md#arty-a7-35t); if they are PS1
+hosts, pi3, pi5 and pi9 are still at exactly these addresses in the
+[Arty A7 hosts table](../sites/ps1.md#arty-a7-hosts). The routing itself is a
+property of the cables and the board, not of the host, so it is recorded here
 rather than on a site page.
 :::
 
 #### Pi9 (21 of 24 unique GPIOs scanned, 2026-03-17)
+
+This is the one host that produced a full scan, and it is also the host whose
+site is in question — see [Which site were these hosts at?](#which-site-were-these-hosts-at)
+before using the name `pi9` to find the board.
 
 **HAT JA → Arty JA**
 
@@ -422,8 +434,13 @@ host.
 
 Pi5 (10.21.0.105) was unreachable during scanning — host appears powered off.
 
+(unproven-lanes)=
+
+#### Unproven lanes
+
 :::{todo}
-Four lanes of the HAT ↔ Arty routing are still unproven, and one is known bad:
+Three lanes of the HAT ↔ Arty routing cannot be proven from the Pi, one whole
+connector was never scanned, and one lane is known bad:
 
 - Arty JA pins 2, 3 and 4 (B11, A11, D12) cannot be verified from the Pi,
   because HAT JA pins 2-4 and HAT JB pins 2-4 are the same three GPIO lines and
@@ -439,18 +456,48 @@ Re-run the [`pmod-pin-id`](pin-id.md) scan on the current Arty hosts at both
 sites, record the date, and say per host whether JC is crossed.
 :::
 
+(which-site-were-these-hosts-at)=
+
+#### Which site were these hosts at?
+
 :::{todo}
-Which site these three hosts belong to is not certain. The task of porting this
-page treated them as Welland hosts, and Welland's own
-[Known faults](../sites/welland.md#known-faults) do list a `pi9` Arty from the
-same 2026-03-17 survey — but the
-[Welland Arty table](../sites/welland.md#arty-a7-35t) holds pi7, pi9, pi11, pi13
-and pi26 and has no pi3 or pi5, while the
-[PS1 Arty table](../sites/ps1.md#arty-a7-hosts) holds pi3, pi5 and pi9 at
-exactly the addresses quoted above (10.21.0.103, 10.21.0.105, 10.21.0.109).
-Both sites used `10.21.0.0/24` flat addressing before the renumbering, so the
-addresses do not settle it. Establish which site was scanned before anyone
-relies on the per-host detail.
+The 2026-03-17 scans record only the flat names pi3, pi5 and pi9, and both sites
+used flat `10.21.0.0/24` addressing at the time, so the addresses do not say
+which site was scanned. The evidence:
+
+- Welland's [Known faults](../sites/welland.md#known-faults) carry a `pi9` Arty
+  from this same survey whose FTDI is disconnected, so that board could not be
+  programmed or tested on 2026-03-17. The `pmod-pin-id` scan needs the FTDI JTAG
+  channel to load its bitstream, and pi9 produced a successful 21-of-24 scan
+  that day. That argues **against** these being the Welland hosts.
+- The [PS1 Arty table](../sites/ps1.md#arty-a7-hosts) has pi3, pi5 and pi9 at
+  exactly 10.21.0.103, 10.21.0.105 and 10.21.0.109, with pi9 online and its FTDI
+  working.
+- The [Welland Arty table](../sites/welland.md#arty-a7-35t) has pi7, pi9, pi11,
+  pi13 and pi26 — no pi3 and no pi5.
+- `verify_hardware.py` in the test-designs repository defines **both** sets at
+  identical addresses, and names pi11, not pi9, as the FTDI-disconnected Welland
+  board, contradicting the Welland site notes:
+
+  ```text
+  "welland-pi3": {... "target": "10.21.0.103", "board": "arty"},
+  "welland-pi5": {... "target": "10.21.0.105", "board": "arty"},
+  "welland-pi9": {... "target": "10.21.0.109", "board": "arty"},
+  # welland-pi11: arty - FTDI disconnected, cannot program/test
+  "ps1-pi3":  {... "target": "10.21.0.103", "board": "arty"},
+  "ps1-pi5":  {... "target": "10.21.0.105", "board": "arty"},
+  "ps1-pi9":  {... "target": "10.21.0.109", "board": "arty"},
+  ```
+
+- The test-designs `plan.md` groups "Arty A7 (pi3/5/9)" with hosts that are
+  otherwise Welland's, but names no site.
+- The survey found 10.21.0.105 unreachable, which fits either site: PS1 records
+  pi5 as online, but with no date or provenance for that column.
+
+The balance favours PS1, but it is not settled. Ask the operator which site the
+2026-03-17 `pmod-pin-id` run was made from, then either move the per-host detail
+to that site page or say so here — and while doing it, settle whether pi9 or
+pi11 is the Welland board with the disconnected FTDI.
 :::
 
 ### GPIO Loopback Test
@@ -459,10 +506,17 @@ The loopback gateware computes `pmodb = ~pmoda` (per-bit inversion). The RPi
 drives PMODA pins and reads the inverted result on PMODB pins. The loopback
 pairs can be derived from the per-host PMOD cable routing tables above.
 
+Only five of the eight lanes can actually be loop-tested from the Pi. HAT JA
+pins 2-4 and HAT JB pins 2-4 are the same three GPIO lines (the SPI0 bus), so
+the Pi cannot drive an Arty PMODA pin and read the corresponding PMODB pin
+independently on those three lanes — see
+[the routing todo](#unproven-lanes) above.
+
 #### Pre-test Requirements
 
-The SPI kernel modules claim GPIO7-11, which are the PMOD HAT port JB pins.
-Unloading them frees these GPIOs for the loopback test.
+The SPI kernel modules claim GPIO7-11, which carry HAT JA pin 1 (GPIO8) and HAT
+JB pins 1-4 (GPIO7 and the shared GPIO9/10/11). Unloading them frees these GPIOs
+for the loopback test.
 
 ```console
 # Nothing else on the Pi may be using SPI0 -- this takes the bus away from it.

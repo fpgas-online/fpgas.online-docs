@@ -15,7 +15,7 @@ The Digilent PMOD HAT Adapter connects standard Digilent PMOD modules to a Raspb
 
 Source: [Digilent PMOD HAT Reference Manual](https://digilent.com/reference/add-ons/pmod-hat/reference-manual)
 
-For the PMOD connector pinouts, interface types, and electrical specification, see [index.md](index.md).
+For the PMOD connector pinouts, interface types, and electrical specification, see the [PMOD interface](index.md) page.
 
 ## RPi GPIO to PMOD Pin Mapping
 
@@ -83,7 +83,7 @@ Source: [DesignSpark.Pmod HAT.py driver](https://github.com/DesignSparkRS/Design
 
 ## Unused GPIO Pins
 
-The following RPi GPIO pins are NOT assigned to any PMOD port and remain available for other uses:
+Seven RPi GPIO pins are not assigned to any PMOD port. Five of them are free for other uses; GPIO0 and GPIO1 are reserved for the HAT ID EEPROM, which is why the Key Specifications above count five available rather than seven:
 
 | RPi GPIO | RPi Header Pin | Notes                 |
 | -------- | -------------- | --------------------- |
@@ -126,6 +126,12 @@ Ribbon cables connect straight through between matching port names:
 | JB       | JB              | 12-pin PMOD |
 | JC       | JC              | 12-pin PMOD |
 
+Straight through is the design, not a guarantee for any individual cable:
+pin-level crossovers have been measured on deployed cables. The 2026-03-17
+[PMOD cable routing scans](../arty-a7.md#pmod-cable-routing-hat--arty) found HAT
+JC pins 1 and 2 crossed relative to Arty JC pins 1 and 2 on one host. Check the
+cable before trusting the mapping on a host that has not been scanned.
+
 The full RPi GPIO → PMOD pin → FPGA pin mappings for each board are documented in:
 
 - [Digilent Arty A7](../arty-a7.md)
@@ -133,6 +139,6 @@ The full RPi GPIO → PMOD pin → FPGA pin mappings for each board are document
 
 ## References
 
-- PMOD Interface Specification: [index.md](index.md)
+- PMOD Interface Specification: [PMOD interface](index.md)
 - Digilent PMOD HAT Reference Manual: <https://digilent.com/reference/add-ons/pmod-hat/reference-manual>
 - Digilent PMOD HAT Product Page: <https://digilent.com/shop/pmod-hat-adapter/>
