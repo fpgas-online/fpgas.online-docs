@@ -86,7 +86,7 @@ Source: [DesignSpark.Pmod HAT.py driver](https://github.com/DesignSparkRS/Design
 The following RPi GPIO pins are NOT assigned to any PMOD port and remain available for other uses:
 
 | RPi GPIO | RPi Header Pin | Notes                 |
-| -------- | -------------- | ---------------------- |
+| -------- | -------------- | --------------------- |
 | GPIO0    | Pin 27         | I2C0_SDA (HAT EEPROM) |
 | GPIO1    | Pin 28         | I2C0_SCL (HAT EEPROM) |
 | GPIO22   | Pin 15         | Free                  |
@@ -102,7 +102,7 @@ Source: [DesignSpark.Pmod HAT.py driver](https://github.com/DesignSparkRS/Design
 ## Electrical Characteristics
 
 | Parameter                 | Value                                   |
-| -------------------------- | --------------------------------------- |
+| ------------------------- | --------------------------------------- |
 | Logic voltage             | 3.3V (supplied by RPi's 3.3V rail)      |
 | Max current per GPIO pin  | 16 mA (RPi BCM2835/BCM2711 limit)       |
 | Total GPIO current budget | ~50 mA across all pins (RPi limitation) |
@@ -128,8 +128,8 @@ Ribbon cables connect straight through between matching port names:
 
 The full RPi GPIO → PMOD pin → FPGA pin mappings for each board are documented in:
 
-- **Arty A7**: [../arty-a7.md](../arty-a7.md)
-- **TT FPGA Demo Board**: [../tt-fpga.md](../tt-fpga.md)
+- [Digilent Arty A7](../arty-a7.md)
+- [Tiny Tapeout FPGA demo board](../tt-fpga.md)
 
 ## References
 
