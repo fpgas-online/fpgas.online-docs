@@ -120,16 +120,24 @@ This works but is slow (~5 MHz effective JTAG clock) due to GPIO bitbang
 overhead.
 
 :::{todo}
-The two sources disagree on what actually programs the production RPi 3B+
-boards. The board specification (undated) gives the openFPGALoader `libgpiod`
-commands above; the Welland site survey of 2026-03-17 records instead that each
-production NeTV2 "is programmed via OpenOCD GPIO bitbang JTAG through the RPi's
-GPIO header", which is the same wiring but the other tool — and it is the tool
-rpi3-netv2 is documented with below. Check one of pi10, pi12, pi14 or pi16,
-keep the winner and record the date.
+The sources disagree on what actually programs the production RPi 3B+ boards,
+and the Welland survey of 2026-03-17 contradicts itself:
+
+- The board specification (undated) gives the openFPGALoader `libgpiod`
+  commands above.
+- The survey's host inventory says each production NeTV2 "is programmed via
+  OpenOCD GPIO bitbang JTAG through the RPi's GPIO header".
+- The same survey's programming-methods section lists the NeTV2 under
+  openFPGALoader, with the same GPIO-to-JTAG pin table as above.
+
+That is 2-1 for openFPGALoader, so expect openFPGALoader `libgpiod` to be what
+is installed and the inventory line to be the stale one — the wiring is
+identical either way, so the sentence would have stayed true after a tool
+change. Confirm on one of pi10, pi12, pi14 or pi16, keep the winner and record
+the date.
 :::
 
-#### RPi 5 (GPIO bitbang, works today, slow)
+#### RPi 5 (GPIO bitbang, slow)
 
 :::{warning}
 Reconfiguring the FPGA over JTAG while its PCIe endpoint is enumerated is a
@@ -183,7 +191,7 @@ settles it:
   openFPGALoader at all
   ([NeTV2 development hosts](../sites/welland.md#netv2-development-hosts-separate-network)).
 - [`alphamax-rpi5-sysfsgpio.cfg`](https://github.com/fpgas-online/fpgas.online-test-designs/blob/main/designs/pcie-enumeration/openocd/alphamax-rpi5-sysfsgpio.cfg)
-  in test-designs is a working OpenOCD Pi 5 configuration for this board —
+  in test-designs is a checked-in OpenOCD Pi 5 configuration for this board —
   `sysfsgpio jtag_nums 575 588 598 593` and `sysfsgpio srst_num 595`, which is
   the Pi 5 RP1 gpiochip base 571 plus GPIO 4, 17, 27, 22 and 24, the same
   wiring as the JTAG table above. It corroborates the survey: an OpenOCD path
@@ -378,8 +386,9 @@ Gen2 x1, the FPGA enumerates as a Xilinx device:
 As of 2026-03-09, the NeTV2 FPGA is not currently enumerating on the RPi5's PCIe
 bus: only the RP1 south bridge is visible in `lspci`. The site page records this
 under [Known faults](../sites/welland.md#known-faults) as needing a bitstream
-loaded first. Until it enumerates, the detach step above finds nothing to
-detach — and the moment it does enumerate, that step becomes mandatory.
+loaded first. Until it enumerates, the
+[detach step](#programming-with-openfpgaloader) finds nothing to detach — and the moment
+it does enumerate, that step becomes mandatory.
 :::
 
 Source: [LiteX platform file for the NeTV2](https://github.com/litex-hub/litex-boards/blob/master/litex_boards/platforms/kosagi_netv2.py)
