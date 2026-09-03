@@ -290,6 +290,7 @@ as `{todo}` items rather than resolved by the port.
 | Item | Page |
 |---|---|
 | Orange Pi boards: whether they are PC or PC Plus needs a physical check | `setup/orange-pi.md` |
+| Orange Pi: the 2026-09-02 oops note names a `1-1.3.3` hub port that is in neither the mapping table nor `sunxi_boards`; the runbook's verify command omits `.22`; the hardware doc says the hub host netboots while the runbook addendum says SD card; the Welland host tables do not list the five boards (S3300 ports 20-24). Noted in Task 22. | `setup/orange-pi.md`, `sites/welland.md` |
 | `acorn.md`'s DDR3 pin table disagrees with `sqrl_acorn.py` on 11 of 14 rows (16-bit `dq`, not 32; four listed DQ pins belong to SD MOSI, LED 1, PCIe reset, UART TX; `ba`, `ras_n`, `we_n`, `cke`, `reset_n` differ; DM/DQS absent). Found in Task 9 review; recorded as a todo on the page and to be fixed upstream in test-designs. | `boards/acorn/index.md` |
 | `acorn.md` lists the CLE-101 package as FBG484; `sqrl_acorn.py` uses fgg484 | `boards/acorn/index.md` |
 | `acorn-pinmap.md`'s Compute Blade ASCII header diagram shows the P2 serial pair reversed (TX on GPIO14), contradicting its own tables. Corrected on the docs page during Task 10 with a dated note; fix upstream in test-designs. Both Google Drawings also need redrawing (K2/J2 labels, blade TMS pin). | `boards/acorn/wiring.md` |
