@@ -79,10 +79,11 @@ treats it as a debugging extra, on the grounds that USB (CDC-ACM or DFU) is the
 Fomu's primary channel — but that is not how the fleet uses it. The test
 bitstreams contain no USB core, so the Fomu leaves USB the moment one is loaded,
 and the harness talks to the design over these two pins, wired to the Pi's own
-GPIO UART and opened as `/dev/serial0`. This is the reconciliation of the two
-statements you will find elsewhere: the Fomu has no USB serial device, and it
-does have a serial port — on the GPIO header. How the pins reach the Pi is
-covered under [UART interface](#uart-interface).
+GPIO UART and opened as `/dev/serial0`. This reconciles the two statements on
+the Welland [Interfaces](../sites/welland.md#interfaces) table and in its Fomu
+host notes: the Fomu has no USB serial device, and it does have a serial port —
+on the GPIO header. How the pins reach the Pi is covered under
+[UART interface](#uart-interface).
 
 | Signal | FPGA Pin | I/O Standard | Notes       |
 | ------ | -------- | ------------ | ----------- |
@@ -209,7 +210,7 @@ container rather than the raw `.bin`. `iceprog` writes the SPI flash directly
 and needs external SPI programming hardware, so it cannot be used on these hosts
 at all.
 
-### USB DFU (primary method)
+### USB DFU (dfu-util)
 
 The Fomu is programmed over USB using the DFU (Device Firmware Upgrade)
 protocol. The `dfu-util` tool is used:
@@ -411,9 +412,12 @@ carries which FPGA pin's identity.
 #### UART pre-test requirements
 
 ```console
+# Stop early if there is no GPIO UART here -- without this the lookup below
+# resolves to nothing and the mask silently targets the wrong unit.
+$ [ -e /dev/serial0 ] || { echo "no GPIO UART on this host"; exit 1; }
 # Resolve serial0 to the real device so this works whether the GPIO UART is
 # the PL011 (ttyAMA0) or the mini UART (ttyS0) on this host.
-$ GETTY="serial-getty@$(basename $(readlink -f /dev/serial0)).service"
+$ GETTY="serial-getty@$(basename "$(readlink -f /dev/serial0)").service"
 # Mask prevents systemd from restarting the serial login console.
 $ sudo systemctl mask "$GETTY"
 # Stop the currently running instance.
