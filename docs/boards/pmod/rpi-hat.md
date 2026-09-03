@@ -95,8 +95,6 @@ Seven RPi GPIO pins are not assigned to any PMOD port. Five of them are free for
 | GPIO25   | Pin 22         | Free                  |
 | GPIO27   | Pin 13         | Free                  |
 
-GPIO0/1 are reserved for the HAT ID EEPROM I2C bus and are not routed to any PMOD connector.
-
 Source: [DesignSpark.Pmod HAT.py driver](https://github.com/DesignSparkRS/DesignSpark.Pmod/blob/master/DesignSpark/Pmod/HAT.py), [Digilent PMOD HAT Schematic](https://digilent.com/reference/_media/learn/documentation/schematics/pmod_hat_adapter_sch.pdf)
 
 ## Electrical Characteristics
@@ -139,6 +137,6 @@ The full RPi GPIO → PMOD pin → FPGA pin mappings for each board are document
 
 ## References
 
-- PMOD Interface Specification: [PMOD interface](index.md)
+- [PMOD interface](index.md)
 - Digilent PMOD HAT Reference Manual: <https://digilent.com/reference/add-ons/pmod-hat/reference-manual>
 - Digilent PMOD HAT Product Page: <https://digilent.com/shop/pmod-hat-adapter/>

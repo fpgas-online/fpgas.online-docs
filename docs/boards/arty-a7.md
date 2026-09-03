@@ -440,7 +440,7 @@ Pi5 (10.21.0.105) was unreachable during scanning — host appears powered off.
 
 :::{todo}
 Three lanes of the HAT ↔ Arty routing cannot be proven from the Pi, one whole
-connector was never scanned, and one lane is known bad:
+connector was never scanned, and one crossover is known (JC pins 1 and 2):
 
 - Arty JA pins 2, 3 and 4 (B11, A11, D12) cannot be verified from the Pi,
   because HAT JA pins 2-4 and HAT JB pins 2-4 are the same three GPIO lines and
@@ -471,8 +471,8 @@ which site was scanned. The evidence:
   channel to load its bitstream, and pi9 produced a successful 21-of-24 scan
   that day. That argues **against** these being the Welland hosts.
 - The [PS1 Arty table](../sites/ps1.md#arty-a7-hosts) has pi3, pi5 and pi9 at
-  exactly 10.21.0.103, 10.21.0.105 and 10.21.0.109, with pi9 online and its FTDI
-  working.
+  exactly 10.21.0.103, 10.21.0.105 and 10.21.0.109. It records pi9 online with a
+  working FTDI, but that column has no date or provenance.
 - The [Welland Arty table](../sites/welland.md#arty-a7-35t) has pi7, pi9, pi11,
   pi13 and pi26 — no pi3 and no pi5.
 - `verify_hardware.py` in the test-designs repository defines **both** sets at
@@ -480,19 +480,21 @@ which site was scanned. The evidence:
   board, contradicting the Welland site notes:
 
   ```text
-  "welland-pi3": {... "target": "10.21.0.103", "board": "arty"},
-  "welland-pi5": {... "target": "10.21.0.105", "board": "arty"},
-  "welland-pi9": {... "target": "10.21.0.109", "board": "arty"},
+  "welland-pi3": {... "gateway": "welland", "target": "10.21.0.103", "board": "arty"},
+  "welland-pi5": {... "gateway": "welland", "target": "10.21.0.105", "board": "arty"},
+  "welland-pi9": {... "gateway": "welland", "target": "10.21.0.109", "board": "arty"},
   # welland-pi11: arty - FTDI disconnected, cannot program/test
-  "ps1-pi3":  {... "target": "10.21.0.103", "board": "arty"},
-  "ps1-pi5":  {... "target": "10.21.0.105", "board": "arty"},
-  "ps1-pi9":  {... "target": "10.21.0.109", "board": "arty"},
+  ...
+  "ps1-pi3":     {... "gateway": "ps1",     "target": "10.21.0.103", "board": "arty"},
+  "ps1-pi5":     {... "gateway": "ps1",     "target": "10.21.0.105", "board": "arty"},
+  "ps1-pi9":     {... "gateway": "ps1",     "target": "10.21.0.109", "board": "arty"},
   ```
 
 - The test-designs `plan.md` groups "Arty A7 (pi3/5/9)" with hosts that are
   otherwise Welland's, but names no site.
 - The survey found 10.21.0.105 unreachable, which fits either site: PS1 records
-  pi5 as online, but with no date or provenance for that column.
+  pi5 as online, but with no date or provenance for that column, and Welland has
+  no host at .105 at all.
 
 The balance favours PS1, but it is not settled. Ask the operator which site the
 2026-03-17 `pmod-pin-id` run was made from, then either move the per-host detail
