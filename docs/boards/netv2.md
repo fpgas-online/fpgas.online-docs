@@ -49,13 +49,21 @@ The NeTV2 is designed to sit on top of a Raspberry Pi, connecting through the
 the development boards on the separate `iot.welland.mithis.com` network; their
 addresses, models and SSH details are on the site page under
 [NeTV2 development hosts](../sites/welland.md#netv2-development-hosts-separate-network).
-The five production boards ([NeTV2](../sites/welland.md#netv2)) are all RPi 3B+
-hosts wired the same way as rpi3-netv2, without PCIe.
+Five production boards are installed ([NeTV2](../sites/welland.md#netv2)), of
+which four are the working fleet: pi18 was already offline at the 2026-03-17
+survey. All five are RPi 3B+ hosts without PCIe, carrying the same GPIO JTAG and
+GPIO UART wiring as rpi3-netv2 — which says nothing about the tool they are
+driven with, see [Programming with openFPGALoader](#programming-with-openfpgaloader).
 
-| Host       | FPGA Variant      | JTAG IDCODE  | Tool                    |
+Probed 2026-03-09.
+
+| Host       | FPGA Variant      | JTAG IDCODE  | Tool [†](#programming-with-openfpgaloader) |
 | ---------- | ----------------- | ------------ | ----------------------- |
 | rpi5-netv2 | XC7A100T-FGG484-2 | `0x03631093` | openFPGALoader (rp1pio) |
 | rpi3-netv2 | XC7A35T-FGG484-2  | `0x0362D093` | OpenOCD (bcm2835gpio)   |
+
+† Which tool rpi5-netv2 actually has is unsettled; see
+[Programming with openFPGALoader](#programming-with-openfpgaloader).
 
 ### rpi5-netv2
 
@@ -92,18 +100,18 @@ multiple JTAG transports over the same GPIO wiring.
 
 #### RPi 3B+ (GPIO bitbang, current deployed hosts)
 
-On RPi 3B+ hosts (pi10, pi12, pi14, pi16, pi18 — see
-[NeTV2](../sites/welland.md#netv2)), openFPGALoader uses `libgpiod` to drive the
-JTAG signals through the Linux GPIO subsystem:
+On RPi 3B+ hosts (pi10, pi12, pi14 and pi16 — pi18 was offline at the
+2026-03-17 survey; see [NeTV2](../sites/welland.md#netv2)), openFPGALoader uses
+`libgpiod` to drive the JTAG signals through the Linux GPIO subsystem:
 
 ```console
-$ openFPGALoader --cable libgpiod --pins 27:22:4:17 design.bit
+$ sudo openFPGALoader --cable libgpiod --pins 27:22:4:17 design.bit
 ```
 
 To write the bitstream to the on-board SPI flash so it survives a power cycle:
 
 ```console
-$ openFPGALoader --cable libgpiod --pins 27:22:4:17 --write-flash design.bit
+$ sudo openFPGALoader --cable libgpiod --pins 27:22:4:17 --write-flash design.bit
 ```
 
 Pin order: `TDI:TDO:TCK:TMS`.
@@ -111,40 +119,80 @@ Pin order: `TDI:TDO:TCK:TMS`.
 This works but is slow (~5 MHz effective JTAG clock) due to GPIO bitbang
 overhead.
 
+:::{todo}
+The two sources disagree on what actually programs the production RPi 3B+
+boards. The board specification (undated) gives the openFPGALoader `libgpiod`
+commands above; the Welland site survey of 2026-03-17 records instead that each
+production NeTV2 "is programmed via OpenOCD GPIO bitbang JTAG through the RPi's
+GPIO header", which is the same wiring but the other tool — and it is the tool
+rpi3-netv2 is documented with below. Check one of pi10, pi12, pi14 or pi16,
+keep the winner and record the date.
+:::
+
 #### RPi 5 (GPIO bitbang, works today, slow)
+
+:::{warning}
+Reconfiguring the FPGA over JTAG while its PCIe endpoint is enumerated is a
+surprise removal, and it crashes the BCM2712 root complex. On rpi5-netv2 detach
+the endpoint before any of the JTAG commands in this section or the next one
+([PCIe and JTAG interact](../sites/welland.md#pcie-and-jtag-interact)):
+
+```console
+$ lspci -d 10ee:7011
+$ echo 1 | sudo tee /sys/bus/pci/devices/0001:01:00.0/remove
+```
+
+Take the address from the first command; on a Pi 5 the endpoint enumerates at
+`0001:01:00.0`, the slot the Acorn hosts use. Bring it back afterwards with
+`echo 1 | sudo tee /sys/bus/pci/rescan`, or by rebooting.
+:::
 
 On RPi 5 hosts, the same `libgpiod` cable works but is even slower because the
 RPi 5's RP1 I/O controller adds latency to sysfs GPIO access:
 
 ```console
-$ openFPGALoader --cable libgpiod --pins 27:22:4:17 design.bit
+$ sudo openFPGALoader --cable libgpiod --pins 27:22:4:17 design.bit
 ```
 
-#### RPi 5 (RP1 PIO JTAG, fast)
+#### RPi 5 (RP1 PIO JTAG, not in upstream openFPGALoader)
 
-openFPGALoader can also drive JTAG through the RP1's PIO peripheral, which is
-significantly faster than GPIO bitbang:
+The `rp1pio` cable drives JTAG through the RP1's PIO peripheral instead of
+bit-banging it, which is much faster than the `libgpiod` cable above. It is not
+in upstream openFPGALoader; it is installed from the `openfpgaloader-rp1pio`
+package, which brings the `librp1jtag0` shared library with it (see
+[Packages](../packages.md)). The same PCIe detach applies before this command.
 
 ```console
-$ sudo openFPGALoader -c rp1pio --pins 27:22:4:17 design.bit
+$ sudo openFPGALoader --cable rp1pio --pins 27:22:4:17 design.bit
 ```
 
-This requires:
+The sources behind the package:
 
 - openFPGALoader with RP1 PIO JTAG support, pending upstream:
   [mithro/openFPGALoader (feature/rp1-jtag-netv2)](https://github.com/mithro/openFPGALoader/tree/feature/rp1-jtag-netv2)
 - The RP1 JTAG shared library: [mithro/rp1-jtag](https://github.com/mithro/rp1-jtag)
 
-Both ship as the `openfpgaloader-rp1pio` and `librp1jtag0` packages; see
-[Packages](../packages.md).
-
 :::{todo}
-The sources disagree on what rpi5-netv2 actually runs. The pin-mapping notes
-name `openFPGALoader (rp1pio)` as its tool, the board specification calls RP1
-PIO JTAG a future capability, and the 2026-03-09 SSH survey found OpenOCD
-installed on rpi5-netv2 with no openFPGALoader at all
-([NeTV2 development hosts](../sites/welland.md#netv2-development-hosts-separate-network)).
-Re-check the host and keep the winner.
+† Four artefacts disagree about how rpi5-netv2 is programmed, and none of them
+settles it:
+
+- The pin-mapping notes name `openFPGALoader (rp1pio)` as its tool.
+- The board specification calls RP1 PIO JTAG a capability still pending
+  upstream, not something running here.
+- The 2026-03-09 SSH survey found OpenOCD installed on rpi5-netv2 and no
+  openFPGALoader at all
+  ([NeTV2 development hosts](../sites/welland.md#netv2-development-hosts-separate-network)).
+- [`alphamax-rpi5-sysfsgpio.cfg`](https://github.com/fpgas-online/fpgas.online-test-designs/blob/main/designs/pcie-enumeration/openocd/alphamax-rpi5-sysfsgpio.cfg)
+  in test-designs is a working OpenOCD Pi 5 configuration for this board —
+  `sysfsgpio jtag_nums 575 588 598 593` and `sysfsgpio srst_num 595`, which is
+  the Pi 5 RP1 gpiochip base 571 plus GPIO 4, 17, 27, 22 and 24, the same
+  wiring as the JTAG table above. It corroborates the survey: an OpenOCD path
+  for the Pi 5 exists and is checked in.
+
+To settle it today: if the `openfpgaloader-rp1pio` package is installed on the
+host, run `sudo openFPGALoader --cable rp1pio --pins 27:22:4:17 --detect`; if it
+is not, use OpenOCD with that configuration. Keep the winner, delete the losers
+and record the date.
 :::
 
 #### Future: NeTV2 board definition in openFPGALoader
@@ -153,7 +201,7 @@ Once the NeTV2 board definition is landed upstream in openFPGALoader, the pin
 mapping will be built in and the command simplifies to:
 
 ```console
-$ openFPGALoader -b netv2 design.bit
+$ sudo openFPGALoader -b netv2 design.bit
 ```
 
 This is tracked in the openFPGALoader fork:
@@ -169,7 +217,10 @@ $ sudo openocd -f ~/netv2/alphamax-rpi.cfg -c 'init; pld load 0 <bitstream>; exi
 
 The configuration sets `bcm2835gpio_jtag_nums 4 17 27 22`,
 `bcm2835gpio_srst_num 24` and peripheral base `0x3F000000`, which is the same
-wiring as the table above.
+wiring as the table above. The Pi 5 equivalent, using the `sysfsgpio` adapter
+because the RP1 has no BCM2835 peripheral window, is
+[`alphamax-rpi5-sysfsgpio.cfg`](https://github.com/fpgas-online/fpgas.online-test-designs/blob/main/designs/pcie-enumeration/openocd/alphamax-rpi5-sysfsgpio.cfg)
+in test-designs.
 
 :::{note}
 `pld load 0` takes a device index, not a device name: that is the OpenOCD 0.10.x
@@ -203,6 +254,11 @@ Which kernel device the GPIO UART appears as depends on the Raspberry Pi model:
 | rpi5-netv2 | `/dev/ttyAMA0`       | —                | RP1 PL011 UART on GPIO14/15         |
 | rpi3-netv2 | `/dev/ttyS0`         | `/dev/serial0`   | Mini UART (Bluetooth claims PL011)  |
 
+The production RPi 3B+ hosts are not in this table. By the same reasoning they
+should also be on the mini UART at `/dev/ttyS0`, but that is an inference from
+the Pi 3 model, not a measurement: the 2026-03-17 Welland survey wrote
+`/dev/ttyAMA0` for them. Check before relying on it.
+
 ### rpi5-netv2 Specifics
 
 - After stopping `serial-getty`, GPIO14/15 revert to plain GPIO mode. Run
@@ -233,10 +289,12 @@ remember that stopping the getty on the Pi 5 also drops the pin mux.
 | Test args        | `--port /dev/ttyAMA0 --board netv2 --skip-banner`                 |
 | `--skip-banner`  | Required because OpenOCD programming takes ~10s; BIOS banner is missed |
 
-:::{note}
-The recorded test arguments name `/dev/ttyAMA0`, which is the Pi 5 device; on
-rpi3-netv2 and the RPi 3B+ production hosts the GPIO UART is `/dev/ttyS0`, so
-`--port` has to be changed to match the host.
+:::{warning}
+The recorded `--port /dev/ttyAMA0` is the Pi 5 device and fails on a Pi 3, where
+the GPIO UART is `/dev/ttyS0`: change `--port` to match the host. The
+`--skip-banner` row belongs to the OpenOCD path on rpi3-netv2 — it is that
+tool's ~10s programming time that loses the banner, so a faster loader may not
+need it.
 :::
 
 ### Secondary UART (via PCIe "hax" pins)
@@ -247,8 +305,8 @@ rpi3-netv2 and the RPi 3B+ production hosts the GPIO UART is `/dev/ttyS0`, so
 | RX     | A18      | hax8         |
 
 Both are LVCMOS33. These auxiliary pins on the PCIe connector provide a second
-serial channel. They are only usable when the NeTV2 is connected over PCIe, so
-on rpi5-netv2 only.
+serial channel. They are reachable only over the PCIe connector, which means
+rpi5-netv2 alone.
 
 ## PMOD / GPIO Loopback
 
@@ -306,8 +364,8 @@ and reset pins. Only rpi5-netv2 has a PCIe connection; the RPi 3 has no PCIe.
 
 ### PCIe Detection (rpi5-netv2)
 
-When connected to the RPi 5 over PCIe Gen2 x1, the FPGA enumerates as a Xilinx
-device:
+When a bitstream is loaded and the board is connected to the RPi 5 over PCIe
+Gen2 x1, the FPGA enumerates as a Xilinx device:
 
 | Parameter | Value                 |
 | --------- | --------------------- |
@@ -316,11 +374,12 @@ device:
 | Link      | Gen2 x1               |
 | Command   | `lspci -d 10ee:7011`  |
 
-:::{note}
+:::{warning}
 As of 2026-03-09, the NeTV2 FPGA is not currently enumerating on the RPi5's PCIe
 bus: only the RP1 south bridge is visible in `lspci`. The site page records this
 under [Known faults](../sites/welland.md#known-faults) as needing a bitstream
-loaded first.
+loaded first. Until it enumerates, the detach step above finds nothing to
+detach — and the moment it does enumerate, that step becomes mandatory.
 :::
 
 Source: [LiteX platform file for the NeTV2](https://github.com/litex-hub/litex-boards/blob/master/litex_boards/platforms/kosagi_netv2.py)
@@ -446,23 +505,31 @@ and OpenOCD commands, and for which host uses which.
 
 ### Quick Reference
 
+On rpi5-netv2, detach the PCIe endpoint first — see the warning above.
+
 Volatile load on an RPi 3B+ or RPi 5, GPIO bitbang:
 
 ```console
-$ openFPGALoader --cable libgpiod --pins 27:22:4:17 design.bit
+$ sudo openFPGALoader --cable libgpiod --pins 27:22:4:17 design.bit
 ```
 
 Persistent SPI flash on an RPi 3B+ or RPi 5, GPIO bitbang. This overwrites
 whatever bitstream the flash already holds, so keep a copy first:
 
 ```console
-$ openFPGALoader --cable libgpiod --pins 27:22:4:17 --write-flash design.bit
+$ sudo openFPGALoader --cable libgpiod --pins 27:22:4:17 --write-flash design.bit
+```
+
+Volatile load on rpi3-netv2, which is driven with OpenOCD instead:
+
+```console
+$ sudo openocd -f ~/netv2/alphamax-rpi.cfg -c 'init; pld load 0 <bitstream>; exit'
 ```
 
 Once the NeTV2 board definition is upstream:
 
 ```console
-$ openFPGALoader -b netv2 design.bit
+$ sudo openFPGALoader -b netv2 design.bit
 ```
 
 ## LiteX Integration
@@ -482,10 +549,11 @@ Source: [LiteX platform file for the NeTV2](https://github.com/litex-hub/litex-b
 - LiteX platform file:
   <https://github.com/litex-hub/litex-boards/blob/master/litex_boards/platforms/kosagi_netv2.py>
 - NeTV2 FPGA reference design: <https://github.com/AlphamaxMedia/netv2-fpga>
-- NeTV2 MVP scripts, including the
-  [alphamax-rpi OpenOCD configuration](https://github.com/alphamaxmedia/netv2mvp-scripts/blob/master/alphamax-rpi.cfg)
-  this page's JTAG pin mapping comes from:
-  <https://github.com/alphamaxmedia/netv2mvp-scripts>
+- NeTV2 MVP scripts: <https://github.com/alphamaxmedia/netv2mvp-scripts>. This
+  page's JTAG pin mapping comes from its
+  [alphamax-rpi OpenOCD configuration](https://github.com/alphamaxmedia/netv2mvp-scripts/blob/master/alphamax-rpi.cfg).
+- OpenOCD configuration for the Pi 5, in test-designs:
+  [alphamax-rpi5-sysfsgpio.cfg](https://github.com/fpgas-online/fpgas.online-test-designs/blob/main/designs/pcie-enumeration/openocd/alphamax-rpi5-sysfsgpio.cfg)
 - bunnie's blog on the NeTV2 design: <https://www.bunniestudios.com/blog/?p=4842>
 - Crowd Supply campaign: <https://www.crowdsupply.com/alphamax/netv2>
 - NeTV2 schematic: not available online. The pin-mapping notes cited a local
