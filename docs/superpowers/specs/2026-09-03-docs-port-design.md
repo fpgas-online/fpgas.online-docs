@@ -296,6 +296,8 @@ as `{todo}` items rather than resolved by the port.
 | The docs site's 2026-09-01 Welland page recorded the P2 serial pair as straight-through (K2 to GPIO14). The 2026-08-31 pin-ID survey and the 2026-09-03 revision of `acorn-pinmap.md` show the null-modem crossover (K2 to GPIO15) is the fleet standard at both sites. Corrected during Task 3; `sites/ps1.md`'s "opposite of Welland" note is removed in Task 4. | `sites/welland.md`, `sites/index.md`, `sites/ps1.md` |
 | Fomu EVT: iCE40 pin to RPi GPIO header mapping for UART and for the GPIO27/GPIO9 loopback pair is undocumented | `boards/fomu-evt.md` |
 | Arty A7: only 4 of 8 PMOD loopback lanes verified; JC pins 1 and 2 swapped in the cable on pi9 | `boards/arty-a7.md` |
+| `arty-a7.md` says the FPGA is XC7A35TICSG324-1L (CSG324); `arty-a7-pin-mapping.md` says XC7A35T-CPG236-1 (CPG236). The LiteX platform uses CSG324. | `boards/arty-a7.md` |
+| The 2026-03-17 cable-routing survey names pi3, pi5, pi9 at 10.21.0.103/105/109. The PS1 Arty table has those hosts at those addresses; the Welland Arty table (pi7/9/11/13/26) does not have pi3 or pi5. Which site the survey was run at needs confirming. | `boards/arty-a7.md` |
 | Acorn wiring diagram PNGs still show the pre-crossover P2 serial wiring | `boards/acorn/wiring.md` |
 | `verify_hardware.py` HOSTS table still has pre-2026-08-23 host names | `setup/verification.md` |
 | PS1 switch model: host_vars comments name three candidates (ProCurve 2610, GS728TPP, FS728TPv2); the live OID matches FS728TPv2 | `sites/ps1.md` |
