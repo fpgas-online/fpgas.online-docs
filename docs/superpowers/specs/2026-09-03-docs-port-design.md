@@ -306,6 +306,7 @@ as `{todo}` items rather than resolved by the port.
 | `verify_hardware.py` HOSTS table still has pre-2026-08-23 host names | `setup/verification.md` |
 | PS1 switch model: host_vars comments name three candidates (ProCurve 2610, GS728TPP, FS728TPv2); the live OID matches FS728TPv2 | `sites/ps1.md` |
 | `slf.sytes.net` is in the Ansible inventory but was unreachable on 2026-08-26 | `setup/gateway.md` |
+| Infra hazard, not a docs item: the `firewall` role's `Enable nftables service` task is `state: restarted` (tagged `nftables`), and Debian's `nftables.service` has `ExecStop=nft flush ruleset`, so a converge with a bad rendered ruleset flushes the old rules and loads nothing (fail-open, no Pi isolation). The notify handler is `reloaded`, which is safe. Found in Task 23 review. | (infra repo), `setup/gateway.md` |
 | The inventory's `[uhubctl]` group contains only `slf.sytes.net`, so the `uhubctl` role never runs on tweed or val2 despite the README saying it is a server role; the `[pxe]` group is declared but no playbook targets it; the README calls the chroot group `pi` while the inventory group is `onpi` with a host named `pi`. Noted in Task 23. | `setup/gateway.md` |
 | Welland host_vars timezone is `America/Los_Angeles` | `sites/welland.md` |
 | The `pistat` and `arty-*` units shipped by `fpgas-online-setup-pi` are not enabled by the current `onpi` role | `setup/pi.md` |
