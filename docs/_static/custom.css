@@ -1,0 +1,6 @@
+/* MyST tables get no scroll wrapper from Furo, and the host inventory tables
+   run to nine columns; without this they compress to unreadable. */
+article[role=main] table.docutils {
+  display: block;
+  overflow-x: auto;
+}

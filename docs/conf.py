@@ -67,6 +67,11 @@ html_theme_options = {
     "source_directory": "docs/",
 }
 
+# Furo does not wrap Markdown tables in a scrolling container, and the site
+# pages carry host inventory tables up to nine columns wide.
+html_static_path = ["_static"]
+html_css_files = ["custom.css"]
+
 # -- Intersphinx ------------------------------------------------------------
 
 intersphinx_mapping = {
