@@ -13,8 +13,9 @@ none of which this procedure produces.
 
 ## Adding a device of an existing type
 
-Six things change. Two of them still live in repositories rather than in these
-docs, and are called out as such.
+Five things change, and a sixth from the original checklist has collapsed into
+the second. Three of them still live in repositories rather than in these docs,
+and are called out as such.
 
 ### 1. Gateway network configuration
 
@@ -30,21 +31,41 @@ switch port is its own VLAN, and a Pi plugged into switch `s` port `p` becomes
 `pi-sw<s>-p<p>` at `10.21.s.p` on its own, with no per-host configuration at
 all ([Two addressing schemes](network.md#two-addressing-schemes)). Instead:
 
-- Plug the board into the right port. On the S3300, port `N` carries Tiny
-  Tapeout `N` for ports 1–10, the TT FPGA demo boards sit on 33–36, and the
-  Acorns on 29 and 43–48 — the port allocation is documented in the
-  [Welland host tables](../sites/welland.md#hosts-and-boards).
+- Plug the board into the right port. The allocation rule on the S3300 is that
+  port `N` carries Tiny Tapeout `N` for ports 1–10, the TT FPGA demo boards sit
+  on 33–36, and the Acorns on 29 and 43–48. Which of those ports are actually
+  occupied today is the
+  [Welland host tables](../sites/welland.md#hosts-and-boards), not this rule.
 - For a Tiny Tapeout board, add or enable its row in the `tt_boards` catalogue.
   That catalogue **stays in the infra repository**, in
-  [`ansible/inventory/host_vars/fpgas.online.yml`](https://github.com/fpgas-online/fpgas.online-infra/blob/main/ansible/inventory/host_vars/fpgas.online.yml);
-  run `ansible/web.yml --tags ttsite` afterwards, which renders
-  `/etc/fpgas-online/tt-boards.yaml` for the gateway and for the Pi NFS root.
-  The keys a row takes are under
-  [The board catalogue](tinytapeout.md#the-board-catalogue).
+  [`ansible/inventory/host_vars/fpgas.online.yml`](https://github.com/fpgas-online/fpgas.online-infra/blob/main/ansible/inventory/host_vars/fpgas.online.yml).
+  Running `ansible/web.yml --tags ttsite` afterwards renders
+  `/etc/fpgas-online/tt-boards.yaml` **on the gateway**, for the web tier; the
+  Pi NFS root gets its own copy of the same file baked in by the `onpi` play,
+  from the same template. The keys a row takes, and both render paths, are
+  under [The board catalogue](tinytapeout.md#the-board-catalogue).
 - For the `welland.fpgas.online` board list, update the packaged fixture. The
   fixture ships inside the `fpgas.online-site` package and is loaded by bare
   name, so it is changed in that repository and not in the infra inventory; see
   [Deployment](webapp.md#deployment).
+
+:::{todo}
+Two claims in the upstream checklist disagree with these docs.
+
+Its port ranges are wider than the measured occupancy. The
+[Welland host tables](../sites/welland.md#hosts-and-boards) put TT ASIC boards
+on ports 3–8 only, with 9 and 10 reserved in the catalogue and nothing recorded
+on 1 or 2; and the Acorns on p29, p43, p44, p46, p47 and p48, with no p45. Is
+1–10 the standing allocation with four slots free, or has the range shrunk, and
+what is on p45?
+
+It also says the `ttsite` tag renders `/etc/fpgas-online/tt-boards.yaml` for the
+Pi NFS root as well as for the gateway.
+[The board catalogue](tinytapeout.md#the-board-catalogue) has the NFS root copy
+baked in by `onpi/tasks/tt.yml` instead, from the same template — so a `ttsite`
+run alone leaves the Pi copy stale until the `onpi` play runs. Confirm which,
+and fix the checklist.
+:::
 
 ### 2. Site host table
 
@@ -159,9 +180,10 @@ Per test, in order:
 
 Hosts and boards are declared separately and multiplied together. The `HOSTS`
 dict gives each Pi an SSH type (through a gateway, or direct), a target
-address, a board type, and optionally a `variant` (which NeTV2 FPGA is fitted,
-so the matching bitstream is chosen) and a `serial_port` (which UART device
-that Pi model exposes). `DESIGNS` gives each test design a script and a
+address, a board type, and optionally a `variant` (which FPGA is fitted, so the
+matching bitstream is chosen — the NeTV2 hosts set `a7-35` or `a7-100`, and the
+Acorn host sets `cle-215+`) and a `serial_port` (which UART device that Pi
+model exposes). `DESIGNS` gives each test design a script and a
 per-board artifact, arguments and pre-test command. `generate_tests()` takes
 the cross product and keeps every pair whose board type the design supports, so
 adding a host to `HOSTS` is enough to enrol it in every applicable test.
@@ -192,7 +214,9 @@ for:
 | Fomu | PMOD loopback | `rmmod spidev spi_bcm2835` | Same GPIO 7–11 clash as the Arty. |
 | NeTV2 | UART | `systemctl stop 'serial-getty@*'`; `pm2 stop all`; `pkill -f netv2-status`; `fuser -k`; `chmod 666`; `pinctrl set 14 a4; pinctrl set 15 a4` | Three different things hold the port: the serial login console, a pm2-managed `netv2-status.js` monitor that keeps sending `json on` to the FPGA BIOS, and whatever `fuser` finds left. On a Pi 5, GPIO 14/15 fall back to plain GPIO when the getty stops, so `pinctrl` puts them back on ALT4 (TXD0/RXD0); a Pi 3's mini-UART pins do not change function and need no such fix. |
 | NeTV2 | DDR, Ethernet, SPI flash | `systemctl stop serial-getty@ttyAMA0` | Only the login console is in the way. |
+| NeTV2 | PMOD loopback | none | The NeTV2 loopback is a one-bit serial loopback rather than a PMOD-HAT GPIO test, so it does not touch GPIO 7–11. |
 | Acorn | UART, DDR, SPI flash | `systemctl stop serial-getty@ttyAMA0` | As above. |
+| Acorn | PMOD loopback, PCIe enumeration | none | The loopback runs the NeTV2 one-bit serial path, and the PCIe test only reads the enumeration. |
 | TT FPGA | PMOD loopback | `rmmod spidev spi_bcm2835` | The loopback drives the FPGA through the PMOD HAT, over the same GPIO 7–11 the SPI modules claim. |
 | TT FPGA | UART, SPI flash | none | These go over the RP2350's USB CDC port, not the Pi's GPIO UART. |
 
@@ -209,9 +233,9 @@ first, then a per-host override, then the board default.
 | --- | --- | --- |
 | Arty | `openFPGALoader -b arty <bitstream>` | USB JTAG through the on-board FTDI. |
 | Fomu | `openFPGALoader -b fomu <bitstream>` | USB DFU. |
-| Acorn | `rmmod spidev spi_bcm2835 2>&1; openFPGALoader -c rp1pio --pins 10:9:11:8 <bitstream>` | GPIO bit-bang JTAG on the Pi's SPI0 pins, which is why the SPI modules come out first. Pins are TCK:TDO:TDI:TMS. |
+| Acorn | `rmmod spidev spi_bcm2835 2>&1; openFPGALoader -c rp1pio --pins 10:9:11:8 <bitstream>` | GPIO bit-bang JTAG on the Pi's SPI0 pins, which is why the SPI modules come out first. openFPGALoader's pin order is TDI:TDO:TCK:TMS, so GPIO 10 (SPI0 MOSI) is TDI and GPIO 11 (SCLK) is TCK; see [Acorn wiring](../boards/acorn/wiring.md). |
 | TT FPGA | `python3 ~/tt_fpga_program.py /dev/ttyACM0 <bitstream>` | Through the RP2350 over USB CDC. The PMOD loopback design appends `--gpio-release`. |
-| NeTV2 on `rpi5-netv2` | `sudo openFPGALoader -c rp1pio --pins 27:22:4:17 <bitstream>` | RP1 GPIO bit-bang JTAG, TCK:TDO:TDI:TMS on the 40-pin header. |
+| NeTV2 on `rpi5-netv2` | `sudo openFPGALoader -c rp1pio --pins 27:22:4:17 <bitstream>` | RP1 GPIO bit-bang JTAG on the 40-pin header, in openFPGALoader's TDI:TDO:TCK:TMS pin order; see [JTAG via RPi GPIO](../boards/netv2.md#jtag-via-rpi-gpio). |
 | NeTV2 on `rpi3-netv2` | `sudo openocd -f ~/netv2/alphamax-rpi.cfg -c 'init; pld load 0 <bitstream>; exit'` | BCM2835 GPIO bit-bang JTAG. `pld load 0` is OpenOCD 0.10.x syntax, device index 0. |
 | NeTV2 on the Welland pool hosts | the same OpenOCD command **without** `sudo` | The gateway hop already lands as root on those Pis. |
 
@@ -220,7 +244,8 @@ absolute one before handing it over, using the home directory of whichever
 account that host is reached as.
 
 Programming counts as successful if the command exits 0 **or** its output
-contains `done 1` — openFPGALoader prints the FPGA's DONE status bit, while
+contains `done 1` in any letter case — openFPGALoader prints the FPGA's DONE
+status bit, while
 `tt_fpga_program.py` only reports through its exit code.
 
 Failure on a Fomu is treated as a DFU timeout rather than a fault. The EVT's
@@ -236,8 +261,10 @@ the pre-test, and retries programming once.
 `poe.sh <port> 2` to cut power, polls connectivity until the host stops
 answering — which is how it confirms the power actually went off — then runs
 `poe.sh <port> 1` and polls until the host answers again, allowing for a Pi 3
-netboot of about two minutes. There are no fixed sleeps anywhere in it; every
-wait is a bounded poll. The switch port comes from the host name.
+netboot of about two minutes. Nothing waits a fixed time for the hardware:
+both waits are bounded polls, the power-off loop polling on a half-second
+interval and the boot loop on the connectivity check's own ten-second timeout.
+The switch port comes from the host name.
 
 :::{todo}
 `poe_reset()` derives the switch port with `re.match(r"pi(\d+)$", host_name)`
@@ -252,22 +279,21 @@ host keys were prefixed with a site name.
 
 ### TT FPGA programming
 
-The TT FPGA demo board's RP2350 programs the iCE40 and then gets out of the
-way. `tt_fpga_program.py` uploads the bitstream to the RP2350's filesystem with
-`mpremote` over `/dev/ttyACM0` (breaking any stuck MicroPython script with
-Ctrl-C first, and retrying through a USB power cycle), programs the iCE40 over
-PIO-accelerated SPI from the raw REPL, starts the 50 MHz clock on GPIO 16, and
-finally sets every shared `ui_in`, `uo_out` and `uio` pin to input so the
-RP2350's drivers stop contending with the Pi's — the RP2350 and the PMOD
-headers sit on the same traces. After that the Pi talks to the FPGA through the
-PMOD HAT exactly as it does on an Arty or a Fomu, so only the programming step
-is board-specific. The pin numbers and the programming interface are on the
-[TT FPGA board page](../boards/tt-fpga.md#programming) and its
-[pin mapping](../boards/tt-fpga.md#pin-mapping); the HAT side is on
-[Raspberry Pi PMOD HAT](../boards/pmod/rpi-hat.md). The UART and SPI-flash
-designs skip the separate programming step entirely: on a TT host the runner
-calls `tt_test_wrapper.py`, which programs, bridges the serial port and runs
-the test in one 240-second invocation.
+The mechanism — the RP2350 taking the bitstream over `mpremote`, programming
+the iCE40 over SPI and then releasing the shared pins to high-Z — is on the
+[TT FPGA board page](../boards/tt-fpga.md#programming), with the pin numbers
+under [Pin mapping](../boards/tt-fpga.md#pin-mapping) and the HAT side on
+[Raspberry Pi PMOD HAT](../boards/pmod/rpi-hat.md).
+
+What the runner does differently is which of the two entry points it calls. For
+the PMOD loopback it programs in its own step, appending `--gpio-release` so
+the RP2350 drops off the shared traces before the Pi drives them. For the UART
+and SPI-flash designs it does not program separately at all: it calls
+`tt_test_wrapper.py`, which programs the board, bridges its serial port and
+runs the test in one invocation, with a 240-second timeout instead of the
+120-second one that programming alone gets. Once the FPGA is configured the Pi
+reaches it through the PMOD HAT exactly as it does an Arty or a Fomu, so
+programming is the only board-specific step.
 
 :::{note}
 The upstream verify-hardware.md carries its own iCE40 ↔ PMOD HAT ↔ Pi GPIO pin
@@ -294,7 +320,7 @@ Pi.
 :::{todo}
 The upstream
 [verify-hardware.md](https://github.com/fpgas-online/fpgas.online-test-designs/blob/main/docs/verify-hardware.md)
-has drifted from the script on four points. The code is what is described
+has drifted from the script on six points. The code is what is described
 above. (1) It documents `ssh_type: "tweed"` with a hard-wired tweed hop; the
 code uses `ssh_type: "gateway"` with a `gateway` key selecting from a
 `GATEWAYS` table that also holds PS1 (lines 29–32, 293–299). (2) It says
@@ -304,17 +330,24 @@ code sends two, `tt_fpga_program.py` and `tt_test_wrapper.py` (lines 273–278).
 exists (line 108), gives the OpenOCD config as `alphamax-rpi.cfg` rather than
 `~/netv2/alphamax-rpi.cfg`, and does not mention that the five Welland NeTV2
 pool hosts run it without `sudo` (lines 113–122). (4) It does not mention the
-PMOD design's `--gpio-release` programming override (line 253). Line numbers
-are `verify_hardware.py` on `main` as read on 2026-09-04.
+PMOD design's `--gpio-release` programming override (line 253). (5) It calls
+`variant` NeTV2-only; `welland-pi2` is an Acorn carrying `"variant": "cle-215+"`
+(lines 68–71) and the variant-artifact selection at lines 407–413 is
+board-agnostic. (6) It glosses the `--pins 27:22:4:17` string as TCK:TDO:TDI:TMS;
+openFPGALoader's order is TDI:TDO:TCK:TMS, as
+[JTAG via RPi GPIO](../boards/netv2.md#jtag-via-rpi-gpio) and
+[Acorn wiring](../boards/acorn/wiring.md) both give it for the same pin strings,
+and GPIO 10 is SPI0 MOSI (TDI) with GPIO 11 the clock. Line numbers are
+`verify_hardware.py` on `main` as read on 2026-09-04.
 :::
 
 ## Sources
 
-[fpgas.online-test-designs](https://github.com/fpgas-online/fpgas.online-test-designs), `main`:
+fpgas.online-test-designs, `main`:
 
 - [`docs/hardware/deployment-checklist.md`](https://github.com/fpgas-online/fpgas.online-test-designs/blob/main/docs/hardware/deployment-checklist.md)
-  — the whole "Adding a device of an existing type" procedure: the six things
-  to change, the six verification steps, and the PS1 Arty worked example.
+  — the whole "Adding a device of an existing type" procedure: everything that
+  changes, the six verification steps, and the PS1 Arty worked example.
 - [`docs/verify-hardware.md`](https://github.com/fpgas-online/fpgas.online-test-designs/blob/main/docs/verify-hardware.md)
   — the reasoning behind each pre-test command, the Fomu DFU timeout and its
   recovery, the PoE reset sequence, and the RP2350 high-Z hand-off on the TT
