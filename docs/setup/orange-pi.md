@@ -59,9 +59,8 @@ a Debian bookworm armhf apt source to the root pinned so that only
 `vmlinuz-*-armmp` and `initrd.img-*-armmp` into `<tftp_root>/sunxi/` and the
 three `sun8i-h3-orangepi-{pc,pc-plus,one}.dtb` files into
 `<tftp_root>/sunxi/dtbs/`, which is where the `fdt` line above looks for them.
-The
-install is safe for the Pi fleet: Raspbian's `z50-raspi-firmware` kernel hook
-prints "Unsupported kernel version (6.1.0-50-armmp) - skipping setup" and leaves
+The install is safe for the Pi fleet: Raspbian's `z50-raspi-firmware` kernel
+hook prints "Unsupported kernel version (6.1.0-50-armmp) - skipping setup" and leaves
 `/boot/firmware` untouched (verified 2026-08-28 in the spike).
 
 The boards are declared in `sunxi_boards` in
@@ -94,7 +93,7 @@ Check the result on tweed:
 ```console
 $ # the boot payload and the PXE file
 $ ls /srv/nfs/rpi/bookworm/boot/sunxi /srv/nfs/rpi/bookworm/boot/pxelinux.cfg
-$ # the packages in the boards own root -- not the hub host
+$ # the packages in the root the boards use -- not the hub host
 $ chroot /srv/nfs/rpi/bookworm/root dpkg -l fpgas-online-setup-pi sunxi-tools
 ```
 
@@ -105,10 +104,15 @@ below, `pi-sw2-p30` installs `fpgas-online-setup-pi` and `sunxi-tools` from the
 those with a plain `dpkg -l` over ssh to that host instead.
 
 :::{warning}
-**Always PoE-cycle pi-sw2-p30 (port 30) after a converge**, then the boards.
-Cycling the hub host is what re-triggers every board's FEL enumeration, so the
-boards pick up the new root without being touched individually; and the boards
-themselves do not see NFS-root changes until they reboot.
+**Always PoE-cycle pi-sw2-p30 (port 30) after a converge, then the boards.**
+Both halves matter. Cycling the hub host re-triggers FEL boots only for boards
+that are *already sitting in FEL* — that is the runbook's "hub host
+unreachable" recovery, and it is what the hardware doc measured on 2026-08-28
+when `fpgas-felboot@` fired for all four boards within the hub host's 19 s
+boot. A board that is already up is not in FEL: it presents the
+`0525:a4a7` USB serial gadget, not `1f3a:efe8`, so the felboot udev rule never
+matches it, nothing reboots it, and it keeps running its old copy of the root.
+That is why the boards have to be cycled as well.
 :::
 
 :::{note}
@@ -296,8 +300,7 @@ about 40 MB from NFS in 10 minutes where a healthy sibling reads about 170 MB in
 then p24 in the evening after being held in FEL for about 20 s. The first two
 looked board-specific to p21; p24 doing the same is what makes it a general
 flake of roughly 1 in 4 cold FEL boots rather than a bad board. A second PoE
-cycle boots it normally in
-about 87–90 s every time. Treat "board not up after 5 minutes" as "cycle it
+cycle boots it normally in about 87–90 s every time. Treat "board not up after 5 minutes" as "cycle it
 again", not as an infrastructure fault.
 
 **Kernel Oops in the sunxi audio codec probe (found 2026-09-02).** The gadget

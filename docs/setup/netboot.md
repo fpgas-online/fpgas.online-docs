@@ -351,8 +351,11 @@ on one board before relying on it fleet-wide.
 A netbooted Pi has no console and no disk to inspect, so the roles build four
 ways to watch one boot. Full procedures belong on
 [Verification](verification.md) and [Pi hosts](pi.md); this is what exists and
-where it comes from. None of it applies to the Allwinner hosts, which do not
-run this boot chain and have their own console and recovery path — see
+where it comes from. The Allwinner hosts take the same DHCP, TFTP root and NFS
+root, so the lease check below applies to them unchanged; the netconsole and
+gateway-serial methods do not, because their command line carries no
+`netconsole=` and no UART of theirs is wired to the gateway. Their console is
+the USB gadget log captured on their hub host — see
 [Orange Pi H3 hosts](orange-pi.md).
 
 **Did it get a lease?** dnsmasq runs with `log-dhcp`, so every DHCP transaction
