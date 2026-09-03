@@ -17,6 +17,8 @@ ps1
 |---|---|---|
 | Location | South Australia (private lab) | Pumping Station: One, Chicago (public) |
 | Carrier | Raspberry Pi 5 + M.2 HAT | Compute Blade (CM4 / CM5) |
+| Boards | Arty A7, NeTV2, Fomu EVT, Tiny Tapeout ASIC boards, Tiny Tapeout FPGA demo boards, Acorn CLE-215+ | Arty A7 and LiteFury / Acorn CLE-101 on Compute Blades |
+| Addressing | [VLAN-per-port since 2026-08-23](../setup/network.md) | [legacy, MAC-based](../setup/network.md) |
 | JTAG pin order | `10:9:11:8` | `2:3:4:14` |
 | P2 serial wiring | K2 → GPIO15, J2 → GPIO14 | K2 → GPIO15, J2 → GPIO14 |
 | Cameras | one per FPGA host | none |
