@@ -65,12 +65,12 @@ and the ButterStick website at `https://butterstick.io` (offline, see above).
 
 Untried here — no ButterStick has been connected to a host at either site.
 
-```bash
+```console
 # Via openFPGALoader
-openFPGALoader -b butterstick design.bit
+$ openFPGALoader -b butterstick design.bit
 
 # Via DFU (ButterStick has a DFU bootloader)
-dfu-util -D design.bit
+$ dfu-util -D design.bit
 ```
 
 ## References

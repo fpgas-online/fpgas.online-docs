@@ -67,12 +67,12 @@ ordered, so the FPGA column in the board table reads "Lattice ECP5 (various)".
 
 Untried here — no ULX3S has been connected to a host at either site.
 
-```bash
+```console
 # Via openFPGALoader (USB-JTAG)
-openFPGALoader -b ulx3s design.bit
+$ openFPGALoader -b ulx3s design.bit
 
 # Via fujprog
-fujprog design.bit
+$ fujprog design.bit
 ```
 
 ## References
