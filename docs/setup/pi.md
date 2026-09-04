@@ -307,7 +307,7 @@ fragments and about 40 seconds glass-to-glass, measured 2026-08-30; one keyframe
 per second plus a 900 ms server fragment brings that to roughly 5 seconds.
 
 Which hosts have cameras is a site fact, not a platform one. At Welland the
-Arty, Fomu and Tiny Tapeout hosts all carry an ov5647 and publish a feed — see
+Arty, Fomu, Tiny Tapeout and Acorn hosts all carry an ov5647 and publish a feed — see
 the per-board tables on the [Welland page](../sites/welland.md#hosts-and-boards).
 At PS1 the Arty hosts are the ones with cameras and no compute blade has one
 ([PS1 hosts and boards](../sites/ps1.md#hosts-and-boards)).

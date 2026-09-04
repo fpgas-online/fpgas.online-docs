@@ -23,7 +23,7 @@ ps1
 | Addressing | [VLAN-per-port (since 2026-08-23)](../setup/network.md) | [MAC-based (legacy)](../setup/network.md) |
 | JTAG pin order | `10:9:11:8` | `2:3:4:14` |
 | P2 serial wiring | K2 → GPIO15, J2 → GPIO14 | K2 → GPIO15, J2 → GPIO14 |
-| Cameras | one per FPGA host | none |
+| Cameras | Arty, Fomu, Tiny Tapeout and Acorn hosts | Arty hosts only; no blade has one |
 
 :::{warning}
 The JTAG pin orders are not interchangeable. On a Compute Blade, GPIO14 is TMS
