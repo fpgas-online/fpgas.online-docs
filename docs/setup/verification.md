@@ -233,9 +233,9 @@ first, then a per-host override, then the board default.
 | --- | --- | --- |
 | Arty | `openFPGALoader -b arty <bitstream>` | USB JTAG through the on-board FTDI. |
 | Fomu | `openFPGALoader -b fomu <bitstream>` | USB DFU. |
-| Acorn | `rmmod spidev spi_bcm2835 2>&1; openFPGALoader -c rp1pio --pins 10:9:11:8 <bitstream>` | GPIO bit-bang JTAG on the Pi's SPI0 pins, which is why the SPI modules come out first. openFPGALoader's pin order is TDI:TDO:TCK:TMS, so GPIO 10 (SPI0 MOSI) is TDI and GPIO 11 (SCLK) is TCK; see [Acorn wiring](../boards/acorn/wiring.md). |
+| Acorn | `rmmod spidev spi_bcm2835 2>&1; openFPGALoader -c rp1pio --pins 10:9:11:8 <bitstream>` | GPIO bit-bang JTAG on the Pi's SPI0 pins, which is why the SPI modules come out first. openFPGALoader's pin order is TDI:TDO:TCK:TMS, so GPIO 10 (SPI0 MOSI) is TDI and GPIO 11 (SCLK) is TCK; see [Acorn wiring](../boards/acorn/wiring.md). As configured in the runner: the Welland NFS root on infra `main` still ships openFPGALoader 0.10.0 with no `rp1pio` cable until infra PR #48 lands, see [Packages](pi.md#packages). |
 | TT FPGA | `python3 ~/tt_fpga_program.py /dev/ttyACM0 <bitstream>` | Through the RP2350 over USB CDC. The PMOD loopback design appends `--gpio-release`. |
-| NeTV2 on `rpi5-netv2` | `sudo openFPGALoader -c rp1pio --pins 27:22:4:17 <bitstream>` | RP1 GPIO bit-bang JTAG on the 40-pin header, in openFPGALoader's TDI:TDO:TCK:TMS pin order; see [JTAG via RPi GPIO](../boards/netv2.md#jtag-via-rpi-gpio). |
+| NeTV2 on `rpi5-netv2` | `sudo openFPGALoader -c rp1pio --pins 27:22:4:17 <bitstream>` | RP1 GPIO bit-bang JTAG on the 40-pin header, in openFPGALoader's TDI:TDO:TCK:TMS pin order; see [JTAG via RPi GPIO](../boards/netv2.md#jtag-via-rpi-gpio). As configured in the runner: the Welland NFS root on infra `main` still ships openFPGALoader 0.10.0 with no `rp1pio` cable until infra PR #48 lands, see [Packages](pi.md#packages). |
 | NeTV2 on `rpi3-netv2` | `sudo openocd -f ~/netv2/alphamax-rpi.cfg -c 'init; pld load 0 <bitstream>; exit'` | BCM2835 GPIO bit-bang JTAG. `pld load 0` is OpenOCD 0.10.x syntax, device index 0. |
 | NeTV2 on the Welland pool hosts | the same OpenOCD command **without** `sudo` | The gateway hop already lands as root on those Pis. |
 
