@@ -6,7 +6,7 @@ mapping is read off directly rather than assumed from documentation or
 datasheets. Several board pages defer their open wiring questions to this
 method, including the Arty A7's
 [PMOD cable routing](arty-a7.md#pmod-cable-routing-hat--arty), the Acorn's
-[measured P2 wiring](acorn/wiring.md#measured-p2-wiring-welland-2026-08-31),
+[measured P2 wiring](acorn/wiring.md#measured-p2-wiring-at-welland),
 and the TT FPGA's [pin mapping](tt-fpga.md#pin-mapping).
 
 ## How It Works

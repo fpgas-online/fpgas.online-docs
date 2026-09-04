@@ -370,7 +370,9 @@ property of the cables and the board, not of the host, so it is recorded here
 rather than on a site page.
 :::
 
-#### Pi9 (21 of 24 unique GPIOs scanned, 2026-03-17)
+#### Pi9 (21 of 24 unique GPIOs scanned)
+
+Scanned 2026-03-17.
 
 This is the one host that produced a full scan, and it is also the host whose
 site is in question — see [Which site were these hosts at?](#which-site-were-these-hosts-at)
@@ -423,14 +425,18 @@ HAT JC pins 1 and 2 are swapped relative to Arty JC pins 1 and 2. This is a
 physical cable crossover — GPIO16 connects to Arty JC pin 2 (V12) and GPIO14
 connects to Arty JC pin 1 (U12). All other pins match 1:1.
 
-#### Pi3 (2026-03-17)
+#### Pi3
+
+Scanned 2026-03-17.
 
 Pi3 detected fewer pins (12 of 21 unique GPIOs). All detected pins match pi9's
 results exactly, confirming the same cable routing. HAT JC top-row and some
 JA/JB pins showed no signal — likely loose cables or missing connections on this
 host.
 
-#### Pi5 (offline, 2026-03-17)
+#### Pi5 (offline)
+
+Scanned 2026-03-17.
 
 Pi5 (10.21.0.105) was unreachable during scanning — host appears powered off.
 

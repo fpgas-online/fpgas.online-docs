@@ -18,7 +18,7 @@ to GPIO14 — so one cable design works everywhere.
 :::{note}
 **Revised 2026-09-03.** The P2 serial wiring below was corrected after the
 pin-ID design was run on the Welland boards on 2026-08-31 (see [Measured P2
-wiring](#measured-p2-wiring-welland-2026-08-31)). The earlier revision of this
+wiring](#measured-p2-wiring-at-welland)). The earlier revision of this
 page wired FPGA TX (K2) to the Pi's TXD0, i.e. transmitter into transmitter,
 which cannot work with the hardware UART (`/dev/ttyAMA0`) that every host and
 test script uses. The crossover is the fleet standard, not a Compute Blade
@@ -404,7 +404,9 @@ $ lspci -nn | grep -i xilinx
 # Expected: device with Xilinx vendor ID 10ee (LitePCIe default 10ee:7011)
 ```
 
-## Measured P2 wiring (Welland, 2026-08-31)
+## Measured P2 wiring at Welland
+
+Measured 2026-08-31.
 
 Read off each wire with the fixed pin-ID bitstream
 (`pmod-pin-id_acorn-cle-215p_vivado-vivado_sqrl_acorn.bit`, see [prebuilt Vivado
@@ -624,7 +626,9 @@ and the absence of the two spare GPIOs.
 and P2 must be left unconnected.
 :::
 
-### Measured state of the PS1 blades (2026-08-31)
+### Measured state of the PS1 blades
+
+Measured 2026-08-31.
 
 | Host | Module   | PCIe                              | JTAG                         | P2 serial                          |
 |------|----------|-----------------------------------|------------------------------|------------------------------------|
