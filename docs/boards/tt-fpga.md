@@ -339,8 +339,10 @@ $ ssh -o ProxyCommand='ssh -W %h:%p ansible@10.99.21.2' pi@<host-ip> sudo system
 :::{todo}
 `verify_hardware.py`'s `HOSTS` table still carries the pre-2026-08-23 names and
 `10.21.0.1xx` addresses (`welland-pi27` … `welland-pi33`); the boards are now
-`pi-sw2-p33` … `pi-sw2-p36` at `10.21.2.33` … `10.21.2.36`. Update the table,
-and teach the wrapper to stop and restart the `fpgas-tt` daemon around a run
+`pi-sw2-p33` … `pi-sw2-p36` at `10.21.2.33` … `10.21.2.36`. The table itself
+is tracked on [Verifying a deployment](../setup/verification.md#running-the-hardware-tests);
+what is specific to this board is that the wrapper also needs to stop and
+restart the `fpgas-tt` daemon around a run
 (see [Serial port ownership](#serial-port-ownership)).
 :::
 

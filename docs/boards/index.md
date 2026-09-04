@@ -168,19 +168,6 @@ ulx3s
 fpgas.online infrastructure, and no wiring to a Raspberry Pi exists for it.
 :::
 
-Notable differences from other boards:
-
-- **ECP5UM5G with SERDES**: The `5G` variant includes high-speed
-  serializer/deserializer blocks, enabling protocols like PCIe Gen1, SATA, or
-  custom high-speed links.
-- **SYZYGY connector** (not PMOD): The SYZYGY standard provides higher-speed and
-  higher-density connectivity than PMOD. PMOD-based tests cannot run on this
-  board without an adapter.
-- **Gigabit Ethernet**: RGMII PHY supporting 1000Base-T, unlike the 100Base-T on
-  the Arty and NeTV2.
-- **ULPI USB**: External USB 2.0 PHY, unlike the Fomu's native USB.
-- **DDR3**: Full DDR3 with 32-bit bus, similar to NeTV2 but larger capacity.
-
 Specifications, LiteX modules, programming commands and the state of the vendor
 site are on the [ButterStick page](butterstick.md).
 
@@ -190,16 +177,6 @@ site are on the [ButterStick page](butterstick.md).
 **Status: Future / Planned** — this board is not yet deployed in the
 fpgas.online infrastructure, and no wiring to a Raspberry Pi exists for it.
 :::
-
-Notable differences from other boards:
-
-- **No PMOD connectors**: Uses pin headers instead. PMOD-based tests cannot run
-  on this board without an adapter.
-- **SDR SDRAM** (not DDR3): 32 MB, 16-bit bus. Simpler memory interface but
-  lower bandwidth.
-- **ESP32 WiFi**: On-board wireless connectivity, could enable remote test
-  reporting without wired Ethernet.
-- **GPDI video**: HDMI-compatible output using differential pairs.
 
 Specifications, the ECP5 variant table, LiteX modules and programming commands
 are on the [ULX3S page](ulx3s.md).

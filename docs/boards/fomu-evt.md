@@ -252,11 +252,6 @@ design or the host software. Which analyser is on which host, along with the
 hosts' addresses and the Fomu's `1209:5bf0` VID:PID and DFU version, is in the
 [Fomu EVT host table](../sites/welland.md#fomu-evt).
 
-| Host | Analyser     | USB VID:PID |
-| ---- | ------------ | ----------- |
-| pi17 | OpenVizsla   | `1d50:607c` |
-| pi21 | Cythion/LUNA | `16d0:05a5` |
-
 ### OpenVizsla (pi17)
 
 The [OpenVizsla](https://github.com/openvizsla/ov_ftdi) is an open-source USB
