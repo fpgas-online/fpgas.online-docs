@@ -308,10 +308,10 @@ bridging. Three host-side wrapper scripts handle the RP2040 interaction:
 
 | Test | Bitstream | Wrapper | What it verifies |
 |------|-----------|---------|------------------|
-| UART echo | [`uart/.../tt_fpga_platform.bin`](https://github.com/fpgas-online/fpgas.online-test-designs/blob/main/designs/uart/build/tt/gateware/) | [`tt_test_wrapper.py`](https://github.com/fpgas-online/fpgas.online-test-designs/blob/main/designs/_host/tt_test_wrapper.py) | Serial TX/RX via RP2040 bridge |
-| SPI Flash ID | [`spi-flash-id/.../tt_fpga_platform.bin`](https://github.com/fpgas-online/fpgas.online-test-designs/blob/main/designs/spi-flash-id/build/tt/gateware/) | [`tt_test_wrapper.py`](https://github.com/fpgas-online/fpgas.online-test-designs/blob/main/designs/_host/tt_test_wrapper.py) | JEDEC ID readback from on-board flash |
-| PMOD loopback | [`pmod-loopback/.../top.bin`](https://github.com/fpgas-online/fpgas.online-test-designs/blob/main/designs/pmod-loopback/build/tt/) | [`tt_pmod_wrapper.py`](https://github.com/fpgas-online/fpgas.online-test-designs/blob/main/designs/_host/tt_pmod_wrapper.py) | GPIO inversion across wired pin pairs |
-| PMOD pin ID | [`pmod-pin-id/.../top.bin`](https://github.com/fpgas-online/fpgas.online-test-designs/blob/main/designs/pmod-pin-id/build/tt/) | [`tt_pmod_wrapper.py`](https://github.com/fpgas-online/fpgas.online-test-designs/blob/main/designs/_host/tt_pmod_wrapper.py) | UART TX on each GPIO pin |
+| UART echo | [`uart/.../tt_fpga_platform.bin`](https://github.com/fpgas-online/fpgas.online-test-designs/tree/main/designs/uart/) | [`tt_test_wrapper.py`](https://github.com/fpgas-online/fpgas.online-test-designs/blob/main/designs/_host/tt_test_wrapper.py) | Serial TX/RX via RP2040 bridge |
+| SPI Flash ID | [`spi-flash-id/.../tt_fpga_platform.bin`](https://github.com/fpgas-online/fpgas.online-test-designs/tree/main/designs/spi-flash-id/) | [`tt_test_wrapper.py`](https://github.com/fpgas-online/fpgas.online-test-designs/blob/main/designs/_host/tt_test_wrapper.py) | JEDEC ID readback from on-board flash |
+| PMOD loopback | [`pmod-loopback/.../top.bin`](https://github.com/fpgas-online/fpgas.online-test-designs/tree/main/designs/pmod-loopback/) | [`tt_pmod_wrapper.py`](https://github.com/fpgas-online/fpgas.online-test-designs/blob/main/designs/_host/tt_pmod_wrapper.py) | GPIO inversion across wired pin pairs |
+| PMOD pin ID | [`pmod-pin-id/.../top.bin`](https://github.com/fpgas-online/fpgas.online-test-designs/tree/main/designs/pmod-pin-id/) | [`tt_pmod_wrapper.py`](https://github.com/fpgas-online/fpgas.online-test-designs/blob/main/designs/_host/tt_pmod_wrapper.py) | UART TX on each GPIO pin |
 
 The pin ID test and how to read its output are described on
 [Pin identification](pin-id.md).

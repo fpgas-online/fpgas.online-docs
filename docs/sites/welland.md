@@ -65,7 +65,7 @@ switches' LLDP tables, and live probes of the hosts below on 2026-09-03.
 | Kernel     | 6.12.105+deb13-amd64                                                                 |
 | eth-uplink | 10.99.21.2/30 + 2404:e80:a137:9921::2/126, point-to-point to ten64 (10.99.21.1), which publishes tweed's web names |
 | eth-local  | 10.21.0.1/16 trunk to the switches (per-port VLAN sub-interfaces)                    |
-| Domain     | fpgas.welland.mithis.com                                                             |
+| Domain     | `fpgas.welland.mithis.com`                                                             |
 | PCI        | 2× Intel 82574L GbE, Tundra PCI bridge, Matrox G200eW                                |
 | NFS roots  | `/srv/nfs/rpi/bookworm/{boot,root}` (armhf + arm64 kernels, `overlayroot=tmpfs`); apt packages `fpgas-online-tt` 0.0.post52, `fpgas-online-tt-demos` 0.0.post21, `fpgas-online-cam` 0.0.post43, `openfpgaloader` 0.10.0 |
 
@@ -401,8 +401,8 @@ gateway.
 
 | Host                              | IP (via DNS)    | RPi Model             | Board                  | Connections         | SSH                                                        |
 | --------------------------------- | --------------- | --------------------- | ---------------------- | ------------------- | ---------------------------------------------------------- |
-| rpi5-netv2.iot.welland.mithis.com | 10.1.90.210/211 | RPi 5 Model B Rev 1.0 | NeTV2 (bare developer) | GPIO + PCIe Gen2 x1 | `tim@rpi5-netv2.iot.welland.mithis.com` (via `wg-desktop`) |
-| rpi3-netv2.iot.welland.mithis.com | 10.1.90.212/213 | RPi 3                 | NeTV2 (stock packaged) | GPIO only           | `pi@rpi3-netv2.iot.welland.mithis.com` (via `wg-desktop`)  |
+| `rpi5-netv2.iot.welland.mithis.com` | 10.1.90.210/211 | RPi 5 Model B Rev 1.0 | NeTV2 (bare developer) | GPIO + PCIe Gen2 x1 | `tim@rpi5-netv2.iot.welland.mithis.com` (via `wg-desktop`) |
+| `rpi3-netv2.iot.welland.mithis.com` | 10.1.90.212/213 | RPi 3                 | NeTV2 (stock packaged) | GPIO only           | `pi@rpi3-netv2.iot.welland.mithis.com` (via `wg-desktop`)  |
 
 **rpi5-netv2**, verified over SSH 2026-03-09: Debian 13 (Trixie), kernel
 6.12.47+rpt-rpi-2712 aarch64; OpenOCD installed but no openFPGALoader and no
@@ -416,8 +416,8 @@ Surveyed 2026-03-17.
 
 | Host                             | RPi Model | Notes             |
 | -------------------------------- | --------------- | ----------------- |
-| rpi5-pmod.iot.welland.mithis.com | RPi 5           | PMOD HAT dev host |
-| rpi4-pmod.iot.welland.mithis.com | RPi 4           | PMOD HAT dev host |
+| `rpi5-pmod.iot.welland.mithis.com` | RPi 5           | PMOD HAT dev host |
+| `rpi4-pmod.iot.welland.mithis.com` | RPi 4           | PMOD HAT dev host |
 
 ## Interfaces
 

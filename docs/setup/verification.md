@@ -296,7 +296,7 @@ reaches it through the PMOD HAT exactly as it does an Arty or a Fomu, so
 programming is the only board-specific step.
 
 :::{note}
-The upstream verify-hardware.md carries its own iCE40 ↔ PMOD HAT ↔ Pi GPIO pin
+The upstream `verify-hardware.md` carries its own iCE40 ↔ PMOD HAT ↔ Pi GPIO pin
 tables, and they do not agree with the measured tables on the board page. That
 disagreement is tracked in the todo under
 [Pin mapping](../boards/tt-fpga.md#pin-mapping); use the board page's tables.
