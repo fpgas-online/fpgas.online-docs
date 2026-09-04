@@ -313,13 +313,11 @@ roles put there, and a rebuilt gateway would not have it.
 :::
 
 :::{todo}
-Both halves of that mismatch are still unfixed in `fpgas.online-infra`:
-`site/tasks/snmp.yml` is guarded by `switch.mpi_port is defined`, a field the
-per-port scheme removed, so nothing writes `SNMP_SWITCH_*` or `pi_ports` on
-tweed; and the role writes `/etc/environment.exports` while `poe.sh` sources
-`/etc/environment.export`. PS1 works by history, not by converge — a rebuilt
-val2 would lose the file too. Fix the guard, settle on one filename, and
-converge both gateways.
+`poe.sh` cannot be converged at Welland until two things are fixed in
+`fpgas.online-infra`: `snmp.yml`'s `switch.mpi_port is defined` guard, and the
+`/etc/environment.export` versus `.exports` filename split — the warning and
+note above. PS1 works by history rather than by converge, so a rebuilt val2
+would lose the file too. Fix both and converge each gateway.
 :::
 
 Expect the board to be gone for a while. A Compute Blade at PS1 takes about

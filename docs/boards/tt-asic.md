@@ -66,11 +66,10 @@ Two disagreements between the sources, neither resolved:
 :::
 
 :::{todo}
-Fix the test-designs hardware README to match: its TT09 row says USB (RP2040)
-where the demo-PCB version rule puts TT09 on v3 with an RP2350; its PS1 column
-carries a pending TT08 that `site-ps1.md` excludes; and it links
-`tinytapeout.com/chips/tt03p5/`, which is a 404 — that is why the TT03p5 row
-above has no shuttle link.
+Fix the test-designs hardware README on the three points in the note above:
+TT09's controller, the pending TT08 that [PS1 pending](../sites/ps1.md#pending)
+excludes, and its link to `tinytapeout.com/chips/tt03p5/`, which is a 404 —
+which is why the TT03p5 row has no shuttle link.
 :::
 
 ## Connection to the Pi

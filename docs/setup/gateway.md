@@ -256,13 +256,10 @@ rendered file before applying.
 :::
 
 :::{todo}
-Fix the fail-open converge upstream in `fpgas.online-infra`: the `firewall`
-role's `Enable nftables service` task is `state: restarted` under the
-`nftables` tag, and Debian's `nftables.service` has
-`ExecStop=nft flush ruleset`, so a converge with a bad rendered ruleset flushes
-the old rules and loads nothing. The notify handler's `state: reloaded` is the
-safe form. Nobody has decided whether the task should become `state: started`,
-gain a validation step, or both.
+Nobody has decided how to stop a converge with a bad ruleset flushing the old
+rules and loading nothing — `state: started`, a validation step before the
+restart, or both. The `firewall` role's `state: restarted` on `Enable nftables
+service` is the cause; see the warning above. Fix it in `fpgas.online-infra`.
 :::
 
 ### Checking and reconnecting

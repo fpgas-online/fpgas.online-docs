@@ -101,12 +101,13 @@ page is the measured source.
 :::
 
 :::{todo}
-Reconcile those counts at the source. The test-designs hardware README is the
-only record of the pending Welland TT02/TT03/TT09, the four pending PCIe NeTV2
-hosts and the four pending ButterStick and ULX3S boards, and none of them
-appears on the [Welland page](../sites/welland.md); the README's eight pending
-PS1 ASIC boards are seven there. Either the README is a wish list and should
-say so, or the allocations exist and belong on the site page.
+Reconcile those counts at the source. Of what the test-designs hardware README
+lists as pending at Welland, only `tt09` appears on the [Welland
+page](../sites/welland.md) at all — as a reserved catalogue port with no Pi
+behind it — while TT02, TT03, the four PCIe NeTV2 and the four ButterStick and
+ULX3S boards appear nowhere on it; and the README's eight pending PS1 ASIC
+boards are seven there. Either the README is a wish list and should say so, or
+the allocations exist and belong on the site page.
 :::
 
 ## Guides

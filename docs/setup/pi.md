@@ -93,12 +93,12 @@ standing in for `--read-dna`.
 :::
 
 :::{todo}
-Two package-and-firmware decisions are still open in `fpgas.online-infra`. The
-`openfpgaloader-rp1pio` swap is only on PR #48, so the roots keep shipping
-Debian's 0.10.0 until it lands or is closed. And `core_freq=500` is not set
-anywhere: `TECHDEBT.md` records the PoE-versus-camera trade-off undecided — see
-[`core_freq` under boot-time configuration](#boot-time-configuration) — so
-whichever way it goes, one of the two failure modes stays possible.
+Two decisions are still open in `fpgas.online-infra`: whether the
+`openfpgaloader-rp1pio` swap lands or PR #48 is closed, leaving the roots on
+Debian's 0.10.0 (the note above), and whether `core_freq=500` is set — its
+`TECHDEBT.md` entry leaves the PoE-versus-camera trade-off undecided, so one of
+the two failure modes stays possible either way (see
+[boot-time configuration](#boot-time-configuration)).
 :::
 
 The `cam/pi` role adds the streaming stack on top: `gstreamer1.0-tools`, the
