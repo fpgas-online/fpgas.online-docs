@@ -429,7 +429,7 @@ fpgas.online-infra, `main`:
 - [`README.md`](https://github.com/fpgas-online/fpgas.online-infra/blob/main/README.md)
   — architecture overview, PXE boot chain, package table.
 - [`ansible/site.yml`](https://github.com/fpgas-online/fpgas.online-infra/blob/main/ansible/site.yml)
-  — role order, the nspawn start/stop wrapper around the `pi` play.
+  — role order, the chroot start/stop wrapper around the `pi` play.
 - [`ansible/inventory/hosts`](https://github.com/fpgas-online/fpgas.online-infra/blob/main/ansible/inventory/hosts)
   — the `pi` host as `piroot` at the gateway address, no port override.
 - [`ansible/inventory/group_vars/all/srv.yml`](https://github.com/fpgas-online/fpgas.online-infra/blob/main/ansible/inventory/group_vars/all/srv.yml)

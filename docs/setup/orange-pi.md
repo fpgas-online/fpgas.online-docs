@@ -80,7 +80,8 @@ $ uv run ansible-playbook -i ansible/inventory ansible/site.yml \
     --tags fixpi,netboot,sunxi,sunxi-kernel,onpi,fpgas-apt
 ```
 
-- `--limit` must include `pi`, the nspawn provisioning host, or the NFS root is
+- `--limit` must include `pi`, the `nspawn-pi` provisioning host (a chroot
+  despite the name, see [the provisioning container](netboot.md#the-provisioning-container)), or the NFS root is
   not touched at all.
 - The first run installs the kernel into the root and takes about 30 minutes
   under qemu, almost all of it `update-initramfs`. Later runs skip it on a
