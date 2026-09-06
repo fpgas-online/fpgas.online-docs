@@ -34,9 +34,10 @@ source_suffix = {
 
 exclude_patterns = ["_build", "Thumbs.db", ".DS_Store", "requirements.txt"]
 
-# Warn about references that do not resolve. Combined with fail_on_warning in
-# .readthedocs.yaml this turns a broken cross-reference into a failed build
-# rather than a silently dead link.
+# MyST already warns (myst.xref_missing) on a Markdown link to a page or
+# heading that does not exist, and fail_on_warning in .readthedocs.yaml turns
+# that into a failed build. nitpicky would additionally warn on every
+# unresolved Sphinx role, which the code-reference-free pages here do not use.
 nitpicky = False
 
 todo_include_todos = True
@@ -66,6 +67,11 @@ html_theme_options = {
     "source_branch": "main",
     "source_directory": "docs/",
 }
+
+# Furo does not wrap Markdown tables in a scrolling container, and the site
+# pages carry host inventory tables up to nine columns wide.
+html_static_path = ["_static"]
+html_css_files = ["custom.css"]
 
 # -- Intersphinx ------------------------------------------------------------
 
