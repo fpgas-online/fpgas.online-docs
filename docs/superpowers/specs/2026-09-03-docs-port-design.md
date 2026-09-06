@@ -259,13 +259,20 @@ These apply to every ported page and extend `contributing.md`.
 
 ## Stubbing the sources
 
+Read the Docs publishes the `html` builder output under `/en/latest/`, so a
+page `setup/netboot.md` is `https://docs.fpgas.online/en/latest/setup/netboot.html`
+and a section index `boards/index.md` is `.../en/latest/boards/`. Confirmed
+against the live site on 2026-09-06 after PR #1 merged. Root-level clean URLs
+would need the project switched to single-version mode on Read the Docs and
+the `dirhtml` builder; neither is done.
+
 After a page is published, the source Markdown file in the owning repository
 is replaced by:
 
 ```markdown
 # <original title>
 
-This page has moved to <https://docs.fpgas.online/<path>/>.
+This page has moved to <https://docs.fpgas.online/en/latest/<path>.html>.
 ```
 
 Reasons to stub rather than delete: existing external links keep resolving,
