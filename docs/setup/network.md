@@ -293,14 +293,49 @@ its own (the NeTV2 hosts and the Fomu), and fleet Pis are PoE-powered, so it
 supplies PoE too and has its own separate write community. A board on switch 1
 needs that one, not the S3300's.
 
-:::{todo}
-No runnable command for the Welland manual PoE cycle is recorded anywhere —
-not in the infra repository, not in test-designs, not on the site pages. The
-remedy above names the switch and the credential but not the invocation. Record
-one: the management host to target, the PoE OID for the S3300, and the on/off
-values to set — and the same three for the GSM7252PS. Until then the only
-written PoE procedure that can be pasted is the PS1 one, which points at a
-different switch with a different OID.
+### Runnable Welland PoE cycle
+
+Both Welland switches answer the **standard** `POWER-ETHERNET-MIB`
+(`pethPsePortAdminEnable`, OID `1.3.6.1.2.1.105.1.1.1.3.1.<port>`) over SNMPv2c,
+so a manual PoE cycle is a plain `snmpset`. Run it **from
+[tweed](../sites/welland.md#gateway-tweed)**, which reaches the switch
+management network (10.1.5.0/24) over its default route through ten64 — the
+same reachability `fpgas-switch-setup` needs. The port number is the switch
+port the Pi is plugged into (`p` in the [derivation table](#two-addressing-schemes)),
+not a VLAN or an address.
+
+| Switch | Mgmt IP | Carries |
+|---|---|---|
+| GSM7252PS (**sw1**) | 10.1.5.23 | NeTV2 hosts (ports 10, 12, 14, 16, 18) and the Fomu (17) |
+| S3300-52X-PoE+ (**sw2**) | 10.1.5.11 | Tiny Tapeout and Acorn hosts |
+
+```console
+$ # set this out of band; it is the switch's SNMPv2c write community, never in a
+$ # commit. Netgear's factory defaults are public (read) / private (write); the
+$ # fleet's switches also answer to pib. Use the write community for that switch.
+$ export SW=10.1.5.23 COMMUNITY='<switch-write-community>' PORT=14
+$ OID=1.3.6.1.2.1.105.1.1.1.3.1.$PORT
+$ # read admin state (1 = on, 2 = off) and delivery (.6.1.<port>: 3 = deliveringPower)
+$ snmpget -v2c -c "$COMMUNITY" -Ovq $SW $OID 1.3.6.1.2.1.105.1.1.1.6.1.$PORT
+$ # power-cycle: off, wait, on
+$ snmpset -v2c -c "$COMMUNITY" $SW $OID i 2 && sleep 6 && snmpset -v2c -c "$COMMUNITY" $SW $OID i 1
+```
+
+The board is gone for the netboot time below (roughly a minute for a Pi 3B+,
+more than 90 s for a Pi 5). Verified 2026-09-06 by cycling all five NeTV2 ports
+on sw1 and watching them netboot back within ~48 s.
+
+This is the same standard PoE MIB the [test-designs `verify_hardware.py`
+harness](https://github.com/fpgas-online/fpgas.online-test-designs) `poe_reset`
+uses; it differs from the [PS1 switch](../sites/ps1.md#power-control), which
+answers only a Netgear-private OID.
+
+:::{note}
+This manual `snmpset` path is the working Welland PoE control today. The scripted
+`poe.sh` / `allpoe.sh` above are still the PS1 path and remain broken on tweed
+until `snmp.yml` and the `/etc/environment.export` filename split are fixed (the
+warning and todo below). The `switch:` block in Welland's `host_vars` still points
+`poe.sh` at 10.21.0.200, an address the per-port firewall no longer routes.
 :::
 
 :::{note}

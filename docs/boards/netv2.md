@@ -100,9 +100,10 @@ multiple JTAG transports over the same GPIO wiring.
 
 #### RPi 3B+ (GPIO bitbang, current deployed hosts)
 
-On RPi 3B+ hosts (pi10, pi12, pi14 and pi16 — pi18 was offline at the
-2026-03-17 survey; see [NeTV2](../sites/welland.md#netv2)), openFPGALoader uses
-`libgpiod` to drive the JTAG signals through the Linux GPIO subsystem:
+On the five production RPi 3B+ hosts (pi-sw1-p10, p12, p14, p16 and p18 — all
+online and JTAG-verified 2026-09-06; see [NeTV2](../sites/welland.md#netv2)),
+openFPGALoader uses `libgpiod` to drive the JTAG signals through the Linux GPIO
+subsystem:
 
 ```console
 $ sudo openFPGALoader --cable libgpiod --pins 27:22:4:17 design.bit
@@ -119,22 +120,26 @@ Pin order: `TDI:TDO:TCK:TMS`.
 This works but is slow (~5 MHz effective JTAG clock) due to GPIO bitbang
 overhead.
 
-:::{todo}
-The sources disagree on what actually programs the production RPi 3B+ boards,
-and the Welland survey of 2026-03-17 contradicts itself:
+:::{warning}
+On these hosts the FPGA's serial-TX pin is the Pi's kernel-console UART. Until
+[infra PR #75](https://github.com/fpgas-online/fpgas.online-infra/pull/75)
+(deployed 2026-09-06) a bitstream that drove that line crashed the netbooted Pi
+via SysRq. Boards that netbooted after that fix are safe (`kernel.sysrq` reads
+0 and the cmdline has no `console=serial0`); if you meet one that has not been
+re-cycled, set `sudo sysctl -w kernel.sysrq=0` before programming. See the
+[NeTV2 site notes](../sites/welland.md#netv2).
+:::
 
-- The board specification (undated) gives the openFPGALoader `libgpiod`
-  commands above.
-- The survey's host inventory says each production NeTV2 "is programmed via
-  OpenOCD GPIO bitbang JTAG through the RPi's GPIO header".
-- The same survey's programming-methods section lists the NeTV2 under
-  openFPGALoader, with the same GPIO-to-JTAG pin table as above.
-
-That is 2-1 for openFPGALoader, so expect openFPGALoader `libgpiod` to be what
-is installed and the inventory line to be the stale one — the wiring is
-identical either way, so the sentence would have stayed true after a tool
-change. Confirm on one of pi10, pi12, pi14 or pi16, keep the winner and record
-the date.
+:::{note}
+**Confirmed 2026-09-06**: the production RPi 3B+ hosts program with
+openFPGALoader `libgpiod`, exactly the command above. All five (pi-sw1-p10, p12,
+p14, p16, p18) ran
+`sudo openFPGALoader --cable libgpiod --pins 27:22:4:17 --detect` and enumerated
+their Artix-7 XC7A35T (`idcode 0x0362d093`, IR length 6); p14 and p16 were also
+loaded with a real bitstream this way. The netboot image ships openFPGALoader
+and has no `~/netv2/` OpenOCD config, so the "programmed via OpenOCD" line in the
+2026-03-17 inventory was the stale one — the GPIO-to-JTAG wiring is identical
+either way. See [NeTV2](../sites/welland.md#netv2).
 :::
 
 #### RPi 5 (GPIO bitbang, slow)
@@ -261,11 +266,15 @@ Which kernel device the GPIO UART appears as depends on the Raspberry Pi model:
 | ---------- | -------------------- | ---------------- | ----------------------------------- |
 | rpi5-netv2 | `/dev/ttyAMA0`       | —                | RP1 PL011 UART on GPIO14/15         |
 | rpi3-netv2 | `/dev/ttyS0`         | `/dev/serial0`   | Mini UART (Bluetooth claims PL011)  |
+| production RPi 3B+ (pi-sw1-p10…p18) | `/dev/ttyAMA0` | `/dev/serial0` | PL011 on GPIO14/15; Bluetooth disabled on the netboot image |
 
-The production RPi 3B+ hosts are not in this table. By the same reasoning they
-should also be on the mini UART at `/dev/ttyS0`, but that is an inference from
-the Pi 3 model, not a measurement: the 2026-03-17 Welland survey wrote
-`/dev/ttyAMA0` for them. Check before relying on it.
+**Measured 2026-09-06** on the production hosts: `/dev/serial0` is a symlink to
+`ttyAMA0`, not `ttyS0`. Unlike the stock rpi3-netv2 image, the netboot image
+disables Bluetooth, so the PL011 (`ttyAMA0`) is free for the GPIO header and
+`serial0` points at it. The test tracer opened `/dev/serial0` and read the
+FPGA's UART there. So on these hosts the GPIO UART is `/dev/serial0` →
+`/dev/ttyAMA0`; the "should be `ttyS0`" inference does not hold for this image.
+It must be opened with `sudo` — the `pi` user is not in the `dialout` group.
 
 ### rpi5-netv2 Specifics
 

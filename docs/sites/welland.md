@@ -28,7 +28,7 @@ Internet ─── eth-uplink ──│  Debian 13 (trixie)                │
   │ +PMOD HAT │  │ (GPIO     │  │ +Acorn    │  │ demo board│  │ Demo Board│
   │ +USB Eth  │  │  JTAG)    │  │  CLE-215+ │  │ +PMOD HAT │  │ +PMOD HAT │
   └───────────┘  └───────────┘  └───────────┘  └───────────┘  └───────────┘
-   (sw2 p38 +…)   (sw1 ×4)      (sw2 ×6)       (sw2 p3–p8)     (sw2 p33–36)
+   (sw2 p38 +…)   (sw1 ×5)      (sw2 ×6)       (sw2 p3–p8)     (sw2 p33–36)
                                             + Fomu EVT on sw1 p17
 ```
 
@@ -181,15 +181,17 @@ reboot because the file no longer exists.
 ## Hosts and boards
 
 The Acorn, Tiny Tapeout ASIC and Tiny Tapeout FPGA sections were re-verified
-live on 2026-09-03 under the VLAN-per-port scheme. The Arty A7, NeTV2 and Fomu
-sections still carry the pre-cutover names and addresses from the 2026-03-17
-survey; their `Switch Port` values are the old flat port numbers, which did not
-carry a switch index, so they are written `p7` rather than `sw1 p7` — and `p7`
-in the stale Arty table is not the `sw2 p7` that now carries TT07.
+live on 2026-09-03 under the VLAN-per-port scheme, and the NeTV2 section on
+2026-09-06. The Arty A7 and Fomu sections still carry the pre-cutover names and
+addresses from the 2026-03-17 survey; their `Switch Port` values are the old
+flat port numbers, which did not carry a switch index, so they are written `p7`
+rather than `sw1 p7` — and `p7` in the stale Arty table is not the `sw2 p7` that
+now carries TT07.
 
 :::{todo}
-Re-probe the Arty, NeTV2 and Fomu hosts under the VLAN-per-port scheme and
-replace the 2026-03-17 rows below with measured ones.
+Re-probe the Arty and Fomu hosts under the VLAN-per-port scheme and replace the
+2026-03-17 rows below with measured ones. The NeTV2 section was re-probed
+2026-09-06.
 :::
 
 :::{todo}
@@ -242,30 +244,55 @@ Source: `lsusb` and `ls /dev/serial/by-id/` on each RPi, dnsmasq pibs.conf.
 
 ### NeTV2
 
-Surveyed 2026-03-17. Five boards, on RPi 3B+ hosts with GPIO JTAG. Four of them
-are the working fleet; **pi18** is the odd one out — it was already offline at
-the survey and the 2026-08-30 inventory sheet does not place it on a port, which
-is why the network diagram counts only four NeTV2 hosts on sw1.
+Re-verified live 2026-09-06 under the VLAN-per-port scheme. **Five** boards on
+RPi 3B+ hosts with GPIO JTAG, all five online — including **pi-sw1-p18**, which
+earlier surveys had as offline. Each is on switch 1 at the port in its name,
+`10.21.1.<port>`, and all five netboot the shared bookworm NFS root reliably.
 
-| Host | Switch Port | IP (retired) | RPi MAC           | RPi Model   | FPGA    | FPGA DNA           |
-| ---- | ----------- | ------------ | ----------------- | --------------- | ------- | ------------------ |
-| pi10 | p10         | 10.21.0.110  | b8:27:eb:e3:e7:e4 | RPi 3B+ 1 GB     | XC7A35T | 0x2a11a4c662251c6f |
-| pi12 | p12         | 10.21.0.112  | b8:27:eb:eb:5d:bf | RPi 3B+ 1 GB     | XC7A35T | 0x3a11a4c662372a6b |
-| pi14 | p14         | 10.21.0.114  | b8:27:eb:e3:7c:3c | RPi 3B+ 1 GB     | XC7A35T | 0x3a11dcc864222e93 |
-| pi16 | p16         | 10.21.0.116  | b8:27:eb:c6:29:79 | RPi 3B+ 1 GB     | XC7A35T | 0x2a11a4c662372a53 |
-| pi18 | p18         | 10.21.0.118  | b8:27:eb:2c:e8:de | RPi 3B+ 1 GB     | XC7A35T | 0x3a11dcc864241c0b |
+| Host | Switch Port | IP | RPi MAC | FPGA | FPGA DNA | JTAG detect | Old name |
+| ---- | ----------- | -- | ------- | ---- | -------- | ----------- | -------- |
+| pi-sw1-p10 | sw1 p10 | 10.21.1.10 | b8:27:eb:e3:e7:e4 | XC7A35T | 0x2a11a4c662251c6f | `0x0362d093` OK | pi10 |
+| pi-sw1-p12 | sw1 p12 | 10.21.1.12 | b8:27:eb:eb:5d:bf | XC7A35T | 0x3a11a4c662372a6b | `0x0362d093` OK | pi12 |
+| pi-sw1-p14 | sw1 p14 | 10.21.1.14 | b8:27:eb:e3:7c:3c | XC7A35T | 0x3a11dcc864222e93 | `0x0362d093` OK | pi14 |
+| pi-sw1-p16 | sw1 p16 | 10.21.1.16 | b8:27:eb:c6:29:79 | XC7A35T | 0x2a11a4c662372a53 | `0x0362d093` OK | pi16 |
+| pi-sw1-p18 | sw1 p18 | 10.21.1.18 | b8:27:eb:2c:e8:de | XC7A35T | 0x3a11dcc864241c0b | `0x0362d093` OK | pi18 |
 
-:::{note}
-The 2026-08-30 hardware inventory sheet places the other four NeTV2 Pis at
-sw1 p10, p12, p14 and p16, with the same MACs as pi10, pi12, pi14 and pi16.
-These addresses no longer resolve; derive the current name and address from the
-switch port using [Network and power](../setup/network.md).
+The RPi models and DNAs are carried forward from the 2026-03-17 survey; the
+MACs, addresses, reachability and the **JTAG detect** column are the 2026-09-06
+re-probe. Every node enumerated its NeTV2's Artix-7 XC7A35T (`idcode
+0x0362d093`, IR length 6) over GPIO bit-bang JTAG with
+`sudo openFPGALoader --cable libgpiod --pins 27:22:4:17 --detect`. The FPGA DNA
+(a different identifier from the JTAG IDCODE) was not re-read.
+
+No USB serial devices: the NeTV2 uses GPIO UART on `/dev/serial0` (which is
+`ttyAMA0` on these netboot images), and JTAG is bit-banged on the Pi's GPIO
+header. See [Kosagi NeTV2](../boards/netv2.md).
+
+:::{warning}
+**An FPGA load used to crash these hosts.** The netboot cmdline put the kernel
+console on `console=serial0,115200`, which on a Pi 3B+ is the very pin the
+NeTV2's FPGA drives; a test bitstream feeding that line made the kernel parse a
+byte as a SysRq `reboot`/`crash`/`poweroff` and hard-crashed the netbooted Pi.
+Fixed 2026-09-06 in
+[infra PR #75](https://github.com/fpgas-online/fpgas.online-infra/pull/75):
+the generic `cmdline.txt.j2` no longer sets a serial console and a sysctl
+drop-in sets `kernel.sysrq = 0`. Deployed to tweed and confirmed on all five —
+a node loaded with a serial-driving bitstream now stays up. Note that removing
+`console=serial0` alone does **not** unregister `ttyAMA0` (the device-tree
+`stdout-path` still does), so the `sysrq=0` half is the load-bearing protection.
 :::
 
-No USB serial devices: the NeTV2 uses GPIO UART, and JTAG is bit-banged on the
-Pi's GPIO header. See [Kosagi NeTV2](../boards/netv2.md).
+Access is over GPIO JTAG and GPIO UART only; there is no per-Pi web page for
+these hosts yet, and they are not listed on
+[welland.fpgas.online](https://welland.fpgas.online) (see the Web application
+todo). Reach one through the gateway, e.g. from this workstation over the
+`wg-desktop` route: `ssh -J tim@tweed.welland.mithis.com pi@10.21.1.14` (the
+`pi` user has passwordless sudo; `root` is not authorised). From ten64 use the
+`ansible@10.99.21.2` jump described under [Gateway: tweed](#gateway-tweed).
 
-Source: dnsmasq pibs.conf, `lsusb` on pi10.
+Source: live re-probe of all five hosts 2026-09-06 (ping/ARP/NFS from tweed,
+`openFPGALoader --detect`, `/proc/cmdline`, `kernel.sysrq`); models and DNAs
+from the 2026-03-17 survey.
 
 ### SQRL Acorn CLE-215+
 
@@ -494,7 +521,8 @@ Source: `pibs.conf` on tweed.
 - **Legacy entries from the 2026-03-17 survey** (not re-checked):
   - pi9 Arty A7: FTDI disconnected, so no USB serial devices are present and the
     board cannot be programmed or tested until the USB connection is restored.
-  - pi18 NeTV2: offline.
+  - ~~pi18 NeTV2: offline.~~ Resolved: pi-sw1-p18 is online and netbooting as of
+    the [NeTV2 re-probe 2026-09-06](#netv2).
   - pi21: Cythion/LUNA and Fomu offline.
   - The former "pi19 TT ASIC (version unconfirmed)" is TT07, now pi-sw2-p7 and
     online.
