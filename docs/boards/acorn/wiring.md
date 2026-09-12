@@ -186,8 +186,7 @@ PR #32](https://github.com/fpgas-online/fpgas.online-infra/pull/32) (rolled out
 2026-08-30) and asserted by its `verify-pi.yml --tags uart` play. Verified live
 2026-09-03 on all six Welland Acorn hosts: `/dev/ttyAMA0` present,
 `console=ttyAMA10`, `serial-getty@ttyAMA0` inactive. The same three facts are
-summarised under [Raspberry Pi 5
-specifics](../../sites/welland.md#raspberry-pi-5-specifics).
+summarised under [Raspberry Pi 5](../../setup/pi.md#raspberry-pi-5).
 
 :::{warning}
 **Hazard — never drive a Pi GPIO against an FPGA output.** With the pin-ID

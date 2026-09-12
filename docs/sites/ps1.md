@@ -10,21 +10,6 @@ Acorn boards in the M.2 slot.
 Of the four [blades](#compute-blades), **pi14**, **pi16** and **pi20** carry an
 Acorn; **pi18**'s M.2 slot is empty.
 
-## CM4 and CM5 are not interchangeable
-
-This is the single most useful thing to know about the site.
-
-CM4 (pi14, pi18)
-: `GPIO14 = TXD0` and `GPIO15 = RXD0` at **alt0**, on BCM2711 serial blocks.
-  Only `/dev/ttyAMA0` exists. There is no mux option that makes GPIO15 a
-  transmitter, so the FPGA's TX **must** land on GPIO15. One correct wiring, no
-  software escape.
-
-CM5 Lite (pi16, pi20)
-: `GPIO14/15` at **alt4** on the RP1, with `/dev/ttyAMA0` and `/dev/ttyAMA10`.
-  Like the Pi 5, the RP1 offers several UART instances plus PIO, so pins can be
-  reassigned in software.
-
 ## Gateway: val2
 
 From the site notes and the infra `host_vars/ps1.fpgas.online.yml`; not

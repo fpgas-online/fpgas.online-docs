@@ -101,8 +101,7 @@ because enabling `uart0` makes the firmware resolve `console=serial0` to
 `ttyAMA0` — which on these hosts is wired to the FPGA. A design driving that pin
 would then feed the kernel console garbage that SysRq reads as reboot or crash.
 Pinning the Pi 5s to their dedicated debug UART keeps the console off the FPGA
-and leaves `/dev/ttyAMA0` free. See
-[Raspberry Pi 5 specifics](../sites/welland.md#raspberry-pi-5-specifics).
+and leaves `/dev/ttyAMA0` free. See [Raspberry Pi 5](pi.md#raspberry-pi-5).
 
 ### The export is read-only
 

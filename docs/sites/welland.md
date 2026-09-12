@@ -99,23 +99,6 @@ deliberate (the fleet is administered from Chicago) or a copy-paste from the
 PS1 host_vars.
 :::
 
-## Raspberry Pi 5 specifics
-
-`gpiochip`
-: The 40-pin header GPIOs are on **gpiochip15**, not gpiochip0. Tools that
-  hardcode `/dev/gpiochip0` — including openFPGALoader 0.10.0 — fail here.
-
-`dtoverlay=disable-bt`
-: A no-op on the Pi 5. The overlay is `compatible="brcm,bcm2835"` and resolves
-  to `disable-bt-pi5.dtbo`, which only touches the `bluetooth` node; the header
-  UART stays disabled. Use `dtoverlay=uart0-pi5` instead, which is what the NFS
-  root now carries
-  ([infra PR #32](https://github.com/fpgas-online/fpgas.online-infra/pull/32)).
-
-`/dev/ttyAMA0` vs `/dev/ttyAMA10`
-: `ttyAMA0` is the RP1 header UART; `ttyAMA10` is the dedicated debug UART. The
-  NFS root boots with `console=ttyAMA10` so that `ttyAMA0` is free for the FPGA.
-
 ## PCIe and JTAG interact
 
 :::{warning}

@@ -267,14 +267,50 @@ and are described under
 
 ## Model differences
 
-The fleet runs several Pi models off one root, and the differences that bite
-are documented where they were found:
+The fleet runs several Pi models off one root. The differences that bite are
+recorded here, or on the page where they were found.
 
-- **Raspberry Pi 5** — header GPIOs on `gpiochip15` not `gpiochip0`,
-  `disable-bt` a no-op, `ttyAMA0` versus `ttyAMA10`:
-  [Raspberry Pi 5 specifics](../sites/welland.md#raspberry-pi-5-specifics).
-- **CM4 versus CM5** — not drop-in replacements for each other:
-  [CM4 and CM5 are not interchangeable](../sites/ps1.md#cm4-and-cm5-are-not-interchangeable).
+### Raspberry Pi 5
+
+`gpiochip`
+: The 40-pin header GPIOs are on **gpiochip15**, not gpiochip0. Tools that
+  hardcode `/dev/gpiochip0` — including openFPGALoader 0.10.0 — fail here.
+
+`dtoverlay=disable-bt`
+: A no-op on the Pi 5. The overlay is `compatible="brcm,bcm2835"` and resolves
+  to `disable-bt-pi5.dtbo`, which only touches the `bluetooth` node; the header
+  UART stays disabled. Use `dtoverlay=uart0-pi5` instead, which is what the NFS
+  root now carries ([infra
+  PR #32](https://github.com/fpgas-online/fpgas.online-infra/pull/32)) — with
+  the console consequences described under [Boot-time
+  configuration](#boot-time-configuration).
+
+`/dev/ttyAMA0` vs `/dev/ttyAMA10`
+: `ttyAMA0` is the RP1 header UART; `ttyAMA10` is the dedicated debug UART. The
+  NFS root boots with `console=ttyAMA10` so that `ttyAMA0` is free for the FPGA.
+
+### Compute Module 4 versus Compute Module 5
+
+The two modules are not drop-in replacements for each other, whichever carrier
+they are plugged into.
+
+CM4
+: `GPIO14 = TXD0` and `GPIO15 = RXD0` at **alt0**, on BCM2711 serial blocks.
+  Only `/dev/ttyAMA0` exists. There is no mux option that makes GPIO15 a
+  transmitter, so the FPGA's TX **must** land on GPIO15. One correct wiring, no
+  software escape.
+
+CM5 Lite
+: `GPIO14/15` at **alt4** on the RP1, with `/dev/ttyAMA0` and `/dev/ttyAMA10`.
+  Like the Pi 5, the RP1 offers several UART instances plus PIO, so pins can be
+  reassigned in software.
+
+Which module a host carries is inventory: at PS1, for example, pi14 and pi18
+are CM4 and pi16 and pi20 are CM5 Lite — see [Compute
+blades](../sites/ps1.md#compute-blades).
+
+### Raspberry Pi 3 and 3B+
+
 - **Raspberry Pi 3** — the mini UART on the header and what `disable-bt`
   actually does there, per host:
   [Serial device by host](../boards/netv2.md#serial-device-by-host).
