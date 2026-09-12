@@ -41,7 +41,7 @@ Headings get anchors down to three levels, so you can link to a section of
 another page directly:
 
 ```markdown
-See [the PS1 traps](sites/ps1.md#two-traps).
+See [the Compute Blade wiring](boards/acorn/wiring.md#compute-blade-wiring-variant).
 ```
 
 Wide tables scroll sideways rather than being split. A table of dense

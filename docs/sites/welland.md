@@ -99,85 +99,6 @@ deliberate (the fleet is administered from Chicago) or a copy-paste from the
 PS1 host_vars.
 :::
 
-## Wiring
-
-JTAG and the serial pair are on separate GPIOs here, which is why a design that
-drives the FPGA's TX does not cost you JTAG the way it does at
-[PS1](ps1.md#two-traps).
-
-| Signal | GPIO | Header pin |
-|---|---|---|
-| TCK | 11 | 23 |
-| TDI | 10 | 19 |
-| TDO | 9 | 21 |
-| TMS | 8 | 24 |
-
-```console
-$ openFPGALoader --cable libgpiod --pins 10:9:11:8 --detect
-```
-
-The P2 serial pair is a **null-modem crossover**, the same as at PS1: the
-crossover is the fleet standard, not a Compute Blade special case. Measured on
-2026-08-31 with the [pin-ID design](../boards/pin-id.md) on pi-sw2-p29, p46 and
-p48; p47 has both pairs transposed (see [Known faults](#known-faults)), and p43
-and p44 could not be read because JTAG scans an empty chain there.
-
-| P2 ball | lands on | RPi function |
-|---|---|---|
-| K2 (FPGA TX) | GPIO15 | RXD0 — the Pi receives |
-| J2 (FPGA RX) | GPIO14 | TXD0 — the Pi sends |
-
-:::{note}
-Until 2026-09-03 this page recorded the opposite — K2 straight through to
-GPIO14 — and called the crossover a PS1 peculiarity. That was a documentation
-error, not a difference between the sites: it wired transmitter into
-transmitter, which cannot work with the hardware UART (`/dev/ttyAMA0`) every
-host and test script uses. Corrected here from the 2026-08-31 pin-ID
-measurements.
-:::
-
-Both tables are the Acorn on a Pi 5; the connector pinout they are measured
-against, and the full per-pin survey behind them, are on
-[Acorn wiring](../boards/acorn/wiring.md).
-
-## Raspberry Pi 5 specifics
-
-`gpiochip`
-: The 40-pin header GPIOs are on **gpiochip15**, not gpiochip0. Tools that
-  hardcode `/dev/gpiochip0` — including openFPGALoader 0.10.0 — fail here.
-
-`dtoverlay=disable-bt`
-: A no-op on the Pi 5. The overlay is `compatible="brcm,bcm2835"` and resolves
-  to `disable-bt-pi5.dtbo`, which only touches the `bluetooth` node; the header
-  UART stays disabled. Use `dtoverlay=uart0-pi5` instead, which is what the NFS
-  root now carries
-  ([infra PR #32](https://github.com/fpgas-online/fpgas.online-infra/pull/32)).
-
-`/dev/ttyAMA0` vs `/dev/ttyAMA10`
-: `ttyAMA0` is the RP1 header UART; `ttyAMA10` is the dedicated debug UART. The
-  NFS root boots with `console=ttyAMA10` so that `ttyAMA0` is free for the FPGA.
-
-## PCIe and JTAG interact
-
-:::{warning}
-Reconfiguring the FPGA over JTAG while its PCIe endpoint is enumerated is a
-surprise removal, and it crashes the BCM2712 root complex. Detach the endpoint
-first.
-:::
-
-```console
-$ echo 1 | sudo tee /sys/bus/pci/devices/0001:01:00.0/remove
-```
-
-Restore it with `/sys/bus/pci/rescan`, or by rebooting.
-
-:::{warning}
-The root filesystem is a read-only NFS export with a tmpfs overlay
-(`overlayroot=tmpfs`), so anything staged in `/home/pi` is gone after a reboot.
-A bitstream that loaded a minute ago will fail with `Open file … FAIL` after a
-reboot because the file no longer exists.
-:::
-
 ## Hosts and boards
 
 The Acorn, Tiny Tapeout ASIC and Tiny Tapeout FPGA sections were re-verified
@@ -305,7 +226,12 @@ from the 2026-03-17 survey.
 
 ### SQRL Acorn CLE-215+
 
-Probed 2026-09-03. Six boards deployed, on RPi 5 hosts with an M.2 HAT.
+Probed 2026-09-03. Six boards deployed, on RPi 5 hosts with an M.2 HAT — the
+[Raspberry Pi 5 carrier](../boards/acorn/wiring.md) wiring variant, with JTAG
+on its own GPIOs (`--pins 10:9:11:8`) and both spare balls wired. The per-pin
+measurements behind the JTAG and P2 columns are under [Measured P2 wiring on
+Raspberry Pi 5
+hosts](../boards/acorn/wiring.md#measured-p2-wiring-on-raspberry-pi-5-hosts).
 
 ```{rst-class} nowrap
 ```
@@ -334,7 +260,8 @@ cycle, taking more than 90 s to come back.
 
 Source: live probe of all six hosts 2026-09-03 (`/proc/device-tree/model`,
 `/proc/cpuinfo`, `lspci -nn`, `/proc/cmdline`, `openFPGALoader --Version`);
-JTAG and P2 columns from the 2026-08-31 pin-ID survey.
+JTAG and P2 columns from the [2026-08-31 pin-ID
+survey](../boards/acorn/wiring.md#measured-p2-wiring-on-raspberry-pi-5-hosts).
 
 ### Fomu EVT
 
@@ -441,69 +368,6 @@ under `/root/fpgas-tt-setup/fpga-backup/<host>/` and pushed back. See
 
 Source: live probe 2026-09-03 (`lsusb`, `/dev/serial/by-id`, daemon `/health`).
 
-### NeTV2 development hosts, separate network
-
-Probed 2026-03-09. Two NeTV2 hosts sit outside the tweed network, on
-`iot.welland.mithis.com`, reachable over `wg-desktop` rather than through the
-gateway.
-
-```{rst-class} nowrap
-```
-
-| Host                              | IP (via DNS)    | RPi Model             | Board                  | Connections         | SSH                                                        |
-| --------------------------------- | --------------- | --------------------- | ---------------------- | ------------------- | ---------------------------------------------------------- |
-| `rpi5-netv2.iot.welland.mithis.com` | 10.1.90.210/211 | RPi 5 Model B Rev 1.0 | NeTV2 (bare developer) | GPIO + PCIe Gen2 x1 | `tim@rpi5-netv2.iot.welland.mithis.com` (via `wg-desktop`) |
-| `rpi3-netv2.iot.welland.mithis.com` | 10.1.90.212/213 | RPi 3                 | NeTV2 (stock packaged) | GPIO only           | `pi@rpi3-netv2.iot.welland.mithis.com` (via `wg-desktop`)  |
-
-**rpi5-netv2**, verified over SSH 2026-03-09: Debian 13 (Trixie), kernel
-6.12.47+rpt-rpi-2712 aarch64; OpenOCD installed but no openFPGALoader and no
-LiteX; an ASIX AX88179 Gigabit Ethernet adapter is the only USB device, so
-there is no FTDI JTAG adapter and no USB serial device; only the RP1 south
-bridge is visible on PCIe, so the NeTV2 FPGA is not enumerating.
-
-### PMOD HAT development hosts, separate network
-
-Surveyed 2026-03-17.
-
-```{rst-class} nowrap
-```
-
-| Host                             | RPi Model | Notes             |
-| -------------------------------- | --------------- | ----------------- |
-| `rpi5-pmod.iot.welland.mithis.com` | RPi 5           | PMOD HAT dev host |
-| `rpi4-pmod.iot.welland.mithis.com` | RPi 4           | PMOD HAT dev host |
-
-## Interfaces
-
-How each board type reaches its Raspberry Pi at this site. The pin mappings are
-board facts and live on the board pages.
-
-| Board type | Physical interface(s) to the Pi | Board page |
-|---|---|---|
-| Arty A7-35T | USB to an FTDI FT2232 — JTAG on `ttyUSB0`, 115200 baud UART on `ttyUSB1`; PMOD HAT | [Arty A7](../boards/arty-a7.md) |
-| NeTV2 | GPIO bit-bang JTAG; GPIO UART (`/dev/ttyS0` on the Pi 3B+ hosts, `/dev/ttyAMA0` on a Pi 5; see the board page); PCIe Gen2 x1 and a secondary UART on the PCIe "hax" pins, Pi 5 only | [Kosagi NeTV2](../boards/netv2.md) |
-| SQRL Acorn CLE-215+ | GPIO bit-bang JTAG (P1); GPIO UART (P2) on `/dev/ttyAMA0`; PCIe through the M.2 HAT | [SQRL Acorn](../boards/acorn/index.md) |
-| Fomu EVT | Native USB (ValentyUSB), programmed over DFU with a USB analyzer inline; the board also sits on the GPIO header, so the test UART is the Pi's own GPIO UART at 115200 on `/dev/serial0` (iCE40 pins 13/21 to GPIO14/15) plus one confirmed GPIO loopback pair | [Fomu EVT](../boards/fomu-evt.md) |
-| Tiny Tapeout ASIC | USB to the RP2040 as `/dev/ttboard`; PMOD HAT | [Tiny Tapeout ASIC](../boards/tt-asic.md) |
-| Tiny Tapeout FPGA demo | USB-C to the RP2350 as `/dev/ttboard`; PMOD HAT | [Tiny Tapeout FPGA](../boards/tt-fpga.md) |
-
-The Digilent PMOD HAT is fitted on the Arty A7, Tiny Tapeout ASIC and Tiny
-Tapeout FPGA hosts, breaking Pi GPIOs out to three standard 12-pin PMOD ports
-(JA, JB, JC); see [Raspberry Pi PMOD HAT](../boards/pmod/rpi-hat.md).
-
-## Test execution flow
-
-1. **Boot.** The Pi PXE-boots from tweed over TFTP onto the shared read-only
-   NFS root.
-2. **Program the FPGA.** openFPGALoader over USB FTDI JTAG (Arty), over GPIO
-   bit-bang JTAG (NeTV2, and Acorn with the PCIe endpoint detached first), or
-   over USB DFU (Fomu); RP2040 (TT ASIC) / RP2350 (TT FPGA), MicroPython, via
-   `/dev/ttboard` (owned by the `fpgas-tt` daemon).
-3. **Run the harness.** Open the serial port — `ttyUSB1`, `/dev/ttyAMA0` or
-   `/dev/ttboard` — and drive the design.
-4. **Collect results.** Parse the UART output for PASS/FAIL, check PCIe
-   enumeration (NeTV2), verify the PMOD loopback signals (Arty).
-
 ## Disconnected hosts
 
 Surveyed 2026-03-17.
@@ -543,8 +407,6 @@ Source: `pibs.conf` on tweed.
   `ESTALE` on the replaced files — cameras off air on 11 boards; on 2026-09-03
   the TT hosts still showed `dpkg-query … Stale file handle`. Only a reboot
   fixes it. Expect it after any NFS-root package update.
-- **rpi5-netv2**: the NeTV2 FPGA is not visible on the PCIe bus — it needs a
-  bitstream loaded first.
 - **Legacy entries from the 2026-03-17 survey** (not re-checked):
   - pi9 Arty A7: FTDI disconnected, so no USB serial devices are present and the
     board cannot be programmed or tested until the USB connection is restored.

@@ -33,9 +33,12 @@ $ echo 1 | sudo tee /sys/bus/pci/devices/0001:01:00.0/remove
 $ echo 1 | sudo tee /sys/bus/pci/rescan
 ```
 
-Every Welland Pi 5 host uses `0001:01:00.0`; the same rule and the same command
-are on the site page under [PCIe and JTAG
-interact](../../sites/welland.md#pcie-and-jtag-interact). At PS1 the address
+The rule is the root complex's, not the Acorn's: it applies to any PCIe FPGA
+on a Pi 5, the NeTV2 on `rpi5-netv2` included ([PCIe
+detection](../netv2.md#pcie-detection-rpi5-netv2)).
+
+Every Welland Pi 5 host uses `0001:01:00.0` ([SQRL Acorn
+CLE-215+](../../sites/welland.md#sqrl-acorn-cle-215)). At PS1 the address
 differs per host — `0000:01:00.0` on pi14, `0001:01:00.0` on pi16 and pi20 — so
 read it from the `PCIe Bus` column in [Compute
 blades](../../sites/ps1.md#compute-blades).
@@ -74,8 +77,8 @@ be rebuilt with Vivado until a newer release is cut.
 :::
 
 :::{todo}
-Two pages disagree about that one asset. [Measured P2 wiring at
-Welland](wiring.md#measured-p2-wiring-at-welland) says the survey
+Two pages disagree about that one asset. [Measured P2 wiring on Raspberry Pi 5
+hosts](wiring.md#measured-p2-wiring-on-raspberry-pi-5-hosts) says the survey
 was read off with "the fixed pin-ID bitstream" and names exactly this release
 asset, `pmod-pin-id_acorn-cle-215p_vivado-vivado_sqrl_acorn.bit`. This section
 says that asset predates PR #10 and never toggles a pin. Either the release does

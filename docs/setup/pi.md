@@ -229,8 +229,9 @@ dtoverlay=dwc2,dr_mode=peripheral
   kernel reads as SysRq. That is what `cmdline=cmdline-pi5.txt` is for: it
   swaps in a command line with `console=ttyAMA10,115200`, the dedicated debug
   UART, leaving `ttyAMA0` unclaimed. The rest of both command lines is on
-  [the kernel command line](netboot.md#the-kernel-command-line); PS1 hit the
-  SysRq failure for real, recorded under [Two traps](../sites/ps1.md#two-traps).
+  [the kernel command line](netboot.md#the-kernel-command-line); the Compute
+  Blades hit the SysRq failure for real, recorded under [kernel console
+  SysRq](../boards/acorn/wiring.md#known-issue-kernel-console-sysrq-on-the-fpga-uart).
 
 `dtoverlay=dwc2,dr_mode=peripheral`
 : Pi 4 and Pi 5 only. Their USB-C port is a dwc2 OTG controller the firmware
@@ -266,20 +267,65 @@ and are described under
 
 ## Model differences
 
-The fleet runs several Pi models off one root, and the differences that bite
-are documented where they were found:
+The fleet runs several Pi models off one root. The differences that bite are
+recorded here, or on the page where they were found.
 
-- **Raspberry Pi 5** — header GPIOs on `gpiochip15` not `gpiochip0`,
-  `disable-bt` a no-op, `ttyAMA0` versus `ttyAMA10`:
-  [Raspberry Pi 5 specifics](../sites/welland.md#raspberry-pi-5-specifics).
-- **CM4 versus CM5** — not drop-in replacements for each other:
-  [CM4 and CM5 are not interchangeable](../sites/ps1.md#cm4-and-cm5-are-not-interchangeable).
-- **Raspberry Pi 3** — the mini UART on the header and what `disable-bt`
-  actually does there, per host:
-  [Serial device by host](../boards/netv2.md#serial-device-by-host).
-- **Raspberry Pi 3B+ USB topology** — why the gadget console is Pi 4 and Pi 5
-  only, and what a 3B+ would lose:
-  [When a Pi does not boot](netboot.md#when-a-pi-does-not-boot).
+### Raspberry Pi 5
+
+`gpiochip`
+: The 40-pin header GPIOs are on **gpiochip15**, not gpiochip0. Tools that
+  hardcode `/dev/gpiochip0` — including openFPGALoader 0.10.0 — fail here.
+
+`dtoverlay=disable-bt`
+: A no-op on the Pi 5. The overlay is `compatible="brcm,bcm2835"` and resolves
+  to `disable-bt-pi5.dtbo`, which only touches the `bluetooth` node; the header
+  UART stays disabled. Use `dtoverlay=uart0-pi5` instead, which is what the NFS
+  root now carries ([infra
+  PR #32](https://github.com/fpgas-online/fpgas.online-infra/pull/32)) — with
+  the console consequences described under [Boot-time
+  configuration](#boot-time-configuration).
+
+`/dev/ttyAMA0` vs `/dev/ttyAMA10`
+: `ttyAMA0` is the RP1 header UART; `ttyAMA10` is the dedicated debug UART. The
+  NFS root boots with `console=ttyAMA10` so that `ttyAMA0` is free for the FPGA.
+
+### Compute Module 4 versus Compute Module 5
+
+The two modules are not drop-in replacements for each other, whichever carrier
+they are plugged into.
+
+CM4
+: `GPIO14 = TXD0` and `GPIO15 = RXD0` at **alt0**, on BCM2711 serial blocks.
+  Only `/dev/ttyAMA0` exists. There is no mux option that makes GPIO15 a
+  transmitter, so the FPGA's TX **must** land on GPIO15. One correct wiring, no
+  software escape.
+
+CM5
+: `GPIO14/15` at **alt4** on the RP1, with `/dev/ttyAMA0` and `/dev/ttyAMA10`.
+  Like the Pi 5, the RP1 offers several UART instances plus PIO, so pins can be
+  reassigned in software. Measured on CM5 Lite modules, but this is the RP1's
+  behaviour rather than anything specific to the Lite.
+
+Which module a host carries is inventory: at PS1, for example, pi14 and pi18
+are CM4 and pi16 and pi20 are CM5 Lite — see [Compute
+blades](../sites/ps1.md#compute-blades).
+
+### Raspberry Pi 3 and 3B+
+
+`disable-bt` and the header UART
+: On a Pi 3 the PL011 belongs to Bluetooth, so the 40-pin header gets the mini
+  UART unless the overlay frees it — here `disable-bt` does the job it does not
+  do on a Pi 5. The netboot image disables Bluetooth, so on the production 3B+
+  hosts `/dev/serial0` is `ttyAMA0` (measured 2026-09-06), while a stock image
+  lands on `ttyS0`. Per host: [Serial device by
+  host](../boards/netv2.md#serial-device-by-host).
+
+USB topology
+: No USB-C gadget console. On a Pi 3 or Zero the dwc2 controller *is* the only
+  USB there is, so putting it in peripheral mode would cost the board every
+  downstream USB port, which on a 3B+ includes the Ethernet; that is why `dwc2,dr_mode=peripheral` above is applied on Pi 4 and Pi 5
+  only, and why a 3B+ has one fewer way to watch a boot — [When a Pi does not
+  boot](netboot.md#when-a-pi-does-not-boot).
 
 ## Camera
 
@@ -363,11 +409,12 @@ roles provide to watch a boot, listed under
 
 :::{warning}
 A design that drives the serial TX line while the kernel console is on the same
-UART is not merely noisy: at PS1 a 1200-baud FPGA transmitting into a
-115200-baud console produced garbage the kernel parsed as SysRq commands and
-eventually hit `reboot`. See [Two traps](../sites/ps1.md#two-traps) for how that
-was fixed there, and the `[pi5]` console pinning above for how it is avoided on
-the Pi 5 hosts.
+UART is not merely noisy: on a Compute Blade at PS1 a 1200-baud FPGA
+transmitting into a 115200-baud console produced garbage the kernel parsed as
+SysRq commands and eventually hit `reboot`. See [kernel console
+SysRq](../boards/acorn/wiring.md#known-issue-kernel-console-sysrq-on-the-fpga-uart)
+for the root cause and the fix, and the `[pi5]` console pinning above for how it
+is avoided on the Pi 5 hosts.
 :::
 
 ## Sources

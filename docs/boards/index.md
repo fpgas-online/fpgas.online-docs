@@ -87,9 +87,9 @@ page is the measured source.
   and names a `tt10` that has no row here — see
   [Tiny Tapeout ASIC boards](../sites/welland.md#tiny-tapeout-asic-boards).
 - **NeTV2 (RPi5 PCIe) at Welland.** Four are pending here. The Welland page has
-  no pending PCIe NeTV2 hosts; the only RPi 5 NeTV2 is `rpi5-netv2`, one of the
-  two development hosts on the separate `iot.welland.mithis.com` network — see
-  [NeTV2 development hosts](../sites/welland.md#netv2-development-hosts-separate-network).
+  no pending PCIe NeTV2 hosts; the only RPi 5 NeTV2 is `rpi5-netv2`, one of two
+  development hosts on a separate network that is not part of the fleet — see
+  [Development hosts](netv2.md#development-hosts).
 - **ButterStick and ULX3S at Welland.** Four of each are pending here. Neither
   board appears anywhere on the [Welland page](../sites/welland.md), and neither
   has a host, a switch port or an allocation recorded.
@@ -109,6 +109,25 @@ ULX3S boards appear nowhere on it; and the README's eight pending PS1 ASIC
 boards are seven there. Either the README is a wish list and should say so, or
 the allocations exist and belong on the site page.
 :::
+
+## Interfaces to the Raspberry Pi
+
+How each board type reaches its Raspberry Pi. Both sites run the same board
+types; the pin mappings are on the board pages, and which host carries which
+board is on the [site pages](../sites/index.md).
+
+| Board type | Physical interface(s) to the Pi | Board page |
+|---|---|---|
+| Arty A7-35T | USB to an FTDI FT2232 — JTAG on `ttyUSB0`, 115200 baud UART on `ttyUSB1`; PMOD HAT | [Arty A7](arty-a7.md) |
+| NeTV2 | GPIO bit-bang JTAG; GPIO UART — `/dev/serial0`, a symlink to `/dev/ttyAMA0`, on the production Pi 3B+ hosts (measured 2026-09-06; `/dev/ttyS0` only on the stock `rpi3-netv2` image) and `/dev/ttyAMA0` on a Pi 5, see [Serial device by host](netv2.md#serial-device-by-host); PCIe Gen2 x1 and a secondary UART on the PCIe "hax" pins, Pi 5 only | [Kosagi NeTV2](netv2.md) |
+| SQRL Acorn CLE-215+ and LiteFury CLE-101 | GPIO bit-bang JTAG (P1); GPIO UART (P2) on `/dev/ttyAMA0`; PCIe through the M.2 HAT on a Pi 5, or the carrier's own M.2 slot on a Compute Blade | [SQRL Acorn](acorn/index.md) |
+| Fomu EVT | Native USB (ValentyUSB), programmed over DFU with a USB analyzer inline; the board also sits on the GPIO header, so the test UART is the Pi's own GPIO UART at 115200 on `/dev/serial0` (iCE40 pins 13/21 to GPIO14/15) plus one confirmed GPIO loopback pair | [Fomu EVT](fomu-evt.md) |
+| Tiny Tapeout ASIC | USB to the RP2040 as `/dev/ttboard`; PMOD HAT | [Tiny Tapeout ASIC](tt-asic.md) |
+| Tiny Tapeout FPGA demo | USB-C to the RP2350 as `/dev/ttboard`; PMOD HAT | [Tiny Tapeout FPGA](tt-fpga.md) |
+
+The Digilent PMOD HAT is fitted on the Arty A7, Tiny Tapeout ASIC and Tiny
+Tapeout FPGA hosts, breaking Pi GPIOs out to three standard 12-pin PMOD ports
+(JA, JB, JC); see [Raspberry Pi PMOD HAT](pmod/rpi-hat.md).
 
 ## Guides
 

@@ -135,6 +135,20 @@ The full RPi GPIO → PMOD pin → FPGA pin mappings for each board are document
 - [Digilent Arty A7](../arty-a7.md)
 - [Tiny Tapeout FPGA demo board](../tt-fpga.md)
 
+### Development hosts
+
+Surveyed 2026-03-17. Two PMOD HAT development hosts sit on
+`iot.welland.mithis.com`, a separate network that is not part of the
+fpgas.online fleet, so no site page lists them.
+
+```{rst-class} nowrap
+```
+
+| Host                             | RPi Model | Notes             |
+| -------------------------------- | --------------- | ----------------- |
+| `rpi5-pmod.iot.welland.mithis.com` | RPi 5           | PMOD HAT dev host |
+| `rpi4-pmod.iot.welland.mithis.com` | RPi 4           | PMOD HAT dev host |
+
 ## References
 
 - [PMOD interface](index.md)

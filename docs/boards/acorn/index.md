@@ -177,10 +177,12 @@ $ sudo ln -sfn /dev/gpiochip15 /dev/gpiochip0                  # openFPGALoader 
 $ openFPGALoader --cable libgpiod --pins 10:9:11:8 <bitstream.bit>
 ```
 
-These commands are the Welland Pi 5 wiring; on the PS1 Compute Blades the JTAG
-pins are `2:3:4:14`, P1 lands on GPIO2, 3, 4 and 14 (the I2C pins, GPIO4, and
-the UART TX pin), and the PCIe bus is `0000:01:00.0` on pi14 but
-`0001:01:00.0` on pi16 and pi20; see [PS1](../../sites/ps1.md#wiring).
+These commands are the Pi 5 carrier wiring; on a Compute Blade carrier the
+JTAG pins are `2:3:4:14`, P1 lands on GPIO2, 3, 4 and 14 (the I2C pins, GPIO4,
+and the UART TX pin), and the PCIe bus differs per host — `0000:01:00.0` on
+pi14 but `0001:01:00.0` on pi16 and pi20; see [Compute Blade wiring
+variant](wiring.md#compute-blade-wiring-variant) and the
+[PS1 Compute blades](../../sites/ps1.md#compute-blades) inventory.
 
 :::{warning}
 Detach the PCIe endpoint before loading a bitstream. Reconfiguring the FPGA
@@ -189,8 +191,7 @@ root complex: on 2026-08-31 a JTAG load on pi-sw2-p47 with the endpoint still
 enumerated killed the host. The rule, the
 per-host bus address and the recovery are in [detach the PCIe endpoint before
 any JTAG
-reconfiguration](pcie-programming.md#detach-the-pcie-endpoint-before-any-jtag-reconfiguration)
-and [PCIe and JTAG interact](../../sites/welland.md#pcie-and-jtag-interact).
+reconfiguration](pcie-programming.md#detach-the-pcie-endpoint-before-any-jtag-reconfiguration).
 :::
 
 Pin order, the Pi 5 `gpiochip15` trap, the PCIe detach rule and the
