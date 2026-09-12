@@ -28,10 +28,11 @@ The P2 serial crossover is identical on both — K2 (FPGA TX) to GPIO15, J2
 **Revised 2026-09-03.** The P2 serial wiring below was corrected after the
 pin-ID design was run on the Welland boards on 2026-08-31 (see [Measured P2
 wiring](#measured-p2-wiring-on-raspberry-pi-5-hosts)). The earlier revision of
-this page wired FPGA TX (K2) to the Pi's TXD0, i.e. transmitter into transmitter,
-which cannot work with the hardware UART (`/dev/ttyAMA0`) that every host and
-test script uses. The crossover is the fleet standard, not a Compute Blade
-special case.
+this page — and both site pages until 2026-09-03, which recorded K2 straight
+through to GPIO14 and called the crossover a PS1 peculiarity — wired FPGA TX
+(K2) to the Pi's TXD0, i.e. transmitter into transmitter, which cannot work with
+the hardware UART (`/dev/ttyAMA0`) that every host and test script uses. The
+crossover is the fleet standard, not a Compute Blade special case.
 :::
 
 ## Wiring Diagram

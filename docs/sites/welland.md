@@ -99,47 +99,6 @@ deliberate (the fleet is administered from Chicago) or a copy-paste from the
 PS1 host_vars.
 :::
 
-## Wiring
-
-JTAG and the serial pair are on separate GPIOs here, which is why a design that
-drives the FPGA's TX does not cost you JTAG the way it does at
-[PS1](ps1.md#two-traps).
-
-| Signal | GPIO | Header pin |
-|---|---|---|
-| TCK | 11 | 23 |
-| TDI | 10 | 19 |
-| TDO | 9 | 21 |
-| TMS | 8 | 24 |
-
-```console
-$ openFPGALoader --cable libgpiod --pins 10:9:11:8 --detect
-```
-
-The P2 serial pair is a **null-modem crossover**, the same as at PS1: the
-crossover is the fleet standard, not a Compute Blade special case. Measured on
-2026-08-31 with the [pin-ID design](../boards/pin-id.md) on pi-sw2-p29, p46 and
-p48; p47 has both pairs transposed (see [Known faults](#known-faults)), and p43
-and p44 could not be read because JTAG scans an empty chain there.
-
-| P2 ball | lands on | RPi function |
-|---|---|---|
-| K2 (FPGA TX) | GPIO15 | RXD0 — the Pi receives |
-| J2 (FPGA RX) | GPIO14 | TXD0 — the Pi sends |
-
-:::{note}
-Until 2026-09-03 this page recorded the opposite — K2 straight through to
-GPIO14 — and called the crossover a PS1 peculiarity. That was a documentation
-error, not a difference between the sites: it wired transmitter into
-transmitter, which cannot work with the hardware UART (`/dev/ttyAMA0`) every
-host and test script uses. Corrected here from the 2026-08-31 pin-ID
-measurements.
-:::
-
-Both tables are the Acorn on a Pi 5; the connector pinout they are measured
-against, and the full per-pin survey behind them, are on
-[Acorn wiring](../boards/acorn/wiring.md).
-
 ## Raspberry Pi 5 specifics
 
 `gpiochip`
@@ -305,7 +264,9 @@ from the 2026-03-17 survey.
 
 ### SQRL Acorn CLE-215+
 
-Probed 2026-09-03. Six boards deployed, on RPi 5 hosts with an M.2 HAT.
+Probed 2026-09-03. Six boards deployed, on RPi 5 hosts with an M.2 HAT — the
+[Raspberry Pi 5 carrier](../boards/acorn/wiring.md) wiring variant, with JTAG
+on its own GPIOs (`--pins 10:9:11:8`) and both spare balls wired.
 
 ```{rst-class} nowrap
 ```
