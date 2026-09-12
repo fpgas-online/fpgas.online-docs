@@ -119,7 +119,7 @@ board is on the [site pages](../sites/index.md).
 | Board type | Physical interface(s) to the Pi | Board page |
 |---|---|---|
 | Arty A7-35T | USB to an FTDI FT2232 — JTAG on `ttyUSB0`, 115200 baud UART on `ttyUSB1`; PMOD HAT | [Arty A7](arty-a7.md) |
-| NeTV2 | GPIO bit-bang JTAG; GPIO UART (`/dev/ttyS0` on the Pi 3B+ hosts, `/dev/ttyAMA0` on a Pi 5; see the board page); PCIe Gen2 x1 and a secondary UART on the PCIe "hax" pins, Pi 5 only | [Kosagi NeTV2](netv2.md) |
+| NeTV2 | GPIO bit-bang JTAG; GPIO UART — `/dev/serial0`, a symlink to `/dev/ttyAMA0`, on the production Pi 3B+ hosts (measured 2026-09-06; `/dev/ttyS0` only on the stock `rpi3-netv2` image) and `/dev/ttyAMA0` on a Pi 5, see [Serial device by host](netv2.md#serial-device-by-host); PCIe Gen2 x1 and a secondary UART on the PCIe "hax" pins, Pi 5 only | [Kosagi NeTV2](netv2.md) |
 | SQRL Acorn CLE-215+ and LiteFury CLE-101 | GPIO bit-bang JTAG (P1); GPIO UART (P2) on `/dev/ttyAMA0`; PCIe through the M.2 HAT on a Pi 5, or the carrier's own M.2 slot on a Compute Blade | [SQRL Acorn](acorn/index.md) |
 | Fomu EVT | Native USB (ValentyUSB), programmed over DFU with a USB analyzer inline; the board also sits on the GPIO header, so the test UART is the Pi's own GPIO UART at 115200 on `/dev/serial0` (iCE40 pins 13/21 to GPIO14/15) plus one confirmed GPIO loopback pair | [Fomu EVT](fomu-evt.md) |
 | Tiny Tapeout ASIC | USB to the RP2040 as `/dev/ttboard`; PMOD HAT | [Tiny Tapeout ASIC](tt-asic.md) |
