@@ -396,19 +396,6 @@ Surveyed 2026-03-17.
 | `rpi5-pmod.iot.welland.mithis.com` | RPi 5           | PMOD HAT dev host |
 | `rpi4-pmod.iot.welland.mithis.com` | RPi 4           | PMOD HAT dev host |
 
-## Test execution flow
-
-1. **Boot.** The Pi PXE-boots from tweed over TFTP onto the shared read-only
-   NFS root.
-2. **Program the FPGA.** openFPGALoader over USB FTDI JTAG (Arty), over GPIO
-   bit-bang JTAG (NeTV2, and Acorn with the PCIe endpoint detached first), or
-   over USB DFU (Fomu); RP2040 (TT ASIC) / RP2350 (TT FPGA), MicroPython, via
-   `/dev/ttboard` (owned by the `fpgas-tt` daemon).
-3. **Run the harness.** Open the serial port — `ttyUSB1`, `/dev/ttyAMA0` or
-   `/dev/ttboard` — and drive the design.
-4. **Collect results.** Parse the UART output for PASS/FAIL, check PCIe
-   enumeration (NeTV2), verify the PMOD loopback signals (Arty).
-
 ## Disconnected hosts
 
 Surveyed 2026-03-17.

@@ -131,8 +131,8 @@ After all of the above:
 6. **Commit.** Commit the documentation changes.
 
 The order in which a test actually exercises the board — boot, program, open
-the serial port, parse the result — is on the Welland page under
-[Test execution flow](../sites/welland.md#test-execution-flow).
+the serial port, parse the result — is under
+[From boot to result](#from-boot-to-result).
 
 ### Worked example: adding an Arty A7 at PS1
 
@@ -198,6 +198,21 @@ table (lines 29–32) still reaches Welland as `pi@tweed.welland.mithis.com`,
 an account that went away with tweed's 2026-08-30 reinstall. Nothing in the
 Welland half of the table can connect as written.
 :::
+
+### From boot to result
+
+End to end, whatever the board, a run is four steps:
+
+1. **Boot.** The Pi PXE-boots from its site gateway over TFTP onto the shared
+   read-only NFS root ([Netboot and the NFS root](netboot.md)).
+2. **Program the FPGA.** openFPGALoader over USB FTDI JTAG (Arty), over GPIO
+   bit-bang JTAG (NeTV2, and Acorn with the PCIe endpoint detached first), or
+   over USB DFU (Fomu); RP2040 (TT ASIC) / RP2350 (TT FPGA), MicroPython, via
+   `/dev/ttboard` (owned by the `fpgas-tt` daemon).
+3. **Run the harness.** Open the serial port — `ttyUSB1`, `/dev/ttyAMA0` or
+   `/dev/ttboard` — and drive the design.
+4. **Collect results.** Parse the UART output for PASS/FAIL, check PCIe
+   enumeration (NeTV2), verify the PMOD loopback signals (Arty).
 
 ### Pre-test commands
 
