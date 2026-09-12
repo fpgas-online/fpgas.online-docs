@@ -415,7 +415,9 @@ $ lspci -nn | grep -i xilinx
 
 ## Measured P2 wiring on Raspberry Pi 5 hosts
 
-Measured 2026-08-31.
+Measured 2026-08-31 on the six Welland Acorn hosts, which are the Pi 5 carriers
+deployed today ([SQRL Acorn CLE-215+](../../sites/welland.md#sqrl-acorn-cle-215)
+for their addresses and models).
 
 Read off each wire with the fixed pin-ID bitstream
 (`pmod-pin-id_acorn-cle-215p_vivado-vivado_sqrl_acorn.bit`, see [prebuilt Vivado
@@ -440,12 +442,14 @@ edge timestamps.
 - **p43 / p44:** both enumerate on PCIe (p43 with the Sqrl factory ID, p44
   with `10ee:7011`), but `openFPGALoader --detect` reports `found 0 devices`
   on both, so nothing can be loaded. The P1 (JTAG) cable or its wiring needs
-  a physical check; the same "TCK has no pull-up when P1 is unmated" test used
-  on the PS1 blades applies.
+  a physical check; the same "TCK has no pull-up when P1 is unmated" test
+  applies, since that pull-up is the Acorn's own (see [Measured state of the
+  Compute Blade hosts](#measured-state-of-the-compute-blade-hosts) for a worked
+  example).
 - P2 was previously believed to be unconnected on these boards; that
   conclusion came from the clockless pin-ID design and was wrong.
 
-All three faults are tracked on the site page under [Known
+All three faults are tracked on the Welland site page under [Known
 faults](../../sites/welland.md#known-faults).
 
 Before the pin-ID run, a zero-risk passive check gives the same answer with no
@@ -455,13 +459,14 @@ a line that follows is floating (far end is an FPGA input, i.e. J2), and a line
 that stays put is driven (far end is an FPGA output, i.e. K2). Do not read
 GPIO2/GPIO3 this way — they are SDA1/SCL1 and carry board pull-ups.
 
-**Device DNA is not readable on the Welland boards yet.** With openFPGALoader
-0.10.0 (no `--read-dna`) a hand-rolled `ISC_ENABLE` + `ISC_DNA` openocd
-sequence returned `ffffffffffffffff` on both configured and unconfigured
-devices while IDCODE/USERCODE read fine, so the value has to wait for the
+**Device DNA needs openFPGALoader 0.13 or newer, not a particular carrier.**
+The hosts surveyed above run 0.10.0, which has no `--read-dna`, and a
+hand-rolled `ISC_ENABLE` + `ISC_DNA` openocd sequence returned
+`ffffffffffffffff` on both configured and unconfigured devices while
+IDCODE/USERCODE read fine. The value therefore has to wait for the
 openFPGALoader upgrade ([infra
-PR #48](https://github.com/fpgas-online/fpgas.online-infra/pull/48)), where
-`--read-dna` works first time on PS1.
+PR #48](https://github.com/fpgas-online/fpgas.online-infra/pull/48)); on hosts
+already running 0.13.1 `--read-dna` works first time.
 
 ## Compute Blade Wiring Variant
 
@@ -581,12 +586,19 @@ the null modem crossover, FPGA RX (J2) is an **input** on the FPGA side for
 normal designs, so it does not drive GPIO14 and does not conflict with JTAG TMS.
 
 :::{warning}
-**Loading a design that drives the serial TX costs you JTAG.** GPIO14 is TMS on
-this variant. Once the FPGA drives it, `openFPGALoader` cannot use it, and the
-only way back is a PoE cycle of the blade's switch port (the PS1 procedure is
-under [Power control](../../sites/ps1.md#power-control)). The pin-ID design
-drives every P2 ball, J2 included, so it triggers this every time. The Pi 5
-variant has no such trap: there JTAG and the serial pair are on separate GPIOs.
+**Loading a design that drives the serial TX costs you JTAG**
+([test-designs
+issue #4](https://github.com/fpgas-online/fpgas.online-test-designs/issues/4)
+item 1). GPIO14 is TMS on this variant, so once the FPGA drives J2 → GPIO14,
+`openFPGALoader` cannot use it. The pin-ID design drives every P2 ball, J2
+included, so it triggers this every time. The only way back is a PoE cycle of
+the blade's switch port, which restores everything in about 60 s — the flash
+bitstream reloads, `--detect` and the DNA read answer again, and the PCIe
+endpoint comes back. The commands are under [PoE power
+control](../../setup/network.md#poe-power-control), which covers both the
+`snmpset` path and the Netgear private OID; the PS1 blades are worked through
+under [Power control](../../sites/ps1.md#power-control). The Pi 5 variant has
+no such trap: there JTAG and the serial pair are on separate GPIOs.
 :::
 
 **JTAG programming:**
@@ -670,11 +682,9 @@ pin assignment, but its PIO block could implement a UART with either direction
 on either pin; the fleet uses the same crossover everywhere so one cable design
 works on both module types.
 
-**Loading a TX-driving design costs JTAG until a PoE cycle**
-([issue #4](https://github.com/fpgas-online/fpgas.online-test-designs/issues/4) item 1):
-after pin-ID the FPGA drives J2 → GPIO14, which is also TMS on the blade. A PoE
-cycle of the blade's switch port restores everything in about 60 s (flash
-bitstream reloads, `--detect` and DNA read again, PCIe endpoint back).
+After pin-ID the FPGA drives J2 → GPIO14, which is also TMS here, so that run
+costs JTAG until a PoE cycle — see [Shared Pin:
+GPIO14](#shared-pin-gpio14-tms--fpga-rx).
 
 ### Known Issue: Kernel Console SysRq on the FPGA UART
 
