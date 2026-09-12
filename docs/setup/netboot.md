@@ -128,9 +128,8 @@ rather than "whatever is current today".
 The root is read-only and the writable layer is a tmpfs. Everything a user
 writes is gone on the next reboot or PoE cycle, including anything staged in
 `/home/pi`. A bitstream that loaded a minute ago will fail to open after a
-reboot because the file no longer exists — the same warning is recorded under
-[PCIe and JTAG interact](../sites/welland.md#pcie-and-jtag-interact) on the
-Welland page.
+reboot because the file no longer exists: openFPGALoader prints
+`Open file … FAIL` in under 0.1 s. Re-copy it.
 :::
 
 Automation has to account for this. The hardware verification script in

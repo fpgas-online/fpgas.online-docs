@@ -99,27 +99,6 @@ deliberate (the fleet is administered from Chicago) or a copy-paste from the
 PS1 host_vars.
 :::
 
-## PCIe and JTAG interact
-
-:::{warning}
-Reconfiguring the FPGA over JTAG while its PCIe endpoint is enumerated is a
-surprise removal, and it crashes the BCM2712 root complex. Detach the endpoint
-first.
-:::
-
-```console
-$ echo 1 | sudo tee /sys/bus/pci/devices/0001:01:00.0/remove
-```
-
-Restore it with `/sys/bus/pci/rescan`, or by rebooting.
-
-:::{warning}
-The root filesystem is a read-only NFS export with a tmpfs overlay
-(`overlayroot=tmpfs`), so anything staged in `/home/pi` is gone after a reboot.
-A bitstream that loaded a minute ago will fail with `Open file … FAIL` after a
-reboot because the file no longer exists.
-:::
-
 ## Hosts and boards
 
 The Acorn, Tiny Tapeout ASIC and Tiny Tapeout FPGA sections were re-verified

@@ -148,7 +148,8 @@ either way. See [NeTV2](../sites/welland.md#netv2).
 Reconfiguring the FPGA over JTAG while its PCIe endpoint is enumerated is a
 surprise removal, and it crashes the BCM2712 root complex. On rpi5-netv2 detach
 the endpoint before any of the JTAG commands in this section or the next one
-([PCIe and JTAG interact](../sites/welland.md#pcie-and-jtag-interact)):
+([detach the PCIe endpoint before any JTAG
+reconfiguration](acorn/pcie-programming.md#detach-the-pcie-endpoint-before-any-jtag-reconfiguration)):
 
 ```console
 $ lspci -d 10ee:7011

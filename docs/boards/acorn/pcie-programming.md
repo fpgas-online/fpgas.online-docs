@@ -33,9 +33,8 @@ $ echo 1 | sudo tee /sys/bus/pci/devices/0001:01:00.0/remove
 $ echo 1 | sudo tee /sys/bus/pci/rescan
 ```
 
-Every Welland Pi 5 host uses `0001:01:00.0`; the same rule and the same command
-are on the site page under [PCIe and JTAG
-interact](../../sites/welland.md#pcie-and-jtag-interact). At PS1 the address
+Every Welland Pi 5 host uses `0001:01:00.0` ([SQRL Acorn
+CLE-215+](../../sites/welland.md#sqrl-acorn-cle-215)). At PS1 the address
 differs per host — `0000:01:00.0` on pi14, `0001:01:00.0` on pi16 and pi20 — so
 read it from the `PCIe Bus` column in [Compute
 blades](../../sites/ps1.md#compute-blades).

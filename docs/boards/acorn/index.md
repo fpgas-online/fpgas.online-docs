@@ -191,8 +191,7 @@ root complex: on 2026-08-31 a JTAG load on pi-sw2-p47 with the endpoint still
 enumerated killed the host. The rule, the
 per-host bus address and the recovery are in [detach the PCIe endpoint before
 any JTAG
-reconfiguration](pcie-programming.md#detach-the-pcie-endpoint-before-any-jtag-reconfiguration)
-and [PCIe and JTAG interact](../../sites/welland.md#pcie-and-jtag-interact).
+reconfiguration](pcie-programming.md#detach-the-pcie-endpoint-before-any-jtag-reconfiguration).
 :::
 
 Pin order, the Pi 5 `gpiochip15` trap, the PCIe detach rule and the
