@@ -228,7 +228,10 @@ from the 2026-03-17 survey.
 
 Probed 2026-09-03. Six boards deployed, on RPi 5 hosts with an M.2 HAT — the
 [Raspberry Pi 5 carrier](../boards/acorn/wiring.md) wiring variant, with JTAG
-on its own GPIOs (`--pins 10:9:11:8`) and both spare balls wired.
+on its own GPIOs (`--pins 10:9:11:8`) and both spare balls wired. The per-pin
+measurements behind the JTAG and P2 columns are under [Measured P2 wiring on
+Raspberry Pi 5
+hosts](../boards/acorn/wiring.md#measured-p2-wiring-on-raspberry-pi-5-hosts).
 
 ```{rst-class} nowrap
 ```
@@ -257,7 +260,8 @@ cycle, taking more than 90 s to come back.
 
 Source: live probe of all six hosts 2026-09-03 (`/proc/device-tree/model`,
 `/proc/cpuinfo`, `lspci -nn`, `/proc/cmdline`, `openFPGALoader --Version`);
-JTAG and P2 columns from the 2026-08-31 pin-ID survey.
+JTAG and P2 columns from the [2026-08-31 pin-ID
+survey](../boards/acorn/wiring.md#measured-p2-wiring-on-raspberry-pi-5-hosts).
 
 ### Fomu EVT
 

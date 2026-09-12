@@ -37,9 +37,9 @@ Two NFS roots, because the site runs two generations of hardware:
 
 :::{warning}
 Both roots are read-only NFS exports with a tmpfs overlay, so anything staged
-under `/home/pi` is gone after a reboot or a PoE cycle. A bitstream that loaded
-a minute ago fails with `Open file … FAIL` in under 0.1 s because the file no
-longer exists — re-copy it.
+under `/home/pi` is gone after a reboot or a PoE cycle — see [The NFS root is
+shared and read-only](../setup/netboot.md#the-nfs-root-is-shared-and-read-only)
+for the symptom and what to do about it.
 :::
 
 val2 is a flat `/24` with the legacy `piNN` / `10.21.0.1NN` naming. Welland's
@@ -146,6 +146,11 @@ SysRq
 crash](../boards/acorn/wiring.md#known-issue-kernel-console-sysrq-on-the-fpga-uart)
 cannot recur. PCIe is through the M.2 slot. The per-pin measurements behind the
 JTAG and P2 columns are on [Acorn wiring](../boards/acorn/wiring.md).
+
+The `RPi Model` column matters: a CM4 and a CM5 are not interchangeable, and
+what differs — the serial mux, and how many UARTs there are — is under [Compute
+Module 4 versus Compute Module
+5](../setup/pi.md#compute-module-4-versus-compute-module-5).
 
 :::{warning}
 Reconfiguring the FPGA over JTAG while its PCIe endpoint is enumerated is a

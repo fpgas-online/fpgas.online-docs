@@ -300,10 +300,11 @@ CM4
   transmitter, so the FPGA's TX **must** land on GPIO15. One correct wiring, no
   software escape.
 
-CM5 Lite
+CM5
 : `GPIO14/15` at **alt4** on the RP1, with `/dev/ttyAMA0` and `/dev/ttyAMA10`.
   Like the Pi 5, the RP1 offers several UART instances plus PIO, so pins can be
-  reassigned in software.
+  reassigned in software. Measured on CM5 Lite modules, but this is the RP1's
+  behaviour rather than anything specific to the Lite.
 
 Which module a host carries is inventory: at PS1, for example, pi14 and pi18
 are CM4 and pi16 and pi20 are CM5 Lite — see [Compute
@@ -311,12 +312,20 @@ blades](../sites/ps1.md#compute-blades).
 
 ### Raspberry Pi 3 and 3B+
 
-- **Raspberry Pi 3** — the mini UART on the header and what `disable-bt`
-  actually does there, per host:
-  [Serial device by host](../boards/netv2.md#serial-device-by-host).
-- **Raspberry Pi 3B+ USB topology** — why the gadget console is Pi 4 and Pi 5
-  only, and what a 3B+ would lose:
-  [When a Pi does not boot](netboot.md#when-a-pi-does-not-boot).
+`disable-bt` and the header UART
+: On a Pi 3 the PL011 belongs to Bluetooth, so the 40-pin header gets the mini
+  UART unless the overlay frees it — here `disable-bt` does the job it does not
+  do on a Pi 5. The netboot image disables Bluetooth, so on the production 3B+
+  hosts `/dev/serial0` is `ttyAMA0` (measured 2026-09-06), while a stock image
+  lands on `ttyS0`. Per host: [Serial device by
+  host](../boards/netv2.md#serial-device-by-host).
+
+USB topology
+: No USB-C gadget console. On a Pi 3 or Zero the dwc2 controller *is* the only
+  USB there is, so putting it in peripheral mode would cost the board its USB-A
+  ports; that is why `dwc2,dr_mode=peripheral` above is applied on Pi 4 and Pi 5
+  only, and why a 3B+ has one fewer way to watch a boot — [When a Pi does not
+  boot](netboot.md#when-a-pi-does-not-boot).
 
 ## Camera
 
