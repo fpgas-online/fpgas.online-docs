@@ -322,8 +322,8 @@ blades](../sites/ps1.md#compute-blades).
 
 USB topology
 : No USB-C gadget console. On a Pi 3 or Zero the dwc2 controller *is* the only
-  USB there is, so putting it in peripheral mode would cost the board its USB-A
-  ports; that is why `dwc2,dr_mode=peripheral` above is applied on Pi 4 and Pi 5
+  USB there is, so putting it in peripheral mode would cost the board every
+  downstream USB port, which on a 3B+ includes the Ethernet; that is why `dwc2,dr_mode=peripheral` above is applied on Pi 4 and Pi 5
   only, and why a 3B+ has one fewer way to watch a boot — [When a Pi does not
   boot](netboot.md#when-a-pi-does-not-boot).
 
