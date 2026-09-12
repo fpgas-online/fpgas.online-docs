@@ -147,6 +147,9 @@ Source: the FPGA board summary in `site-ps1.md`.
 Configuration from `/etc/dnsmasq.d/pibs.conf`. Eight boards, on RPi 3B / 3B+ /
 4B hosts. The source gives no provenance or date for the `Status` column.
 
+```{rst-class} nowrap
+```
+
 | Host | Switch Port | IP          | RPi MAC           | RPi Model       | Arty Serial  | USB Ethernet                     | Status  |
 |------|------|-------------|-------------------|-----------------|--------------|----------------------------------|---------|
 | [pi2](https://ps1.fpgas.online/fpgas/pi2.html)   | e2   | 10.21.0.102 | b8:27:eb:2f:5d:08 | RPi 3B Rev 1.2  | 210319B301E0 | Apple A1277 (no MAC recorded)    | Offline |
@@ -179,6 +182,9 @@ provenance unknown.
 ### Compute blades
 
 Probed 2026-08-31; all four were up, with 37 days of uptime.
+
+```{rst-class} nowrap
+```
 
 | Host | Switch Port | IP          | RPi MAC           | RPi Model             | Board (PCIe ID)             | FPGA DNA           | PCIe Bus | JTAG (P1)                | P2 serial             | Status |
 |------|------|-------------|-------------------|-----------------------|-----------------------------|--------------------|----------|--------------------------|-----------------------|--------|
@@ -243,6 +249,9 @@ against infra `host_vars/ps1.fpgas.online.yml`.
 
 From `pibs.conf` and the 2026-08-31 switch dump.
 
+```{rst-class} nowrap
+```
+
 | Host | Switch Port | IP          | RPi MAC           | RPi Model         | Notes                      | Status  |
 |------|------|-------------|-------------------|--------------------|----------------------------|---------|
 | pi19 | e19  | 10.21.0.119 | b8:27:eb:0c:f8:43 | RPi 3B             | Dead hardware              | Dead    |
@@ -263,6 +272,9 @@ Probed live 2026-09-03; the PS1 rows were still TBD at that probe. Four Tiny
 Tapeout FPGA demo boards are allocated to PS1 and not yet installed. The source
 inventory carries four identical rows for them — host, switch port, IP, RPi MAC
 and RP2350 serial are all TBD, and there is no board page yet:
+
+```{rst-class} nowrap
+```
 
 | Site | Board | Count | Host | Switch Port | IP | RPi MAC | RP2350 Serial | Board page |
 |---|---|---|---|---|---|---|---|---|

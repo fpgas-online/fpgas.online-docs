@@ -44,6 +44,21 @@ another page directly:
 See [the PS1 traps](sites/ps1.md#two-traps).
 ```
 
+Wide tables scroll sideways rather than being split. A table of dense
+identifier data — MAC addresses, device DNAs, serial numbers, board models —
+should also be told not to wrap, or the browser shreds every column to a few
+characters wide and each row becomes several lines tall:
+
+````markdown
+```{rst-class} nowrap
+```
+
+| Host | RPi MAC | RPi Model |
+|---|---|---|
+````
+
+Leave the class off tables whose cells hold prose; those should wrap normally.
+
 ## What belongs here
 
 This site is for things that outlive a single change: how the hardware is

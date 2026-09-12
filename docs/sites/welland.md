@@ -209,6 +209,9 @@ Programming commands for each board type live on the board pages; see
 
 Surveyed 2026-03-17.
 
+```{rst-class} nowrap
+```
+
 | Host | Switch Port | IP (retired) | RPi MAC           | RPi Model   | Role                                         |
 | ---- | ----------- | ------------ | ----------------- | --------------- | -------------------------------------------- |
 | pi1  | p1          | 10.21.0.101  | b8:27:eb:ec:c2:c9 | RPi 3B+ 1 GB     | Always-on NFS maintenance system (RW access) |
@@ -221,6 +224,9 @@ scheme.
 ### Arty A7-35T
 
 Surveyed 2026-03-17. Five boards, on RPi 4 / 3B+ hosts with PMOD HATs.
+
+```{rst-class} nowrap
+```
 
 | Host | Switch Port | IP (retired) | RPi MAC           | RPi Model   | Arty Serial         | Arty DNA           | USB Ethernet                     | Serial Devices   |
 | ---- | ----------- | ------------ | ----------------- | --------------- | ------------------- | ------------------ | -------------------------------- | ---------------- |
@@ -248,6 +254,9 @@ Re-verified live 2026-09-06 under the VLAN-per-port scheme. **Five** boards on
 RPi 3B+ hosts with GPIO JTAG, all five online — including **pi-sw1-p18**, which
 earlier surveys had as offline. Each is on switch 1 at the port in its name,
 `10.21.1.<port>`, and all five netboot the shared bookworm NFS root reliably.
+
+```{rst-class} nowrap
+```
 
 | Host | Switch Port | IP | RPi MAC | FPGA | FPGA DNA | JTAG detect | Old name |
 | ---- | ----------- | -- | ------- | ---- | -------- | ----------- | -------- |
@@ -298,6 +307,9 @@ from the 2026-03-17 survey.
 
 Probed 2026-09-03. Six boards deployed, on RPi 5 hosts with an M.2 HAT.
 
+```{rst-class} nowrap
+```
+
 | Host       | Switch Port | IP         | RPi MAC           | RPi Model (rev)          | PCIe Device at `0001:01:00.0`                          | JTAG          | P2 serial            | Old name |
 | ---------- | ----------- | ---------- | ----------------- | ------------------------ | ------------------------------------------------------ | ------------- | -------------------- | -------- |
 | [pi-sw2-p29](https://welland.fpgas.online/fpgas/pi29.html) | sw2 p29 | 10.21.2.29 | 88:a2:9e:45:dd:be | RPi 5 Rev 1.1 2 GB (b04171) | Squirrels Research Labs Acorn CLE-215+ `1e24:021f` | OK          | OK (J5 wire dead)         | pi4  |
@@ -327,6 +339,9 @@ JTAG and P2 columns from the 2026-08-31 pin-ID survey.
 ### Fomu EVT
 
 Surveyed 2026-03-17. Two boards, on RPi 3B+ hosts.
+
+```{rst-class} nowrap
+```
 
 | Host | Switch Port | IP (retired) | RPi MAC           | RPi Model   | Fomu USB VID:PID | DFU Version | USB Analyzer             |
 | ---- | ----------- | ------------ | ----------------- | --------------- | ---------------- | ----------- | ------------------------ |
@@ -359,6 +374,9 @@ PMOD HATs. These carry **real fabricated TT ASIC silicon** on a TT demo board
 2026-08-23): S3300 port N carries TTN, the board page is
 `https://tinytapeout.fpgas.online/board/<slug>/` and its `status.json` is the
 liveness check.
+
+```{rst-class} nowrap
+```
 
 | Host      | Slug     | Switch Port | IP        | RPi MAC           | RPi Model (rev)               | Chip / firmware                          | RP2040 serial      | Old name |
 | --------- | -------- | ----------- | --------- | ----------------- | ----------------------------- | ---------------------------------------- | ------------------ | -------- |
@@ -400,6 +418,9 @@ Tapeout designs, on a TT demo board **v3 (RP2350B)** running TT SDK **3.1.0**
 `fpga-4` on tinytapeout.fpgas.online since 2026-08-24, where users can run
 bundled demos or upload their own bitstream.
 
+```{rst-class} nowrap
+```
+
 | Host       | Slug   | Switch Port | IP         | RPi MAC           | RPi Model (rev)              | USB VID:PID | RP2350 Serial    | Old name |
 | ---------- | ------ | ----------- | ---------- | ----------------- | ---------------------------- | ----------- | ---------------- | -------- |
 | [pi-sw2-p33](https://welland.fpgas.online/fpgas/pi33.html) | [fpga-1](https://tinytapeout.fpgas.online/board/fpga-1/) | sw2 p33 | 10.21.2.33 | e4:5f:01:97:0e:77 | RPi 4 2 GB Rev 1.5 (b03115) | 2e8a:0005 | 4df39a7a6856f86f | pi27 |
@@ -426,6 +447,9 @@ Probed 2026-03-09. Two NeTV2 hosts sit outside the tweed network, on
 `iot.welland.mithis.com`, reachable over `wg-desktop` rather than through the
 gateway.
 
+```{rst-class} nowrap
+```
+
 | Host                              | IP (via DNS)    | RPi Model             | Board                  | Connections         | SSH                                                        |
 | --------------------------------- | --------------- | --------------------- | ---------------------- | ------------------- | ---------------------------------------------------------- |
 | `rpi5-netv2.iot.welland.mithis.com` | 10.1.90.210/211 | RPi 5 Model B Rev 1.0 | NeTV2 (bare developer) | GPIO + PCIe Gen2 x1 | `tim@rpi5-netv2.iot.welland.mithis.com` (via `wg-desktop`) |
@@ -440,6 +464,9 @@ bridge is visible on PCIe, so the NeTV2 FPGA is not enumerating.
 ### PMOD HAT development hosts, separate network
 
 Surveyed 2026-03-17.
+
+```{rst-class} nowrap
+```
 
 | Host                             | RPi Model | Notes             |
 | -------------------------------- | --------------- | ----------------- |
