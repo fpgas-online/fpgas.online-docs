@@ -130,21 +130,24 @@ pin-level crossovers have been measured on deployed cables. The 2026-03-17
 JC pins 1 and 2 crossed relative to Arty JC pins 1 and 2 on one host. Check the
 cable before trusting the mapping on a host that has not been scanned.
 
+The full RPi GPIO → PMOD pin → FPGA pin mappings for each board are documented in:
+
+- [Digilent Arty A7](../arty-a7.md)
+- [Tiny Tapeout FPGA demo board](../tt-fpga.md)
+
 ### Development hosts
 
 Surveyed 2026-03-17. Two PMOD HAT development hosts sit on
 `iot.welland.mithis.com`, a separate network that is not part of the
 fpgas.online fleet, so no site page lists them.
 
+```{rst-class} nowrap
+```
+
 | Host                             | RPi Model | Notes             |
 | -------------------------------- | --------------- | ----------------- |
 | `rpi5-pmod.iot.welland.mithis.com` | RPi 5           | PMOD HAT dev host |
 | `rpi4-pmod.iot.welland.mithis.com` | RPi 4           | PMOD HAT dev host |
-
-The full RPi GPIO → PMOD pin → FPGA pin mappings for each board are documented in:
-
-- [Digilent Arty A7](../arty-a7.md)
-- [Tiny Tapeout FPGA demo board](../tt-fpga.md)
 
 ## References
 

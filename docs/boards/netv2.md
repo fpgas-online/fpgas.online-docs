@@ -78,24 +78,20 @@ gateway, and no site page lists them.
 | `rpi5-netv2.iot.welland.mithis.com` | 10.1.90.210/211 | RPi 5 Model B Rev 1.0 | NeTV2 (bare developer) | GPIO + PCIe Gen2 x1 | `tim@rpi5-netv2.iot.welland.mithis.com` (via `wg-desktop`) |
 | `rpi3-netv2.iot.welland.mithis.com` | 10.1.90.212/213 | RPi 3                 | NeTV2 (stock packaged) | GPIO only           | `pi@rpi3-netv2.iot.welland.mithis.com` (via `wg-desktop`)  |
 
-**rpi5-netv2**, verified over SSH 2026-03-09: Debian 13 (Trixie), kernel
-6.12.47+rpt-rpi-2712 aarch64; OpenOCD installed but no openFPGALoader and no
-LiteX; an ASIX AX88179 Gigabit Ethernet adapter is the only USB device, so
-there is no FTDI JTAG adapter and no USB serial device; only the RP1 south
-bridge is visible on PCIe, so the NeTV2 FPGA is not enumerating.
+**rpi5-netv2** is a bare developer NeTV2 (unpackaged), with JTAG (4 signals +
+SRST) and UART (TX/RX) over GPIO and a PCIe Gen2 x1 link through the RPi 5 PCIe
+connector. A configured board is *expected* to enumerate there as a Xilinx
+device, vendor `10ee` device `7011`. Verified over SSH 2026-03-09: Debian 13
+(Trixie), kernel 6.12.47+rpt-rpi-2712 aarch64; OpenOCD installed but no
+openFPGALoader and no LiteX; an ASIX AX88179 Gigabit Ethernet adapter is the
+only USB device, so there is no FTDI JTAG adapter and no USB serial device;
+and only the RP1 south bridge was visible on PCIe, so at that survey the NeTV2
+FPGA was not enumerating — it needs a bitstream loaded first, as
+[PCIe detection](#pcie-detection-rpi5-netv2) records.
 
-### rpi5-netv2
-
-- **Board type**: Bare developer NeTV2 (unpackaged)
-- **GPIO connection**: JTAG (4 signals + SRST) and UART (TX/RX)
-- **PCIe connection**: Gen2 x1 via RPi5 PCIe connector
-- **lspci**: Xilinx device with vendor `10ee`, device `7011`
-
-### rpi3-netv2
-
-- **Board type**: Stock packaged NeTV2 (as shipped by bunnie via Crowd Supply)
-- **GPIO connection**: JTAG (4 signals + SRST) and UART (TX/RX)
-- **PCIe connection**: Not available (RPi3 has no PCIe interface)
+**rpi3-netv2** is a stock packaged NeTV2 (as shipped by bunnie via Crowd
+Supply), with the same GPIO JTAG (4 signals + SRST) and UART (TX/RX). It has no
+PCIe connection: the RPi 3 has no PCIe interface.
 
 ## JTAG via RPi GPIO
 

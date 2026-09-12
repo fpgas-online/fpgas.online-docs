@@ -33,6 +33,10 @@ $ echo 1 | sudo tee /sys/bus/pci/devices/0001:01:00.0/remove
 $ echo 1 | sudo tee /sys/bus/pci/rescan
 ```
 
+The rule is the root complex's, not the Acorn's: it applies to any PCIe FPGA
+on a Pi 5, the NeTV2 on `rpi5-netv2` included ([PCIe
+detection](../netv2.md#pcie-detection-rpi5-netv2)).
+
 Every Welland Pi 5 host uses `0001:01:00.0` ([SQRL Acorn
 CLE-215+](../../sites/welland.md#sqrl-acorn-cle-215)). At PS1 the address
 differs per host — `0000:01:00.0` on pi14, `0001:01:00.0` on pi16 and pi20 — so
