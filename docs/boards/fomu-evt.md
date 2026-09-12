@@ -79,10 +79,10 @@ treats it as a debugging extra, on the grounds that USB (CDC-ACM or DFU) is the
 Fomu's primary channel — but that is not how the fleet uses it. The test
 bitstreams contain no USB core, so the Fomu leaves USB the moment one is loaded,
 and the harness talks to the design over these two pins, wired to the Pi's own
-GPIO UART and opened as `/dev/serial0`. This reconciles the two statements on
-the Welland [Interfaces](../sites/welland.md#interfaces) table and in its Fomu
-host notes: the Fomu has no USB serial device, and it does have a serial port —
-on the GPIO header. How the pins reach the Pi is covered under
+GPIO UART and opened as `/dev/serial0`. This reconciles the two statements in the
+[Interfaces to the Raspberry Pi](index.md#interfaces-to-the-raspberry-pi) table
+and in the Welland Fomu host notes: the Fomu has no USB serial device, and it
+does have a serial port — on the GPIO header. How the pins reach the Pi is covered under
 [UART interface](#uart-interface).
 
 | Signal | FPGA Pin | I/O Standard | Notes       |

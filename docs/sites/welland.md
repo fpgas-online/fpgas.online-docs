@@ -396,24 +396,6 @@ Surveyed 2026-03-17.
 | `rpi5-pmod.iot.welland.mithis.com` | RPi 5           | PMOD HAT dev host |
 | `rpi4-pmod.iot.welland.mithis.com` | RPi 4           | PMOD HAT dev host |
 
-## Interfaces
-
-How each board type reaches its Raspberry Pi at this site. The pin mappings are
-board facts and live on the board pages.
-
-| Board type | Physical interface(s) to the Pi | Board page |
-|---|---|---|
-| Arty A7-35T | USB to an FTDI FT2232 — JTAG on `ttyUSB0`, 115200 baud UART on `ttyUSB1`; PMOD HAT | [Arty A7](../boards/arty-a7.md) |
-| NeTV2 | GPIO bit-bang JTAG; GPIO UART (`/dev/ttyS0` on the Pi 3B+ hosts, `/dev/ttyAMA0` on a Pi 5; see the board page); PCIe Gen2 x1 and a secondary UART on the PCIe "hax" pins, Pi 5 only | [Kosagi NeTV2](../boards/netv2.md) |
-| SQRL Acorn CLE-215+ | GPIO bit-bang JTAG (P1); GPIO UART (P2) on `/dev/ttyAMA0`; PCIe through the M.2 HAT | [SQRL Acorn](../boards/acorn/index.md) |
-| Fomu EVT | Native USB (ValentyUSB), programmed over DFU with a USB analyzer inline; the board also sits on the GPIO header, so the test UART is the Pi's own GPIO UART at 115200 on `/dev/serial0` (iCE40 pins 13/21 to GPIO14/15) plus one confirmed GPIO loopback pair | [Fomu EVT](../boards/fomu-evt.md) |
-| Tiny Tapeout ASIC | USB to the RP2040 as `/dev/ttboard`; PMOD HAT | [Tiny Tapeout ASIC](../boards/tt-asic.md) |
-| Tiny Tapeout FPGA demo | USB-C to the RP2350 as `/dev/ttboard`; PMOD HAT | [Tiny Tapeout FPGA](../boards/tt-fpga.md) |
-
-The Digilent PMOD HAT is fitted on the Arty A7, Tiny Tapeout ASIC and Tiny
-Tapeout FPGA hosts, breaking Pi GPIOs out to three standard 12-pin PMOD ports
-(JA, JB, JC); see [Raspberry Pi PMOD HAT](../boards/pmod/rpi-hat.md).
-
 ## Test execution flow
 
 1. **Boot.** The Pi PXE-boots from tweed over TFTP onto the shared read-only
