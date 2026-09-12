@@ -157,11 +157,28 @@ board on switch 2 port 42 is `pi-sw2-p42`. See
 
 ## Running the hardware tests
 
+### From boot to result
+
+End to end, whatever the board, a run is four steps:
+
+1. **Boot.** The Pi PXE-boots from its site gateway over TFTP onto the shared
+   read-only NFS root ([Netboot and the NFS root](netboot.md)).
+2. **Program the FPGA.** openFPGALoader over USB FTDI JTAG (Arty), over GPIO
+   bit-bang JTAG (NeTV2, and Acorn with the PCIe endpoint detached first), or
+   over USB DFU (Fomu); RP2040 (TT ASIC) / RP2350 (TT FPGA), MicroPython, via
+   `/dev/ttboard` (owned by the `fpgas-tt` daemon).
+3. **Run the harness.** Open the serial port — `ttyUSB1`, `/dev/ttyAMA0` or
+   `/dev/ttboard` — and drive the design.
+4. **Collect results.** Parse the UART output for PASS/FAIL, check PCIe
+   enumeration (NeTV2), verify the PMOD loopback signals (Arty).
+
+### What the runner does per test
+
 `verify_hardware.py` is the test orchestrator. It holds no state on the Pi: for
 every test it uploads what it needs, prepares the host, programs the FPGA, runs
 one test script and reads a single marker line out of the output.
 
-Per test, in order:
+Each of its steps, in order:
 
 1. **Check connectivity.** `ssh_check_connectivity()` runs `echo ok`; an
    unreachable host fails the test immediately rather than timing out later.
@@ -198,21 +215,6 @@ table (lines 29–32) still reaches Welland as `pi@tweed.welland.mithis.com`,
 an account that went away with tweed's 2026-08-30 reinstall. Nothing in the
 Welland half of the table can connect as written.
 :::
-
-### From boot to result
-
-End to end, whatever the board, a run is four steps:
-
-1. **Boot.** The Pi PXE-boots from its site gateway over TFTP onto the shared
-   read-only NFS root ([Netboot and the NFS root](netboot.md)).
-2. **Program the FPGA.** openFPGALoader over USB FTDI JTAG (Arty), over GPIO
-   bit-bang JTAG (NeTV2, and Acorn with the PCIe endpoint detached first), or
-   over USB DFU (Fomu); RP2040 (TT ASIC) / RP2350 (TT FPGA), MicroPython, via
-   `/dev/ttboard` (owned by the `fpgas-tt` daemon).
-3. **Run the harness.** Open the serial port — `ttyUSB1`, `/dev/ttyAMA0` or
-   `/dev/ttboard` — and drive the design.
-4. **Collect results.** Parse the UART output for PASS/FAIL, check PCIe
-   enumeration (NeTV2), verify the PMOD loopback signals (Arty).
 
 ### Pre-test commands
 
