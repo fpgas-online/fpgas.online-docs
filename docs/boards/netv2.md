@@ -5,8 +5,8 @@ bunnie (Andrew Huang) and produced by Alphamax/Kosagi. It stacks on a Raspberry
 Pi's 40-pin header, and the fleet runs it in two arrangements: five production
 boards on RPi 3B+ hosts driven entirely over GPIO JTAG and GPIO UART
 ([NeTV2](../sites/welland.md#netv2)), and two development boards on a separate
-network, one of which, the RPi 5 host, adds a PCIe Gen2 x1 link
-([NeTV2 development hosts](../sites/welland.md#netv2-development-hosts-separate-network)).
+network that is not part of the fpgas.online fleet, one of which, the RPi 5
+host, adds a PCIe Gen2 x1 link ([development hosts](#development-hosts)).
 Every NeTV2 in the fleet is at Welland. This page covers the board itself, its
 FPGA pin assignments for each on-board peripheral, how it is wired to its
 Raspberry Pi, and how it is programmed and talked to.
@@ -46,9 +46,8 @@ Source: [LiteX platform file for the NeTV2](https://github.com/litex-hub/litex-b
 
 The NeTV2 is designed to sit on top of a Raspberry Pi, connecting through the
 40-pin GPIO header and optionally through a PCIe link. The two hosts below are
-the development boards on the separate `iot.welland.mithis.com` network; their
-addresses, models and SSH details are on the site page under
-[NeTV2 development hosts](../sites/welland.md#netv2-development-hosts-separate-network).
+the [development hosts](#development-hosts), personal machines on a separate
+network rather than part of the fpgas.online fleet.
 Five production boards are installed ([NeTV2](../sites/welland.md#netv2)), of
 which four are the working fleet: pi18 was already offline at the 2026-03-17
 survey. All five are RPi 3B+ hosts without PCIe, carrying the same GPIO JTAG and
@@ -64,6 +63,26 @@ Probed 2026-03-09.
 
 † Which tool rpi5-netv2 actually has is unsettled; see
 [Programming with openFPGALoader](#programming-with-openfpgaloader).
+
+### Development hosts
+
+Probed 2026-03-09. Neither host is part of the fpgas.online fleet: they sit on
+`iot.welland.mithis.com`, reachable over `wg-desktop` rather than through a site
+gateway, and no site page lists them.
+
+```{rst-class} nowrap
+```
+
+| Host                              | IP (via DNS)    | RPi Model             | Board                  | Connections         | SSH                                                        |
+| --------------------------------- | --------------- | --------------------- | ---------------------- | ------------------- | ---------------------------------------------------------- |
+| `rpi5-netv2.iot.welland.mithis.com` | 10.1.90.210/211 | RPi 5 Model B Rev 1.0 | NeTV2 (bare developer) | GPIO + PCIe Gen2 x1 | `tim@rpi5-netv2.iot.welland.mithis.com` (via `wg-desktop`) |
+| `rpi3-netv2.iot.welland.mithis.com` | 10.1.90.212/213 | RPi 3                 | NeTV2 (stock packaged) | GPIO only           | `pi@rpi3-netv2.iot.welland.mithis.com` (via `wg-desktop`)  |
+
+**rpi5-netv2**, verified over SSH 2026-03-09: Debian 13 (Trixie), kernel
+6.12.47+rpt-rpi-2712 aarch64; OpenOCD installed but no openFPGALoader and no
+LiteX; an ASIX AX88179 Gigabit Ethernet adapter is the only USB device, so
+there is no FTDI JTAG adapter and no USB serial device; only the RP1 south
+bridge is visible on PCIe, so the NeTV2 FPGA is not enumerating.
 
 ### rpi5-netv2
 
@@ -194,8 +213,7 @@ settles it:
 - The board specification calls RP1 PIO JTAG a capability still pending
   upstream, not something running here.
 - The 2026-03-09 SSH survey found OpenOCD installed on rpi5-netv2 and no
-  openFPGALoader at all
-  ([NeTV2 development hosts](../sites/welland.md#netv2-development-hosts-separate-network)).
+  openFPGALoader at all ([Development hosts](#development-hosts)).
 - [`alphamax-rpi5-sysfsgpio.cfg`](https://github.com/fpgas-online/fpgas.online-test-designs/blob/main/designs/pcie-enumeration/openocd/alphamax-rpi5-sysfsgpio.cfg)
   in test-designs is a checked-in OpenOCD Pi 5 configuration for this board —
   `sysfsgpio jtag_nums 575 588 598 593` and `sysfsgpio srst_num 595`, which is
@@ -394,8 +412,7 @@ Gen2 x1, the FPGA enumerates as a Xilinx device:
 
 :::{warning}
 As of 2026-03-09, the NeTV2 FPGA is not currently enumerating on the RPi5's PCIe
-bus: only the RP1 south bridge is visible in `lspci`. The site page records this
-under [Known faults](../sites/welland.md#known-faults) as needing a bitstream
+bus: only the RP1 south bridge is visible in `lspci`. It needs a bitstream
 loaded first. Until it enumerates, the
 [detach step](#programming-with-openfpgaloader) finds nothing to detach — and the moment
 it does enumerate, that step becomes mandatory.

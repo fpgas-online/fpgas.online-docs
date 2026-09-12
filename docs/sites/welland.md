@@ -364,38 +364,6 @@ under `/root/fpgas-tt-setup/fpga-backup/<host>/` and pushed back. See
 
 Source: live probe 2026-09-03 (`lsusb`, `/dev/serial/by-id`, daemon `/health`).
 
-### NeTV2 development hosts, separate network
-
-Probed 2026-03-09. Two NeTV2 hosts sit outside the tweed network, on
-`iot.welland.mithis.com`, reachable over `wg-desktop` rather than through the
-gateway.
-
-```{rst-class} nowrap
-```
-
-| Host                              | IP (via DNS)    | RPi Model             | Board                  | Connections         | SSH                                                        |
-| --------------------------------- | --------------- | --------------------- | ---------------------- | ------------------- | ---------------------------------------------------------- |
-| `rpi5-netv2.iot.welland.mithis.com` | 10.1.90.210/211 | RPi 5 Model B Rev 1.0 | NeTV2 (bare developer) | GPIO + PCIe Gen2 x1 | `tim@rpi5-netv2.iot.welland.mithis.com` (via `wg-desktop`) |
-| `rpi3-netv2.iot.welland.mithis.com` | 10.1.90.212/213 | RPi 3                 | NeTV2 (stock packaged) | GPIO only           | `pi@rpi3-netv2.iot.welland.mithis.com` (via `wg-desktop`)  |
-
-**rpi5-netv2**, verified over SSH 2026-03-09: Debian 13 (Trixie), kernel
-6.12.47+rpt-rpi-2712 aarch64; OpenOCD installed but no openFPGALoader and no
-LiteX; an ASIX AX88179 Gigabit Ethernet adapter is the only USB device, so
-there is no FTDI JTAG adapter and no USB serial device; only the RP1 south
-bridge is visible on PCIe, so the NeTV2 FPGA is not enumerating.
-
-### PMOD HAT development hosts, separate network
-
-Surveyed 2026-03-17.
-
-```{rst-class} nowrap
-```
-
-| Host                             | RPi Model | Notes             |
-| -------------------------------- | --------------- | ----------------- |
-| `rpi5-pmod.iot.welland.mithis.com` | RPi 5           | PMOD HAT dev host |
-| `rpi4-pmod.iot.welland.mithis.com` | RPi 4           | PMOD HAT dev host |
-
 ## Disconnected hosts
 
 Surveyed 2026-03-17.
@@ -435,8 +403,6 @@ Source: `pibs.conf` on tweed.
   `ESTALE` on the replaced files — cameras off air on 11 boards; on 2026-09-03
   the TT hosts still showed `dpkg-query … Stale file handle`. Only a reboot
   fixes it. Expect it after any NFS-root package update.
-- **rpi5-netv2**: the NeTV2 FPGA is not visible on the PCIe bus — it needs a
-  bitstream loaded first.
 - **Legacy entries from the 2026-03-17 survey** (not re-checked):
   - pi9 Arty A7: FTDI disconnected, so no USB serial devices are present and the
     board cannot be programmed or tested until the USB connection is restored.

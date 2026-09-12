@@ -87,9 +87,9 @@ page is the measured source.
   and names a `tt10` that has no row here — see
   [Tiny Tapeout ASIC boards](../sites/welland.md#tiny-tapeout-asic-boards).
 - **NeTV2 (RPi5 PCIe) at Welland.** Four are pending here. The Welland page has
-  no pending PCIe NeTV2 hosts; the only RPi 5 NeTV2 is `rpi5-netv2`, one of the
-  two development hosts on the separate `iot.welland.mithis.com` network — see
-  [NeTV2 development hosts](../sites/welland.md#netv2-development-hosts-separate-network).
+  no pending PCIe NeTV2 hosts; the only RPi 5 NeTV2 is `rpi5-netv2`, one of two
+  development hosts on a separate network that is not part of the fleet — see
+  [Development hosts](netv2.md#development-hosts).
 - **ButterStick and ULX3S at Welland.** Four of each are pending here. Neither
   board appears anywhere on the [Welland page](../sites/welland.md), and neither
   has a host, a switch port or an allocation recorded.
