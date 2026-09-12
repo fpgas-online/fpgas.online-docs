@@ -25,62 +25,6 @@ CM5 Lite (pi16, pi20)
   Like the Pi 5, the RP1 offers several UART instances plus PIO, so pins can be
   reassigned in software.
 
-## Wiring
-
-Only GPIO2, 3, 4, 14 and 15 are exposed on the Compute Blade expansion port, so
-JTAG and serial share pins:
-
-| Signal | GPIO | Notes |
-|---|---|---|
-| TDI | 2 | also SDA1 — has an onboard I²C pull-up |
-| TDO | 3 | also SCL1 — has an onboard I²C pull-up |
-| TCK | 4 | |
-| TMS | 14 | **shared** with the serial pair |
-| serial | 15 | |
-
-```console
-$ openFPGALoader --cable libgpiod --pins 2:3:4:14 --detect
-```
-
-The P2 serial pair is wired as a **null modem crossover**, measured with the
-[pin-ID design](../boards/pin-id.md) on pi20 on 2026-08-31:
-
-| P2 ball | lands on | RPi function |
-|---|---|---|
-| K2 (FPGA TX) | GPIO15 | RXD0 — the Pi receives |
-| J2 (FPGA RX) | GPIO14 | TXD0 — the Pi sends |
-
-:::{note}
-This is the **same** as at [Welland](welland.md#wiring). The crossover is the
-fleet standard, not a Compute Blade special case, so one cable design works on
-both carrier types. `fpgas.online-test-designs` issue #4 recorded the opposite,
-and this page said so until 2026-09-03. That was a documentation error, not a
-difference between the sites: it wired transmitter into transmitter, which
-cannot work with the hardware UART (`/dev/ttyAMA0`) that every host and test
-script uses.
-:::
-
-Only the JTAG pins differ from the Pi 5 wiring, along with the two spare GPIOs
-(J5, H5), which the Compute Blade expansion port does not expose. The connector
-pinout and the full per-pin survey are on
-[Acorn wiring](../boards/acorn/wiring.md).
-
-## Two traps
-
-:::{warning}
-**Loading a design that drives the serial TX costs you JTAG.** GPIO14 is TMS.
-Once the FPGA drives it, `openFPGALoader` cannot use it, and the only way back
-is [a PoE cycle](#power-control) of the blade's switch port. The pin-ID design
-drives J2, so it triggers this every time.
-:::
-
-:::{note}
-**The kernel console used to make this fatal.** With `console=ttyAMA0`, a
-1200-baud FPGA transmitting into a 115200-baud console produced garbage that
-the kernel read as SysRq commands, eventually hitting `reboot` or `poweroff`.
-All four blades now boot with `console=tty1`, so this no longer happens.
-:::
-
 ## Gateway: val2
 
 From the site notes and the infra `host_vars/ps1.fpgas.online.yml`; not
@@ -206,13 +150,17 @@ These boards have long been called LiteFury. The factory PCI ID that pi14 and
 pi16 still present identifies them as SQRL Acorn CLE-101 — the same PCB family,
 XC7A100T with 512 MB of DDR3. See [SQRL Acorn](../boards/acorn/index.md).
 
-All four netboot the trixie arm64 NFS root with overlayroot and run
-**openFPGALoader 0.13.1** — so `--read-dna` works here, unlike Welland. JTAG
-goes over the expansion module port ([Wiring](#wiring)), and the FPGA UART is
-`/dev/ttyAMA0` on GPIO14/15. All four have `console=tty1` with
-`serial-getty@ttyAMA0` inactive, so the SysRq crash above cannot recur. PCIe is
-through the M.2 slot. The per-pin measurements behind the JTAG and P2 columns
-are on [Acorn wiring](../boards/acorn/wiring.md).
+These four are Compute Blade carriers, so they are wired to the [Compute Blade
+variant](../boards/acorn/wiring.md#compute-blade-wiring-variant) of the Acorn
+pinout: both connectors on the expansion module port, JTAG on
+`--pins 2:3:4:14`, and the FPGA UART on `/dev/ttyAMA0` at GPIO14/15. All four
+netboot the trixie arm64 NFS root with overlayroot and run **openFPGALoader
+0.13.1** — so `--read-dna` works here, unlike Welland. All four have
+`console=tty1` with `serial-getty@ttyAMA0` inactive, so the [kernel console
+SysRq
+crash](../boards/acorn/wiring.md#known-issue-kernel-console-sysrq-on-the-fpga-uart)
+cannot recur. PCIe is through the M.2 slot. The per-pin measurements behind the
+JTAG and P2 columns are on [Acorn wiring](../boards/acorn/wiring.md).
 
 :::{warning}
 Reconfiguring the FPGA over JTAG while its PCIe endpoint is enumerated is a

@@ -229,8 +229,9 @@ dtoverlay=dwc2,dr_mode=peripheral
   kernel reads as SysRq. That is what `cmdline=cmdline-pi5.txt` is for: it
   swaps in a command line with `console=ttyAMA10,115200`, the dedicated debug
   UART, leaving `ttyAMA0` unclaimed. The rest of both command lines is on
-  [the kernel command line](netboot.md#the-kernel-command-line); PS1 hit the
-  SysRq failure for real, recorded under [Two traps](../sites/ps1.md#two-traps).
+  [the kernel command line](netboot.md#the-kernel-command-line); the Compute
+  Blades hit the SysRq failure for real, recorded under [kernel console
+  SysRq](../boards/acorn/wiring.md#known-issue-kernel-console-sysrq-on-the-fpga-uart).
 
 `dtoverlay=dwc2,dr_mode=peripheral`
 : Pi 4 and Pi 5 only. Their USB-C port is a dwc2 OTG controller the firmware
@@ -363,11 +364,12 @@ roles provide to watch a boot, listed under
 
 :::{warning}
 A design that drives the serial TX line while the kernel console is on the same
-UART is not merely noisy: at PS1 a 1200-baud FPGA transmitting into a
-115200-baud console produced garbage the kernel parsed as SysRq commands and
-eventually hit `reboot`. See [Two traps](../sites/ps1.md#two-traps) for how that
-was fixed there, and the `[pi5]` console pinning above for how it is avoided on
-the Pi 5 hosts.
+UART is not merely noisy: on a Compute Blade at PS1 a 1200-baud FPGA
+transmitting into a 115200-baud console produced garbage the kernel parsed as
+SysRq commands and eventually hit `reboot`. See [kernel console
+SysRq](../boards/acorn/wiring.md#known-issue-kernel-console-sysrq-on-the-fpga-uart)
+for the root cause and the fix, and the `[pi5]` console pinning above for how it
+is avoided on the Pi 5 hosts.
 :::
 
 ## Sources

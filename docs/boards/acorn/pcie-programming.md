@@ -74,8 +74,8 @@ be rebuilt with Vivado until a newer release is cut.
 :::
 
 :::{todo}
-Two pages disagree about that one asset. [Measured P2 wiring at
-Welland](wiring.md#measured-p2-wiring-at-welland) says the survey
+Two pages disagree about that one asset. [Measured P2 wiring on Raspberry Pi 5
+hosts](wiring.md#measured-p2-wiring-on-raspberry-pi-5-hosts) says the survey
 was read off with "the fixed pin-ID bitstream" and names exactly this release
 asset, `pmod-pin-id_acorn-cle-215p_vivado-vivado_sqrl_acorn.bit`. This section
 says that asset predates PR #10 and never toggles a pin. Either the release does

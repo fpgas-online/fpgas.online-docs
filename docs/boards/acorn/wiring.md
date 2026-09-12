@@ -5,21 +5,30 @@ CLE-215+ (or LiteFury/NiteFury) to its Raspberry Pi host in the fpgas.online
 test infrastructure. See [SQRL Acorn and LiteFury](index.md) for board specs
 and deployment inventory.
 
-This is the canonical Acorn-to-Pi wiring, and it comes in two variants. The
-**Raspberry Pi 5 variant** below plugs P2 into header pins 5-10 and P1 into
-header pins 19-26, giving JTAG on `--pins 10:9:11:8` plus two spare GPIOs; that
-is what [Welland](../../sites/welland.md#wiring) runs. The [Compute Blade
-variant](#compute-blade-wiring-variant) puts both connectors on the expansion
-port instead, giving JTAG on `--pins 2:3:4:14` and no spare GPIOs, with TMS
-time-shared on GPIO14; that is what [PS1](../../sites/ps1.md#wiring) runs. The
-P2 serial crossover is identical on both — K2 (FPGA TX) to GPIO15, J2 (FPGA RX)
-to GPIO14 — so one cable design works everywhere.
+This is the canonical Acorn-to-Pi wiring, and it comes in two variants. Which
+one applies is a property of the **carrier the Pi sits in** — how many GPIOs it
+brings out — and not of the site: either carrier can appear in either room.
+
+- **Raspberry Pi 5 with the M.2 HAT** — the full 40-pin header is available, so
+  P2 plugs into header pins 5-10 and P1 into header pins 19-26. JTAG gets its
+  own pins, `--pins 10:9:11:8` (TDI:TDO:TCK:TMS), the serial pair sits on
+  GPIO14/15, and both spare balls (J5, H5) are wired. Driving the FPGA's
+  transmitter does not cost you JTAG. This is the variant described first
+  below.
+- **[Compute Blade carrier with a CM4 or CM5](#compute-blade-wiring-variant)** —
+  the expansion port exposes only GPIO2, 3, 4, 14 and 15, so both connectors
+  land there, JTAG is `--pins 2:3:4:14`, TMS time-shares GPIO14 with the serial
+  pair, and there are no spare GPIOs. Driving the FPGA's transmitter costs JTAG
+  until a PoE cycle.
+
+The P2 serial crossover is identical on both — K2 (FPGA TX) to GPIO15, J2
+(FPGA RX) to GPIO14 — so one cable design works everywhere.
 
 :::{note}
 **Revised 2026-09-03.** The P2 serial wiring below was corrected after the
 pin-ID design was run on the Welland boards on 2026-08-31 (see [Measured P2
-wiring](#measured-p2-wiring-at-welland)). The earlier revision of this
-page wired FPGA TX (K2) to the Pi's TXD0, i.e. transmitter into transmitter,
+wiring](#measured-p2-wiring-on-raspberry-pi-5-hosts)). The earlier revision of
+this page wired FPGA TX (K2) to the Pi's TXD0, i.e. transmitter into transmitter,
 which cannot work with the hardware UART (`/dev/ttyAMA0`) that every host and
 test script uses. The crossover is the fleet standard, not a Compute Blade
 special case.
@@ -102,8 +111,8 @@ The serial pair is a **null-modem crossover**: the FPGA's transmitter (K2) lands
 on the Pi's receiver (GPIO15 / RXD0) and the FPGA's receiver (J2) on the Pi's
 transmitter (GPIO14 / TXD0). This follows the Raspberry Pi header convention
 (pin 8 = TXD, pin 10 = RXD) that `/dev/ttyAMA0` uses on every Pi generation,
-and it is the same convention the NeTV2 boards on this site use
-([Welland wiring](../../sites/welland.md#wiring): FPGA TX → GPIO15,
+and it is the same convention the NeTV2 boards use ([NeTV2 primary
+UART](../netv2.md#primary-uart-via-rpi-gpio): FPGA TX → GPIO15,
 FPGA RX → GPIO14).
 
 How hard that convention is depends on the host:
@@ -404,7 +413,7 @@ $ lspci -nn | grep -i xilinx
 # Expected: device with Xilinx vendor ID 10ee (LitePCIe default 10ee:7011)
 ```
 
-## Measured P2 wiring at Welland
+## Measured P2 wiring on Raspberry Pi 5 hosts
 
 Measured 2026-08-31.
 
@@ -474,7 +483,8 @@ standard RPi 5 wiring above.
 
 GPIO14/15 are shared across the Expansion Port, UART Front, and UART Back — they
 are the same electrical lines. GPIO8-11 (SPI0) are **not** exposed on the
-Compute Blade.
+Compute Blade. GPIO2 and GPIO3, which carry TDI and TDO here, are also SDA1 and
+SCL1 and have the carrier's onboard I²C pull-ups on them.
 
 Source: [Compute Blade GPIO
 documentation](https://docs.computeblade.com/blade/guides/gpio)
@@ -569,14 +579,21 @@ the switching procedure below.
 GPIO14 (Expansion Port pin 8) is shared between JTAG TMS and FPGA RX (J2). With
 the null modem crossover, FPGA RX (J2) is an **input** on the FPGA side for
 normal designs, so it does not drive GPIO14 and does not conflict with JTAG TMS.
-Designs that drive J2 as an output (pin-ID drives every P2 ball) do contend with
-TMS and cost JTAG until a PoE cycle — see the measured state below and [Two
-traps](../../sites/ps1.md#two-traps).
+
+:::{warning}
+**Loading a design that drives the serial TX costs you JTAG.** GPIO14 is TMS on
+this variant. Once the FPGA drives it, `openFPGALoader` cannot use it, and the
+only way back is a PoE cycle of the blade's switch port (the PS1 procedure is
+under [Power control](../../sites/ps1.md#power-control)). The pin-ID design
+drives every P2 ball, J2 included, so it triggers this every time. The Pi 5
+variant has no such trap: there JTAG and the serial pair are on separate GPIOs.
+:::
 
 **JTAG programming:**
 
 ```console
 # Compute Blade JTAG pin order: TDI(GPIO2):TDO(GPIO3):TCK(GPIO4):TMS(GPIO14)
+$ openFPGALoader --cable libgpiod --pins 2:3:4:14 --detect
 $ openFPGALoader --cable libgpiod --pins 2:3:4:14 <bitstream.bit>
 ```
 
@@ -626,7 +643,7 @@ and the absence of the two spare GPIOs.
 and P2 must be left unconnected.
 :::
 
-### Measured state of the PS1 blades
+### Measured state of the Compute Blade hosts
 
 Measured 2026-08-31.
 
