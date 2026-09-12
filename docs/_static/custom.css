@@ -4,3 +4,12 @@ article[role=main] table.docutils {
   display: block;
   overflow-x: auto;
 }
+
+/* Host inventory tables are dense identifier data: MAC, DNA, serial, model.
+   Letting those cells wrap shreds every column to a few characters, so the
+   tables marked `{rst-class} nowrap` keep each cell on one line and scroll
+   instead. Tables whose cells hold prose are left to wrap normally. */
+article[role=main] table.docutils.nowrap td,
+article[role=main] table.docutils.nowrap th {
+  white-space: nowrap;
+}
