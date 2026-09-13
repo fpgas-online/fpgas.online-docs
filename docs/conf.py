@@ -32,7 +32,15 @@ source_suffix = {
     ".rst": "restructuredtext",
 }
 
-exclude_patterns = ["_build", "Thumbs.db", ".DS_Store", "requirements.txt"]
+# superpowers/ holds the design specs and implementation plans for this site,
+# which are working documents for contributors rather than published pages.
+exclude_patterns = [
+    "_build",
+    "Thumbs.db",
+    ".DS_Store",
+    "requirements.txt",
+    "superpowers",
+]
 
 # MyST already warns (myst.xref_missing) on a Markdown link to a page or
 # heading that does not exist, and fail_on_warning in .readthedocs.yaml turns
