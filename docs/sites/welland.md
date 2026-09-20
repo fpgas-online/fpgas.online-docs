@@ -248,7 +248,8 @@ hosts](../boards/acorn/wiring.md#measured-p2-wiring-on-raspberry-pi-5-hosts).
 The PCIe device column is what each board's SPI flash boots into, read with
 `lspci -nn` on 2026-09-03: five of the six still hold the SQRL factory mining
 firmware, which is not a LiteX design, so `litepcie_util` cannot talk to them.
-Only pi-sw2-p44 has a LiteX/Vivado design in flash. See
+pi-sw2-p44 shows `10ee:7011`, which on pi20 proved to be the vendor XDMA sample
+image and not a LiteX design (2026-09-20); p44 has not been re-checked. See
 [PCIe programming](../boards/acorn/pcie-programming.md).
 
 Every one of the six has an ov5647 camera and publishes a feed. All run the

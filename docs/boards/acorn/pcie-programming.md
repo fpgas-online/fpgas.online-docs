@@ -5,6 +5,30 @@ Xilinx 7-series multiboot for safe recovery from bad bitstreams. See [SQRL Acorn
 and LiteFury](index.md) for the board itself and [Acorn wiring](wiring.md) for
 the GPIO JTAG wiring every JTAG command below assumes.
 
+:::{danger}
+**Corrected 2026-09-20, after the first LiteX PCIe design was run on hardware
+(pi20 at PS1). Three things this page used to say were wrong:**
+
+- **The `pcie-enumeration_acorn-*` bitstreams in the prebuilt release never
+  link.** Their I/O reports put the PCIe lane on package pins D9/D7 (GTP channel
+  X0Y7, M.2 lane 3), not on B10/B6 (X0Y6, M.2 lane 0): the Xilinx PCIe IP's own
+  XDC pins a x1 core's transceiver and silently beats the port constraints. On
+  a x1 host the core sits in Detect forever. **Do not use them as a golden image
+  or for recovery.** The fix is in the `acorn-pcie` SoC ([test-designs
+  `acorn-pcie/01-soc`](https://github.com/fpgas-online/fpgas.online-test-designs/tree/acorn-pcie/01-soc)),
+  whose build now fails if any port is not on the pin it was constrained to.
+- **`10ee:7011` is not a LiteX design.** LitePCIe's default ID for a x1 core is
+  `10ee:7021` (`7020 + lanes`). pi20's `10ee:7011` is the vendor (RHS Research)
+  XDMA sample image: x4-capable, two BARs. pi-sw2-p44 shows the same ID and has
+  not been re-checked.
+- **A PCIe rescan is not enough after a JTAG load of a LiteX design.** See
+  [Bring the endpoint back after a JTAG
+  load](#bring-the-endpoint-back-after-a-jtag-load).
+
+Nothing on this page that goes through `litepcie_util` has been run on
+fpgas.online hardware yet.
+:::
+
 ## Programming paths
 
 The Acorn has two working programming paths:
@@ -29,8 +53,7 @@ load completed cleanly and the host was unaffected.
 # Detach the endpoint first — before openFPGALoader
 $ echo 1 | sudo tee /sys/bus/pci/devices/0001:01:00.0/remove
 # ... load ...
-# Restore it afterwards, or just reboot
-$ echo 1 | sudo tee /sys/bus/pci/rescan
+# then bring it back: see the next section
 ```
 
 The rule is the root complex's, not the Acorn's: it applies to any PCIe FPGA
@@ -48,7 +71,47 @@ detach has been done. Read-only operations (`--detect`, and `--read-dna` /
 `--read-xadc` on openFPGALoader ≥ 0.13) do not reconfigure the device and are
 safe on a live endpoint.
 
+### Bring the endpoint back after a JTAG load
+
+Measured on pi20 (CM5 on a Compute Blade, kernel 6.12.75, 2026-09-20):
+
+| Design loaded over JTAG | `echo 1 > /sys/bus/pci/rescan` | Root-complex re-probe |
+|---|---|---|
+| Vendor XDMA image (reloaded from flash with `openFPGALoader --reset`) | re-links at 5 GT/s x1 and enumerates | works |
+| LiteX `acorn-pcie` SoC | nothing: the core's LTSSM sits at `0x2d`, root-port retrain and secondary-bus reset change nothing | **links at 5 GT/s x1, enumerates as `10ee:7021`** |
+
+So a LiteX design needs PERST# toggled, which on these hosts means unbinding and
+rebinding the slot's root complex. That touches only the FPGA's PCI domain: the
+RP1 southbridge (Ethernet, USB, GPIO) hangs off a different platform device.
+
+```console
+# Which platform device is behind the FPGA slot? (pi20: 1000110000.pcie, PCI domain 0001)
+$ readlink -f /sys/bus/pci/devices/0001:00:00.0 | grep -o '[0-9a-f]*\.pcie'
+1000110000.pcie
+$ echo 1000110000.pcie | sudo tee /sys/bus/platform/drivers/brcm-pcie/unbind
+$ echo 1000110000.pcie | sudo tee /sys/bus/platform/drivers/brcm-pcie/bind
+$ lspci -nn -s 0001:01:00.0
+0001:01:00.0 Memory controller [0580]: Xilinx Corporation Device [10ee:7021]
+```
+
+If the link is down when `bind` runs, the driver logs `link down`, `bind` fails
+with `No such device`, and the root port `0001:00:00.0` disappears until a later
+`bind` succeeds. That is recoverable: load a design that links (or
+`openFPGALoader --reset` to reload the flash image) and `bind` again.
+
+:::{todo}
+Not yet tried on a Pi 5 at Welland, where the platform device name may differ
+and the HAT sits behind an FPC cable. Run the table above on the first Welland
+host that is plugged back in.
+:::
+
 ### Prebuilt Vivado bitstreams
+
+:::{warning}
+The `pcie-enumeration_acorn-*` assets in this release are built on the wrong
+PCIe lane and cannot link on any fpgas.online host (see the box at the top of
+this page). The other designs in the release are unaffected.
+:::
 
 There is no need to build locally. GitHub release
 [`vivado-bitstreams-v0.0-496-gf162f60`](https://github.com/fpgas-online/fpgas.online-test-designs/releases/tag/vivado-bitstreams-v0.0-496-gf162f60)
@@ -98,8 +161,9 @@ That is what makes the recovery strategy below what it is.
 What each board's flash actually holds is on the site pages. The [SQRL Acorn
 CLE-215+](../../sites/welland.md#sqrl-acorn-cle-215) table at Welland carries
 the `lspci -nn` reading for all six boards, taken 2026-09-03. Five of them still
-boot the factory SQRL cryptocurrency mining firmware `1e24:021f`; only
-pi-sw2-p44 has a LiteX/Vivado design `10ee:7011` in flash.
+boot the factory SQRL cryptocurrency mining firmware `1e24:021f`; pi-sw2-p44
+shows `10ee:7011`, which on pi20 turned out to be the vendor XDMA sample image,
+not a LiteX design (2026-09-20). p44 has not been re-checked.
 
 Factory firmware characteristics:
 
@@ -108,11 +172,11 @@ Factory firmware characteristics:
 - **Not a LiteX design** — `litepcie_util` cannot communicate with this firmware
 
 To enable PCIe→Flash programming, the factory firmware must be replaced with a
-**LiteX Acorn PCIe SoC** bitstream (vendor `10ee`) that includes PCIe+DMA, SPI
+**LiteX Acorn PCIe SoC** bitstream (`10ee:7021`) that includes PCIe+DMA, SPI
 Flash controller, and ICAP. Building this bitstream requires **Vivado** (the
-XC7A200T is too large for the openXC7 open source toolchain); the prebuilt
-release above already contains
-`pcie-enumeration_acorn-cle-215p_*_{fallback,operational}.bin`.
+XC7A200T is too large for the openXC7 open source toolchain). The
+`pcie-enumeration_acorn-cle-215p_*_{fallback,operational}.bin` files in the
+prebuilt release are **not** usable for this: they never link.
 
 The litepcie kernel module and `litepcie_util` were built on the host then
 called pi2 (now pi-sw2-p48) — they just need a matching LiteX bitstream to bind
@@ -203,9 +267,10 @@ golden image on any of those four, nothing can rescue it — see [safety
 rules](#safety-rules).
 
 That leaves no Welland Acorn that can safely be flashed over PCIe as of
-2026-09-03: pi-sw2-p44 is the only one running a LiteX design, and it is one of
-the boards with no JTAG recovery. The other five cannot be reached over PCIe at
-all until a LiteX bitstream is in their flash.
+2026-09-03: none of them runs a LiteX design (pi-sw2-p44's `10ee:7011` is most
+likely the vendor sample image, and it is one of the boards with no JTAG
+recovery), so none can be reached by `litepcie_util` until a LiteX bitstream is
+loaded.
 :::
 
 ### Prerequisites
@@ -228,11 +293,10 @@ $ litepcie_util flash_write operational.bin 0x400000
 $ litepcie_util flash_reload
 ```
 
-After reload, the PCIe link retrains. The host must rescan the PCIe bus:
-
-```console
-$ echo 1 > /sys/bus/pci/rescan
-```
+After reload the PCIe link has to be brought back. A plain rescan was not enough
+for a LiteX design after a JTAG load on pi20; whether it is after an ICAP reload
+has not been tested. See [Bring the endpoint back after a JTAG
+load](#bring-the-endpoint-back-after-a-jtag-load).
 
 ### Full update sequence
 
@@ -273,8 +337,10 @@ working, recovery uses a **two-stage SRAM bootstrap**.
 You need the golden bitstream in both forms: `.bit` for the JTAG SRAM load, and
 `.bin` for the flash write. Both are in the release described under [prebuilt
 Vivado bitstreams](#prebuilt-vivado-bitstreams) —
-`pcie-enumeration_acorn-cle-215p_*_fallback.*` is the golden image and
-`pcie-enumeration_acorn-cle-215p_*_operational.*` its operational partner.
+`pcie-enumeration_acorn-cle-215p_*_fallback.*` was meant to be the golden image
+and `pcie-enumeration_acorn-cle-215p_*_operational.*` its operational partner,
+but **those release files never link** (top of this page). Use the `acorn-pcie`
+SoC's golden and operational builds instead.
 
 :::{warning}
 Files staged under `/home/pi` do not survive a reboot: the Pi root is a
@@ -330,9 +396,11 @@ were added on port, 2026-09-03; the source omitted them. They follow [Step
    then load the litepcie kernel module:
 
    ```console
-   $ echo 1 | sudo tee /sys/bus/pci/rescan
+   # Re-probe the root complex of the FPGA slot (see Bring the endpoint back after a JTAG load)
+   $ echo 1000110000.pcie | sudo tee /sys/bus/platform/drivers/brcm-pcie/unbind
+   $ echo 1000110000.pcie | sudo tee /sys/bus/platform/drivers/brcm-pcie/bind
    $ lspci -nn -s 0001:01:00.0
-   # Expected: Xilinx Corporation 7-Series FPGA Hard PCIe block (AXI/debug) [10ee:7011]
+   # Expected: Memory controller [0580]: Xilinx Corporation Device [10ee:7021]
    $ modprobe litepcie
    $ lspci -k -s 0001:01:00.0
    # Expected: Kernel driver in use: litepcie
@@ -356,7 +424,7 @@ were added on port, 2026-09-03; the source omitted them. They follow [Step
 
 5. **Power cycle** the board. The FPGA boots from the new golden image in flash,
    chain-loads operational, and PCIe comes up persistently. Confirm with
-   `lspci -nn -s 0001:01:00.0` afterwards: `10ee:7011` again, this time without
+   `lspci -nn -s 0001:01:00.0` afterwards: `10ee:7021` again, this time without
    any JTAG load.
 
    `sudo reboot` is not necessarily enough — it need not drop the M.2 rail, so
@@ -420,9 +488,11 @@ on port, 2026-09-03; the source omitted them. They follow [Step
    kernel module and write golden to flash:
 
    ```console
-   $ echo 1 | sudo tee /sys/bus/pci/rescan
+   # Re-probe the root complex of the FPGA slot (see Bring the endpoint back after a JTAG load)
+   $ echo 1000110000.pcie | sudo tee /sys/bus/platform/drivers/brcm-pcie/unbind
+   $ echo 1000110000.pcie | sudo tee /sys/bus/platform/drivers/brcm-pcie/bind
    $ lspci -nn -s 0001:01:00.0
-   # Expected: Xilinx Corporation 7-Series FPGA Hard PCIe block (AXI/debug) [10ee:7011]
+   # Expected: Memory controller [0580]: Xilinx Corporation Device [10ee:7021]
    $ modprobe litepcie
    $ litepcie_util flash_write golden.bin 0x0
    ```
@@ -532,10 +602,11 @@ All six rules:
    $ sudo ln -sfn /dev/gpiochip15 /dev/gpiochip0
    $ openFPGALoader --cable libgpiod --pins 10:9:11:8 new_design.bit
    # PS1 Compute Blades: --pins 2:3:4:14
-   # Bring the endpoint back and check what enumerated
-   $ echo 1 | sudo tee /sys/bus/pci/rescan
+   # Bring the endpoint back (root-complex re-probe, see above) and check what enumerated
+   $ echo 1000110000.pcie | sudo tee /sys/bus/platform/drivers/brcm-pcie/unbind
+   $ echo 1000110000.pcie | sudo tee /sys/bus/platform/drivers/brcm-pcie/bind
    $ lspci -nn -s 0001:01:00.0
-   # Expected: the loaded design; a LiteX PCIe design shows [10ee:7011]
+   # Expected: the loaded design; a LiteX x1 PCIe design shows [10ee:7021]
    # Test it works, then write to flash via PCIe
    ```
 

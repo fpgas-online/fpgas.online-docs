@@ -120,7 +120,7 @@ Probed 2026-08-31; all four were up, with 37 days of uptime.
 | pi14 | e14  | 10.21.0.114 | 2c:cf:67:37:d4:bd | CM4 Rev 1.1 4 GB      | Acorn CLE-101 `1e24:0101`   | unreadable         | 0000:01  | no response (P1 unmated) | untested              | Online |
 | pi16 | e16  | 10.21.0.116 | 2c:cf:67:fb:91:e5 | CM5 Lite Rev 1.0 8 GB | Acorn CLE-101 `1e24:0101`   | unreadable         | 0001:01  | no response (P1 unmated) | untested              | Online |
 | pi18 | e18  | 10.21.0.118 | 2c:cf:67:37:d5:08 | CM4 Rev 1.1 4 GB      | none — M.2 slot empty       | —                  | —        | n/a                      | n/a                   | Online |
-| pi20 | e20  | 10.21.0.120 | 2c:cf:67:fd:1e:be | CM5 Lite Rev 1.0 8 GB | XC7A100T design `10ee:7011` | 0x0028e5c45e304854 | 0001:01  | OK                       | OK, crossover present | Online |
+| pi20 | e20  | 10.21.0.120 | 2c:cf:67:fd:1e:be | CM5 Lite Rev 1.0 8 GB | vendor XDMA image `10ee:7011` | 0x0028e5c45e304854 | 0001:01  | OK                       | OK, crossover present | Online |
 
 pi20 is the only blade whose JTAG has ever answered, so it is the only one with
 a device DNA: `0x0028e5c45e304854`, an XC7A100T.
@@ -162,7 +162,9 @@ pi20:
 $ echo 1 | sudo tee /sys/bus/pci/devices/0001:01:00.0/remove
 ```
 
-Restore it with `/sys/bus/pci/rescan`, or by rebooting. `--detect` and the other
+Restore it by rebooting, or as described under [Bring the endpoint back after a
+JTAG load](../boards/acorn/pcie-programming.md#bring-the-endpoint-back-after-a-jtag-load)
+(a LiteX design needs a root-complex re-probe, not just a rescan). `--detect` and the other
 read-only queries are safe without this; **loading a bitstream is not**.
 :::
 

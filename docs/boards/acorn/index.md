@@ -68,7 +68,7 @@ wiki](https://github.com/enjoy-digital/litex/wiki/Use-LiteX-on-the-Acorn-CLE-215
 | Connector       | M.2 M-key                                |
 | Reference clock | Differential (FPGA pins F6/E6)           |
 | Reset           | LVCMOS33 (FPGA pin J1, internal pull-up) |
-| Vendor:Device   | `1e24:021f` Squirrels Research Labs "Acorn CLE-215+" with the factory (mining) firmware in flash; `1e24:0101` for a CLE-101; `10ee:7011` (Xilinx) once a LiteX/Vivado design is in flash |
+| Vendor:Device   | `1e24:021f` Squirrels Research Labs "Acorn CLE-215+" with the factory (mining) firmware in flash; `1e24:0101` for a CLE-101; `10ee:7011` (Xilinx) is the vendor (RHS Research) XDMA sample image, as on pi20; a LiteX x1 PCIe design is `10ee:7021` |
 
 On a Raspberry Pi 5 the Acorn connects via an M.2 HAT and appears on PCIe bus
 `0001:01:00.0` (the RP1 south bridge is `0002:01:00.0`). Reconfiguring the FPGA
@@ -220,13 +220,16 @@ multiboot](pcie-programming.md).
 ### Via PCIe (LiteX)
 
 LiteX provides PCIe-based programming via `litepcie_util` when a LiteX bitstream
-with PCIe support is already loaded. Only pi-sw2-p44 currently boots such a
-design, but p44 scans an empty JTAG chain and must not be flashed over PCIe
+with PCIe support is already loaded. No board boots such a design yet
+(pi-sw2-p44's `10ee:7011` is most likely the vendor sample image, 2026-09-20);
+p44 also scans an empty JTAG chain and must not be flashed over PCIe
 until that is fixed; see [safety
 rules](pcie-programming.md#safety-rules). The other Welland boards still carry
 the SQRL factory firmware. At PS1,
-pi20 is the candidate — it is the one blade whose flash holds a `10ee:7011`
-XC7A100T design rather than the SQRL factory firmware.
+pi20 is the candidate — it is the one blade with working JTAG, and the
+`acorn-pcie` SoC was proven on it over both PCIe and the UART bridge on
+2026-09-20 (SRAM load only; its flash still holds the vendor `10ee:7011` XDMA
+sample image).
 
 ## Where they are
 
