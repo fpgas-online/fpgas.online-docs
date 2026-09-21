@@ -211,6 +211,7 @@ kernel module, rather than `litepcie_util`:
 | `spi_flash.py write …_fallback.bin 0x0 --i-know-this-writes-golden`, run from the golden design | 20 s; both slots verified again |
 | ICAP warm boot to `0x0` | golden chain-loads operational |
 | PoE power cycle | `10ee:7021` enumerated at kernel t = 2.0 s, 5 GT/s x1, operational ident; UART, PCIe, P2 GPIO and flash checks pass |
+| Reset the SoC's CPU and drain the BIOS log from the crossover UART through BAR0 | DDR3 1 GiB at 800 MT/s: read leveling clean on both modules, `Memtest OK`, 35.1 MiB/s write, 46.8 MiB/s read |
 
 Three things learned on the way:
 
