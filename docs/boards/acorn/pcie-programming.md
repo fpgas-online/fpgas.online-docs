@@ -21,7 +21,8 @@ the GPIO JTAG wiring every JTAG command below assumes.
   `10ee:7021` (`7020 + lanes`). pi20's `10ee:7011` is the vendor (RHS Research)
   XDMA sample image: x4-capable, two BARs. pi-sw2-p44 shows the same ID and has
   not been re-checked.
-- **A PCIe rescan is not enough after a JTAG load of a LiteX design.** See
+- **A PCIe rescan is not always enough after a JTAG load of a LiteX design.** It
+  was not on the CM5 blade pi20; it was on the Pi 5 pi-sw2-p48 (2026-09-21). See
   [Bring the endpoint back after a JTAG
   load](#bring-the-endpoint-back-after-a-jtag-load).
 
@@ -80,7 +81,7 @@ Measured on pi20 (CM5 on a Compute Blade, kernel 6.12.75, 2026-09-20):
 | Vendor XDMA image (reloaded from flash with `openFPGALoader --reset`) | re-links at 5 GT/s x1 and enumerates | works |
 | LiteX `acorn-pcie` SoC | nothing: the core's LTSSM sits at `0x2d`, root-port retrain and secondary-bus reset change nothing | **links at 5 GT/s x1, enumerates as `10ee:7021`** |
 
-So a LiteX design needs PERST# toggled, which on these hosts means unbinding and
+So on the blade a LiteX design needs PERST# toggled, which means unbinding and
 rebinding the slot's root complex. That touches only the FPGA's PCI domain: the
 RP1 southbridge (Ethernet, USB, GPIO) hangs off a different platform device.
 
@@ -99,11 +100,17 @@ with `No such device`, and the root port `0001:00:00.0` disappears until a later
 `bind` succeeds. That is recoverable: load a design that links (or
 `openFPGALoader --reset` to reload the flash image) and `bind` again.
 
-:::{todo}
-Not yet tried on a Pi 5 at Welland, where the platform device name may differ
-and the HAT sits behind an FPC cable. Run the table above on the first Welland
-host that is plugged back in.
-:::
+Measured on pi-sw2-p48 (Raspberry Pi 5 with an M.2 HAT, kernel 6.12.96,
+2026-09-21), the same steps behave differently:
+
+| Design loaded over JTAG | `echo 1 > /sys/bus/pci/rescan` | Root-complex re-probe |
+|---|---|---|
+| LiteX `acorn-pcie` SoC (CLE-215+) | **enough**: the link is already up (LTSSM `0x16`, L0, 5 GT/s x1) as soon as the load finishes, and the rescan enumerates `10ee:7021` | not needed, not tried |
+
+So try the rescan first and fall back to the re-probe only when `lspci` still
+shows nothing. The platform device behind the FPGA slot has the same name on
+both hosts (`1000110000.pcie`). Why the CM5 blade needs PERST# and the Pi 5 does
+not is not yet understood.
 
 ### Prebuilt Vivado bitstreams
 

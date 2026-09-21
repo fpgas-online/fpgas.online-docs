@@ -233,6 +233,17 @@ measurements behind the JTAG and P2 columns are under [Measured P2 wiring on
 Raspberry Pi 5
 hosts](../boards/acorn/wiring.md#measured-p2-wiring-on-raspberry-pi-5-hosts).
 
+:::{important}
+**The table below is the 2026-09-03 placement.** On 2026-09-21 all six hosts
+were unplugged and are being plugged back in one at a time, not into the same
+switch ports. A hostname follows the switch port (`pi-sw2-p<port>`), so identify
+a board by its RPi MAC. Re-checked so far:
+
+| RPi MAC           | Was        | Now (2026-09-21) | FPGA Device DNA      | SPI flash (read back)       | JTAG | P2 wiring (K2/J2/J5/H5) | UART bridge | PCIe (LiteX SoC in SRAM) | Camera |
+| ----------------- | ---------- | ---------------- | -------------------- | --------------------------- | ---- | ----------------------- | ----------- | ------------------------ | ------ |
+| 88:a2:9e:45:85:77 | pi-sw2-p46 | pi-sw2-p48       | `0x0054b48664b04854` | S25FL256S, RDID `01 02 19`  | OK   | OK, all four            | OK, 921600  | OK, 5 GT/s x1, `10ee:7021` | **out of focus, not aimed at the board** |
+:::
+
 ```{rst-class} nowrap
 ```
 
@@ -255,7 +266,12 @@ image and not a LiteX design (2026-09-20); p44 has not been re-checked. See
 Every one of the six has an ov5647 camera and publishes a feed. All run the
 shared bookworm NFS root (kernel 6.12.96, `overlayroot=tmpfs`), have
 `/dev/ttyAMA0` enabled by `[pi5] dtoverlay=uart0-pi5` with the kernel console on
-`ttyAMA10` and `serial-getty@ttyAMA0` inactive, and carry openFPGALoader 0.10.0.
+`ttyAMA10` and `serial-getty@ttyAMA0` inactive. On 2026-09-21 the root carries
+`openfpgaloader-rp1pio` 0.0.post76 (openFPGALoader 1.1.1), which cannot do JTAG on
+these hosts yet: it has no `libgpiod` cable, and its `rp1pio` cable needs
+`/dev/pio0`, which is missing (`rp1-pio: failed to contact RP1 firmware`, seen with
+bootloader `3c4fc886` of 2024-11-05). openocd 0.12 with `adapter driver
+linuxgpiod` on `gpiochip15` works, and loads the 2.3 MB SoC bitstream in 24 s.
 A wedged Pi 5 draws about 0.4 W on PoE instead of about 8 W and needs a PoE
 cycle, taking more than 90 s to come back.
 
