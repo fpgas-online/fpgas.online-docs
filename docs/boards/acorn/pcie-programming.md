@@ -213,6 +213,13 @@ kernel module, rather than `litepcie_util`:
 | PoE power cycle | `10ee:7021` enumerated at kernel t = 2.0 s, 5 GT/s x1, operational ident; UART, PCIe, P2 GPIO and flash checks pass |
 | Reset the SoC's CPU and drain the BIOS log from the crossover UART through BAR0 | DDR3 1 GiB at 800 MT/s: read leveling clean on both modules, `Memtest OK`, 35.1 MiB/s write, 46.8 MiB/s read |
 
+The same day both slots were re-written the same way with the images from
+[test-designs #28](https://github.com/fpgas-online/fpgas.online-test-designs/pull/28),
+which name the board in the PCI subsystem IDs. After a PoE cycle the board
+reports `10ee:7021` with `Subsystem: Squirrels Research Labs Device [1e24:021f]`
+(a CLE-101 image reports `1e24:0101`), so `lspci` and rpi-hwid can tell which
+Acorn it is without the factory image and without mapping a BAR.
+
 Three things learned on the way:
 
 - **The factory image is itself a multiboot pair.** Its header at `0x0` sets
