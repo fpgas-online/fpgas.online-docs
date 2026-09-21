@@ -225,6 +225,13 @@ Three things learned on the way:
   configuration until a host deselects it. Harmless so far; to be changed to
   reset high in the SoC.
 
+- **BAR0 answers only aligned 32-bit accesses.** Reading the SoC's registers
+  from Python through `/sys/bus/pci/devices/<bdf>/resource0`, a 4-byte slice of
+  the `mmap` (`struct.unpack("<I", m[off:off + 4])`) returns the register; a
+  byte-wise slice of the same window returns `0xff` for every byte (found by
+  the rpi-hwid probe on pi-sw2-p48, 2026-09-21). Enable memory decoding first:
+  `setpci -s <bdf> COMMAND=0002:0002`.
+
 What that state means for programming, on any board:
 
 - JTAG can always load a bitstream into SRAM (volatile), but it is lost on power cycle
