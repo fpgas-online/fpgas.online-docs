@@ -239,9 +239,9 @@ were unplugged and are being plugged back in one at a time, not into the same
 switch ports. A hostname follows the switch port (`pi-sw2-p<port>`), so identify
 a board by its RPi MAC. Re-checked so far:
 
-| RPi MAC           | Was        | Now (2026-09-21) | FPGA Device DNA      | SPI flash (read back)       | JTAG | P2 wiring (K2/J2/J5/H5) | UART bridge | PCIe (LiteX SoC in SRAM) | Camera |
-| ----------------- | ---------- | ---------------- | -------------------- | --------------------------- | ---- | ----------------------- | ----------- | ------------------------ | ------ |
-| 88:a2:9e:45:85:77 | pi-sw2-p46 | pi-sw2-p48       | `0x0054b48664b04854` | S25FL256S, RDID `01 02 19`  | OK   | OK, all four            | OK, 921600  | OK, 5 GT/s x1, `10ee:7021` | **out of focus, not aimed at the board** |
+| RPi MAC           | Was        | Now (2026-09-21) | FPGA Device DNA      | SPI flash (read back)       | JTAG | P2 wiring (K2/J2/J5/H5) | UART bridge | PCIe (LiteX SoC) | Flash contents | Camera |
+| ----------------- | ---------- | ---------------- | -------------------- | --------------------------- | ---- | ----------------------- | ----------- | ---------------- | -------------- | ------ |
+| 88:a2:9e:45:85:77 | pi-sw2-p46 | pi-sw2-p48       | `0x0054b48664b04854` | S25FL256S, RDID `01 02 19`  | OK   | OK, all four            | OK, 921600  | OK, 5 GT/s x1, `10ee:7021` | **fpgas.online golden + operational**, cold boot proven ([how](../boards/acorn/pcie-programming.md#first-install-as-actually-done)) | **out of focus, not aimed at the board** |
 :::
 
 ```{rst-class} nowrap

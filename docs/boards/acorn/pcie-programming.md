@@ -27,7 +27,9 @@ the GPIO JTAG wiring every JTAG command below assumes.
   load](#bring-the-endpoint-back-after-a-jtag-load).
 
 Nothing on this page that goes through `litepcie_util` has been run on
-fpgas.online hardware yet.
+fpgas.online hardware yet. The first board was installed on 2026-09-21 with
+`spi_flash.py` instead: see [First install, as actually
+done](#first-install-as-actually-done).
 :::
 
 ## Programming paths
@@ -190,10 +192,43 @@ called pi2 (now pi-sw2-p48) — they just need a matching LiteX bitstream to bin
 to. Because the Pi root is `overlayroot=tmpfs`, anything built on a Pi is lost
 at reboot unless it is baked into the NFS root.
 
+### First install, as actually done
+
+pi-sw2-p48 (RPi MAC `88:a2:9e:45:85:77`, Device DNA `0x0054b48664b04854`) was the
+first board moved to the fpgas.online images, on 2026-09-21. It used
+[`designs/acorn-pcie/host/spi_flash.py`](https://github.com/fpgas-online/fpgas.online-test-designs/pull/27),
+which drives the SoC's flash core through PCIe BAR0 from Python and needs no
+kernel module, rather than `litepcie_util`:
+
+| Step | Result |
+|---|---|
+| Load the operational SoC into SRAM over JTAG (openocd `linuxgpiod`, endpoint detached first) | 24 s; PCIe rescan enumerates `10ee:7021` |
+| `spi_flash.py id` | S25FL256S, RDID `01 02 19 4d 01 80`, 32 MiB, QUAD bit set |
+| `spi_flash.py dump` of the factory contents, twice | 58 s each, identical SHA-256; kept as the backup |
+| `spi_flash.py write …_operational.bin 0x400000` | erased, programmed and verified in 19 s |
+| ICAP warm boot to `0x400000` (endpoint detached, triggered over the UART bridge) | operational image runs from flash, `BOOTSTS = 0x105`: no fallback, no error |
+| Load the golden design into SRAM and check it | UART, PCIe and flash access all work |
+| `spi_flash.py write …_fallback.bin 0x0 --i-know-this-writes-golden`, run from the golden design | 20 s; both slots verified again |
+| ICAP warm boot to `0x0` | golden chain-loads operational |
+| PoE power cycle | `10ee:7021` enumerated at kernel t = 2.0 s, 5 GT/s x1, operational ident; UART, PCIe, P2 GPIO and flash checks pass |
+
+Three things learned on the way:
+
+- **The factory image is itself a multiboot pair.** Its header at `0x0` sets
+  `WBSTAR = 0x680000` and issues `IPROG`, so the mining design lives at
+  `0x680000`. Writing our operational image at `0x400000` did not disturb it.
+- **The first SPI transfer after every configuration is lost.** `STARTUPE2`
+  does not pass the first three `USRCCLKO` edges to the flash clock pin, so the
+  first command arrives three clocks short and reads back as all ones.
+  `spi_flash.py` spends them with the flash deselected.
+- **The SoC resets `flash_cs_n` to 0**, so the flash sits selected after
+  configuration until a host deselects it. Harmless so far; to be changed to
+  reset high in the SoC.
+
 What that state means for programming, on any board:
 
 - JTAG can always load a bitstream into SRAM (volatile), but it is lost on power cycle
-- The only way to write to SPI flash (persistent) is via PCIe using `litepcie_util`
+- The only way to write to SPI flash (persistent) is via PCIe, with `spi_flash.py` (proven) or `litepcie_util` (not yet run here)
 - PCIe→Flash requires a LiteX bitstream (not the factory SQRL firmware)
 - The golden bitstream at flash address 0x0 is **irreplaceable without PCIe** — if it is corrupted, recovery requires the SRAM bootstrap procedure (see below)
 
