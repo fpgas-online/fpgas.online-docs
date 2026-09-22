@@ -84,9 +84,7 @@ even answer pings from ten64 — so jump through it:
 $ ssh -o ProxyCommand='ssh -W %h:%p ansible@10.99.21.2' pi@10.21.2.29
 ```
 
-The old restricted `pi@tweed.welland.mithis.com` jump account (rbash) did not
-survive the 2026-08-30 reinstall: `getent passwd pi` is empty there, and only
-`ansible`, `carl`, `piroot`, `tim` and `videoteam` remain.
+There is no restricted `pi` jump account on tweed; jump as above.
 
 **Public access** for end users: `ssh pi@fpgas.mithis.com -p 13422` is
 port-forwarded to individual Pis.
@@ -101,13 +99,11 @@ PS1 host_vars.
 
 ## Hosts and boards
 
-The Acorn, Tiny Tapeout ASIC and Tiny Tapeout FPGA sections were re-verified
-live on 2026-09-03 under the VLAN-per-port scheme, and the NeTV2 section on
-2026-09-06. The Arty A7 and Fomu sections still carry the pre-cutover names and
-addresses from the 2026-03-17 survey; their `Switch Port` values are the old
-flat port numbers, which did not carry a switch index, so they are written `p7`
-rather than `sw1 p7` — and `p7` in the stale Arty table is not the `sw2 p7` that
-now carries TT07.
+Each section gives the date it was checked. The Arty A7 and Fomu sections are
+from the 2026-03-17 survey, before the VLAN-per-port scheme: their names and
+addresses are retired, and their `Switch Port` values are flat port numbers
+with no switch index, written `p7` rather than `sw1 p7`. `p7` in the Arty table
+is not `sw2 p7`, which carries TT07.
 
 :::{todo}
 Re-probe the Arty and Fomu hosts under the VLAN-per-port scheme and replace the
@@ -172,8 +168,7 @@ Source: `lsusb` and `ls /dev/serial/by-id/` on each RPi, dnsmasq pibs.conf.
 ### NeTV2
 
 Re-verified live 2026-09-06 under the VLAN-per-port scheme. **Five** boards on
-RPi 3B+ hosts with GPIO JTAG, all five online — including **pi-sw1-p18**, which
-earlier surveys had as offline. Each is on switch 1 at the port in its name,
+RPi 3B+ hosts with GPIO JTAG, all five online. Each is on switch 1 at the port in its name,
 `10.21.1.<port>`, and all five netboot the shared bookworm NFS root reliably.
 
 ```{rst-class} nowrap
@@ -330,11 +325,10 @@ as "MicroPython Board in FS mode" (RP2040, `2e8a:0005`) with a udev symlink
 `/dev/ttboard`, and the `fpgas-tt` daemon owns that port; see
 [Tiny Tapeout ASIC boards](../boards/tt-asic.md).
 
-Firmware notes (2026-08-23/24): tt04, tt05 and tt07 were reflashed to TT SDK
-2.0.4, tt06 and tt08 already had it. The tt03p5 chip is not supported by SDK
-2.0 or later, so that board runs demo-board firmware 1.2.2 with a hand-pushed
-`/shuttles/tt03p5.json` and `rom_fallback.txt`, and its page is camera-first for
-now.
+Firmware: tt04 to tt08 run TT SDK 2.0.4. The tt03p5 chip is not supported by
+SDK 2.0 or later, so that board runs demo-board firmware 1.2.2 with a
+hand-pushed `/shuttles/tt03p5.json` and `rom_fallback.txt`, and its page is
+camera-first.
 
 Source: live probe 2026-09-03 (`lsusb`, `/dev/serial/by-id`, `fuser
 /dev/ttyACM0`, daemon `/health`); firmware versions from the 2026-08-23 reflash
@@ -365,10 +359,9 @@ feed. Like the ASIC boards they appear as "MicroPython Board in FS mode" with
 the `/dev/ttboard` symlink, and the `fpgas-tt` daemon owns the port. Each
 board's `status.json` (for example
 `https://tinytapeout.fpgas.online/board/fpga-1/status.json`) reports the daemon's
-`/health` plus `reachable`, and is the quickest liveness check. The custom
-bitstreams that were on the boards before the reflash were backed up to tweed
-under `/root/fpgas-tt-setup/fpga-backup/<host>/` and pushed back. See
-[Tiny Tapeout FPGA demo board](../boards/tt-fpga.md) for the firmware history.
+`/health` plus `reachable`, and is the quickest liveness check. Each board
+carries its own custom bitstreams, and tweed holds a backup of them. See
+[Tiny Tapeout FPGA demo board](../boards/tt-fpga.md) for the firmware.
 
 Source: live probe 2026-09-03 (`lsusb`, `/dev/serial/by-id`, daemon `/health`).
 
@@ -405,11 +398,11 @@ Source: `pibs.conf` on tweed.
   `legacy` branch port —
   [tt-commander-app #9](https://github.com/fpgas-online/tt-commander-app/pull/9)
   and [#10](https://github.com/fpgas-online/tt-commander-app/pull/10).
-- **Stale NFS handles after package upgrades in the shared NFS root**: on
-  2026-08-30, upgrading `fpgas-online-cam` under running Pis left them with
-  `ESTALE` on the replaced files — cameras off air on 11 boards; on 2026-09-03
-  the TT hosts still showed `dpkg-query … Stale file handle`. Only a reboot
-  fixes it. Expect it after any NFS-root package update.
+- **Stale NFS handles after package upgrades in the shared NFS root**:
+  upgrading a package under running Pis leaves them with `ESTALE` on the
+  replaced files (after an `fpgas-online-cam` upgrade the cameras go off air,
+  and `dpkg-query` reports `Stale file handle`). Only a reboot fixes it; expect
+  it after any NFS-root package update.
 - **Legacy entries from the 2026-03-17 survey** (not re-checked):
   - pi9 Arty A7: FTDI disconnected, so no USB serial devices are present and the
     board cannot be programmed or tested until the USB connection is restored.

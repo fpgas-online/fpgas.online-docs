@@ -58,8 +58,8 @@ From Debian, by `onpi/tasks/apt.yml`:
 | `overlayroot` | Provides the tmpfs upper layer that makes the read-only NFS root writable at runtime (`overlayroot=tmpfs` on the kernel command line). |
 | `lldpd` | Advertises this Pi's hostname on its link, so the switch's LLDP neighbour table names which Pi is on which port — that confirms the assumed cabling instead of trusting it. A running Pi only picks this up after a reboot, because the NFS root is a read-only lower layer. |
 | `atftpd`, `atftp` | A TFTP server and client on the Pi itself. `onpi/tasks/tftpd.yml` then rewrites the port in both `atftpd.socket` and `/etc/default/atftpd` from 69 to `tftpd_port` (6069 in the inventory) and makes `/srv/tftp` writable by the `pi` user. |
-| `openfpgaloader` | Bitstream loading. This is Debian's 0.10.0 build — see the note below. |
-| `openocd` | JTAG for the boards openFPGALoader does not drive, notably the Pi 3 NeTV2 path. |
+| `openfpgaloader-rp1pio` | Bitstream loading: openFPGALoader 1.1.1 with the `rp1pio` and `libgpiod` cables, from [mithro/rp1-jtag](https://github.com/mithro/rp1-jtag) — see the note below. |
+| `openocd-rp1pio` | JTAG for the boards openFPGALoader does not drive, notably the Pi 3 NeTV2 path (OpenOCD 0.12, same source). |
 | `fxload`, `openwince-jtag` | Older USB firmware-loading and JTAG tooling. |
 | `uhubctl` | Per-port USB power control. |
 | `tio`, `minicom`, `picocom`, `screen` | Serial terminals. |
@@ -80,24 +80,18 @@ puts the venv wherever the invoking environment points it and the binaries on
 no user's `PATH`, which made the chroot-built and CI-built roots disagree.
 
 :::{note}
-`apt.yml` on `main` installs Debian's `openfpgaloader` (0.10.0), not the
-`openfpgaloader-rp1pio` build from
-[mithro/rp1-jtag](https://github.com/mithro/rp1-jtag) that
-[Packages](../packages.md) describes. Swapping the default in the NFS root is
-[fpgas.online-infra PR #48](https://github.com/fpgas-online/fpgas.online-infra/pull/48),
-still open. Until it lands, the NFS root has no `rp1pio` cable and no
-`--read-dna`, which is why the [Acorn wiring page](../boards/acorn/wiring.md)
-carries workarounds for 0.10.0 — the `/dev/gpiochip15` symlink over
-`/dev/gpiochip0`, and a hand-rolled `ISC_ENABLE` + `ISC_DNA` OpenOCD sequence
-standing in for `--read-dna`.
+On the Welland Pi 5s neither openFPGALoader cable works out of the box. The
+`libgpiod` cable opens `/dev/gpiochip0`, but the header is `gpiochip15`, so it
+needs the link described under [P1: JTAG](../boards/acorn/wiring.md#p1-jtag).
+The `rp1pio` cable needs `/dev/pio0`, which these hosts do not have (`rp1-pio:
+failed to contact RP1 firmware`). `--read-dna`, `--read-xadc` and
+`--read-register` are all there.
 :::
 
 :::{todo}
-Two decisions are still open in `fpgas.online-infra`: whether the
-`openfpgaloader-rp1pio` swap lands or PR #48 is closed, leaving the roots on
-Debian's 0.10.0 (the note above), and whether `core_freq=500` is set — its
-`TECHDEBT.md` entry leaves the PoE-versus-camera trade-off undecided, so one of
-the two failure modes stays possible either way (see
+One decision is still open in `fpgas.online-infra`: whether `core_freq=500` is
+set. Its `TECHDEBT.md` entry leaves the PoE-versus-camera trade-off undecided,
+so one of the two failure modes stays possible either way (see
 [boot-time configuration](#boot-time-configuration)).
 :::
 
@@ -274,7 +268,7 @@ recorded here, or on the page where they were found.
 
 `gpiochip`
 : The 40-pin header GPIOs are on **gpiochip15**, not gpiochip0. Tools that
-  hardcode `/dev/gpiochip0` — including openFPGALoader 0.10.0 — fail here.
+  hardcode `/dev/gpiochip0` — including openFPGALoader's `libgpiod` cable — fail here.
 
 `dtoverlay=disable-bt`
 : A no-op on the Pi 5. The overlay is `compatible="brcm,bcm2835"` and resolves
