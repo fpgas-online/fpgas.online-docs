@@ -511,9 +511,11 @@ def blade(nudge=0):
     uart.note(1, "5 V", RED, "bold", after_mark=True)
     for n in (1, 5, 6, 7, 10):
         port.empty_mark(n)
-    port.note(7, "5 V: nothing goes here", RED, "bold", after_mark=True)
-    port.note(6, "5 V", RED, "bold", after_mark=True)
+    for n in (6, 7):
+        port.note(n, "5 V", RED, "bold", after_mark=True)
     port.note(1, "3.3 V", after_mark=True)
+    port.note(5, "GND", after_mark=True)
+    port.note(10, "IO15", after_mark=True)
 
     p1_hl, p2_hl = acorn_photo(sh, 1400, (176 + 716) / 2, 172, "cw")  # midway between the P2 box's top and the P1 box's bottom
     p2_at, p2_box = plug_box(sh, 1076, 176, 300, "P2", "I/O", P2_PINS, "left", False, "to a 1×4 Dupont housing on UART pins 1 to 4",
