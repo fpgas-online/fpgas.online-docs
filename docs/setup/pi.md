@@ -231,7 +231,7 @@ dtoverlay=dwc2,dr_mode=peripheral
   UART, leaving `ttyAMA0` unclaimed. The rest of both command lines is on
   [the kernel command line](netboot.md#the-kernel-command-line); the Compute
   Blades hit the SysRq failure for real, recorded under [kernel console
-  SysRq](../boards/acorn/wiring.md#known-issue-kernel-console-sysrq-on-the-fpga-uart).
+  SysRq](../boards/acorn/wiring.md#kernel-console-on-the-fpga-uart).
 
 `dtoverlay=dwc2,dr_mode=peripheral`
 : Pi 4 and Pi 5 only. Their USB-C port is a dwc2 OTG controller the firmware
@@ -412,7 +412,7 @@ A design that drives the serial TX line while the kernel console is on the same
 UART is not merely noisy: on a Compute Blade at PS1 a 1200-baud FPGA
 transmitting into a 115200-baud console produced garbage the kernel parsed as
 SysRq commands and eventually hit `reboot`. See [kernel console
-SysRq](../boards/acorn/wiring.md#known-issue-kernel-console-sysrq-on-the-fpga-uart)
+SysRq](../boards/acorn/wiring.md#kernel-console-on-the-fpga-uart)
 for the root cause and the fix, and the `[pi5]` console pinning above for how it
 is avoided on the Pi 5 hosts.
 :::
