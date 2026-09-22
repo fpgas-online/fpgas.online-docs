@@ -13,7 +13,9 @@ import itertools
 import random
 import sys
 
-from sheetlib import BODY, FAINT, GOLD, H, INK, MUTED, OUT, P1_PINS, P2_PINS, PAPER, RED, SIGNALS, W, Sheet, label_of
+from PIL import Image
+
+from sheetlib import BODY, FAINT, GOLD, H, HERE, INK, MUTED, OUT, P1_PINS, P2_PINS, PAPER, RED, SIGNALS, W, Sheet, label_of
 
 MARK = "#ffd60a"  # highlight on photos: not a wire colour
 LANE = 22
@@ -163,11 +165,17 @@ def highlight(sh, rect):
     sh.rect(x, y, w, h, stroke=MARK, sw=3, rx=4)
 
 
-def wedge(sh, a, b, down=False):
-    """Zoom cone from rect a to rect b, kept faint so nothing oblique competes with the wires."""
+def wedge(sh, a, b, down=False, under=False):
+    """Zoom cone from rect a to rect b, kept faint so nothing oblique competes with the wires.
+
+    down: a's bottom edge to b's top edge. under: a's bottom edge to b's left edge, for a b that is below
+    and to the right of a, where the other two would cut across whatever sits between them.
+    """
     ax0, ay0, ax1, ay1 = a
     bx0, by0, bx1, by1 = b
-    if down:
+    if under:
+        pts = [(ax0, ay1), (bx0, by1), (bx0, by0), (ax1, ay1)]
+    elif down:
         pts = [(ax0, ay1), (bx0, by0), (bx1, by0), (ax1, ay1)]
     elif bx0 >= ax1:
         pts = [(ax1, ay0), (bx0, by0), (bx0, by1), (ax1, ay1)]
@@ -375,9 +383,17 @@ def legend(sh, x, y, with_resistor):
         sh.text(x + 76, yy + 19, "at the housing end", 12)
 
 
-def acorn_photo(sh, x, y, w, rotation):
-    """The connector end of the card, connectors facing the plugs. Returns the two highlight rects (P1, P2)."""
-    (ax, ay, aw, ah), k = sh.photo(f"acorn-{rotation}.jpg", x, y, w)
+ACORN_CONNECTORS = {"cw": (94, 550), "ccw": (550, 1006)}  # photo rows from the top of the upper connector to the bottom of the lower
+
+
+def acorn_photo(sh, x, centre_y, w, rotation):
+    """The connector end of the card, connectors facing the plugs, the pair centred on `centre_y`.
+
+    Returns the two highlight rects (P1, P2).
+    """
+    top, bottom = ACORN_CONNECTORS[rotation]
+    k = w / Image.open(HERE / "photos" / f"acorn-{rotation}.jpg").width
+    (ax, ay, aw, ah), k = sh.photo(f"acorn-{rotation}.jpg", x, centre_y - (top + bottom) / 2 * k, w)
     if rotation == "cw":  # connectors on the left edge, P2 on top, pin 1 at the bottom, M.2 edge below
         p2 = (ax + 10 * k, ay + 94 * k, ax + 128 * k, ay + 304 * k)
         p1 = (ax + 6 * k, ay + 336 * k, ax + 128 * k, ay + 550 * k)
@@ -433,7 +449,7 @@ def pi5(nudge=0):
     hdr.note(1, "3.3 V")
     hdr.note(17, "3.3 V")
 
-    p1_hl, p2_hl = acorn_photo(sh, 1400, 196, 172, "cw")
+    p1_hl, p2_hl = acorn_photo(sh, 1400, (176 + 716) / 2, 172, "cw")  # midway between the P2 box's top and the P1 box's bottom
     p2_at, p2_box = plug_box(sh, 1076, 176, 300, "P2", "I/O", P2_PINS, "left", False, "to a 2×3 Dupont housing on header pins 5 to 10")
     p1_at, p1_box = plug_box(sh, 1076, 470, 300, "P1", "JTAG", P1_PINS, "left", False, "to a 2×4 Dupont housing on header pins 19 to 26")
     wedge(sh, p2_hl, p2_box)
@@ -475,9 +491,6 @@ def blade(nudge=0):
     highlight(sh, port_hl)
     highlight(sh, uart_hl)
     wedge(sh, strip_hl, (ix, iy, ix + iw, iy + ih), down=True)
-    sh.tag((port_hl[0] + port_hl[2]) / 2, iy + ih + 14, "Extension Port", "#fff", size=10.5, h=17, anchor="middle", fg=INK,
-           stroke=INK, pad=6)
-    sh.tag(uart_hl[2], iy + ih + 14, "UART", "#fff", size=10.5, h=17, anchor="end", fg=INK, stroke=INK, pad=6)
 
     pitch, pad = 64, 32
     p1_map = {"TDI": 2, "TDO": 3, "TCK": 4, "GND1": 8, "TMS": 9}
@@ -485,7 +498,10 @@ def blade(nudge=0):
     uart = Header(sh, 640, 150, [(n,) for n in range(1, 5)], pitch, pad, "right")
     port = Header(sh, 560, 470 + nudge, [(r + 1, r + 6) for r in range(5)], pitch, pad, "right")
     wedge(sh, uart_hl, uart.body)
-    wedge(sh, port_hl, port.body, down=True)
+    wedge(sh, port_hl, port.body, under=True)
+    sh.tag((port_hl[0] + port_hl[2]) / 2, iy + ih + 14, "Extension Port", "#fff", size=10.5, h=17, anchor="middle", fg=INK,
+           stroke=INK, pad=6)
+    sh.tag(uart_hl[2], iy + ih + 14, "UART", "#fff", size=10.5, h=17, anchor="end", fg=INK, stroke=INK, pad=6)
     # Full-length housings: a shorter one fits shifted along the header, and shifted, a GND wire meets 5 V.
     uart.draw_body(set(p2_map.values()), {1}, [(0, 3)])
     port.draw_body(set(p1_map.values()), {6, 7}, [(0, 4)])
@@ -499,7 +515,7 @@ def blade(nudge=0):
     port.note(6, "5 V", RED, "bold", after_mark=True)
     port.note(1, "3.3 V", after_mark=True)
 
-    p1_hl, p2_hl = acorn_photo(sh, 1400, 196, 172, "cw")
+    p1_hl, p2_hl = acorn_photo(sh, 1400, (176 + 716) / 2, 172, "cw")  # midway between the P2 box's top and the P1 box's bottom
     p2_at, p2_box = plug_box(sh, 1076, 176, 300, "P2", "I/O", P2_PINS, "left", False, "to a 1×4 Dupont housing on UART pins 1 to 4",
                              unused={"J5", "H5"})
     p1_at, p1_box = plug_box(sh, 1076, 470, 300, "P1", "JTAG", P1_PINS, "left", False,
