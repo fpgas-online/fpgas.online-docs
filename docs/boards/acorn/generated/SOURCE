@@ -1,0 +1,5 @@
+These files are copied from https://github.com/fpgas-online/fpgas.online-test-designs
+by tools/sync_test_designs.py. Do not edit them here: change them in test-designs.
+
+ref: acorn-wiring-source
+commit: ebd6eea586637084be1980df45bb94ce5a3dd55c
