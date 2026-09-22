@@ -183,8 +183,8 @@ def wedge(sh, a, b, down=False):
            f'L{pts[2][0]:.1f},{pts[2][1]:.1f}" stroke="{INK}" stroke-width="1" opacity="0.3"/>')
 
 
-def plug_box(sh, x, y, w, name, what, pins, wire_side, pin1_at_top, note, row=31, head=50):
-    """Pico-EZmate plug, pins in physical order. Returns ({signal: attach point}, box rect)."""
+def plug_box(sh, x, y, w, name, what, pins, wire_side, pin1_at_top, note, row=31, head=50, unused=()):
+    """Pico-EZmate plug, pins in physical order. `unused`: wires cut back on this carrier. Returns ({signal: attach point}, box rect)."""
     h = head + 6 * row + 10
     sh.rect(x, y, w, h, fill="#fff", stroke=FAINT, sw=1.5, rx=8)
     sh.text(x + 14, y + 22, name, 15, "bold", box=(x, y, x + w, y + head))
@@ -212,6 +212,15 @@ def plug_box(sh, x, y, w, name, what, pins, wire_side, pin1_at_top, note, row=31
             sh.add(f'<path d="M{stub - 7},{cy - 7} L{stub + 7},{cy + 7} M{stub - 7},{cy + 7} L{stub + 7},{cy - 7}" stroke="{RED}" stroke-width="3"/>')
             continue
         colour, _, desc = SIGNALS[sig]
+        if sig in unused:
+            a, b = sh.tag(inner, cy, label_of(sig), "#9aa0a8", anchor=anchor)
+            sh.text(b + 8 if wire_side == "left" else a - 8, cy + 4, f"{desc}: cut back, not connected", 12, "regular", MUTED,
+                    anchor, box=rowbox)
+            stub = edge - 26 if wire_side == "left" else edge + 26
+            sh.add(f'<line x1="{edge}" y1="{cy}" x2="{stub}" y2="{cy}" stroke="#9aa0a8" stroke-width="4"/>')
+            sh.add(f'<path d="M{stub - 7},{cy - 7} L{stub + 7},{cy + 7} M{stub - 7},{cy + 7} L{stub + 7},{cy - 7}" '
+                   f'stroke="{MUTED}" stroke-width="3"/>')
+            continue
         a, b = sh.tag(inner, cy, label_of(sig), colour, anchor=anchor)
         sh.text(b + 8 if wire_side == "left" else a - 8, cy + 4, desc, 12, "regular", INK, anchor, box=rowbox)
         attach[sig] = (edge, cy)
@@ -219,12 +228,13 @@ def plug_box(sh, x, y, w, name, what, pins, wire_side, pin1_at_top, note, row=31
 
 
 class Header:
-    """A two-column pin header, drawn once. `numbers[row]` = (left, right) as printed on, or counted from, the board."""
+    """A pin header, drawn once. `numbers[row]` = the pins of that row, left to right, as printed on the board."""
 
     def __init__(self, sh, x, y, numbers, pitch, pad, plugs_side):
         self.sh, self.x, self.y, self.pitch, self.pad, self.numbers = sh, x, y, pitch, pad, numbers
-        self.body = (x, y, x + 2 * pitch, y + len(numbers) * pitch)
-        self.near_col = 0 if plugs_side == "left" else 1
+        self.cols = len(numbers[0])
+        self.body = (x, y, x + self.cols * pitch, y + len(numbers) * pitch)
+        self.near_col = 0 if plugs_side == "left" else self.cols - 1
         self.near_x = self.body[0] if plugs_side == "left" else self.body[2]
         self.far_x = self.body[2] if plugs_side == "left" else self.body[0]
         self.out = -1 if plugs_side == "left" else 1  # x direction pointing away from the header on the plug side
@@ -249,13 +259,13 @@ class Header:
             sh.text(cx, cy + pad * 0.17, str(n), pad * 0.5, "bold", BODY if n in used or n in danger else "#d8d5cb", "middle", box=rect)
         for r0, r1 in housings:
             x0, y0 = self.body[0] - 7, self.y + self.pitch * r0 + 7
-            w, h = 2 * self.pitch + 14, self.pitch * (r1 - r0 + 1) - 14
+            w, h = self.cols * self.pitch + 14, self.pitch * (r1 - r0 + 1) - 14
             sh.rect(x0, y0, w, h, stroke=PAPER, sw=5, rx=9)
             sh.rect(x0, y0, w, h, stroke=INK, sw=2.5, rx=9, extra='stroke-dasharray="8 5"')
 
     def side_x(self, n, gap=13):
-        """x just outside the body on pin n's own side, and the text anchor to use there."""
-        left = self.where[n][1] == 0
+        """x just outside the body on pin n's own side (a single column: the side away from the plugs), and the anchor."""
+        left = self.out > 0 if self.cols == 1 else self.where[n][1] == 0
         return (self.body[0] - gap, "end") if left else (self.body[2] + gap, "start")
 
     def empty_mark(self, n):
@@ -449,51 +459,69 @@ def pi5(nudge=0):
 def blade(nudge=0):
     sh = Sheet()
     title_block(sh, "CARRIER B  ·  PS1.FPGAS.ONLINE", "SQRL Acorn CLE-101 (LiteFury) to Compute Blade",
-                "CM4 or CM5. Header pins carry the numbers printed on the blade: 1 to 5 down the left, 6 to 10 down the right.",
+                "CM4 or CM5. Pins carry the numbers printed on the blade: Extension Port 1 to 5 left, 6 to 10 right; UART 1 to 4.",
                 "--pins 2:3:4:14", "These are GPIO (IO) numbers, not the printed pin numbers")
 
-    (px, py, pw, ph), k = sh.photo("blade.jpg", 30, 132, 930)
-    sh.text(30, 124, "Compute Blade, from above", 12.5, "bold")
-    strip_hl = (px + 2378 * k, py + 336 * k, px + 2484 * k, py + 496 * k)
+    (px, py, pw, ph), k = sh.photo("blade.jpg", 30, 142, 500)
+    sh.text(30, 130, "Compute Blade, from above", 12.5, "bold")
+    strip_hl = (px + 2378 * k, py + 336 * k, px + 2530 * k, py + 496 * k)
     highlight(sh, strip_hl)
-    (ix, iy, iw, ih), ki = sh.photo("blade-port.jpg", 1000, 118, 570)
-    port_hl = (ix + 1228 * ki, iy + 100 * ki, ix + 1466 * ki, iy + 488 * ki)
+    # Only the two headers and the numbers printed round them. The legends above them are left out: cropped,
+    # the UART legend ("1 5V 2 GND 3 TX 4 RX") would sit over the Extension Port and read as its pinout.
+    crop = (1215, 40, 1640, 500)
+    (ix, iy, iw, ih), ki = sh.photo("blade-port.jpg", 30, 250, 360, crop=crop)
+    port_hl = (ix + (1228 - crop[0]) * ki, iy + (100 - crop[1]) * ki, ix + (1466 - crop[0]) * ki, iy + (488 - crop[1]) * ki)
+    uart_hl = (ix + (1484 - crop[0]) * ki, iy + (120 - crop[1]) * ki, ix + (1566 - crop[0]) * ki, iy + (408 - crop[1]) * ki)
     highlight(sh, port_hl)
-    sh.tag(ix + iw, iy + ih + 12, "the 4-pin header beside it is the UART: not that one", "#fff", size=10.5, h=17, anchor="end",
-           fg=INK, stroke=INK, pad=6)
-    wedge(sh, strip_hl, (ix, iy, ix + iw, iy + ih))
+    highlight(sh, uart_hl)
+    wedge(sh, strip_hl, (ix, iy, ix + iw, iy + ih), down=True)
+    sh.tag((port_hl[0] + port_hl[2]) / 2, iy + ih + 14, "Extension Port", "#fff", size=10.5, h=17, anchor="middle", fg=INK,
+           stroke=INK, pad=6)
+    sh.tag(uart_hl[2], iy + ih + 14, "UART", "#fff", size=10.5, h=17, anchor="end", fg=INK, stroke=INK, pad=6)
 
-    pitch, pad, rows = 88, 38, 5
-    numbers = [(r + 1, r + 6) for r in range(rows)]
-    mapping = {"TDI": 2, "TDO": 3, "J5": 3, "TCK": 4, "H5": 4, "GND2": 5, "GND1": 8, "TMS": 9, "J2": 9, "K2": 10}
-    hdr = Header(sh, 1180, 340 + nudge, numbers, pitch, pad, "left")
-    wedge(sh, port_hl, hdr.body, down=True)
-    hdr.draw_body(set(mapping.values()), {6, 7}, [(1, 4)])
-    for n in (6, 7):
-        hdr.empty_mark(n)
-    hdr.note(7, "5 V: nothing goes here", RED, "bold", after_mark=True)
-    hdr.note(6, "5 V", RED, "bold", after_mark=True)
-    hdr.note(1, "3.3 V")
+    pitch, pad = 64, 32
+    p1_map = {"TDI": 2, "TDO": 3, "TCK": 4, "GND1": 8, "TMS": 9}
+    p2_map = {"GND2": 2, "J2": 3, "K2": 4}
+    uart = Header(sh, 640, 150, [(n,) for n in range(1, 5)], pitch, pad, "right")
+    port = Header(sh, 560, 470 + nudge, [(r + 1, r + 6) for r in range(5)], pitch, pad, "right")
+    wedge(sh, uart_hl, uart.body)
+    wedge(sh, port_hl, port.body, down=True)
+    # Full-length housings: a shorter one fits shifted along the header, and shifted, a GND wire meets 5 V.
+    uart.draw_body(set(p2_map.values()), {1}, [(0, 3)])
+    port.draw_body(set(p1_map.values()), {6, 7}, [(0, 4)])
+    sh.text(uart.x + pitch / 2, uart.y - 12, "UART", 12, "bold", INK, "middle")
+    sh.text(port.x + pitch, port.y - 12, "Extension Port", 12, "bold", INK, "middle")
+    uart.empty_mark(1)
+    uart.note(1, "5 V", RED, "bold", after_mark=True)
+    for n in (1, 5, 6, 7, 10):
+        port.empty_mark(n)
+    port.note(7, "5 V: nothing goes here", RED, "bold", after_mark=True)
+    port.note(6, "5 V", RED, "bold", after_mark=True)
+    port.note(1, "3.3 V", after_mark=True)
 
-    p1_hl, p2_hl = acorn_photo(sh, 30, 410, 172, "ccw")
-    p1_at, p1_box = plug_box(sh, 290, 330, 330, "P1", "JTAG", P1_PINS, "right", True, "to the shared 2×4 Dupont housing", row=29, head=48)
-    p2_at, p2_box = plug_box(sh, 290, 580, 330, "P2", "I/O", P2_PINS, "right", True, "to the shared 2×4 Dupont housing", row=29, head=48)
-    wedge(sh, p1_hl, p1_box)
+    p1_hl, p2_hl = acorn_photo(sh, 1400, 196, 172, "cw")
+    p2_at, p2_box = plug_box(sh, 1076, 176, 300, "P2", "I/O", P2_PINS, "left", False, "to a 1×4 Dupont housing on UART pins 1 to 4",
+                             unused={"J5", "H5"})
+    p1_at, p1_box = plug_box(sh, 1076, 470, 300, "P1", "JTAG", P1_PINS, "left", False,
+                             "to a 2×5 Dupont housing on Extension Port pins 1 to 10")
     wedge(sh, p2_hl, p2_box)
+    wedge(sh, p1_hl, p1_box)
 
-    wires = make_wires({**p1_at, **p2_at}, mapping, {"J2", "J5", "H5"})
-    inside = terminate(sh, hdr, wires)
-    lanes = [hdr.body[0] - 236 - LANE * i for i in range(12)]
+    p1_wires = make_wires(p1_at, p1_map, set())
+    p2_wires = make_wires(p2_at, p2_map, {"J2"})
+    inside = terminate(sh, port, p1_wires) + terminate(sh, uart, p2_wires)
+    wires = p1_wires + p2_wires
+    lanes = [max(uart.body[2], port.body[2]) + 170 + 18 * i for i in range(9)]
     paths, (cross, shared, tight) = route(wires, lanes)
     assert shared == 0, f"blade: {shared} shared tracks"
     draw_wires(sh, wires, paths)
     draw_inside(sh, inside)
-    names = {"TDI": "IO2", "TDO": "IO3", "TCK": "IO4", "TMS": "IO14", "J2": "TXD", "K2": "IO15 RXD"}
-    wire_ends(sh, hdr, wires, names, "left")
+    wire_ends(sh, port, p1_wires, {"TDI": "IO2", "TDO": "IO3", "TCK": "IO4", "TMS": "IO14"}, "right")
+    wire_ends(sh, uart, p2_wires, {"J2": "TX IO14", "K2": "RX IO15"}, "right")
 
-    sh.text(1376, 596, "Pins 3, 4 and 9 take two wires", 12.5, "bold")
-    sh.text(1376, 613, "in one crimp.", 12.5, "bold")
-    legend(sh, 1376, 656, True)
+    sh.text(1076, 752, "Mark pin 1 on both housings.", 12.5, "bold", RED)
+    sh.text(1076, 769, "Turned round, either one puts 5 V on a signal wire.", 12, "regular", RED)
+    legend(sh, 40, 700, True)
     footer(sh, "Photos: Uptime Lab (Compute Blade), RHS Research (LiteFury underside; the Acorn is the same PCB)")
     sh.check("blade")
     return sh.svg(), cross + 3 * tight

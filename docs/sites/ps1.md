@@ -137,7 +137,7 @@ XC7A100T with 512 MB of DDR3. See [SQRL Acorn](../boards/acorn/index.md).
 
 These four are Compute Blade carriers, so they are wired to the [Compute Blade
 variant](../boards/acorn/wiring.md#compute-blade-wiring-variant) of the Acorn
-pinout: both connectors on the expansion module port, JTAG on
+pinout: P1 on the Extension Port and P2 on the 4-pin UART header, JTAG on
 `--pins 2:3:4:14`, and the FPGA UART on `/dev/ttyAMA0` at GPIO14/15. All four
 netboot the trixie arm64 NFS root with overlayroot and run **openFPGALoader
 0.13.1** — so `--read-dna` works here, unlike Welland. All four have

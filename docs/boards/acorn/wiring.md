@@ -16,15 +16,25 @@ brings out — and not of the site: either carrier can appear in either room.
   transmitter does not cost you JTAG. This is the variant described first
   below.
 - **[Compute Blade carrier with a CM4 or CM5](#compute-blade-wiring-variant)** —
-  the expansion port exposes only GPIO2, 3, 4, 14 and 15, so both connectors
-  land there and JTAG is `--pins 2:3:4:14`. Three pins carry two wires each
-  (GPIO3 = TDO + J5, GPIO4 = TCK + H5, GPIO14 = TMS + J2), and the P2 wire of
-  each pair goes through a 470 Ω resistor so that JTAG always wins.
+  the blade brings out only GPIO2, 3, 4, 14 and 15. P1 goes to the Extension
+  Port and JTAG is `--pins 2:3:4:14`; P2's serial pair goes to the 4-pin UART
+  header, and J5 and H5 are not connected. The UART header's TX pin is the
+  same GPIO14 as TMS, so the J2 wire goes through a 470 Ω resistor so that
+  JTAG always wins.
 
-All four P2 wires land on the same GPIOs on both carriers — K2 (FPGA TX) to
-GPIO15, J2 (FPGA RX) to GPIO14, J5 to GPIO3, H5 to GPIO4 — so one set of FPGA
-pin constraints and one set of host scripts serves every host. Only the JTAG
-pins differ.
+The serial pair lands on the same GPIOs on both carriers — K2 (FPGA TX) to
+GPIO15, J2 (FPGA RX) to GPIO14 — so one set of FPGA pin constraints and one set
+of host scripts serves every host. J5 and H5 are wired only on a Pi 5 (to GPIO3
+and GPIO4); a blade has no GPIO to spare for them. The JTAG pins differ.
+
+:::{note}
+**Compute Blade variant revised 2026-09-22.** P2 moves off the Extension Port
+onto the blade's 4-pin UART header, and J5 and H5 are cut back and left
+unconnected. No Extension Port pin carries two wires any more, and the blade
+needs one resistor (J2) instead of three. P1 is unchanged. The UART header's
+TX and RX are GPIO14 and GPIO15 — the same lines as Extension Port pins 9 and
+10 — so this changes where the wires go, not which GPIOs they reach.
+:::
 
 :::{note}
 **Pinout locked 2026-09-20.** Two things changed on this page that day, and
@@ -39,8 +49,8 @@ both matter if you built a cable from an earlier revision:
   so a cable that works is still right; a cable crimped by counting positions
   from the old tables is not.
 - **The Compute Blade variant now wires J5 and H5** and adds the three series
-  resistors. No blade has been rewired to it yet; see [Measured state of the
-  Compute Blade hosts](#measured-state-of-the-compute-blade-hosts).
+  resistors. (Superseded on 2026-09-22 before any blade was rewired to it: see
+  the note above.)
 :::
 
 :::{note}
@@ -91,9 +101,11 @@ Acorn and RPi can damage the RPi's power management chip.
 | Raspberry Pi 5 | 8 GB recommended | 1 |
 | M.2 PCIe HAT for RPi 5 | M.2 M-key to RPi PCIe adapter that leaves the 40-pin header usable (the sheet above shows a Waveshare PoE M.2 HAT+) | 1 |
 | Molex Pico-EZmate cable (6-pin) | [Molex 0369200601](https://www.digikey.fr/en/products/detail/molex/0369200601/10233018) | 1 |
-| 2×3 Dupont housing (2.54 mm) + crimp terminals | P2 (UART/GPIO) end on a Pi 5 | 1 |
-| 2×4 Dupont housing (2.54 mm) + crimp terminals | P1 (JTAG) end on a Pi 5; on a Compute Blade one 2×4 takes both cables | 1 |
-| 470 Ω resistor, 1/8 W axial | Compute Blade only: in series with J2, J5 and H5 | 3 |
+| 2×3 Dupont housing (2.54 mm) + crimp terminals | Pi 5 only: P2 (UART/GPIO) end | 1 |
+| 2×4 Dupont housing (2.54 mm) + crimp terminals | Pi 5 only: P1 (JTAG) end | 1 |
+| 2×5 Dupont housing (2.54 mm) + crimp terminals | Compute Blade only: P1 (JTAG) end, over the whole Extension Port | 1 |
+| 1×4 Dupont housing (2.54 mm) + crimp terminals | Compute Blade only: P2 end, over the whole UART header | 1 |
+| 470 Ω resistor, 1/8 W axial | Compute Blade only: in series with J2 | 1 |
 | Solder + heat shrink | For cable termination | — |
 
 ## Board Connectors
@@ -348,6 +360,14 @@ reconfiguration](pcie-programming.md#detach-the-pcie-endpoint-before-any-jtag-re
 7. Plug the **P1 header** (2×4) into RPi header pins 19-26.
 8. Double-check orientation and verify VCC wires are not connected.
 
+On a **Compute Blade** steps 1 to 3 are the same, and the card goes in the
+blade's own M.2 slot. Then:
+
+1. Plug the **P1 housing** (2×5) over the whole Extension Port, pin 1 on printed pin 1.
+2. Plug the **P2 housing** (1×4) over the whole UART header, pin 1 on printed pin 1.
+3. Check that the J5, H5 and both VCC wires are cut back and insulated, and that
+   the 470 Ω resistor is in the J2 wire.
+
 **Important**: buzz every wire of your specific Pico-EZmate cable through with a
 multimeter before connecting. The six wires are all black, a cable cut in half
 gives two ends whose pin 1 is on opposite sides, and nothing on the plug is
@@ -431,6 +451,7 @@ $ openFPGALoader --cable libgpiod --pins 10:9:11:8 pmod-pin-id-acorn.bit
 # GPIO14 → "J2" (serial RX, on the Pi's TXD0)
 # GPIO3  → "J5" (spare GPIO 0)
 # GPIO4  → "H5" (spare GPIO 1)
+# On a Compute Blade only GPIO14 and GPIO15 answer: J5 and H5 are not connected there.
 ```
 
 Only GPIO15 can be a hardware UART receiver on a Pi 5, so decode the other
@@ -539,27 +560,37 @@ standard RPi 5 wiring above.
 
 | Connector | GPIOs | Physical Pins |
 |-----------|-------|---------------|
-| Expansion Port (2×5) | GPIO2, GPIO3, GPIO4, GPIO14, GPIO15 | printed 1-10, see below |
+| Extension Port (2×5) | GPIO2, GPIO3, GPIO4, GPIO14, GPIO15 | printed 1-10, see below |
+| UART (1×4), beside the Extension Port | GPIO14, GPIO15 | printed 1 5V, 2 GND, 3 TX, 4 RX |
 | UART Front (3-pin) | GPIO14, GPIO15 | TX, RX, GND |
-| UART Back (4-pin) | GPIO14, GPIO15 | printed 1 5V, 2 GND, 3 TX, 4 RX |
 | Fan Unit (4-pin) | GPIO12, GPIO13 | PWM0/UART5-TX, PWM1/UART5-RX |
 
-GPIO14/15 are shared across the Expansion Port, UART Front, and UART Back — they
-are the same electrical lines. GPIO8-11 (SPI0) are **not** exposed on the
-Compute Blade. GPIO2 and GPIO3, which carry TDI and TDO here, are also SDA1 and
-SCL1 and have the carrier's onboard I²C pull-ups on them.
+GPIO14 and GPIO15 are the same lines at every connector that carries them. The
+vendor's GPIO table lists GPIO14 at "Expansion Module Port, UART Front(3pin),
+UART Back(4pin)" as "UART0 TX", and GPIO15 at the same three places as "UART0
+RX". So the UART header's pin 3 is Extension Port pin 9, and its pin 4 is
+Extension Port pin 10. The vendor does not publish a schematic, so whether
+anything sits in series between the connectors has not been checked. GPIO8-11
+(SPI0) are **not** brought out on the Compute Blade. GPIO2 and GPIO3, which
+carry TDI and TDO here, are also SDA1 and SCL1 and have the carrier's onboard
+I²C pull-ups on them.
 
 Source: [Compute Blade GPIO
-documentation](https://docs.computeblade.com/blade/guides/gpio)
+documentation](https://docs.computeblade.com/blade/guides/gpio) (read
+2026-09-22), which calls the 4-pin header "UART Back". Its pin numbers and
+names are the silkscreen in the vendor's board photo.
 
-### Expansion Port numbering
+### Extension Port and UART numbering
 
-The blade prints its own numbers beside the port — **1 to 5 down the left
-column, 6 to 10 down the right** — and a legend above it ("Extention Port 1 3.3V
-2 IO2 …"). They are **not** Raspberry Pi header numbers, although the ten pins
-are electrically RPi header pins 1-10 in the same physical arrangement. This
-page uses the printed numbers, because those are the ones in front of you at
-the bench. Read off the vendor's board photo on 2026-09-20.
+The blade prints its own numbers beside the Extension Port — **1 to 5 down the
+left column, 6 to 10 down the right** — and a legend above it ("Extention Port
+1 3.3V 2 IO2 …", spelled that way on the board). They are **not** Raspberry Pi
+header numbers, although the ten pins are electrically RPi header pins 1-10 in
+the same physical arrangement. The 1×4 UART header to its right is numbered 1
+to 4 from the top, with its own legend ("1 5V 2 GND 3 TX 4 RX"). TX and RX are
+named from the blade's side. This page uses the printed numbers, because those
+are the ones in front of you at the bench. Read off the vendor's board photo on
+2026-09-20 (Extension Port) and 2026-09-22 (UART).
 
 | Printed pin | Silkscreen | GPIO            | Same pin on an RPi header |
 |-------------|------------|-----------------|---------------------------|
@@ -574,29 +605,46 @@ the bench. Read off the vendor's board photo on 2026-09-20.
 | 9           | IO14       | GPIO14 (TXD0)   | 8                         |
 | 10          | IO15       | GPIO15 (RXD0)   | 10                        |
 
+| UART pin | Silkscreen | GPIO          | Same GPIO as      |
+|----------|------------|---------------|-------------------|
+| 1        | 5V         | —             | —                 |
+| 2        | GND        | —             | —                 |
+| 3        | TX         | GPIO14 (TXD0) | Extension Port 9  |
+| 4        | RX         | GPIO15 (RXD0) | Extension Port 10 |
+
+The vendor notes that the UART header's 5 V pin can be an input or an output,
+so it is live whenever the blade is powered.
+
 ### Pin Mapping
 
-Both P1 (JTAG) and P2 (UART/GPIO) go to one 2×4 Dupont housing that sits on
-printed pins 2-5 and 7-10. Three cavities hold two wires each.
+P1 (JTAG) goes to a 2×5 Dupont housing over the whole Extension Port, and P2
+(UART) to a 1×4 housing over the whole UART header. The unused cavities stay
+empty: Extension Port 1, 5, 6, 7 and 10, and UART 1. No cavity holds two
+wires.
+
+Use full-length housings, not the shortest that holds the wires. A 2×3 on
+Extension Port rows 2-4 also fits one row higher, which puts the GND wire on
+pin 7 (5 V); a 1×3 on UART pins 2-4 also fits one pin higher, which puts GND on
+UART pin 1 (5 V). Either is a dead short of the blade's 5 V rail, because the
+Acorn's ground is the blade's ground through the M.2 slot. A full-length
+housing has only one position. It can still go on turned round — the 2×5 then
+puts TCK on pin 7, the 1×4 puts K2 on pin 1, both 5 V — so **mark pin 1 on
+each housing** and match it to printed pin 1.
 
 ```text
-Compute Blade Expansion Port, printed numbers, seen from above:
+Compute Blade, printed numbers, seen from above:
 
-                       1 (3.3V)     6 (5V)
-                     ┌──────────────────────────┐
- P1:5 TDI          ← │  2 (IO2)     7 (5V)      │   EMPTY — 5 V, nothing goes here
-                     │                          │
- P1:3 TDO          ← │  3 (IO3)     8 (GND)     │ → P1:1 GND
- P2:4 J5 via 470 Ω ← │                          │
-                     │                          │
- P1:2 TCK          ← │  4 (IO4)     9 (IO14)    │ → P1:4 TMS
- P2:5 H5 via 470 Ω ← │                          │ → P2:2 J2 via 470 Ω   (Pi TXD0 → FPGA)
-                     │                          │
- P2:1 GND          ← │  5 (GND)    10 (IO15)    │ → P2:3 K2              (FPGA → Pi RXD0)
-                     └──────────────────────────┘
+            Extension Port (2×5)                       UART (1×4)
+          ┌───────────────────────┐                  ┌─────────┐
+  empty   │  1 (3.3V)    6 (5V)   │  empty, 5 V      │ 1 (5V)  │  empty, 5 V
+ P1:5 TDI │  2 (IO2)     7 (5V)   │  empty, 5 V      │ 2 (GND) │  P2:1 GND
+ P1:3 TDO │  3 (IO3)     8 (GND)  │  P1:1 GND        │ 3 (TX)  │  P2:2 J2 via 470 Ω  (Pi TXD0 → FPGA)
+ P1:2 TCK │  4 (IO4)     9 (IO14) │  P1:4 TMS        │ 4 (RX)  │  P2:3 K2            (FPGA → Pi RXD0)
+  empty   │  5 (GND)    10 (IO15) │  empty           └─────────┘
+          └───────────────────────┘
 ```
 
-**P1 (JTAG) → Expansion Port:**
+**P1 (JTAG) → Extension Port:**
 
 | P1 Pin | Function   | → Printed pin   | GPIO   |
 |--------|------------|-----------------|--------|
@@ -607,16 +655,21 @@ Compute Blade Expansion Port, printed numbers, seen from above:
 | 5      | TDI        | 2               | GPIO2  |
 | 6      | VCC (3.3V) | **unconnected** | —      |
 
-**P2 (UART + GPIO) → Expansion Port:**
+**P2 (UART) → UART header:**
 
-| P2 Pin | Function     | FPGA Pin | → Printed pin   | GPIO   | Series resistor | Shares the pin with |
-|--------|--------------|----------|-----------------|--------|-----------------|---------------------|
-| 1      | GND          | —        | 5               | GND    | —               | —                   |
-| 2      | Serial RX    | J2       | 9               | GPIO14 | 470 Ω           | TMS                 |
-| 3      | Serial TX    | K2       | 10              | GPIO15 | —               | —                   |
-| 4      | Spare GPIO 0 | J5       | 3               | GPIO3  | 470 Ω           | TDO                 |
-| 5      | Spare GPIO 1 | H5       | 4               | GPIO4  | 470 Ω           | TCK                 |
-| 6      | VCC (3.3V)   | —        | **unconnected** | —      | —               | —                   |
+| P2 Pin | Function     | FPGA Pin | → UART pin          | GPIO   | Series resistor |
+|--------|--------------|----------|---------------------|--------|-----------------|
+| 1      | GND          | —        | 2                   | GND    | —               |
+| 2      | Serial RX    | J2       | 3 (TX)              | GPIO14 | 470 Ω           |
+| 3      | Serial TX    | K2       | 4 (RX)              | GPIO15 | —               |
+| 4      | Spare GPIO 0 | J5       | **not connected**   | —      | —               |
+| 5      | Spare GPIO 1 | H5       | **not connected**   | —      | —               |
+| 6      | VCC (3.3V)   | —        | **unconnected**     | —      | —               |
+
+Cut the J5 and H5 wires back and insulate them like VCC. A blade has no GPIO
+left for them: the five it brings out are JTAG's four plus the serial pair's
+second line. The fpgas.online Acorn design resets J5 and H5 to inputs, so the
+open ends do no harm.
 
 The serial pair is the same null-modem crossover as on a Pi 5 (K2 → GPIO15 /
 RXD0, J2 → GPIO14 / TXD0). On a CM4 the BCM2711 mux is fixed, so this is the
@@ -629,47 +682,47 @@ but nobody has written that driver ([test-designs issue
 the fleet uses one cable design everywhere.
 
 :::{warning}
-**Printed pin 7 is 5 V and sits inside the 2×4 housing. Its cavity must stay
-empty.** VCC (3.3V) on both P1 and P2 must NEVER be connected. Clip or insulate
-the VCC wires.
+**Extension Port pins 6 and 7 and UART pin 1 are 5 V, and all three sit inside
+a housing. Their cavities must stay empty**, and pin 1 of each housing must
+meet printed pin 1 (see above). VCC (3.3V) on both P1 and P2 must NEVER be
+connected. Clip or insulate the VCC wires.
 :::
 
-### Shared pins and the 470 Ω resistors
+### The shared line and the 470 Ω resistor
 
-Three Expansion Port pins carry two wires:
+Moving P2 to the UART header takes the second wire out of every Extension Port
+cavity, but it cannot take J2 off TMS. UART pin 3 *is* GPIO14, which is also
+Extension Port pin 9, and P1 needs GPIO14 for TMS. The blade brings out five
+GPIOs and JTAG needs four of them, so one JTAG signal has to share a line with
+the serial pair.
 
-| Printed pin | GPIO   | JTAG wire (direct) | P2 wire (through 470 Ω) |
-|-------------|--------|--------------------|-------------------------|
-| 3           | GPIO3  | TDO                | J5                      |
-| 4           | GPIO4  | TCK                | H5                      |
-| 9           | GPIO14 | TMS                | J2                      |
+| Line   | JTAG wire (direct), Extension Port | P2 wire (through 470 Ω), UART |
+|--------|------------------------------------|-------------------------------|
+| GPIO14 | TMS, pin 9                         | J2, pin 3                     |
 
-The JTAG wire goes straight to the pin. The P2 wire reaches the same pin through
-a 470 Ω resistor fitted at the housing end of that wire. Whatever a loaded
-design does with J5, H5 or J2, the JTAG signal on that pin still gets through:
-the worst case is an FPGA output fighting a JTAG driver through 470 Ω, which is
-3.3 V / 470 Ω ≈ 7 mA, inside what both the Artix-7 I/O and the Pi's GPIO
-tolerate, and the direct driver wins the level. Without the resistor the same
-fight is a dead short that crashed two Pi 5 hosts on 2026-08-31 (see the hazard
-under [RPi GPIO Header Connection (P2)](#rpi-gpio-header-connection-p2)).
+The JTAG wire goes straight to its pin. The J2 wire reaches the same line
+through a 470 Ω resistor fitted at the housing end of that wire. Whatever a
+loaded design does with J2, TMS still gets through: the worst case is an FPGA
+output fighting the JTAG driver through 470 Ω, which is 3.3 V / 470 Ω ≈ 7 mA,
+inside what both the Artix-7 I/O and the Pi's GPIO tolerate, and the direct
+driver wins the level. Without the resistor the same fight is a dead short that
+crashed two Pi 5 hosts on 2026-08-31 (see the hazard under [RPi GPIO Header
+Connection (P2)](#rpi-gpio-header-connection-p2)).
 
-JTAG and the running design still do not use the pins at the same moment: JTAG
+K2 needs no resistor: GPIO15 is not a JTAG pin on this variant.
+
+JTAG and the running design still do not use the line at the same moment: JTAG
 loads the FPGA, openFPGALoader exits, and only then does the host open
-`/dev/ttyAMA0` or touch GPIO3/GPIO4. The fpgas.online Acorn design additionally
-resets J5 and H5 to inputs and only ever receives on J2.
+`/dev/ttyAMA0`. The fpgas.online Acorn design only ever receives on J2.
 
 :::{todo}
-The resistor value is a design decision (2026-09-20), not yet a measurement. To
-check on the first blade that is rewired: GPIO3 carries the blade's I²C pull-up,
-whose value has not been measured. If it is about 1.8 kΩ, J5 pulling low through
-470 Ω leaves roughly 0.7 V at the Pi, which is close to the input-low threshold;
-if the Pi does not read that as 0, drop the J5 resistor to 330 Ω (≈ 0.5 V,
-10 mA worst-case contention). Also confirm `--detect` still answers while a
-design drives J5, H5 and J2.
+The resistor value is a design decision (2026-09-20), not yet a measurement. On
+the first blade that is rewired, confirm that `--detect` still answers while a
+design drives J2, and that `/dev/ttyAMA0` still transmits through the resistor.
 :::
 
 :::{warning}
-**On a cable WITHOUT the J2 resistor — every blade as of 2026-09-20 — a design
+**On a cable WITHOUT the J2 resistor — every blade as of 2026-09-22 — a design
 that drives J2 costs you JTAG** ([test-designs
 issue #4](https://github.com/fpgas-online/fpgas.online-test-designs/issues/4)
 item 1). GPIO14 is TMS on this variant, so once the FPGA drives J2 → GPIO14,
@@ -701,7 +754,7 @@ when it exits (observed on all four blades, 2026-09-20). Put them back before
 anything else uses the shared pins:
 
 ```console
-$ pinctrl set 2,3,4 ip    # JTAG pins back to inputs, so H5/J5 are free
+$ pinctrl set 2,3,4 ip    # JTAG pins back to inputs
 $ pinctrl set 14 a4       # GPIO14 = TXD0
 $ pinctrl set 15 a4       # GPIO15 = RXD0
 $ stty -F /dev/ttyAMA0 115200 raw -echo
@@ -742,11 +795,14 @@ and pi16 float on every line and scan an empty chain; pi18 has no card. Whether
 J5 and H5 are wired on pi14 and pi16 is unknown — the passive test cannot tell
 on GPIO3 (board pull-up) or on GPIO4 (TCK pull-up). On pi20 they are **not**
 wired: with the `acorn-pcie` SoC loaded, neither the Pi driving GPIO3/GPIO4 nor
-the FPGA driving J5/H5 moved the other end. No blade has the resistors.
+the FPGA driving J5/H5 moved the other end. That is what the 2026-09-22
+variant wants; on pi14 and pi16, cut them back if they turn out to be wired. No
+blade has the J2 resistor, and every blade still has P2 on the Extension Port
+rather than the UART header.
 
 After pin-ID the FPGA drives J2 → GPIO14, which is also TMS here, so on these
-resistor-less cables that run costs JTAG until a PoE cycle — see [Shared pins
-and the 470 Ω resistors](#shared-pins-and-the-470-ω-resistors).
+resistor-less cables that run costs JTAG until a PoE cycle — see [The shared
+line and the 470 Ω resistor](#the-shared-line-and-the-470-ω-resistor).
 
 ### Known Issue: Kernel Console SysRq on the FPGA UART
 

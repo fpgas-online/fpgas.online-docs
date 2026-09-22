@@ -5,8 +5,8 @@ pin-compatible with the [NiteFury and
 LiteFury](https://github.com/RHSResearchLLC/NiteFury-and-LiteFury) boards. In
 the fpgas.online fleet it sits either in an M.2 HAT on a Raspberry Pi 5 or in
 a Compute Blade's own M.2 slot, with JTAG and UART carried on adapted
-Pico-EZmate cables to the host's GPIO header (Welland) or the Compute Blade
-expansion port (PS1).
+Pico-EZmate cables to the host's GPIO header (Welland) or the Compute Blade's
+Extension Port and 4-pin UART header (PS1).
 
 See [Acorn wiring](wiring.md) for the full RPi GPIO pinmap.
 
