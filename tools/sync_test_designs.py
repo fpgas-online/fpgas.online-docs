@@ -9,8 +9,9 @@ destination directory an exact copy: changed files are rewritten, files no longe
 and SOURCE records the commit they came from. --check writes nothing and exits 1 if anything would
 change.
 
-If test-designs no longer has a listed file, this stops with exit status 2 and names it. That means the
-file moved or was renamed there: update FILES below to match, never paper over it. The scheduled
+If test-designs does not have a listed file, this stops with exit status 2 and names it. That means the
+file moved or was renamed there: update FILES below to match, never paper over it. Only the files in
+FILES are copied; a new file in test-designs is not picked up until it is added here. The scheduled
 workflow (.github/workflows/sync-test-designs.yml) runs this and opens a pull request with the result.
 """
 
@@ -51,11 +52,14 @@ class Missing(Exception):
 
 
 def resolve(ref):
-    out = subprocess.run(["git", "ls-remote", f"https://github.com/{REPO}.git", ref],
-                         check=True, capture_output=True, text=True).stdout.split()
-    if not out:
-        raise SystemExit(f"sync: {REPO} has no ref {ref!r}")
-    return out[0]
+    """The commit a branch of test-designs points at; exactly that branch, not any ref ending in its name."""
+    full = f"refs/heads/{ref}"
+    lines = subprocess.run(["git", "ls-remote", f"https://github.com/{REPO}.git", full],
+                           check=True, capture_output=True, text=True).stdout.splitlines()
+    matches = [line.split()[0] for line in lines if line.split()[1] == full]
+    if len(matches) != 1:
+        raise SystemExit(f"sync: {REPO} has no branch {ref!r}")
+    return matches[0]
 
 
 def fetch(commit, path):
@@ -91,10 +95,11 @@ def main(argv=None):
             except Missing as e:
                 missing.append(str(e))
     if missing:
-        print(f"\nsync: FAILED. {REPO} at {commit[:12]} ({args.ref}) no longer has:", file=sys.stderr)
+        print(f"\nsync: FAILED. {REPO} at {commit[:12]} ({args.ref}) does not have:", file=sys.stderr)
         for m in missing:
             print(f"  {m}", file=sys.stderr)
-        print("It moved or was renamed there. Update FILES in tools/sync_test_designs.py to match.", file=sys.stderr)
+        print("It was moved, renamed or removed there (or never added). Update FILES in "
+              "tools/sync_test_designs.py to match what test-designs has.", file=sys.stderr)
         return 2
 
     changes = []
