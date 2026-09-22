@@ -67,7 +67,7 @@ switches' LLDP tables, and live probes of the hosts below on 2026-09-03.
 | eth-local  | 10.21.0.1/16 trunk to the switches (per-port VLAN sub-interfaces)                    |
 | Domain     | `fpgas.welland.mithis.com`                                                             |
 | PCI        | 2× Intel 82574L GbE, Tundra PCI bridge, Matrox G200eW                                |
-| NFS roots  | `/srv/nfs/rpi/bookworm/{boot,root}` (armhf + arm64 kernels, `overlayroot=tmpfs`); apt packages `fpgas-online-tt` 0.0.post52, `fpgas-online-tt-demos` 0.0.post21, `fpgas-online-cam` 0.0.post43, `openfpgaloader` 0.10.0 |
+| NFS roots  | `/srv/nfs/rpi/bookworm/{boot,root}` (armhf + arm64 kernels, `overlayroot=tmpfs`); apt packages `fpgas-online-setup-pi` 0.0.post62, `fpgas-online-tt` 0.0.post52, `fpgas-online-tt-demos` 0.0.post21, `fpgas-online-cam` 0.0.post45, `openfpgaloader-rp1pio` and `openocd-rp1pio` 0.0.post76 |
 
 Tweed hosts no FPGA boards itself. Reach it as the `ansible` user on the uplink
 address 10.99.21.2, from ten64 (verified 2026-09-03).
@@ -199,17 +199,14 @@ No USB serial devices: the NeTV2 uses GPIO UART on `/dev/serial0` (which is
 header. See [Kosagi NeTV2](../boards/netv2.md).
 
 :::{warning}
-**An FPGA load used to crash these hosts.** The netboot cmdline put the kernel
-console on `console=serial0,115200`, which on a Pi 3B+ is the very pin the
-NeTV2's FPGA drives; a test bitstream feeding that line made the kernel parse a
-byte as a SysRq `reboot`/`crash`/`poweroff` and hard-crashed the netbooted Pi.
-Fixed 2026-09-06 in
-[infra PR #75](https://github.com/fpgas-online/fpgas.online-infra/pull/75):
-the generic `cmdline.txt.j2` no longer sets a serial console and a sysctl
-drop-in sets `kernel.sysrq = 0`. Deployed to tweed and confirmed on all five —
-a node loaded with a serial-driving bitstream now stays up. Note that removing
-`console=serial0` alone does **not** unregister `ttyAMA0` (the device-tree
-`stdout-path` still does), so the `sysrq=0` half is the load-bearing protection.
+**The kernel must not act on bytes from the FPGA's UART.** On a Pi 3B+ the
+serial console pin is the one the NeTV2's FPGA drives, and a design that
+transmits on it feeds the kernel bytes it reads as SysRq `reboot`, `crash` or
+`poweroff`. The netboot `cmdline.txt.j2` sets no serial console, and a sysctl
+drop-in sets `kernel.sysrq = 0`; with both, a node loaded with a serial-driving
+bitstream stays up (checked on all five). Leaving `console=serial0` off alone is
+not enough, because the device tree's `stdout-path` still registers `ttyAMA0`:
+`kernel.sysrq = 0` is the protection that matters.
 :::
 
 Access is over GPIO JTAG and GPIO UART only; there is no per-Pi web page for
@@ -226,59 +223,49 @@ from the 2026-03-17 survey.
 
 ### SQRL Acorn CLE-215+
 
-Probed 2026-09-03. Six boards deployed, on RPi 5 hosts with an M.2 HAT — the
-[Raspberry Pi 5 carrier](../boards/acorn/wiring.md) wiring variant, with JTAG
-on its own GPIOs (`--pins 10:9:11:8`) and both spare balls wired. The per-pin
-measurements behind the JTAG and P2 columns are under [Measured P2 wiring on
-Raspberry Pi 5
-hosts](../boards/acorn/wiring.md#measured-p2-wiring-on-raspberry-pi-5-hosts).
+Six boards, each on a Raspberry Pi 5 with an M.2 HAT: the [Raspberry Pi
+5](../boards/acorn/wiring.md#raspberry-pi-5) wiring, with JTAG on its own GPIOs
+(`--pins 10:9:11:8`) and both spare balls wired.
 
-:::{important}
-**The table below is the 2026-09-03 placement.** On 2026-09-21 all six hosts
-were unplugged and are being plugged back in one at a time, not into the same
-switch ports. A hostname follows the switch port (`pi-sw2-p<port>`), so identify
-a board by its RPi MAC. Re-checked so far:
-
-| RPi MAC           | Was        | Now (2026-09-21) | FPGA Device DNA      | SPI flash (read back)       | JTAG | P2 wiring (K2/J2/J5/H5) | UART bridge | PCIe (LiteX SoC) | Flash contents | Camera |
-| ----------------- | ---------- | ---------------- | -------------------- | --------------------------- | ---- | ----------------------- | ----------- | ---------------- | -------------- | ------ |
-| 88:a2:9e:45:85:77 | pi-sw2-p46 | pi-sw2-p48       | `0x0054b48664b04854` | S25FL256S, RDID `01 02 19`  | OK   | OK, all four            | OK, 921600  | OK, 5 GT/s x1, `10ee:7021`, subsystem `1e24:021f` | **fpgas.online golden + operational**, cold boot proven ([how](../boards/acorn/pcie-programming.md#first-install-as-actually-done)) | **out of focus, not aimed at the board** |
-:::
+All six were unplugged and are being put back one at a time, and not into the
+ports they had before. A hostname follows the switch port (`pi-sw2-p<port>`),
+so each board is listed by its RPi MAC. A board without a switch port is
+unplugged and waiting to go back in; its columns are its last measurement.
 
 ```{rst-class} nowrap
 ```
 
-| Host       | Switch Port | IP         | RPi MAC           | RPi Model (rev)          | PCIe Device at `0001:01:00.0`                          | JTAG          | P2 serial            | Old name |
-| ---------- | ----------- | ---------- | ----------------- | ------------------------ | ------------------------------------------------------ | ------------- | -------------------- | -------- |
-| [pi-sw2-p29](https://welland.fpgas.online/fpgas/pi29.html) | sw2 p29 | 10.21.2.29 | 88:a2:9e:45:dd:be | RPi 5 Rev 1.1 2 GB (b04171) | Squirrels Research Labs Acorn CLE-215+ `1e24:021f` | OK          | OK (J5 wire dead)         | pi4  |
-| [pi-sw2-p43](https://welland.fpgas.online/fpgas/pi43.html) | sw2 p43 | 10.21.2.43 | 98:fe:54:13:e0:75 | RPi 5 Rev 1.1 1 GB (a04171) | Squirrels Research Labs Acorn CLE-215+ `1e24:021f` | empty chain | untestable                | —    |
-| [pi-sw2-p44](https://welland.fpgas.online/fpgas/pi44.html) | sw2 p44 | 10.21.2.44 | 98:fe:54:13:e0:f5 | RPi 5 Rev 1.1 1 GB (a04171) | Xilinx 7-Series FPGA Hard PCIe block `10ee:7011`   | empty chain | untestable                | —    |
-| [pi-sw2-p46](https://welland.fpgas.online/fpgas/pi46.html) | sw2 p46 | 10.21.2.46 | 88:a2:9e:45:85:77 | RPi 5 Rev 1.1 2 GB (b04171) | Squirrels Research Labs Acorn CLE-215+ `1e24:021f` | OK          | OK                        | pi6  |
-| [pi-sw2-p47](https://welland.fpgas.online/fpgas/pi47.html) | sw2 p47 | 10.21.2.47 | 98:fe:54:13:f5:75 | RPi 5 Rev 1.1 1 GB (a04171) | Squirrels Research Labs Acorn CLE-215+ `1e24:021f` | OK          | reversed (K2↔J2 and J5↔H5) | —    |
-| [pi-sw2-p48](https://welland.fpgas.online/fpgas/pi48.html) | sw2 p48 | 10.21.2.48 | 88:a2:9e:45:c6:87 | RPi 5 Rev 1.1 2 GB (b04171) | Squirrels Research Labs Acorn CLE-215+ `1e24:021f` | OK          | OK                        | pi2  |
+| RPi MAC | Now | RPi Model (rev) | FPGA Device DNA | In flash | JTAG | P2 (K2/J2/J5/H5) | Camera | Last checked |
+| ------- | --- | --------------- | --------------- | -------- | ---- | ---------------- | ------ | ------------ |
+| 88:a2:9e:45:85:77 | [pi-sw2-p48](https://welland.fpgas.online/fpgas/pi48.html) | RPi 5 Rev 1.1 2 GB (b04171) | `0x0054b48664b04854` | **fpgas.online golden + operational** (`10ee:7021`, subsystem `1e24:021f`), cold boot proven ([how](../boards/acorn/pcie-programming.md#installing-the-fpgasonline-images)) | OK | OK, all four | **out of focus, not aimed at the board** | 2026-09-21 |
+| 88:a2:9e:45:dd:be | unplugged | RPi 5 Rev 1.1 2 GB (b04171) | not read | SQRL factory firmware (`1e24:021f`) | OK | serial pair OK; **J5 wire open** | ov5647 | 2026-09-03 |
+| 98:fe:54:13:e0:75 | unplugged | RPi 5 Rev 1.1 1 GB (a04171) | not read | SQRL factory firmware (`1e24:021f`) | **empty chain** | untestable | ov5647 | 2026-09-03 |
+| 98:fe:54:13:e0:f5 | unplugged | RPi 5 Rev 1.1 1 GB (a04171) | not read | `10ee:7011`, most likely the vendor XDMA sample image | **empty chain** | untestable | ov5647 | 2026-09-03 |
+| 98:fe:54:13:f5:75 | unplugged | RPi 5 Rev 1.1 1 GB (a04171) | not read | SQRL factory firmware (`1e24:021f`) | OK | **reversed** (K2↔J2 and J5↔H5) | ov5647 | 2026-09-03 |
+| 88:a2:9e:45:c6:87 | unplugged | RPi 5 Rev 1.1 2 GB (b04171) | not read | SQRL factory firmware (`1e24:021f`) | OK | OK, all four | ov5647 | 2026-09-03 |
 
-The PCIe device column is what each board's SPI flash boots into, read with
-`lspci -nn` on 2026-09-03: five of the six still hold the SQRL factory mining
-firmware, which is not a LiteX design, so `litepcie_util` cannot talk to them.
-pi-sw2-p44 shows `10ee:7011`, which on pi20 proved to be the vendor XDMA sample
-image and not a LiteX design (2026-09-20); p44 has not been re-checked. See
-[PCIe programming](../boards/acorn/pcie-programming.md).
+The SQRL factory firmware is a mining design, not LiteX, so `litepcie_util`
+cannot talk to a board that boots it; `10ee:7011` is the vendor's XDMA sample
+image, also not LiteX. See [PCIe programming](../boards/acorn/pcie-programming.md).
+The JTAG and P2 columns come from the [pin-ID
+check](../boards/acorn/wiring.md#step-4-pin-id): GPIO15 decoded through
+`/dev/ttyAMA0`, the other three lines from `gpiomon` edge timestamps.
 
-Every one of the six has an ov5647 camera and publishes a feed. All run the
-shared bookworm NFS root (kernel 6.12.96, `overlayroot=tmpfs`), have
-`/dev/ttyAMA0` enabled by `[pi5] dtoverlay=uart0-pi5` with the kernel console on
-`ttyAMA10` and `serial-getty@ttyAMA0` inactive. On 2026-09-21 the root carries
-`openfpgaloader-rp1pio` 0.0.post76 (openFPGALoader 1.1.1), which cannot do JTAG on
-these hosts yet: it has no `libgpiod` cable, and its `rp1pio` cable needs
-`/dev/pio0`, which is missing (`rp1-pio: failed to contact RP1 firmware`, seen with
-bootloader `3c4fc886` of 2024-11-05). openocd 0.12 with `adapter driver
-linuxgpiod` on `gpiochip15` works, and loads the 2.3 MB SoC bitstream in 24 s.
-A wedged Pi 5 draws about 0.4 W on PoE instead of about 8 W and needs a PoE
-cycle, taking more than 90 s to come back.
+All six run the shared bookworm NFS root (`overlayroot=tmpfs`), with
+`/dev/ttyAMA0` enabled by `[pi5] dtoverlay=uart0-pi5`, the kernel console on
+`ttyAMA10` and `serial-getty@ttyAMA0` inactive. The root carries
+`openfpgaloader-rp1pio` and `openocd-rp1pio` 0.0.post76 (openFPGALoader 1.1.1,
+OpenOCD 0.12). openFPGALoader's `libgpiod` cable works once `/dev/gpiochip0` is
+linked to `gpiochip15` ([how](../boards/acorn/wiring.md#p1-jtag)); its `rp1pio`
+cable needs `/dev/pio0`, which these hosts do not have (`rp1-pio: failed to
+contact RP1 firmware`, bootloader `3c4fc886`). OpenOCD with `adapter driver
+linuxgpiod` on `gpiochip15` works too, and loads the 2.3 MB fpgas.online SoC
+bitstream in 24 s. A wedged Pi 5 draws about 0.4 W on PoE instead of about 8 W
+and needs a PoE cycle, taking more than 90 s to come back.
 
-Source: live probe of all six hosts 2026-09-03 (`/proc/device-tree/model`,
-`/proc/cpuinfo`, `lspci -nn`, `/proc/cmdline`, `openFPGALoader --Version`);
-JTAG and P2 columns from the [2026-08-31 pin-ID
-survey](../boards/acorn/wiring.md#measured-p2-wiring-on-raspberry-pi-5-hosts).
+Source: live probes (`/proc/device-tree/model`, `lspci -nn`, `/proc/cmdline`,
+`openFPGALoader --detect`, the pin-ID check), the NFS root's package list on
+tweed, and pi-sw2-p48's install record.
 
 ### Fomu EVT
 
@@ -402,18 +389,17 @@ Source: `pibs.conf` on tweed.
 
 ## Known faults
 
-- **pi-sw2-p43 and pi-sw2-p44** (Acorn): `openFPGALoader --detect` finds an
-  empty JTAG chain although PCIe enumerates — the P1 cable needs a physical
-  check. Until then nothing can be loaded on them.
-- **pi-sw2-p47** (Acorn): the P2 connector is reversed (K2↔J2 and J5↔H5).
-  Transpose both pairs; a 180° re-seat does not fix it.
-- **pi-sw2-p29** (Acorn): the J5 (spare GPIO 0) conductor is open. The serial
+- **Acorn 98:fe:54:13:e0:75 and 98:fe:54:13:e0:f5**: `openFPGALoader --detect`
+  finds an empty JTAG chain although PCIe enumerates. The P1 cable needs a
+  physical check; until then nothing can be loaded on them.
+- **Acorn 98:fe:54:13:f5:75**: the P2 cable is reversed (K2↔J2 and J5↔H5).
+  Transpose both pairs; turning the 2×3 housing round does not fix it, because
+  that maps pin 5↔10 and 7↔8.
+- **Acorn 88:a2:9e:45:dd:be**: the J5 (spare GPIO) conductor is open. The serial
   pair is fine.
-- **All Acorn hosts**: openFPGALoader is 0.10.0, which predates `--read-dna`,
-  `--read-xadc` and `--read-register` and needs the `gpiochip15 → gpiochip0`
-  symlink on a Pi 5. That is why device DNA cannot be read here while it can at
-  PS1. See [Packages](../packages.md) for the replacement, which arrives with
-  [infra PR #48](https://github.com/fpgas-online/fpgas.online-infra/pull/48).
+- **All Acorn hosts**: openFPGALoader's `rp1pio` cable cannot run (no
+  `/dev/pio0`), and its `libgpiod` cable needs the `gpiochip15 → gpiochip0`
+  link on a Pi 5. See [P1: JTAG](../boards/acorn/wiring.md#p1-jtag).
 - **pi-sw2-p3** (tt03p5): the web Commander does not support demo-board
   firmware 1.2.x yet, so that board is camera-only. It needs the upstream
   `legacy` branch port —
@@ -427,8 +413,4 @@ Source: `pibs.conf` on tweed.
 - **Legacy entries from the 2026-03-17 survey** (not re-checked):
   - pi9 Arty A7: FTDI disconnected, so no USB serial devices are present and the
     board cannot be programmed or tested until the USB connection is restored.
-  - ~~pi18 NeTV2: offline.~~ Resolved: pi-sw1-p18 is online and netbooting as of
-    the [NeTV2 re-probe 2026-09-06](#netv2).
   - pi21: Cythion/LUNA and Fomu offline.
-  - The former "pi19 TT ASIC (version unconfirmed)" is TT07, now pi-sw2-p7 and
-    online.

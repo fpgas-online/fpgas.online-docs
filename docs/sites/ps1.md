@@ -110,42 +110,44 @@ provenance unknown.
 
 ### Compute blades
 
-Probed 2026-08-31; all four were up, with 37 days of uptime.
+All four were up when last probed (2026-09-20).
 
 ```{rst-class} nowrap
 ```
 
-| Host | Switch Port | IP          | RPi MAC           | RPi Model             | Board (PCIe ID)             | FPGA DNA           | PCIe Bus | JTAG (P1)                | P2 serial             | Status |
-|------|------|-------------|-------------------|-----------------------|-----------------------------|--------------------|----------|--------------------------|-----------------------|--------|
-| pi14 | e14  | 10.21.0.114 | 2c:cf:67:37:d4:bd | CM4 Rev 1.1 4 GB      | Acorn CLE-101 `1e24:0101`   | unreadable         | 0000:01  | no response (P1 unmated) | untested              | Online |
-| pi16 | e16  | 10.21.0.116 | 2c:cf:67:fb:91:e5 | CM5 Lite Rev 1.0 8 GB | Acorn CLE-101 `1e24:0101`   | unreadable         | 0001:01  | no response (P1 unmated) | untested              | Online |
-| pi18 | e18  | 10.21.0.118 | 2c:cf:67:37:d5:08 | CM4 Rev 1.1 4 GB      | none — M.2 slot empty       | —                  | —        | n/a                      | n/a                   | Online |
-| pi20 | e20  | 10.21.0.120 | 2c:cf:67:fd:1e:be | CM5 Lite Rev 1.0 8 GB | vendor XDMA image `10ee:7011` | 0x0028e5c45e304854 | 0001:01  | OK                       | OK, crossover present | Online |
+| Host | Switch Port | IP          | RPi MAC           | RPi Model             | Board (PCIe ID)             | FPGA DNA           | PCIe Bus | JTAG (P1)                | P2 cable | Status |
+|------|------|-------------|-------------------|-----------------------|-----------------------------|--------------------|----------|--------------------------|----------|--------|
+| pi14 | e14  | 10.21.0.114 | 2c:cf:67:37:d4:bd | CM4 Rev 1.1 4 GB      | Acorn CLE-101 `1e24:0101`   | not read           | 0000:01  | no response (P1 unmated) | untested | Online |
+| pi16 | e16  | 10.21.0.116 | 2c:cf:67:fb:91:e5 | CM5 Lite Rev 1.0 8 GB | Acorn CLE-101 `1e24:0101`   | not read           | 0001:01  | no response (P1 unmated) | untested | Online |
+| pi18 | e18  | 10.21.0.118 | 2c:cf:67:37:d5:08 | CM4 Rev 1.1 4 GB      | none: M.2 slot empty        | —                  | —        | n/a                      | n/a      | Online |
+| pi20 | e20  | 10.21.0.120 | 2c:cf:67:fd:1e:be | CM5 Lite Rev 1.0 8 GB | vendor XDMA image `10ee:7011` | 0x0028e5c45e304854 | 0001:01  | OK, IDCODE `0x3631093` | on the Extension Port: K2 → GPIO15, J2 → GPIO14, no resistor; J5 and H5 not wired | Online |
 
-pi20 is the only blade whose JTAG has ever answered, so it is the only one with
-a device DNA: `0x0028e5c45e304854`, an XC7A100T.
+pi20 is the only blade whose JTAG answers, so it is the only one with a device
+DNA: `0x0028e5c45e304854`, an XC7A100T. The fpgas.online Acorn design runs on it
+from SRAM (Gen2 x1, the same ident and DNA over PCIe and over the UART bridge);
+its flash holds the vendor XDMA sample image. "P1 unmated" on pi14 and pi16 is
+read off TCK: the Acorn pulls TCK up, and on pi20 the Pi's pull-down cannot move
+it, while on pi14 and pi16 it floats exactly as on pi18, which has no card.
+Reseating P1 is the fix.
 
-:::{note}
-Earlier revisions of the source table put pi20's DNA in pi14's row (commit
-c5322ad wrote it one row up) and listed pi20 as pending. pi14's JTAG has never
-answered, so no DNA can have come from it.
-:::
+These boards are often called LiteFury. Their factory PCI ID identifies them as
+SQRL Acorn CLE-101: the same PCB family, XC7A100T with 512 MB of DDR3. See [SQRL
+Acorn](../boards/acorn/index.md).
 
-These boards have long been called LiteFury. The factory PCI ID that pi14 and
-pi16 still present identifies them as SQRL Acorn CLE-101 — the same PCB family,
-XC7A100T with 512 MB of DDR3. See [SQRL Acorn](../boards/acorn/index.md).
+**No blade is wired to the [Compute Blade
+wiring](../boards/acorn/wiring.md#compute-blade) yet.** That wiring puts P1 on
+the Extension Port and P2 on the 4-pin UART header, with a 470 Ω resistor in the
+J2 wire. Every blade here has its P2 serial pair on Extension Port pins 9 and 10
+instead, sharing pin 9 (GPIO14) directly with TMS and with no resistor, so a
+design that drives J2 costs JTAG until a PoE cycle ([why](../boards/acorn/wiring.md#the-shared-line-and-the-470-ω-resistor)).
+Whether J5 and H5 are wired on pi14 and pi16 is not known; on pi20 they are not.
 
-These four are Compute Blade carriers, so they are wired to the [Compute Blade
-variant](../boards/acorn/wiring.md#compute-blade-wiring-variant) of the Acorn
-pinout: P1 on the Extension Port and P2 on the 4-pin UART header, JTAG on
-`--pins 2:3:4:14`, and the FPGA UART on `/dev/ttyAMA0` at GPIO14/15. All four
-netboot the trixie arm64 NFS root with overlayroot and run **openFPGALoader
-0.13.1** — so `--read-dna` works here, unlike Welland. All four have
-`console=tty1` with `serial-getty@ttyAMA0` inactive, so the [kernel console
-SysRq
-crash](../boards/acorn/wiring.md#known-issue-kernel-console-sysrq-on-the-fpga-uart)
-cannot recur. PCIe is through the M.2 slot. The per-pin measurements behind the
-JTAG and P2 columns are on [Acorn wiring](../boards/acorn/wiring.md).
+All four blades use JTAG on `--pins 2:3:4:14` and the FPGA UART on
+`/dev/ttyAMA0` at GPIO14/15, netboot the trixie arm64 NFS root with overlayroot,
+and run openFPGALoader 0.13.1, which has `--read-dna`. All four boot with
+`console=tty1` and `serial-getty@ttyAMA0` inactive, so the [kernel console
+crash](../boards/acorn/wiring.md#kernel-console-on-the-fpga-uart) cannot happen.
+PCIe is through the blade's M.2 slot.
 
 The `RPi Model` column matters: a CM4 and a CM5 are not interchangeable, and
 what differs — the serial mux, and how many UARTs there are — is under [Compute
@@ -155,8 +157,7 @@ Module 4 versus Compute Module
 :::{warning}
 Reconfiguring the FPGA over JTAG while its PCIe endpoint is enumerated is a
 surprise removal. Detach the endpoint first, using the host's own bus from the
-`PCIe Bus` column above — `0000:01:00.0` on pi14, `0001:01:00.0` on pi16 and
-pi20:
+`PCIe Bus` column above:
 
 ```console
 $ echo 1 | sudo tee /sys/bus/pci/devices/0001:01:00.0/remove
@@ -164,26 +165,19 @@ $ echo 1 | sudo tee /sys/bus/pci/devices/0001:01:00.0/remove
 
 Restore it by rebooting, or as described under [Bring the endpoint back after a
 JTAG load](../boards/acorn/pcie-programming.md#bring-the-endpoint-back-after-a-jtag-load)
-(a LiteX design needs a root-complex re-probe, not just a rescan). `--detect` and the other
-read-only queries are safe without this; **loading a bitstream is not**.
+(on a blade a LiteX design needs a root-complex re-probe, not just a rescan).
+`--detect` and the other read-only queries are safe without this; **loading a
+bitstream is not**.
 :::
 
 :::{note}
-This crash was measured at Welland, not here: on 2026-08-31 an undetached load
-crashed a Pi 5's BCM2712 root complex outright. No PS1 blade has been recorded
-hitting it, and pi20 is the only one where the combination can arise today,
-since pi14 and pi16 do not answer JTAG at all.
+The blades have no page under `https://ps1.fpgas.online/fpgas/`: pi14, pi16,
+pi18 and pi20 all return 404 (checked 2026-09-03).
 :::
 
-:::{note}
-The blades have no page under `https://ps1.fpgas.online/fpgas/` — pi14, pi16,
-pi18 and pi20 all return 404 (checked 2026-09-03). Only the linked hosts above
-are published.
-:::
-
-Source: live probe 2026-08-31 via `site-ps1.md` and `acorn.md`; JTAG and P2
-columns from the 2026-08-31 pin-ID survey; MACs and switch ports cross-checked
-against infra `host_vars/ps1.fpgas.online.yml`.
+Source: live probes (`lspci -nn`, `openFPGALoader --detect` and `--read-dna`,
+pull-up/pull-down on each P2 and JTAG line, the pin-ID check on pi20); MACs and
+switch ports cross-checked against infra `host_vars/ps1.fpgas.online.yml`.
 
 ### Other hosts
 
