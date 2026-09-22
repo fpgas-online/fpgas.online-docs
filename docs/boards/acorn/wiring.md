@@ -15,7 +15,9 @@ out — not on the site:
   only GPIO2, 3, 4, 14 and 15. P1 goes to the Extension Port and JTAG is
   `--pins 2:3:4:14`. P2's serial pair goes to the 4-pin UART header, and J5 and
   H5 are not connected. The UART header's TX pin is the same GPIO14 as TMS, so
-  the J2 wire has a 470 Ω resistor in it and JTAG always wins.
+  the J2 wire has a 470 Ω resistor in it and JTAG always wins. No PS1 blade is
+  wired this way yet; how each one is wired now is on [Compute
+  blades](../../sites/ps1.md#compute-blades).
 
 On both carriers the serial pair lands on the same GPIOs — K2 (FPGA TX) on
 GPIO15, J2 (FPGA RX) on GPIO14 — so one set of FPGA pin constraints and one set
@@ -290,12 +292,14 @@ Detach the PCIe endpoint first here too. The bus address differs per blade, so
 take it from [Compute blades](../../sites/ps1.md#compute-blades).
 
 openFPGALoader 0.13.1 leaves GPIO2, GPIO4 and GPIO14 as **outputs** when it
-exits. Put them back before anything else uses the shared line:
+exits. Put them back before anything else uses the shared line. The UART
+function is a different alternate on each module: `a0` on a CM4 (BCM2711),
+`a4` on a CM5 (RP1); `pinctrl funcs 14,15` lists them.
 
 ```console
-$ pinctrl set 2,3,4 ip    # JTAG pins back to inputs
-$ pinctrl set 14 a4       # GPIO14 = TXD0
-$ pinctrl set 15 a4       # GPIO15 = RXD0
+$ pinctrl set 2,3,4 ip       # JTAG pins back to inputs
+$ pinctrl set 14,15 a0       # CM4: GPIO14 = TXD0, GPIO15 = RXD0
+$ pinctrl set 14,15 a4       # CM5: the same functions
 $ stty -F /dev/ttyAMA0 115200 raw -echo
 ```
 
@@ -435,14 +439,16 @@ move has the card on the end of it, and one that follows has nothing.
 ```console
 $ echo 1 | sudo tee /sys/bus/pci/devices/0001:01:00.0/remove   # detach first
 $ openFPGALoader --cable libgpiod --pins 10:9:11:8 pcie-acorn.bit
-# A rescan is not enough for a LiteX design: re-probe the slot's root complex
-$ echo 1000110000.pcie | sudo tee /sys/bus/platform/drivers/brcm-pcie/unbind
-$ echo 1000110000.pcie | sudo tee /sys/bus/platform/drivers/brcm-pcie/bind
+$ echo 1 | sudo tee /sys/bus/pci/rescan
 $ lspci -nn -d 10ee:
 # Expected: Xilinx Corporation Device [10ee:7021] (LitePCIe's default for one lane)
+# Nothing? Re-probe the slot's root complex (needed on a CM5 blade):
+$ echo 1000110000.pcie | sudo tee /sys/bus/platform/drivers/brcm-pcie/unbind
+$ echo 1000110000.pcie | sudo tee /sys/bus/platform/drivers/brcm-pcie/bind
 ```
 
-Why the re-probe is needed is under [Bring the endpoint back after a JTAG
+When the rescan is enough and when the re-probe is needed is under [Bring the
+endpoint back after a JTAG
 load](pcie-programming.md#bring-the-endpoint-back-after-a-jtag-load).
 
 ## Kernel console on the FPGA UART
@@ -487,9 +493,9 @@ issue #3](https://github.com/fpgas-online/fpgas.online-test-designs/issues/3).
 | No UART output | serial-getty holding the port, wrong baud, or K2/J2 not crossed over | Mask serial-getty, use 115200, run pin-ID and check GPIO15 reads `K2` |
 | Pi reboots when a serial design loads | Kernel console on the FPGA UART; SysRq | Console to `ttyAMA10` (Pi 5) / `tty1` (blade), `kernel.sysrq=0` |
 | GPIO pins don't respond | Cable wired incorrectly | Buzz each wire from its Pico-EZmate position (pin 1 = GND, nearest the M.2 edge) to the pin in the tables above |
-| PCIe device missing after loading a design | A LiteX design needs PERST#; a rescan alone does nothing | Re-probe the slot's root complex ([procedure](pcie-programming.md#bring-the-endpoint-back-after-a-jtag-load)); if it still does not link, check the build's I/O report has the lane on B10/B6 |
+| PCIe device missing after loading a design | Not rescanned, or (on a CM5 blade) a LiteX design that needs PERST# | Rescan; if still missing, re-probe the slot's root complex ([procedure](pcie-programming.md#bring-the-endpoint-back-after-a-jtag-load)); if it still does not link, check the build's I/O report has the lane on B10/B6 |
 | JTAG fails on a Compute Blade | Wrong pin order | Use `--pins 2:3:4:14`, not `--pins 10:9:11:8` |
-| UART dead after JTAG on a Compute Blade | openFPGALoader left GPIO14 a plain output | `pinctrl set 14 a4` (and `pinctrl set 2,3,4 ip`), then open `/dev/ttyAMA0` |
+| UART dead after JTAG on a Compute Blade | openFPGALoader left GPIO14 a plain output | `pinctrl set 14,15 a0` on a CM4 or `a4` on a CM5 (and `pinctrl set 2,3,4 ip`), then open `/dev/ttyAMA0` |
 | Board hung, ~0.4 W on PoE instead of ~8 W | Wedged Pi 5 | PoE cycle the switch port; a Pi 5 needs over 90 s to come back |
 
 ## Compatible boards

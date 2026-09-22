@@ -137,10 +137,12 @@ Acorn](../boards/acorn/index.md).
 **No blade is wired to the [Compute Blade
 wiring](../boards/acorn/wiring.md#compute-blade) yet.** That wiring puts P1 on
 the Extension Port and P2 on the 4-pin UART header, with a 470 Ω resistor in the
-J2 wire. Every blade here has its P2 serial pair on Extension Port pins 9 and 10
-instead, sharing pin 9 (GPIO14) directly with TMS and with no resistor, so a
-design that drives J2 costs JTAG until a PoE cycle ([why](../boards/acorn/wiring.md#the-shared-line-and-the-470-ω-resistor)).
-Whether J5 and H5 are wired on pi14 and pi16 is not known; on pi20 they are not.
+J2 wire. pi20, the one blade whose wiring has been read, has its P2 serial pair
+on Extension Port pins 9 and 10 instead, sharing pin 9 (GPIO14) directly with
+TMS and with no resistor, so a design that drives J2 costs JTAG until a PoE
+cycle ([why](../boards/acorn/wiring.md#the-shared-line-and-the-470-ω-resistor)),
+and its J5 and H5 are not wired. How pi14's and pi16's P2 cables are wired is
+not known: their P1 is unmated, so nothing can be loaded to read it.
 
 All four blades use JTAG on `--pins 2:3:4:14` and the FPGA UART on
 `/dev/ttyAMA0` at GPIO14/15, netboot the trixie arm64 NFS root with overlayroot,
