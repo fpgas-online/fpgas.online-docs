@@ -2,17 +2,19 @@
 
 check() FAILS the build if any text leaves its box or the canvas, overlaps other text, sits on a wire
 or on a keep-out shape, or if one rectangle that must contain another does not.
+
+The SVG loads nothing, not even a data: URI. raw.githubusercontent.com serves SVGs with
+`Content-Security-Policy: default-src 'none'`, which blocks embedded images and fonts, so text is
+drawn as glyph outlines and photos as runs of coloured strokes. A sheet opened from its raw URL looks
+exactly like the PNG.
 """
 
-import base64
-import io
 import itertools
 import pathlib
-import random
 
-from fontTools import subset
+from fontTools.pens.svgPathPen import SVGPathPen
 from fontTools.ttLib import TTFont
-from PIL import Image, ImageFont
+from PIL import Image
 
 HERE = pathlib.Path(__file__).parent
 OUT = HERE / "out"
@@ -58,17 +60,12 @@ class Sheet:
         self.contain = []  # (inner, outer, what)
         self.keepouts = []  # (bbox, what): shapes no text may touch
         self.boxes = []  # (bbox, label): filled labels, which may not overlap each other
-        self.used = {k: set() for k in FONT_FILES}
-        self._fonts = {}
-
-    def font(self, face, size):
-        key = (face, size)
-        if key not in self._fonts:
-            self._fonts[key] = ImageFont.truetype(FONT_FILES[face], size)
-        return self._fonts[key]
+        self.glyphs = {}  # (face, glyph name): id of its outline in <defs>
 
     def width(self, s, size, face="regular"):
-        return self.font(face, size * 4).getlength(s) / 4
+        """Advance width of `s`: the same numbers text() lays the glyphs out with."""
+        f = FONTS[face]
+        return sum(f.advance(ch) for ch in s) * size / f.upm
 
     def add(self, s):
         self.parts.append(s)
@@ -77,20 +74,27 @@ class Sheet:
         self.add(f'<rect x="{x:.1f}" y="{y:.1f}" width="{w:.1f}" height="{h:.1f}" rx="{rx}" fill="{fill}" '
                  f'stroke="{stroke}" stroke-width="{sw}" {extra}/>')
 
-    def text(self, x, y, s, size=13, face="regular", fill=INK, anchor="start", box=None, on_wire=False, rotate=None):
-        """Draw text with its baseline at y. `box` = (x0, y0, x1, y1) the text must stay inside."""
+    def text(self, x, y, s, size=13, face="regular", fill=INK, anchor="start", box=None, on_wire=False):
+        """Draw text with its baseline at y, as glyph outlines. `box` = (x0, y0, x1, y1) the text must stay inside."""
+        f = FONTS[face]
         w = self.width(s, size, face)
         x0 = {"start": x, "middle": x - w / 2, "end": x - w}[anchor]
         bbox = (x0, y - size * 0.76, x0 + w, y + size * 0.24)
-        if rotate is None:
-            self.texts.append((bbox, s, on_wire))
-            if box is not None:
-                self.contain.append((bbox, box, f"text {s!r}"))
-        self.used[face].update(s)
-        esc = s.replace("&", "&amp;").replace("<", "&lt;").replace(">", "&gt;")
-        tr = f' transform="rotate({rotate} {x:.1f} {y:.1f})"' if rotate is not None else ""
-        self.add(f'<text x="{x:.1f}" y="{y:.1f}" class="f-{face}" font-size="{size}" fill="{fill}" '
-                 f'text-anchor="{anchor}"{tr}>{esc}</text>')
+        self.texts.append((bbox, s, on_wire))
+        if box is not None:
+            self.contain.append((bbox, box, f"text {s!r}"))
+        uses, pen_x = [], 0
+        for ch in s:
+            name = f.glyph_name(ch)
+            if f.has_outline(name):
+                gid = self.glyphs.setdefault((face, name), f"{face[0]}{len(self.glyphs)}")
+                uses.append(f'<use href="#{gid}" x="{pen_x}"/>' if pen_x else f'<use href="#{gid}"/>')
+            pen_x += f.advance(ch)
+        k = size / f.upm
+        esc = s.replace("&", "&amp;").replace("<", "&lt;").replace(">", "&gt;").replace('"', "&quot;")
+        # aria-label keeps the words in the file for search and screen readers; nothing is drawn from it
+        self.add(f'<g transform="translate({x0:.1f} {y:.1f}) scale({k:.5f} {-k:.5f})" fill="{fill}" aria-label="{esc}">'
+                 + "".join(uses) + "</g>")
         return w
 
     def tag(self, x, y, s, fill, size=12, h=20, anchor="start", pad=7, on_wire=False, fg="#fff", stroke="none"):
@@ -103,14 +107,45 @@ class Sheet:
                   on_wire=on_wire)
         return x0, x0 + w
 
-    def photo(self, name, x, y, w):
-        im = Image.open(HERE / "photos" / name)
+    def photo(self, name, x, y, w, density=1.5, colours=96, crop=None):
+        """A photo as vector art: `density` samples per sheet pixel, `colours` colours, one stroked path per colour.
+
+        Each run of same-coloured samples along a row is one horizontal stroke. Pixels that are paper
+        (the prep script's background) are left out, so the sheet shows through. `crop` = (x0, y0, x1, y1)
+        in photo pixels; the returned scale then maps cropped-photo pixels to the sheet.
+        """
+        im = Image.open(HERE / "photos" / name).convert("RGB")
+        if crop is not None:
+            im = im.crop(crop)
         h = w * im.height / im.width
-        small = im.resize((round(w * 2), round(h * 2)), Image.LANCZOS)
-        buf = io.BytesIO()
-        small.save(buf, "JPEG", quality=84)
-        data = base64.b64encode(buf.getvalue()).decode()
-        self.add(f'<image x="{x}" y="{y}" width="{w:.1f}" height="{h:.1f}" href="data:image/jpeg;base64,{data}"/>')
+        small = im.resize((round(w * density), round(h * density)), Image.LANCZOS)
+        sw, shh = small.size
+        paper = tuple(int(PAPER[i:i + 2], 16) for i in (1, 3, 5))
+        src = small.load()
+        is_paper = [[max(abs(a - b) for a, b in zip(src[i, j], paper, strict=True)) <= 6 for i in range(sw)] for j in range(shh)]
+        q = small.quantize(colors=colours, method=Image.Quantize.MEDIANCUT, dither=Image.Dither.NONE)
+        pal = q.getpalette()[: 3 * colours]
+        px = q.load()
+        paths = {}  # palette index -> [pieces, current x, current y]
+        for j in range(shh):
+            i = 0
+            while i < sw:
+                c, i0 = px[i, j], i
+                while i < sw and px[i, j] == c and is_paper[j][i] == is_paper[j][i0]:
+                    i += 1
+                if is_paper[j][i0]:
+                    continue
+                d = paths.setdefault(c, [[], None, None])
+                if d[1] is None:
+                    d[0].append(f"M{i0} {j + 0.5}h{i - i0}")
+                else:
+                    d[0].append(f"m{i0 - d[1]} {j + 0.5 - d[2]:g}h{i - i0}")
+                d[1], d[2] = i, j + 0.5
+        body = "".join(f'<path stroke="#{pal[3 * c]:02x}{pal[3 * c + 1]:02x}{pal[3 * c + 2]:02x}" d="{"".join(d[0])}"/>'
+                       for c, d in sorted(paths.items()))
+        # square caps and a 1.1 stroke overlap each neighbour slightly, so no paper seams show between runs
+        self.add(f'<g transform="translate({x} {y}) scale({1 / density:.6f})" fill="none" stroke-width="1.1" '
+                 f'stroke-linecap="square">{body}</g>')
         return (x, y, w, h), w / im.width
 
     # ---- checks ------------------------------------------------------------------------------
@@ -143,27 +178,43 @@ class Sheet:
         if errors:
             raise SystemExit(f"{name}: {len(errors)} layout errors\n  " + "\n  ".join(errors))
 
-    def font_css(self):
-        css = []
-        for face, path in FONT_FILES.items():
-            chars = "".join(sorted(self.used[face])) or " "
-            opts = subset.Options()
-            opts.layout_features = []
-            opts.notdef_outline = True
-            sub = subset.Subsetter(opts)
-            font = TTFont(path)
-            sub.populate(text=chars)
-            sub.subset(font)
-            buf = io.BytesIO()
-            font.save(buf)
-            data = base64.b64encode(buf.getvalue()).decode()
-            css.append(f"@font-face{{font-family:'sheet-{face}';src:url(data:font/ttf;base64,{data}) format('truetype');}}"
-                       f".f-{face}{{font-family:'sheet-{face}','Liberation Sans',Arial,sans-serif;}}")
-        return "".join(css)
+    def glyph_defs(self):
+        out = []
+        for (face, name), gid in self.glyphs.items():
+            out.append(f'<path id="{gid}" d="{FONTS[face].outline(name)}"/>')
+        return "<defs>" + "".join(out) + "</defs>"
 
     def svg(self):
+        body = "".join(self.parts)  # glyph ids are allocated while the parts are drawn
         return (f'<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 {W} {H}" width="{W}" height="{H}">'
-                f"<style>{self.font_css()}</style>"
-                f'<rect width="{W}" height="{H}" fill="{PAPER}"/>' + "".join(self.parts) + "</svg>")
+                + self.glyph_defs() + f'<rect width="{W}" height="{H}" fill="{PAPER}"/>' + body + "</svg>")
 
 
+class Font:
+    """One TrueType face: advances for measuring, outlines for drawing. No kerning, so measure == draw."""
+
+    def __init__(self, path):
+        self.tt = TTFont(path)
+        self.upm = self.tt["head"].unitsPerEm
+        self.cmap = self.tt.getBestCmap()
+        self.hmtx = self.tt["hmtx"]
+        self.gs = self.tt.getGlyphSet()
+
+    def glyph_name(self, ch):
+        if ord(ch) not in self.cmap:
+            raise SystemExit(f"{self.tt.reader.file.name}: no glyph for {ch!r}")
+        return self.cmap[ord(ch)]
+
+    def advance(self, ch):
+        return self.hmtx[self.glyph_name(ch)][0]
+
+    def has_outline(self, name):
+        return self.tt["glyf"][name].numberOfContours != 0
+
+    def outline(self, name):
+        pen = SVGPathPen(self.gs)
+        self.gs[name].draw(pen)
+        return pen.getCommands()
+
+
+FONTS = {face: Font(path) for face, path in FONT_FILES.items()}
