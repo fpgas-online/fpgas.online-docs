@@ -112,6 +112,12 @@ def main(argv=None):
             for p in d.iterdir():
                 if p.name != SOURCE and p not in wanted:
                     changes.append(("remove", p))
+    # A new upstream commit alone is not a change (see below), but a different ref is: the files are
+    # then vouched for by another branch, and SOURCE has to say so.
+    for dest in FILES:
+        src = DOCS / dest / SOURCE
+        if src.exists() and f"\nref: {args.ref}\n" not in src.read_text():
+            changes.append(("source", src))
     for what, path in changes:
         print(f"  {what:6} {path.relative_to(DOCS)}")
     if not changes:
@@ -122,10 +128,12 @@ def main(argv=None):
     for what, path in changes:
         if what == "remove":
             path.unlink()
+        elif what == "source":
+            pass  # rewritten below
         else:
             path.parent.mkdir(parents=True, exist_ok=True)
             path.write_bytes(wanted[path])
-    for dest in FILES:  # SOURCE moves only with the files, so a new upstream commit alone changes nothing here
+    for dest in FILES:  # SOURCE moves only with the files or the ref, so a new upstream commit alone changes nothing
         (DOCS / dest / SOURCE).write_text(source_text(args.ref, commit))
     print(f"{len(changes)} file(s) changed")
     return 0
