@@ -5,8 +5,8 @@ pin-compatible with the [NiteFury and
 LiteFury](https://github.com/RHSResearchLLC/NiteFury-and-LiteFury) boards. In
 the fpgas.online fleet it sits either in an M.2 HAT on a Raspberry Pi 5 or in
 a Compute Blade's own M.2 slot, with JTAG and UART carried on adapted
-Pico-EZmate cables to the host's GPIO header (Welland) or the Compute Blade
-expansion port (PS1).
+Pico-EZmate cables to the host's GPIO header (a Pi 5) or to a Compute Blade's
+Extension Port (P1) and 4-pin UART header (P2).
 
 See [Acorn wiring](wiring.md) for the full RPi GPIO pinmap.
 
@@ -21,7 +21,7 @@ See [Acorn wiring](wiring.md) for the full RPi GPIO pinmap.
 | DSP slices       | 740                              |
 | Block RAM        | 13,140 Kib                       |
 | GTP transceivers | 4 (up to 6.6 Gb/s each)          |
-| DDR3 SDRAM       | 1 GiB (MT41K512M16, 32-bit) (see todo below) |
+| DDR3 SDRAM       | 1 GiB (one MT41K512M16, 16-bit)  |
 | SPI Flash        | S25FL256S (256 Mbit, quad SPI)   |
 | PCIe             | Gen2 x4 (M.2 M-key)              |
 | Form factor      | M.2 2280                         |
@@ -68,7 +68,7 @@ wiki](https://github.com/enjoy-digital/litex/wiki/Use-LiteX-on-the-Acorn-CLE-215
 | Connector       | M.2 M-key                                |
 | Reference clock | Differential (FPGA pins F6/E6)           |
 | Reset           | LVCMOS33 (FPGA pin J1, internal pull-up) |
-| Vendor:Device   | `1e24:021f` Squirrels Research Labs "Acorn CLE-215+" with the factory (mining) firmware in flash; `1e24:0101` for a CLE-101; `10ee:7011` (Xilinx) once a LiteX/Vivado design is in flash |
+| Vendor:Device   | `1e24:021f` Squirrels Research Labs "Acorn CLE-215+" with the factory (mining) firmware in flash; `1e24:0101` for a CLE-101; `10ee:7011` (Xilinx) is the vendor (RHS Research) XDMA sample image, as on pi20; a LiteX x1 PCIe design is `10ee:7021` |
 
 On a Raspberry Pi 5 the Acorn connects via an M.2 HAT and appears on PCIe bus
 `0001:01:00.0` (the RP1 south bridge is `0002:01:00.0`). Reconfiguring the FPGA
@@ -94,8 +94,7 @@ reconfiguration](pcie-programming.md#detach-the-pcie-endpoint-before-any-jtag-re
 
 ## Serial (UART)
 
-Available on the P2 connector (active low accent LEDs double as serial adapter
-pins):
+On the P2 connector:
 
 | Signal | FPGA Pin |
 | ------ | -------- |
@@ -121,112 +120,85 @@ fallback and operational bitstream regions.
 
 ## DDR3 SDRAM
 
-:::{todo}
-The pin assignments in this table do not match the LiteX platform file
-`sqrl_acorn.py` cited as their source (checked 2026-09-03). The platform file's
-`dq` is 16 bits wide (D19 B20 E19 A20 F19 C19 F20 C18 E22 G21 D20 E21 C22 D21
-B22 D22), not 32, and none of the 32 DQ pins below appear in its `ddram` block;
-four of them are assigned to other signals (J5 SPI SD-card MOSI, H3 user LED 1,
-J1 PCIe reset, K2 UART TX). `Bank` lists three address bits; the real `ba` is
-L19/J20/L20, which makes this table's `CS_N` (L19) and `RAS_N` (L20) bank pins,
-and the platform file has no `cs_n`. `Address` is missing N22 and J22. `RAS_N`
-is H20, `WE_N` is L16, `CKE` is H22, `RESET_N` is K16. `DM` (A19/G22), `DQS_P`
-(F18/B21) and `DQS_N` (E18/A21) are absent. Only CLK_P/N, ODT and CAS_N agree.
-The "32-bit" width in Key specifications and "4 byte lanes" below are the same
-discrepancy: MT41K512M16 is an x16 part. Re-derive from the platform file or
-schematic before constraining a design from this table.
-:::
+1 GiB in one MT41K512M16, an x16 part: 16 bits wide, two byte lanes, driven by
+the 7-series DDR PHY (A7DDRPHY). The fpgas.online Acorn design runs it at
+800 MT/s. Pins as in the LiteX platform file `sqrl_acorn.py`:
 
-1 GiB MT41K512M16, 32-bit wide with 4 byte lanes. Uses 7-series native DDR PHY
-(A7DDRPHY).
+| Signal       | FPGA pins |
+| ------------ | --------- |
+| A[15:0]      | M15 L21 M16 L18 K21 M18 M21 N20 M20 N19 J21 M22 K22 N18 N22 J22 |
+| BA[2:0]      | L19 J20 L20 |
+| DQ[7:0]      | D19 B20 E19 A20 F19 C19 F20 C18 |
+| DQ[15:8]     | E22 G21 D20 E21 C22 D21 B22 D22 |
+| DM[1:0]      | A19 G22 |
+| DQS_P[1:0]   | F18 B21 |
+| DQS_N[1:0]   | E18 A21 |
+| CLK_P / CLK_N | K17 / J17 |
+| CKE          | H22 |
+| ODT          | K19 |
+| RAS_N        | H20 |
+| CAS_N        | K18 |
+| WE_N         | L16 |
+| RESET_N      | K16 (LVCMOS15) |
 
-| Signal Group | FPGA Pins                                               |
-| ------------ | ------------------------------------------------------- |
-| Address      | M15/L21/M16/L18/K21/M18/M21/N20/M20/N19/J21/M22/K22/N18 |
-| Bank         | N22/M21/N19                                             |
-| DQ[7:0]      | C2/F1/B1/F3/A1/D2/B2/E2                                 |
-| DQ[15:8]     | J5/H3/K1/H2/J1/K2/H1/J3                                 |
-| DQ[23:16]    | N2/M6/P1/N5/P2/N4/R1/P6                                 |
-| DQ[31:24]    | K3/M2/K4/M3/J6/L3/J4/K6                                 |
-| CLK_P/N      | K17/J17                                                 |
-| CKE          | J18                                                     |
-| ODT          | K19                                                     |
-| CS_N         | L19                                                     |
-| RAS_N        | L20                                                     |
-| CAS_N        | K18                                                     |
-| WE_N         | L22                                                     |
-| RESET_N      | G17                                                     |
+The platform file has no CS_N. Everything except RESET_N is SSTL15 (the DQS and
+clock pairs DIFF_SSTL15).
 
 ## Programming
 
-Four paths, and they are not interchangeable. A load over GPIO JTAG lands in
-SRAM and is gone at the next power cycle; anything persistent has to go into the
-SPI flash, which the GPIO JTAG path cannot currently write; and PCIe programming
-only works on a board that is already running a LiteX bitstream with PCIe
-support.
+There are three ways in, and they are not interchangeable. A load over GPIO JTAG
+lands in SRAM and is gone at the next power cycle. Anything persistent has to go
+into the SPI flash, which the GPIO JTAG path cannot write. And PCIe programming
+only works on a board that is running a LiteX design with PCIe.
 
-### Via GPIO JTAG (openFPGALoader) — what the fleet uses
+### GPIO JTAG (openFPGALoader): what the fleet uses
 
-P1 is wired to the Pi's SPI0 pins; openFPGALoader bit-bangs JTAG through
+P1 is wired to GPIOs on the Pi's header; openFPGALoader bit-bangs JTAG through
 libgpiod (about 16 s for a full XC7A200T bitstream). The load goes to SRAM only
-and is lost at power cycle, which is what makes it safe to experiment with.
+and is lost at power-off, which is what makes it safe to experiment with.
 
 ```console
-$ echo 1 | sudo tee /sys/bus/pci/devices/0001:01:00.0/remove   # MUST detach the endpoint first on a Pi 5
-$ sudo ln -sfn /dev/gpiochip15 /dev/gpiochip0                  # openFPGALoader 0.10.0 on a Pi 5 only
+$ echo 1 | sudo tee /sys/bus/pci/devices/0001:01:00.0/remove   # detach the endpoint first
+$ sudo ln -sfn /dev/gpiochip15 /dev/gpiochip0                  # Pi 5 only: libgpiod opens gpiochip0
 $ openFPGALoader --cable libgpiod --pins 10:9:11:8 <bitstream.bit>
 ```
 
-These commands are the Pi 5 carrier wiring; on a Compute Blade carrier the
-JTAG pins are `2:3:4:14`, P1 lands on GPIO2, 3, 4 and 14 (the I2C pins, GPIO4,
-and the UART TX pin), and the PCIe bus differs per host — `0000:01:00.0` on
-pi14 but `0001:01:00.0` on pi16 and pi20; see [Compute Blade wiring
-variant](wiring.md#compute-blade-wiring-variant) and the
-[PS1 Compute blades](../../sites/ps1.md#compute-blades) inventory.
+These are for the Raspberry Pi 5 carrier. On a Compute Blade the JTAG pins are
+`2:3:4:14` (P1 lands on GPIO2, 3, 4 and 14: the I²C pair, GPIO4 and the UART TX
+line), and the PCIe bus address differs per blade; see [Compute
+Blade](wiring.md#compute-blade) and the [PS1 Compute
+blades](../../sites/ps1.md#compute-blades) inventory.
 
 :::{warning}
 Detach the PCIe endpoint before loading a bitstream. Reconfiguring the FPGA
-underneath an enumerated endpoint is a surprise removal and crashes the BCM2712
-root complex: on 2026-08-31 a JTAG load on pi-sw2-p47 with the endpoint still
-enumerated killed the host. The rule, the
-per-host bus address and the recovery are in [detach the PCIe endpoint before
+underneath an enumerated endpoint is a surprise removal, and the BCM2712 root
+complex does not survive it: the host crashes. The rule, the per-host bus
+address and bringing the endpoint back are in [detach the PCIe endpoint before
 any JTAG
 reconfiguration](pcie-programming.md#detach-the-pcie-endpoint-before-any-jtag-reconfiguration).
 :::
 
-Pin order, the Pi 5 `gpiochip15` trap, the PCIe detach rule and the
-`overlayroot=tmpfs` gotcha are all in [Acorn wiring](wiring.md). Prebuilt Vivado
-bitstreams for every test design and Acorn variant are on the
-`vivado-bitstreams-v0.0-496-gf162f60` release — see [prebuilt Vivado
-bitstreams](pcie-programming.md#prebuilt-vivado-bitstreams).
+Pin order, the Pi 5 `gpiochip15` link, the PCIe detach rule and the
+`overlayroot=tmpfs` trap are all in [Acorn wiring](wiring.md). Which bitstreams
+to use, and which prebuilt ones not to, is under
+[Images](pcie-programming.md#images).
 
-### Via JTAG (OpenOCD + FT232H)
+### JTAG over an FT232H (OpenOCD)
 
-Alternative for a bench setup — uses an FT232H USB adapter with a BSCAN_SPI
-proxy bitstream:
+For a bench setup, an FT232H USB adapter with a BSCAN_SPI proxy bitstream:
 
 ```console
 $ openocd -f openocd_xc7_ft232.cfg -c "init; pld load 0 <bitstream>; exit"
 ```
 
-### Via SPI Flash
+### PCIe (the fpgas.online Acorn design)
 
-Flash a persistent bitstream using OpenOCD or openFPGALoader. The S25FL256S
-supports multiboot with fallback. `openFPGALoader --write-flash` does **not**
-currently work over the GPIO JTAG wiring (the open-source spiOverJtag bridge
-never toggles CCLK after configuration); see [Acorn PCIe programming and
-multiboot](pcie-programming.md).
-
-### Via PCIe (LiteX)
-
-LiteX provides PCIe-based programming via `litepcie_util` when a LiteX bitstream
-with PCIe support is already loaded. Only pi-sw2-p44 currently boots such a
-design, but p44 scans an empty JTAG chain and must not be flashed over PCIe
-until that is fixed; see [safety
-rules](pcie-programming.md#safety-rules). The other Welland boards still carry
-the SQRL factory firmware. At PS1,
-pi20 is the candidate — it is the one blade whose flash holds a `10ee:7011`
-XC7A100T design rather than the SQRL factory firmware.
+With the fpgas.online Acorn design running, the flash is written over PCIe BAR0
+with `spi_flash.py`, which is how a board is moved onto the golden and
+operational images and how the operational image is updated; see [Acorn PCIe
+programming and multiboot](pcie-programming.md). A board on the SQRL factory
+firmware or the vendor XDMA image first needs the design loaded into SRAM over
+JTAG. Which image each board boots is on the site pages.
 
 ## Where they are
 

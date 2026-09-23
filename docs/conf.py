@@ -40,6 +40,9 @@ exclude_patterns = [
     ".DS_Store",
     "requirements.txt",
     "superpowers",
+    # Tables copied from fpgas.online-test-designs by tools/sync_test_designs.py. They are pulled into
+    # pages with {include}, not built as pages of their own.
+    "boards/acorn/generated/*.md",
 ]
 
 # MyST already warns (myst.xref_missing) on a Markdown link to a page or
