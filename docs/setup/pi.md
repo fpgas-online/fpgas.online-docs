@@ -5,9 +5,12 @@ Every Pi in the fleet boots the same read-only NFS root over the network
 boot time. The root is built once on the server, in two phases: `fixpi` shapes
 the extracted tree in place — the boot files, the `pi` account, the
 hostname-to-`/etc/hosts` unit, the `timesyncd` drop-in and the `ifupdown` masks
-— and then `fpgas-apt`, `cam/pi` and `onpi` run against that same tree through
-a chroot reached over SSH; see
-[The provisioning container](netboot.md#the-provisioning-container). A running
+— and then `fpgas-apt`, `cam_pi` and `onpi` run against that same tree. Both
+phases run in CI, through Ansible's chroot connection. The gateway pulls the
+finished image, and `fixpi` applies only the site layer on top: the `pi`
+password, the `authorized_keys` and the host keys. See
+[The provisioning container](netboot.md#the-provisioning-container) and
+[Accounts and logins](access.md). A running
 Pi only adds a tmpfs upper layer over the result, which is discarded on the next
 power cycle.
 
@@ -65,7 +68,7 @@ From Debian, by `onpi/tasks/apt.yml`:
 | `tio`, `minicom`, `picocom`, `screen` | Serial terminals. |
 | `tmux`, `vim`, `git`, `tree`, `ack`, `rsync`, `sshfs` | Interactive shell environment for someone SSHed into a node. |
 | `nmap`, `tcpdump` | Network diagnosis from inside a per-port VLAN. |
-| `ssh-import-id` | Used by `onpi/tasks/sshkeys.yml` to pull the operators' public keys for the `pi` account from the `ssh_imports` inventory list. |
+| `ssh-import-id` | Installed, but nothing in the root uses it any more: the site writes the `pi` and `root` `authorized_keys` from the gateway (see [Accounts and logins](access.md)). |
 | `software-properties-common` | `add-apt-repository` and friends. |
 | `python3-full`, `python3-venv`, `python3-pip`, `python3-dev`, `pipx` | The Python toolchain the test scripts run on. |
 | `python3-serial`, `python3-rpi.gpio`, `python3-numpy`, `python3-tqdm` | The libraries those scripts import: serial ports, GPIO, arrays, progress bars. |
@@ -104,8 +107,9 @@ The `cam/pi` role adds the streaming stack on top: `gstreamer1.0-tools`, the
 
 One row per unit that ends up in the shared root. "Enabled by `onpi`?" means
 the current include chain in `onpi/tasks/main.yml`, which is `apt.yml`,
-`nonfs.yml`, `tt.yml`, `tftpd.yml`, `sshkeys.yml`, `tweeks.yml` — and nothing
-else.
+`nonfs.yml`, `tt.yml`, `fleet.yml`, `tftpd.yml`, `tweeks.yml`,
+`fpga_verify.yml`, `stale_root.yml` — and nothing else. The old `sshkeys.yml`
+is gone, because the image carries no keys.
 
 | Unit | Installed by | Purpose | Enabled by `onpi`? |
 | --- | --- | --- | --- |
@@ -416,11 +420,14 @@ is avoided on the Pi 5 hosts.
 fpgas.online-infra, `main`:
 
 - [`ansible/site.yml`](https://github.com/fpgas-online/fpgas.online-infra/blob/main/ansible/site.yml)
-  — the `pi` play: `fpgas-apt`, then `cam/pi`, then `onpi`, run against the
-  `piroot` chroot the `nspawn-pi` role sets up on the NFS root.
+  — the "Update the Pi NFS root" play: `img` pulls the CI-built root and
+  `fixpi` applies the site layer. `ansible/ci-nfsroot.yml` runs `fpgas_apt`,
+  `cam_pi` and `onpi` in CI. The old `piroot` chroot target is gone.
 - [`ansible/roles/onpi/tasks/main.yml`](https://github.com/fpgas-online/fpgas.online-infra/blob/main/ansible/roles/onpi/tasks/main.yml)
-  — the include list (`apt.yml`, `nonfs.yml`, `tt.yml`, `tftpd.yml`,
-  `sshkeys.yml`, `tweeks.yml`) and the `fpgas-online-setup-pi` install; the
+  — the include list (`apt.yml`, `nonfs.yml`, `tt.yml`, `fleet.yml`,
+  `tftpd.yml`, `tweeks.yml`, `fpga_verify.yml`, `stale_root.yml`), the comment
+  saying the site owns the root's `authorized_keys`, and the
+  `fpgas-online-setup-pi` install; the
   absence of `pistat.yml`, `arty_here.yml`, `arty_wire.yml`, `arty_blink.yml`
   and `tmux.yml` from it.
 - [`ansible/roles/onpi/tasks/apt.yml`](https://github.com/fpgas-online/fpgas.online-infra/blob/main/ansible/roles/onpi/tasks/apt.yml)
@@ -431,11 +438,10 @@ fpgas.online-infra, `main`:
   Pi, and `tt-boards.yaml` plus the `fpgas-tt.service` enable gated on
   `tt_boards`.
 - [`ansible/roles/onpi/tasks/tftpd.yml`](https://github.com/fpgas-online/fpgas.online-infra/blob/main/ansible/roles/onpi/tasks/tftpd.yml)
-  and [`sshkeys.yml`](https://github.com/fpgas-online/fpgas.online-infra/blob/main/ansible/roles/onpi/tasks/sshkeys.yml),
-  [`nonfs.yml`](https://github.com/fpgas-online/fpgas.online-infra/blob/main/ansible/roles/onpi/tasks/nonfs.yml),
+  and [`nonfs.yml`](https://github.com/fpgas-online/fpgas.online-infra/blob/main/ansible/roles/onpi/tasks/nonfs.yml),
   [`tweeks.yml`](https://github.com/fpgas-online/fpgas.online-infra/blob/main/ansible/roles/onpi/tasks/tweeks.yml)
-  — the atftpd port rewrite and `/srv/tftp` ownership, `ssh-import-id` driven
-  by `ssh_imports`, the `nfsvers=4.2` safety net, and the `pi` home directories.
+  — the atftpd port rewrite and `/srv/tftp` ownership, the `nfsvers=4.2`
+  safety net, and the `pi` home directories.
 - [`ansible/roles/onpi/tasks/pistat.yml`](https://github.com/fpgas-online/fpgas.online-infra/blob/main/ansible/roles/onpi/tasks/pistat.yml),
   [`arty_here.yml`](https://github.com/fpgas-online/fpgas.online-infra/blob/main/ansible/roles/onpi/tasks/arty_here.yml),
   [`arty_wire.yml`](https://github.com/fpgas-online/fpgas.online-infra/blob/main/ansible/roles/onpi/tasks/arty_wire.yml)

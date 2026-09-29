@@ -56,6 +56,8 @@ take that picture apart:
   when one of them does not come back.
 - [The gateway host](gateway.md) — what the one x86 machine per site runs, how
   it is deployed, and what a rebuild from bare metal has to get right.
+- [Accounts and logins](access.md) — who can log in to the gateway and to
+  the Pis, with which keys, and why the Pis keep a password.
 - [The web application](webapp.md) — what a visitor sees, which Django apps
   serve it, and how the `site` role puts it on the gateway.
 - [The Tiny Tapeout stack](tinytapeout.md) — the `fpgas-tt` daemon, the board
@@ -72,6 +74,7 @@ network
 pi
 orange-pi
 gateway
+access
 webapp
 tinytapeout
 verification

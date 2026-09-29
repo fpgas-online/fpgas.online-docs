@@ -1,0 +1,95 @@
+# Accounts and logins
+
+Who can log in to a gateway and to the netbooted Pis, and with what. This page
+describes Welland (the gateway tweed and its fleet). It summarises the
+reference in the infra repository,
+[`docs/access.md`](https://github.com/fpgas-online/fpgas.online-infra/blob/main/docs/access.md),
+which names the role and variable behind every row and says how to add or
+remove a person. Checked against the infra `main` branch and a live tweed and
+fleet on 2026-09-27 to 2026-09-29.
+
+The `pi` password is public on purpose. The board pages publish it, it is what
+the web terminal logs in with, and the boards are ephemeral and isolated one
+VLAN per port. Its source is the vaulted `pi_pw` variable. Nothing else
+here is a secret: the one private key involved, the `fpgas.online-ansible`
+automation key, is vaulted and never appears in the docs.
+
+## The gateway: tweed
+
+Login to tweed is **public-key only**. The infra `sshd` role writes
+`/etc/ssh/sshd_config.d/00-pubkey-only.conf`, which sets
+`PasswordAuthentication no`, `KbdInteractiveAuthentication no`,
+`AuthenticationMethods publickey` and `PermitRootLogin prohibit-password`. The
+role refuses to converge while any login account has no usable key.
+
+| Account | What it is for | sudo | Keys it trusts | Role |
+|---|---|---|---|---|
+| `ansible` (uid 1000) | Ansible's own login | passwordless | only the `fpgas.online-ansible` automation key (ED25519, `SHA256:D/6/i3vPET3EeQKtO0kv0y0YfukEVg7/ZIF7oW3U6yA`) | `automation_user` |
+| `admin` (uid 1001) | runs the web tier (gunicorn, daphne, uvicorn, the fleet consumer); its keypair is the "server user" key every Pi trusts | passwordless | exactly the keys published at `github.com/mithro.keys` and `github.com/CarlFK.keys` | `server_user` (renamed in place from `videoteam`) |
+| `tim`, `carl` | operators | passwordless | their GitHub keys | `operators` |
+| `pi` | restricted jump account for reaching the boards | none | the shared static keys plus the `ssh_imports` ids | `jump` |
+| `root` | | | key login only, password locked; no role manages its keys | `sshd` |
+
+The `pi` jump account's login shell is `rbash`, and an sshd `ForceCommand`
+wrapper lets it run only `ssh` and `ssh-keyscan`. TCP forwarding is allowed,
+so `ssh -J` works through it. It has its own ed25519 key, which the Pis
+authorize, so a board is one `ssh pi@10.21.<switch>.<port>` away from inside
+the jump shell.
+
+`piroot`, the old login whose shell dropped into a chroot of the NFS root, has
+been deleted: the Pi root is now built in CI and pulled, and nothing logs in to
+a chroot any more. `videoteam` is now `admin`.
+
+## The Pis
+
+Every netbooted board, `pi-sw<S>-p<P>` at `10.21.<S>.<P>`, boots the same NFS
+root, so the accounts, keys and SSH host key are the same on every board. The
+host key is ED25519 `SHA256:tL3Mm5hn0pSKtUhZxl9CuJTMh5fFpAYxPdFq5tGlRhI`. It
+belongs to the site and survives new images.
+
+| Account | sudo | Password | Keys it trusts |
+|---|---|---|---|
+| `pi` (uid 1000) | passwordless | the shared `pi` password (`pi_pw`) | the gateway's server-user key, the automation key, the operators' GitHub keys, the jump account's key |
+| `root` | | | the gateway's server-user key, the automation key, the operators' GitHub keys |
+| `ansible` (uid 1001) | passwordless | locked | only the automation key |
+
+The Pis keep `PasswordAuthentication yes` on purpose, because the web terminal
+logs in as `pi` with the password. Only the gateway is key-only.
+
+The image carries no `authorized_keys`. The gateway writes them into the root
+from the complete list, and only when the list changes. A change replaces the
+files, and the running boards cannot see replaced files in their NFS root (see
+[Updating a running fleet](netboot.md#updating-a-running-fleet)). The change
+therefore also bumps the NFS root generation, and every board reboots itself
+within its stagger slot. **Adding or removing a key on the Pis reboots the
+whole fleet.** So does changing the `pi` password.
+
+## Logging in
+
+| To reach | Command |
+|---|---|
+| tweed | `ssh <you>@tweed.welland.mithis.com` |
+| a board, with your key | `ssh -J pi@tweed.welland.mithis.com pi@10.21.2.29` |
+| a board, from the jump shell | `ssh pi@tweed.welland.mithis.com`, then `ssh pi@10.21.2.29` |
+| a board, as the automation account (from ten64) | `ssh -i ~/.ssh/fpgas.online-ansible -o IdentitiesOnly=yes -J tweed.welland.mithis.com ansible@10.21.S.P` |
+| a board, in a browser | the terminal on the board's page at [welland.fpgas.online](https://welland.fpgas.online) |
+
+`tweed.welland.mithis.com` resolves to tweed itself: A `10.21.0.1` on its
+Pi-side interface and AAAA `2404:e80:a137:9921::2` on its uplink (checked
+2026-09-29). The web names are the ones that go through ten64's reverse proxy.
+
+With `-J` your key has to be trusted at both hops. The boards trust only the
+operators' GitHub keys. A person who can use the jump account but is not an
+operator hops on from the jump shell, or uses the password.
+
+## Changing who has access
+
+The lists are in the infra repository's
+`ansible/inventory/group_vars/all/ssh_keys.yml`: `operators_accounts` for
+operators (their tweed account, the `admin` account and the Pis), `ssh_imports`
+and `ssh_public_keys` for the jump account, and the `*_revoked` lists for keys
+that must be removed. They need revoked lists because `ssh-import-id` and
+Ansible's `authorized_key` only ever add keys. The step-by-step, the converge
+command and the checks that prove the result (`verify-server.yml`,
+`verify-pi.yml`) are in the infra
+[`docs/access.md`](https://github.com/fpgas-online/fpgas.online-infra/blob/main/docs/access.md).

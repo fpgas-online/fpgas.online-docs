@@ -69,22 +69,28 @@ switches' LLDP tables, and live probes of the hosts below on 2026-09-03.
 | PCI        | 2× Intel 82574L GbE, Tundra PCI bridge, Matrox G200eW                                |
 | NFS roots  | `/srv/nfs/rpi/bookworm/{boot,root}` (armhf + arm64 kernels, `overlayroot=tmpfs`); apt packages `fpgas-online-setup-pi` 0.0.post62, `fpgas-online-tt` 0.0.post52, `fpgas-online-tt-demos` 0.0.post21, `fpgas-online-cam` 0.0.post45, `openfpgaloader-rp1pio` and `openocd-rp1pio` 0.0.post76 |
 
-Tweed hosts no FPGA boards itself. Reach it as the `ansible` user on the uplink
-address 10.99.21.2, from ten64 (verified 2026-09-03).
+Tweed hosts no FPGA boards itself. Login is public-key only. Ansible reaches it
+from ten64 as the `ansible` user on the uplink address 10.99.21.2. People log
+in to their own operator accounts, or to the restricted `pi` jump account.
+Every account on tweed and on the Pis, and the keys each one trusts, is listed
+in [Accounts and logins](../setup/access.md).
 
-:::{note}
-The public name `tweed.welland.mithis.com` resolves to ten64's reverse proxy, so
-ssh to that name does not reach tweed. Use the 10.99.21.2 uplink address.
-:::
+`tweed.welland.mithis.com` resolves to tweed itself: A `10.21.0.1` and AAAA
+`2404:e80:a137:9921::2`, the uplink (checked 2026-09-29). The web names
+`welland.fpgas.online` and `tinytapeout.fpgas.online` are the ones that go
+through ten64's reverse proxy.
 
 The Pis are not routable from outside tweed — with per-port VLANs they do not
 even answer pings from ten64 — so jump through it:
 
 ```console
-$ ssh -o ProxyCommand='ssh -W %h:%p ansible@10.99.21.2' pi@10.21.2.29
+$ ssh -J pi@tweed.welland.mithis.com pi@10.21.2.29
 ```
 
-There is no restricted `pi` jump account on tweed; jump as above.
+The `pi` jump account can only run `ssh` and `ssh-keyscan`. Your key has to be
+trusted by both the jump account and the board, and the boards trust only the
+operators' GitHub keys. Anyone else logs in to the jump account and runs
+`ssh pi@10.21.2.29` from there, which uses the jump account's own key.
 
 **Public access** for end users: `ssh pi@fpgas.mithis.com -p 13422` is
 port-forwarded to individual Pis.
@@ -209,8 +215,10 @@ these hosts yet, and they are not listed on
 [welland.fpgas.online](https://welland.fpgas.online) (see the Web application
 todo). Reach one through the gateway, e.g. from this workstation over the
 `wg-desktop` route: `ssh -J tim@tweed.welland.mithis.com pi@10.21.1.14` (the
-`pi` user has passwordless sudo; `root` is not authorised). From ten64 use the
-`ansible@10.99.21.2` jump described under [Gateway: tweed](#gateway-tweed).
+`pi` user has passwordless sudo, and `root` takes the same operator keys). From
+ten64, the automation account reaches them too:
+`ssh -i ~/.ssh/fpgas.online-ansible -o IdentitiesOnly=yes -J tweed.welland.mithis.com ansible@10.21.1.14`.
+See [Accounts and logins](../setup/access.md).
 
 Source: live re-probe of all five hosts 2026-09-06 (ping/ARP/NFS from tweed,
 `openFPGALoader --detect`, `/proc/cmdline`, `kernel.sysrq`); models and DNAs
