@@ -231,32 +231,19 @@ and Pi environment packages — all inside the root, none on a running Pi.
 
 ### The provisioning container
 
-Those three roles need to run ARM package scripts on an x86 gateway. What the
-`nspawn-pi` role actually sets up is a chroot, reached over SSH:
+Those three roles need to run ARM package scripts. They no longer run on the
+gateway. CI builds the root on an arm64 runner (`ansible/ci-nfsroot.yml`, over
+Ansible's `community.general.chroot` connection) and publishes it as an OCI
+image. The gateway's `img` role pulls that image and extracts it into the NFS
+export, and `fixpi` then applies the per-site layer on top: the `pi` password,
+the `authorized_keys` files and the SSH host keys. The image ships none of
+those, and the pull leaves the site's copies alone.
 
-- `qemu-user-static` is installed and the `qemu-arm` binfmt handler registered,
-  so ARM binaries in the root execute transparently.
-- `/proc`, `/sys`, `/dev` and `/dev/pts` are bind-mounted into
-  `<nfs_root>/root`.
-- A `policy-rc.d` stub returning 101 is dropped in, so `apt` does not try to
-  start services inside the root.
-- A `piroot` Unix user is created on the gateway whose login shell is a wrapper
-  script that immediately `chroot`s into the NFS root, with a `sudoers.d` rule
-  permitting that one binary, with any arguments.
-- The inventory host named `pi` is `ansible_user=piroot` at the gateway's own
-  address, with no port override — so Ansible reaches the chroot over the
-  gateway's ordinary sshd on port 22, and every command it runs lands inside the
-  ARM root.
-
-The teardown role unmounts the four binds and removes the `policy-rc.d` stub.
-
-:::{note}
-The infra README, `site.yml` comments and the `nspawn-pi` role name all describe
-this as `systemd-nspawn` running its own `sshd` on port 2200, and the role still
-carries an unused `nspawn_sshd_port: 2200` default. No task starts a container or
-an sshd. The description above is what the tasks do; the discrepancy is
-corrected upstream in the stubbing phase of this port (Task 30).
-:::
+The old path went through a `piroot` account on the gateway, whose login shell
+`chroot`ed into the NFS root, and an inventory host `pi` that logged in as it.
+Both are gone. The infra `operators` role deletes the account, its sudoers rule
+and its `chroot-shell` wrapper. For the accounts that exist now, see
+[Accounts and logins](access.md).
 
 ## Updating a running fleet
 
@@ -427,9 +414,10 @@ fpgas.online-infra, `main`:
 - [`README.md`](https://github.com/fpgas-online/fpgas.online-infra/blob/main/README.md)
   — architecture overview, PXE boot chain, package table.
 - [`ansible/site.yml`](https://github.com/fpgas-online/fpgas.online-infra/blob/main/ansible/site.yml)
-  — role order, the chroot start/stop wrapper around the `pi` play.
+  — role order, and the "Update the Pi NFS root" play (GitHub keys, update
+  lock, `img`, `apt_cache`, `fixpi`, new generation).
 - [`ansible/inventory/hosts`](https://github.com/fpgas-online/fpgas.online-infra/blob/main/ansible/inventory/hosts)
-  — the `pi` host as `piroot` at the gateway address, no port override.
+  — the comment recording that the `[onpi]` `piroot@tweed` target is gone.
 - [`ansible/inventory/group_vars/all/srv.yml`](https://github.com/fpgas-online/fpgas.online-infra/blob/main/ansible/inventory/group_vars/all/srv.yml)
   — pinned image name and date, `dist`, `nfs_root`, the `tftp_root` expression.
 - [`ansible/inventory/host_vars/ps1.fpgas.online.yml`](https://github.com/fpgas-online/fpgas.online-infra/blob/main/ansible/inventory/host_vars/ps1.fpgas.online.yml)
@@ -467,10 +455,11 @@ fpgas.online-infra, `main`:
   — `/` and `/boot/firmware` as `noauto,ro` NFS v3 mounts.
 - [`ansible/roles/fixpi/files/scripts/chroot-mount-pi-fs.bash`](https://github.com/fpgas-online/fpgas.online-infra/blob/main/ansible/roles/fixpi/files/scripts/chroot-mount-pi-fs.bash)
   — the private-mount-namespace chroot helper.
-- [`ansible/roles/nspawn-pi/tasks/start.yml`](https://github.com/fpgas-online/fpgas.online-infra/blob/main/ansible/roles/nspawn-pi/tasks/start.yml),
-  [`stop.yml`](https://github.com/fpgas-online/fpgas.online-infra/blob/main/ansible/roles/nspawn-pi/tasks/stop.yml)
-  and [`defaults/main.yml`](https://github.com/fpgas-online/fpgas.online-infra/blob/main/ansible/roles/nspawn-pi/defaults/main.yml)
-  — the `piroot` chroot-shell provisioning host, and the unused port default.
+- [`ansible/roles/img/tasks/pull.yml`](https://github.com/fpgas-online/fpgas.online-infra/blob/main/ansible/roles/img/tasks/pull.yml)
+  — the image pull, and the rsync excludes that keep the site's host keys and
+  `authorized_keys` across pulls.
+- [`ansible/roles/operators/defaults/main.yml`](https://github.com/fpgas-online/fpgas.online-infra/blob/main/ansible/roles/operators/defaults/main.yml)
+  — `piroot` and `/usr/local/bin/chroot-shell` as retired.
 - [`docs/superpowers/runbooks/2026-08-31-eeprom-write-protect.md`](https://github.com/fpgas-online/fpgas.online-infra/blob/main/docs/superpowers/runbooks/2026-08-31-eeprom-write-protect.md)
   — the EEPROM write-protect section above.
 - [`docs/rebuilds/2026-08-25-tweed-rebuild.md`](https://github.com/fpgas-online/fpgas.online-infra/blob/main/docs/rebuilds/2026-08-25-tweed-rebuild.md)

@@ -76,18 +76,17 @@ Run from an infra checkout, against the Welland gateway:
 $ # main, or the PR worktree
 $ cd ~/github/fpgas-online/fpgas.online-infra
 $ uv run ansible-playbook -i ansible/inventory ansible/site.yml \
-    --limit fpgas.online,pi \
-    --tags fixpi,netboot,sunxi,sunxi-kernel,onpi,fpgas-apt
+    --limit fpgas.online --tags fixpi
 ```
 
-- `--limit` must include `pi`, the `nspawn-pi` provisioning host (a chroot
-  despite the name, see [the provisioning container](netboot.md#the-provisioning-container)), or the NFS root is
-  not touched at all.
-- The first run installs the kernel into the root and takes about 30 minutes
-  under qemu, almost all of it `update-initramfs`. Later runs skip it on a
-  `creates:` guard, and kernel upgrades afterwards arrive through `onpi`'s apt
-  upgrade like every other package — which is why CI can skip the
-  `sunxi-kernel` tag.
+- There is no `pi` provisioning host to add to `--limit` any more. The armmp
+  kernel is installed into the image by CI (`fixpi/tasks/sunxi-image.yml`,
+  image build only). On the gateway, `fixpi/tasks/sunxi.yml` (tag `sunxi`, run
+  only where `sunxi_boards` is defined) publishes the kernel, the initrd and the
+  DTBs to TFTP, and writes the U-Boot PXE file. See
+  [the provisioning container](netboot.md#the-provisioning-container).
+- The run goes through site.yml's "Update the Pi NFS root" play. If it changes
+  the root, it bumps the NFS root generation and the whole fleet reboots.
 
 Check the result on tweed:
 

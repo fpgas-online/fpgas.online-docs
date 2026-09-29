@@ -18,14 +18,14 @@ their place in the inventory.
 
 | Group | Members | What the group means |
 | --- | --- | --- |
-| `nbp` | `fpgas.online`, `ps1.fpgas.online`, `slf.sytes.net` | "netboot Pi" — the server play in `site.yml`: `netif`, `operators`, `lldp`, `firewall`, `vlan-ports`, `switch-vlans`, `nfs`, `img`, `fixpi`, `pxe`, plus the tasks that start and stop the provisioning chroot |
-| `pig` | `fpgas.online`, `ps1.fpgas.online` | the web tier play, `web.yml`: `site`, `wssh`, `cam/stream-server`, `ttsite` |
-| `uhubctl` | `slf.sytes.net` | the `uhubctl` play — USB hub power control |
-| `pxe` | `fpgas.online`, `ps1.fpgas.online`, `slf.sytes.net` | declared in the inventory, but no playbook targets it |
+| `nbp` | `fpgas.online`, `ps1.fpgas.online` | "netboot Pi" — the server plays in `site.yml`: `apt_client`, `netif`, then the account roles (`automation_user` where enabled, `operators`, `jump`, `sshd`), `lldp`, `firewall`, `vlan_ports`, `switch_vlans`, `nfs`, `apt_cache`, `pxe`, then the NFS root update (the operators' GitHub keys are downloaded first, then `img` pulls the CI-built root and `fixpi` applies the site layer) |
+| `pig` | `fpgas.online`, `ps1.fpgas.online` | the web tier play, `web.yml`: `server_user`, `site`, `wssh`, `stream_server`, `mqtt` (where `fleet_broker`), `webrtc` (where `webrtc_additional_hosts`), `ttsite` (where `tt_boards`) |
+| `uhubctl` | none | the `uhubctl` play — USB hub power control. Its only member, `slf.sytes.net`, stopped resolving in 2026-08 and was retired on 2026-09-04 |
+| `pxe` | `fpgas.online`, `ps1.fpgas.online` | declared in the inventory, but no playbook targets it |
 
-Two of those need reading carefully. The `uhubctl` group holds only
-`slf.sytes.net`, so on the inventory as it stands the `uhubctl` role never runs
-on tweed or val2 — even though the infra README's roles table describes
+Two of those need reading carefully. The `uhubctl` group is empty, so on the
+inventory as it stands the `uhubctl` role never runs on tweed or val2 — even
+though the infra README's roles table describes
 `uhubctl` as a server role and `CLAUDE.md` describes `site.yml` as running
 `nbp`/`uhubctl`/`pig` plays against "the server". The group membership is what
 Ansible acts on. And the `pxe` group is a leftover: the dnsmasq work lives in
@@ -33,30 +33,21 @@ the `pxe` *role*, which runs from the `nbp` play, while the `pxe` *group* is
 matched by nothing in the repo.
 
 :::{todo}
-Three inventory-versus-README mismatches are unresolved upstream: the
-`[uhubctl]` group contains only `slf.sytes.net`, so the `uhubctl` role never
-runs on tweed or val2 despite the infra README calling it a server role; the
-`[pxe]` group is declared but no playbook targets it; and the README calls the
-chroot group `pi` while the inventory group is `onpi` with a *host* named `pi`.
-Either fix the groups or fix the README, in `fpgas.online-infra`.
+Two inventory-versus-README mismatches are unresolved upstream. The
+`[uhubctl]` group is empty, so the `uhubctl` role never runs on tweed or val2
+even though the infra README calls it a server role. And the README's host
+groups table still lists a `pi` group ("nspawn chroot"), which the inventory no
+longer has. Fix them in `fpgas.online-infra`.
 :::
 
-:::{todo}
-`slf.sytes.net` is in both `nbp` and `uhubctl`, so a full-scope `site.yml` run
-tries to reach it. The 2026-08-25 tweed rebuild log records, in its rebuild #2
-entry P2-9 of 2026-08-26, that it no longer resolves — dead dynamic DNS — and
-left it failing as out of scope. Nobody has decided whether the host is retired,
-has a new address, or should come out of the inventory.
-:::
-
-The inventory's fourth entry is not a machine. Group `onpi` contains a single
-host named `pi`, at the gateway's own address as user `piroot`: the login shell
-of that account is a wrapper that immediately `chroot`s into the NFS root, so
-Ansible talks to it over the gateway's ordinary sshd and every command lands
-inside the ARM root. It is how Pi configuration is baked into the image on the
-server rather than applied to running Pis — see
-[The provisioning container](netboot.md#the-provisioning-container). The plays
-that use it are written `hosts: pi`, which matches the host, not the group.
+The inventory used to have a fourth entry that was not a machine: an `onpi`
+group holding a host named `pi`, reached as the `piroot` user on the gateway,
+whose login shell `chroot`ed into the NFS root. It is gone. The Pi root is now
+built in CI and pulled by the gateway (see
+[The provisioning container](netboot.md#the-provisioning-container)), and the
+`operators` role deletes the `piroot` account, its sudoers rule and its
+`chroot-shell` wrapper. The accounts that remain are listed in
+[Accounts and logins](access.md).
 
 ## What runs on the gateway
 
@@ -103,9 +94,15 @@ One line per service, with the role that installs it.
 - **switch-vlans** installs the `fpgas-switch-setup` CLI into its own venv,
   renders `/etc/fpgas/switches.yml` and converges each switch — see
   [Switches](network.md#switches).
-- **operators** creates the human operator accounts with passwordless sudo,
-  keyed from their GitHub accounts with `ssh-import-id`, and asserts that every
-  one of them ended up with at least one key.
+- **The login accounts**, all described in [Accounts and logins](access.md):
+  `automation_user` keeps the `ansible` account trusting only the automation
+  key (tweed only), `operators` creates the human operator accounts with
+  passwordless sudo, keyed from their GitHub accounts
+  (`https://github.com/<user>.keys`, through the `ssh_key_fetch` role, which
+  stops the converge when a download yields no keys),
+  `jump` builds the restricted `pi` jump account, and `sshd` makes login
+  public-key only (tweed only). The web tier's `server_user` role manages the
+  account the site runs as (`admin` on tweed).
 
 **Web tier** — the `pig` play, all of `web.yml`:
 
@@ -147,8 +144,8 @@ Tapeout catalogue and daemon are [The Tiny Tapeout stack](tinytapeout.md).
   sets the hub's device node to mode 0666 and chmods its per-port `disable`
   attributes so an unprivileged user can cut power to one port. This is the
   USB-side counterpart to
-  [PoE power control](network.md#poe-power-control), and on the current
-  inventory it applies to `slf.sytes.net` only.
+  [PoE power control](network.md#poe-power-control). On the current
+  inventory the `uhubctl` group is empty, so it applies to no host.
 
 ## Deploying
 
@@ -158,7 +155,7 @@ values — at Welland, the switches' SNMP write communities.
 
 ```console
 $ # full deployment of the Welland gateway plus its Pi NFS root
-$ uv run ansible-playbook ansible/site.yml --limit fpgas.online,pi
+$ uv run ansible-playbook ansible/site.yml --limit fpgas.online
 ```
 
 ```console
@@ -185,8 +182,8 @@ A second inventory exists for CI. The `ansible/ci-nfsroot.yml` playbook, run
 against `ansible/inventory-ci-nfsroot`, runs the same `img`, `fixpi`,
 `fpgas-apt`, `cam/pi` and `onpi` roles on a GitHub arm64 runner to build the
 NFS root alone, reaching the root through the `community.general.chroot`
-connection plugin instead of the `piroot` SSH wrapper — only the inventory
-differs.
+connection plugin. The gateway no longer runs those roles at all: it pulls the
+published image and applies only the site layer with `fixpi`.
 
 ### The tags do not match the role names
 
@@ -265,7 +262,8 @@ service` is the cause; see the warning above. Fix it in `fpgas.online-infra`.
 ### Checking and reconnecting
 
 `verify-server.yml` has three plays, one per group. The `nbp` play runs each
-server role's own `verify/` tasks — `operators`, `lldp`, `firewall`, `nfs`,
+server role's own `verify/` tasks — `automation_user`, `operators`, `jump`,
+`sshd`, `lldp`, `firewall`, `nfs`,
 `img`, `fixpi`, `pxe` — then asserts the per-port state on hosts with
 `switches:` (a `v*` interface in `networkctl list`, `dnsmasq --test` clean, the
 `forward` chain at `policy drop`, `ports.conf` present) and finally that the NFS
@@ -429,11 +427,12 @@ fpgas.online-infra, `main`:
   `ps1.fpgas.online` (val2), and the key-files list naming `site.yml`,
   `web.yml`, `verify-server.yml` and `verify-pi.yml`.
 - [`ansible/inventory/hosts`](https://github.com/fpgas-online/fpgas.online-infra/blob/main/ansible/inventory/hosts)
-  — the `pxe`, `nbp`, `uhubctl` and `onpi` groups and their exact membership,
-  and the `pi` pseudo-host with its `piroot` user and comment.
+  — the `pxe`, `nbp`, `uhubctl` and `pig` groups and their exact membership,
+  and the comment recording that the `[onpi]` `piroot@tweed` target is gone.
 - [`ansible/site.yml`](https://github.com/fpgas-online/fpgas.online-infra/blob/main/ansible/site.yml)
-  — the role order in the `nbp` play, the `uhubctl` play, the `web.yml` import,
-  and the chroot start/stop tasks around the `pi` play.
+  — the role order in the `nbp` plays (the account roles, with `sshd` after
+  `operators` and `jump` for its lockout guard), the `uhubctl` play, the
+  `web.yml` import, and the "Update the Pi NFS root" play (`img`, `fixpi`).
 - [`ansible/web.yml`](https://github.com/fpgas-online/fpgas.online-infra/blob/main/ansible/web.yml)
   — the `pig` play's four roles and the `tt_boards` condition on `ttsite`.
 - [`ansible/verify-server.yml`](https://github.com/fpgas-online/fpgas.online-infra/blob/main/ansible/verify-server.yml)
