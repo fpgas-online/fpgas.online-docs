@@ -5,7 +5,10 @@ describes Welland (the gateway tweed and its fleet). It summarises the
 reference in the infra repository,
 [`docs/access.md`](https://github.com/fpgas-online/fpgas.online-infra/blob/main/docs/access.md),
 which names the role and variable behind every row and says how to add or
-remove a person. It describes what the infra `main` branch configures.
+remove a person. It describes what the infra `main` branch configures, which
+was deployed to tweed and checked live on 2026-09-29: a password-only login is
+refused with `Permission denied (publickey)`, and every account login described
+below works.
 
 The `pi` password is public on purpose. The board pages publish it, it is what
 the web terminal logs in with, and the boards are ephemeral and isolated one
@@ -89,11 +92,17 @@ running as it was. Re-run once GitHub answers again.
 `tweed.welland.mithis.com` is split-horizon DNS (looked up 2026-09-29). Public
 DNS gives A `87.121.95.37`, which is **ten64**, and the AAAAs
 `2404:e80:a137:2100::1` and `2404:e80:a137:9921::2`, which are tweed. Inside the
-site the name resolves to `10.99.21.2` and `10.21.0.1`, plus the same AAAAs. So
-the name reaches tweed from inside the site, over the wg route, or over IPv6.
-From outside over IPv4 it reaches ten64. Whether ten64 lets SSH through to
-tweed's IPv6 addresses from the internet has not been verified. From ten64
-itself, use `10.99.21.2`.
+site the name resolves to `10.99.21.2` and `10.21.0.1`, plus the same AAAAs.
+Checked on 2026-09-29:
+
+- inside the site or over the wg route, the name reaches tweed directly;
+- from ten64, use `10.99.21.2`;
+- from outside over IPv6, use `2404:e80:a137:2100::1`. Port 22 on
+  `2404:e80:a137:9921::2` times out from outside, so use the address rather than
+  the name;
+- from outside over IPv4 only, the name reaches ten64, so hop through it
+  (`-J <you>@ten64.welland.mithis.com`, then `10.99.21.2`) if you have an
+  account there.
 
 With `-J` your key has to be trusted at both hops. The boards trust only the
 operators' GitHub keys. A person who can use the jump account but is not an

@@ -80,8 +80,10 @@ DNS gives A `87.121.95.37`, which is ten64 (so over public IPv4 the name
 reaches ten64's reverse proxy, not tweed), and AAAA `2404:e80:a137:2100::1` and
 `2404:e80:a137:9921::2`, which are tweed. Inside the site it resolves to
 `10.99.21.2` and `10.21.0.1`. SSH to the name therefore reaches tweed from inside
-the site, over the wg route, or over IPv6 (IPv6 from the internet is
-unverified). From ten64, use `10.99.21.2`.
+the site or over the wg route. From ten64, use `10.99.21.2`. From outside, use
+`2404:e80:a137:2100::1` (port 22 on `9921::2` times out from outside), or hop
+through ten64 if you have an account there. Checked 2026-09-29; see
+[Accounts and logins](../setup/access.md).
 
 The Pis are not routable from outside tweed — with per-port VLANs they do not
 even answer pings from ten64 — so jump through it:
