@@ -414,7 +414,8 @@ fpgas.online-infra, `main`:
 - [`README.md`](https://github.com/fpgas-online/fpgas.online-infra/blob/main/README.md)
   — architecture overview, PXE boot chain, package table.
 - [`ansible/site.yml`](https://github.com/fpgas-online/fpgas.online-infra/blob/main/ansible/site.yml)
-  — role order, the chroot start/stop wrapper around the `pi` play.
+  — role order, and the "Update the Pi NFS root" play (GitHub keys, update
+  lock, `img`, `apt_cache`, `fixpi`, new generation).
 - [`ansible/inventory/hosts`](https://github.com/fpgas-online/fpgas.online-infra/blob/main/ansible/inventory/hosts)
   — the comment recording that the `[onpi]` `piroot@tweed` target is gone.
 - [`ansible/inventory/group_vars/all/srv.yml`](https://github.com/fpgas-online/fpgas.online-infra/blob/main/ansible/inventory/group_vars/all/srv.yml)

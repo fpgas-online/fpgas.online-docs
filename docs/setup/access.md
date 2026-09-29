@@ -5,8 +5,7 @@ describes Welland (the gateway tweed and its fleet). It summarises the
 reference in the infra repository,
 [`docs/access.md`](https://github.com/fpgas-online/fpgas.online-infra/blob/main/docs/access.md),
 which names the role and variable behind every row and says how to add or
-remove a person. Checked against the infra `main` branch and a live tweed and
-fleet on 2026-09-27 to 2026-09-29.
+remove a person. It describes what the infra `main` branch configures.
 
 The `pi` password is public on purpose. The board pages publish it, it is what
 the web terminal logs in with, and the boards are ephemeral and isolated one
@@ -19,8 +18,10 @@ automation key, is vaulted and never appears in the docs.
 Login to tweed is **public-key only**. The infra `sshd` role writes
 `/etc/ssh/sshd_config.d/00-pubkey-only.conf`, which sets
 `PasswordAuthentication no`, `KbdInteractiveAuthentication no`,
-`AuthenticationMethods publickey` and `PermitRootLogin prohibit-password`. The
-role refuses to converge while any login account has no usable key.
+`AuthenticationMethods publickey` and `PermitRootLogin prohibit-password`.
+Before writing it, the role refuses to converge while the account Ansible
+connects as, any operator, or the jump account has no usable key
+(`sshd_pubkey_only_key_users`). It does not check `admin` or `root`.
 
 | Account | What it is for | sudo | Keys it trusts | Role |
 |---|---|---|---|---|
@@ -79,15 +80,20 @@ running as it was. Re-run once GitHub answers again.
 
 | To reach | Command |
 |---|---|
-| tweed | `ssh <you>@tweed.welland.mithis.com` |
-| a board, with your key | `ssh -J pi@tweed.welland.mithis.com pi@10.21.2.29` |
+| tweed | `ssh <you>@tweed.welland.mithis.com` (from ten64: `ssh <you>@10.99.21.2`) |
+| a board, with your key | `ssh -J <you>@tweed.welland.mithis.com pi@10.21.2.29`, or `-J pi@tweed.welland.mithis.com` through the jump account |
 | a board, from the jump shell | `ssh pi@tweed.welland.mithis.com`, then `ssh pi@10.21.2.29` |
-| a board, as the automation account (from ten64) | `ssh -i ~/.ssh/fpgas.online-ansible -o IdentitiesOnly=yes -J tweed.welland.mithis.com ansible@10.21.S.P` |
+| a board, as the automation account (from ten64) | `ssh -i ~/.ssh/fpgas.online-ansible -o IdentitiesOnly=yes -J <you>@10.99.21.2 ansible@10.21.S.P` |
 | a board, in a browser | the terminal on the board's page at [welland.fpgas.online](https://welland.fpgas.online) |
 
-`tweed.welland.mithis.com` resolves to tweed itself: A `10.21.0.1` on its
-Pi-side interface and AAAA `2404:e80:a137:9921::2` on its uplink (checked
-2026-09-29). The web names are the ones that go through ten64's reverse proxy.
+`tweed.welland.mithis.com` is split-horizon DNS (looked up 2026-09-29). Public
+DNS gives A `87.121.95.37`, which is **ten64**, and the AAAAs
+`2404:e80:a137:2100::1` and `2404:e80:a137:9921::2`, which are tweed. Inside the
+site the name resolves to `10.99.21.2` and `10.21.0.1`, plus the same AAAAs. So
+the name reaches tweed from inside the site, over the wg route, or over IPv6.
+From outside over IPv4 it reaches ten64. Whether ten64 lets SSH through to
+tweed's IPv6 addresses from the internet has not been verified. From ten64
+itself, use `10.99.21.2`.
 
 With `-J` your key has to be trusted at both hops. The boards trust only the
 operators' GitHub keys. A person who can use the jump account but is not an

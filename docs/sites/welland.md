@@ -75,16 +75,20 @@ in to their own operator accounts, or to the restricted `pi` jump account.
 Every account on tweed and on the Pis, and the keys each one trusts, is listed
 in [Accounts and logins](../setup/access.md).
 
-`tweed.welland.mithis.com` resolves to tweed itself: A `10.21.0.1` and AAAA
-`2404:e80:a137:9921::2`, the uplink (checked 2026-09-29). The web names
-`welland.fpgas.online` and `tinytapeout.fpgas.online` are the ones that go
-through ten64's reverse proxy.
+`tweed.welland.mithis.com` is split-horizon DNS (looked up 2026-09-29). Public
+DNS gives A `87.121.95.37`, which is ten64 (so over public IPv4 the name
+reaches ten64's reverse proxy, not tweed), and AAAA `2404:e80:a137:2100::1` and
+`2404:e80:a137:9921::2`, which are tweed. Inside the site it resolves to
+`10.99.21.2` and `10.21.0.1`. SSH to the name therefore reaches tweed from inside
+the site, over the wg route, or over IPv6 (IPv6 from the internet is
+unverified). From ten64, use `10.99.21.2`.
 
 The Pis are not routable from outside tweed — with per-port VLANs they do not
 even answer pings from ten64 — so jump through it:
 
 ```console
-$ ssh -J pi@tweed.welland.mithis.com pi@10.21.2.29
+$ ssh -J <you>@tweed.welland.mithis.com pi@10.21.2.29
+$ ssh -J pi@tweed.welland.mithis.com pi@10.21.2.29   # through the jump account
 ```
 
 The `pi` jump account can only run `ssh` and `ssh-keyscan`. Your key has to be
@@ -217,7 +221,7 @@ todo). Reach one through the gateway, e.g. from this workstation over the
 `wg-desktop` route: `ssh -J tim@tweed.welland.mithis.com pi@10.21.1.14` (the
 `pi` user has passwordless sudo, and `root` takes the same operator keys). From
 ten64, the automation account reaches them too:
-`ssh -i ~/.ssh/fpgas.online-ansible -o IdentitiesOnly=yes -J tweed.welland.mithis.com ansible@10.21.1.14`.
+`ssh -i ~/.ssh/fpgas.online-ansible -o IdentitiesOnly=yes -J <you>@10.99.21.2 ansible@10.21.1.14`.
 See [Accounts and logins](../setup/access.md).
 
 Source: live re-probe of all five hosts 2026-09-06 (ping/ARP/NFS from tweed,

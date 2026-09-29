@@ -18,14 +18,14 @@ their place in the inventory.
 
 | Group | Members | What the group means |
 | --- | --- | --- |
-| `nbp` | `fpgas.online`, `ps1.fpgas.online`, `slf.sytes.net` | "netboot Pi" — the server plays in `site.yml`: `apt_client`, `netif`, then the account roles (`automation_user` where enabled, `operators`, `jump`, `sshd`), `lldp`, `firewall`, `vlan_ports`, `switch_vlans`, `nfs`, `apt_cache`, `pxe`, then the NFS root update (the operators' GitHub keys are downloaded first, then `img` pulls the CI-built root and `fixpi` applies the site layer) |
-| `pig` | `fpgas.online`, `ps1.fpgas.online` | the web tier play, `web.yml`: `site`, `wssh`, `cam/stream-server`, `ttsite` |
-| `uhubctl` | `slf.sytes.net` | the `uhubctl` play — USB hub power control |
-| `pxe` | `fpgas.online`, `ps1.fpgas.online`, `slf.sytes.net` | declared in the inventory, but no playbook targets it |
+| `nbp` | `fpgas.online`, `ps1.fpgas.online` | "netboot Pi" — the server plays in `site.yml`: `apt_client`, `netif`, then the account roles (`automation_user` where enabled, `operators`, `jump`, `sshd`), `lldp`, `firewall`, `vlan_ports`, `switch_vlans`, `nfs`, `apt_cache`, `pxe`, then the NFS root update (the operators' GitHub keys are downloaded first, then `img` pulls the CI-built root and `fixpi` applies the site layer) |
+| `pig` | `fpgas.online`, `ps1.fpgas.online` | the web tier play, `web.yml`: `server_user`, `site`, `wssh`, `stream_server`, `mqtt` (where `fleet_broker`), `webrtc` (where `webrtc_additional_hosts`), `ttsite` (where `tt_boards`) |
+| `uhubctl` | none | the `uhubctl` play — USB hub power control. Its only member, `slf.sytes.net`, stopped resolving in 2026-08 and was retired on 2026-09-04 |
+| `pxe` | `fpgas.online`, `ps1.fpgas.online` | declared in the inventory, but no playbook targets it |
 
-Two of those need reading carefully. The `uhubctl` group holds only
-`slf.sytes.net`, so on the inventory as it stands the `uhubctl` role never runs
-on tweed or val2 — even though the infra README's roles table describes
+Two of those need reading carefully. The `uhubctl` group is empty, so on the
+inventory as it stands the `uhubctl` role never runs on tweed or val2 — even
+though the infra README's roles table describes
 `uhubctl` as a server role and `CLAUDE.md` describes `site.yml` as running
 `nbp`/`uhubctl`/`pig` plays against "the server". The group membership is what
 Ansible acts on. And the `pxe` group is a leftover: the dnsmasq work lives in
@@ -33,20 +33,11 @@ the `pxe` *role*, which runs from the `nbp` play, while the `pxe` *group* is
 matched by nothing in the repo.
 
 :::{todo}
-Three inventory-versus-README mismatches are unresolved upstream: the
-`[uhubctl]` group contains only `slf.sytes.net`, so the `uhubctl` role never
-runs on tweed or val2 despite the infra README calling it a server role; the
-`[pxe]` group is declared but no playbook targets it; and the README calls the
-chroot group `pi` while the inventory group is `onpi` with a *host* named `pi`.
-Either fix the groups or fix the README, in `fpgas.online-infra`.
-:::
-
-:::{todo}
-`slf.sytes.net` is in both `nbp` and `uhubctl`, so a full-scope `site.yml` run
-tries to reach it. The 2026-08-25 tweed rebuild log records, in its rebuild #2
-entry P2-9 of 2026-08-26, that it no longer resolves — dead dynamic DNS — and
-left it failing as out of scope. Nobody has decided whether the host is retired,
-has a new address, or should come out of the inventory.
+Two inventory-versus-README mismatches are unresolved upstream. The
+`[uhubctl]` group is empty, so the `uhubctl` role never runs on tweed or val2
+even though the infra README calls it a server role. And the README's host
+groups table still lists a `pi` group ("nspawn chroot"), which the inventory no
+longer has. Fix them in `fpgas.online-infra`.
 :::
 
 The inventory used to have a fourth entry that was not a machine: an `onpi`
@@ -153,8 +144,8 @@ Tapeout catalogue and daemon are [The Tiny Tapeout stack](tinytapeout.md).
   sets the hub's device node to mode 0666 and chmods its per-port `disable`
   attributes so an unprivileged user can cut power to one port. This is the
   USB-side counterpart to
-  [PoE power control](network.md#poe-power-control), and on the current
-  inventory it applies to `slf.sytes.net` only.
+  [PoE power control](network.md#poe-power-control). On the current
+  inventory the `uhubctl` group is empty, so it applies to no host.
 
 ## Deploying
 
