@@ -18,7 +18,7 @@ their place in the inventory.
 
 | Group | Members | What the group means |
 | --- | --- | --- |
-| `nbp` | `fpgas.online`, `ps1.fpgas.online`, `slf.sytes.net` | "netboot Pi" — the server plays in `site.yml`: `apt_client`, `netif`, then the account roles (`automation_user` where enabled, `operators`, `jump`, `sshd`), `lldp`, `firewall`, `vlan_ports`, `switch_vlans`, `nfs`, `apt_cache`, `pxe`, then the NFS root update (`img` pulls the CI-built root, `fixpi` applies the site layer) |
+| `nbp` | `fpgas.online`, `ps1.fpgas.online`, `slf.sytes.net` | "netboot Pi" — the server plays in `site.yml`: `apt_client`, `netif`, then the account roles (`automation_user` where enabled, `operators`, `jump`, `sshd`), `lldp`, `firewall`, `vlan_ports`, `switch_vlans`, `nfs`, `apt_cache`, `pxe`, then the NFS root update (the operators' GitHub keys are downloaded first, then `img` pulls the CI-built root and `fixpi` applies the site layer) |
 | `pig` | `fpgas.online`, `ps1.fpgas.online` | the web tier play, `web.yml`: `site`, `wssh`, `cam/stream-server`, `ttsite` |
 | `uhubctl` | `slf.sytes.net` | the `uhubctl` play — USB hub power control |
 | `pxe` | `fpgas.online`, `ps1.fpgas.online`, `slf.sytes.net` | declared in the inventory, but no playbook targets it |
@@ -106,7 +106,9 @@ One line per service, with the role that installs it.
 - **The login accounts**, all described in [Accounts and logins](access.md):
   `automation_user` keeps the `ansible` account trusting only the automation
   key (tweed only), `operators` creates the human operator accounts with
-  passwordless sudo, keyed from their GitHub accounts with `ssh-import-id`,
+  passwordless sudo, keyed from their GitHub accounts
+  (`https://github.com/<user>.keys`, through the `ssh_key_fetch` role, which
+  stops the converge when a download yields no keys),
   `jump` builds the restricted `pi` jump account, and `sshd` makes login
   public-key only (tweed only). The web tier's `server_user` role manages the
   account the site runs as (`admin` on tweed).

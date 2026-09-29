@@ -27,7 +27,7 @@ role refuses to converge while any login account has no usable key.
 | `ansible` (uid 1000) | Ansible's own login | passwordless | only the `fpgas.online-ansible` automation key (ED25519, `SHA256:D/6/i3vPET3EeQKtO0kv0y0YfukEVg7/ZIF7oW3U6yA`) | `automation_user` |
 | `admin` (uid 1001) | runs the web tier (gunicorn, daphne, uvicorn, the fleet consumer); its keypair is the "server user" key every Pi trusts | passwordless | exactly the keys published at `github.com/mithro.keys` and `github.com/CarlFK.keys` | `server_user` (renamed in place from `videoteam`) |
 | `tim`, `carl` | operators | passwordless | their GitHub keys | `operators` |
-| `pi` | restricted jump account for reaching the boards | none | the shared static keys plus the `ssh_imports` ids | `jump` |
+| `pi` | restricted jump account for reaching the boards | none | the shared static keys plus the GitHub keys of the `ssh_imports` ids | `jump` |
 | `root` | | | key login only, password locked; no role manages its keys | `sshd` |
 
 The `pi` jump account's login shell is `rbash`, and an sshd `ForceCommand`
@@ -64,6 +64,17 @@ therefore also bumps the NFS root generation, and every board reboots itself
 within its stagger slot. **Adding or removing a key on the Pis reboots the
 whole fleet.** So does changing the `pi` password.
 
+## Where the keys come from, and when GitHub is down
+
+The gateway downloads every GitHub key from `https://github.com/<user>.keys`
+(never the rate-limited GitHub API). That covers the operators, the jump
+account, `admin` and the Pi root. Each download is retried three times, five
+seconds apart. If it still gets no keys, **the converge stops there** with a
+message naming the account and the URL. Nothing is written empty. For the Pi
+root the download is the first step of the NFS root update, so it stops before
+the update lock is taken and before the root is touched, and the fleet keeps
+running as it was. Re-run once GitHub answers again.
+
 ## Logging in
 
 | To reach | Command |
@@ -88,8 +99,8 @@ The lists are in the infra repository's
 `ansible/inventory/group_vars/all/ssh_keys.yml`: `operators_accounts` for
 operators (their tweed account, the `admin` account and the Pis), `ssh_imports`
 and `ssh_public_keys` for the jump account, and the `*_revoked` lists for keys
-that must be removed. They need revoked lists because `ssh-import-id` and
-Ansible's `authorized_key` only ever add keys. The step-by-step, the converge
+that must be removed. The operator and jump accounts only ever gain keys, so
+removing one takes a revoked-list entry. The step-by-step, the converge
 command and the checks that prove the result (`verify-server.yml`,
 `verify-pi.yml`) are in the infra
 [`docs/access.md`](https://github.com/fpgas-online/fpgas.online-infra/blob/main/docs/access.md).
