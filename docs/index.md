@@ -27,6 +27,10 @@ when it was taken.
 : How the platform works: netboot and the NFS root, the network, what runs on
   the Pi hosts and on the gateway, and the web application.
 
+[Repositories](repositories.md)
+: What each repository is responsible for, what it publishes and where it
+  runs.
+
 ```{toctree}
 :maxdepth: 2
 :caption: Contents
@@ -34,6 +38,7 @@ when it was taken.
 sites/index
 boards/index
 setup/index
+repositories
 packages
 contributing
 ```
@@ -41,23 +46,6 @@ contributing
 ## Where the code lives
 
 The systems described here have their own repositories under the
-[fpgas-online](https://github.com/fpgas-online) organisation. The main ones:
-
-`fpgas.online-infra`
-: Ansible for the gateway servers and the Raspberry Pi NFS root.
-
-`fpgas.online-test-designs`
-: FPGA designs that verify a board is wired up correctly.
-
-`fpgas.online-site`
-: The Django web application, including the Tiny Tapeout catalogue.
-
-`fpgas.online-tt`, `tinytapeout-fpga-demos`, `tt-commander-app`
-: The Pi-side Tiny Tapeout bridge daemon, the demo bitstreams, and the
-  browser Commander it serves.
-
-`fpgas.online-setup-pi`, `fpgas.online-cam`, `fpgas.online-poe`
-: Packages installed on the Pi hosts and the PoE switch control library.
-
-`apt`
-: The package repository at <https://apt.fpgas.online>. See [Packages](packages.md).
+[fpgas-online](https://github.com/fpgas-online) organisation.
+[Repositories](repositories.md) lists every one, with what it is responsible
+for and what it publishes.
