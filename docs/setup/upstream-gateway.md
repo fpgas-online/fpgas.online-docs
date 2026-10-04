@@ -46,9 +46,10 @@ and no code uses it yet). A designed row says which of the two it is.
 
 "Reaches the gateway" means: on a public address, the port is simply open to
 the internet; behind a NAT gateway, the upstream forwards the port on the
-public IPv4 address to the gateway's uplink address, same port number.
+public IPv4 address to the gateway's uplink address, on the same port
+number except where a row says otherwise.
 
-| Port | Must reach the gateway for | State |
+| Public port | What it is for | State |
 |---|---|---|
 | tcp 80 | The web site, and Let's Encrypt `http-01` challenges (`/.well-known/acme-challenge/`) for every public name of the site | built |
 | tcp 443 | The web site, the web terminal and the camera players. **TLS ends on the gateway**: an upstream that proxies must pass TLS through untouched (route on the SNI name), not terminate it | built |
@@ -56,8 +57,8 @@ public IPv4 address to the gateway's uplink address, same port number.
 | tcp `<s><pp>22` and `<s><pp>44` for switch `s`, port `pp` | Per-board ssh and the per-board auxiliary port. The gateway forwards each to its board. See [Network and power](network.md) for the formula | built |
 | tcp 22 | Logging in to a board by name (`ssh pi-sw2-p47@…`) without a port number: a username-routing ssh proxy on the upstream gateway forwards logins under board names (`pi…`) to the site gateway's ssh proxy, and other names stay with the upstream gateway | designed (decided 2026-10-04) |
 | tcp 2222 | The upstream gateway's own sshd (backup) | designed (decided 2026-10-04) |
-| tcp 2223 | Forwarded to the site gateway's own sshd (backup): operators and deploys over IPv4 | designed (decided 2026-10-04) |
-| tcp 2224 | Forwarded to the site gateway's ssh proxy (backup) | designed (decided 2026-10-04) |
+| tcp 2223 | Forwarded to the site gateway's own sshd on port 22 (backup): operators and deploys over IPv4 | designed (decided 2026-10-04) |
+| tcp 2224 | Forwarded to the site gateway's ssh proxy, which listens on a port of its own beside the gateway's sshd; that port is not fixed yet (backup) | designed (decided 2026-10-04) |
 
 Notes on the table:
 
@@ -72,9 +73,11 @@ Notes on the table:
   and `<s><pp>44` with the forward policy set to drop, and PS1's legacy
   scheme uses `<100+N>22` and `<100+N>44`.
 - The tcp 22 and 2222 to 2224 rows are decision D1 of the ssh proxy
-  design, decided 2026-10-04. A site whose gateway is directly on a public
-  address has no upstream proxy: port 22 there is the site gateway's proxy
-  and sshd arrangement as the ssh proxy design describes.
+  design, decided 2026-10-04 for Welland, which is behind an upstream
+  router. The tcp 22 and 2222 rows end on the upstream gateway and do not
+  reach the site gateway directly. A site whose gateway is directly on a
+  public address has no upstream proxy; how its port 22 is shared between
+  sshd and the ssh proxy is not decided.
 - Today's state, as of 2026-10-04: at Welland none of this is built. Public
   IPv4 port 22 is answered by the upstream router's own sshd, so a client
   there sees that router's host key. Operators reach the site gateway's
