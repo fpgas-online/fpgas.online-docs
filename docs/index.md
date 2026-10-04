@@ -14,6 +14,10 @@ when it was taken.
 
 ## Finding your way
 
+[What works and what is planned](status.md)
+: What a visitor can use today, what is being worked on and what is planned,
+  with the date each statement was checked.
+
 [Sites](sites/index.md)
 : Where the hardware is: Welland (South Australia) and PS1 (Chicago). Network,
   gateway, switches, which host carries which board, and the faults known on
@@ -31,6 +35,7 @@ when it was taken.
 :maxdepth: 2
 :caption: Contents
 
+status
 sites/index
 boards/index
 setup/index
