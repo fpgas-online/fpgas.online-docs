@@ -6,54 +6,57 @@ it was last checked. For the hardware itself see [Sites](sites/index.md) and
 [Boards](boards/index.md).
 
 :::{note}
-Last reviewed 2026-10-04. A board appears on a site's board list only once it
-has passed `fpgas-verify`, so the live list at
-[welland.fpgas.online](https://welland.fpgas.online) is always the authority on
-what is usable right now.
+Last reviewed 2026-10-04. A board appears on
+[welland.fpgas.online](https://welland.fpgas.online) only once it has passed
+`fpgas-verify`, so that live list is the authority on what is usable there
+right now. tinytapeout.fpgas.online does not work that way yet: see below.
 :::
 
 ## Sites
 
 | Site | State (2026-10-04) |
 |---|---|
-| [welland.fpgas.online](https://welland.fpgas.online) | Running. The board list is built from what the Pis register and what verify reports; nothing is listed by hand |
-| [tinytapeout.fpgas.online](https://tinytapeout.fpgas.online) | Running. Still lists its boards from a fixed table, so it shows boards that are powered off |
+| [welland.fpgas.online](https://welland.fpgas.online) | Running. The board list is built from what each Pi reports about itself and from its verify result; nothing is listed by hand |
+| [tinytapeout.fpgas.online](https://tinytapeout.fpgas.online) | Running. Still lists its boards from a hand-written list, so it shows boards whose hosts are powered off |
 | [ps1.fpgas.online](https://ps1.fpgas.online) | A second site, run separately. See [PS1](sites/ps1.md) |
 
 ## Boards at Welland
 
 | Board | Works (2026-10-04) | In progress | Planned |
 |---|---|---|---|
-| [SQRL Acorn CLE-215+](boards/acorn/index.md) on a Raspberry Pi 5 | Boards carrying the fpgas.online image pass every verify test (PCIe link and register access, JTAG through the Pi's RP1, flash, DDR3, the P2 UART and GPIO) and are listed on the site | Converting the remaining boards from the factory image, which can be done over JTAG; bringing every bootloader to one version; camera focus, which is lost at power-off until the lens driver is enabled; labels | A drawn camera position; a bootloader that is locked after boot and upgraded only from a service port |
-| [Tiny Tapeout FPGA demo board](boards/tt-fpga.md) | Reachable on tinytapeout.fpgas.online: pick a demo, drive it from the browser | Passing verify, which they fail today. The pin check expects the mirror image of the cabling actually fitted, which is a fault in the test, not the wiring. The SPI flash check fails for a reason not yet known. Cameras are out of focus | Listing on welland.fpgas.online as well |
-| [Tiny Tapeout ASIC demo boards](boards/tt-asic.md) | Listed on tinytapeout.fpgas.online, but their hosts are powered off | Getting the hosts powered again, which needs someone at the rack | A verify check for ASIC boards; none exists yet |
-| [Arty A7](boards/arty-a7.md) | Not listed: the hosts fail verify | The hosts are identified. The Pmod cabling between the Pi's HAT and the Arty differs from host to host and from the documented wiring, and has to be settled before the pin check can pass | Ethernet, the Linux demo, and everything else that worked before |
-| [NeTV2](boards/netv2.md) | Not listed: the hosts fail verify | Board verification | HDMI in and out, HDCP, USB |
-| [Fomu EVT](boards/fomu-evt.md) | One host passes verify | | More Fomu hosts |
-| [ButterStick](boards/butterstick.md), [ULX3S](boards/ulx3s.md), other ECP5 boards and other PCIe Xilinx cards | Not deployed | | New board types, in no fixed order |
+| [SQRL Acorn CLE-215+](boards/acorn/index.md) on a Raspberry Pi 5 | Boards carrying the fpgas.online image pass every verify test (PCIe link and register access, JTAG through the Pi's RP1, flash, DDR3, and the UART and GPIO on the Acorn's P2 connector) and are listed on the site | Converting the boards that still run the factory image, which hides them from the site; JTAG works on them, so nobody has to be at the rack. One position has no power, and one board still has to be located. Bringing every bootloader to one version. Camera focus, which is lost at power-off until the lens driver is enabled. Labels. A drawn camera position, under review | A bootloader that is locked after boot and upgraded only from a service port |
+| [Tiny Tapeout FPGA demo board](boards/tt-fpga.md) | The powered hosts answer on tinytapeout.fpgas.online; one host is unpowered. Whether a demo runs end to end was not checked on this date | Passing verify, which they fail today. The pin check expects the mirror image of the cabling actually fitted, which is a fault in the test, not the wiring. The SPI flash check fails for a reason not yet known. The cameras are out of focus | Listing on welland.fpgas.online as well |
+| [Tiny Tapeout ASIC demo boards](boards/tt-asic.md) | Nothing: the hosts are powered off. tinytapeout.fpgas.online still lists them, and their status requests time out | Getting the hosts powered again, which needs someone at the rack | A verify check for ASIC boards; none exists yet |
+| [Arty A7](boards/arty-a7.md) | Not listed: every host fails verify. UART, DDR3 and SPI flash pass; Ethernet passes on some hosts | The Pmod cabling between the Pi's HAT and the Arty is not what the documented wiring says, and one host differs from the rest; which cabling is intended has to be settled before the pin check can pass. Ethernet fails on some hosts, cause not yet known | The Linux demo, which verify does not check yet, and everything else that worked before |
+| [NeTV2](boards/netv2.md) | Not listed. Verify stops with an error on every Raspberry Pi 3 host because of a bug in `fpgas-verify`, so what the board tests would report is not yet known | Fixing that bug ([fpgas.online-test-designs PR #112](https://github.com/fpgas-online/fpgas.online-test-designs/pull/112)). The Raspberry Pi 5 hosts with a NeTV2 do not netboot yet | HDMI in and out, HDCP, USB |
+| [Fomu EVT](boards/fomu-evt.md) | Passed verify and was listed until the morning of 2026-10-04; not listed now | The same Raspberry Pi 3 bug stops verify. Separately, the Fomu did not show on the host's USB; why is being looked at | More Fomu hosts |
+| Other PCIe Xilinx cards | Not listed. Hosts carrying a PCIe Screamer and a card running an XDMA design are powered, and fail verify because there is no test design for them | | A test design for each |
+| [ButterStick](boards/butterstick.md), [ULX3S](boards/ulx3s.md) and other ECP5 boards | Not deployed | | New board types, in no fixed order |
+| [Orange Pi PC](setup/orange-pi.md) hosts | Not offered to visitors. They boot unattended; several stop responding after some time up | Finding out why | |
 
 ## What a visitor can do
 
 | Function | State (2026-10-04) |
 |---|---|
-| See the boards and watch their cameras | Works |
-| Web terminal on a board's page | Works |
-| Upload a bitstream from the board's page | Fixed in September 2026; not re-checked since the board list changed to registration |
-| Restart a board's Pi by PoE from its page | Fixed in September 2026; not re-checked since the board list changed to registration |
-| ssh to a board | Works by jumping through the gateway: see [Accounts and logins](setup/access.md). ssh by board name is designed and not built |
+| See the boards and watch their cameras | Works. Most cameras are not yet in focus (see the board table) |
+| Web terminal on a board's page | Worked in September 2026; not re-checked since the board list changed |
+| Upload a bitstream from the board's page | Fixed in September 2026; not re-checked since the board list changed |
+| Restart a board's Pi by PoE from its page | Fixed in September 2026; not re-checked since the board list changed |
+| ssh to a board | Works with the gateway as a jump host (used on this date): see [Accounts and logins](setup/access.md). ssh by board name is designed and not built |
 | Reach a board directly over IPv6 | Planned. IPv6 reaches the gateway today |
-| Ask for exclusive use of a board from an automated system | Planned. The design is in [fpgas.online-api](https://github.com/fpgas-online/fpgas.online-api); there is no code |
+| Ask for exclusive use of a board from an automated system | Planned. Only a design exists, in [fpgas.online-api](https://github.com/fpgas-online/fpgas.online-api) |
 
 ## Platform
 
-| Area | Works (2026-10-04) | Planned |
+| Area | Works (2026-10-04) | In progress or planned |
 |---|---|---|
-| Netboot | Any Pi plugged into a fleet switch port netboots a shared read-only root and registers itself | Rebooting Pis whose root changed underneath them, automatically |
+| Netboot | A Pi on a powered fleet switch port netboots a shared root that resets on every boot, and reports itself to the site. Some ports are unpowered or hold a host that does not boot | A watchdog that finds dead hosts and power-cycles them, under review |
 | Operating system | The Welland gateway runs Debian 13 (trixie); the Pi root is still Debian 12 (bookworm) | Trixie on the Pis |
-| Verification | `fpgas-verify` runs at boot and gates the board list. See [Verification](setup/verification.md) | A check for every board type, covering all of each board's functions |
+| Verification | `fpgas-verify` runs at boot and decides what welland.fpgas.online lists. See [Verification](setup/verification.md) | A check for every board type, covering all of each board's functions |
 | Test designs | Built by the open toolchains in CI and published as packages | Every Xilinx design also built by Vivado, on self-hosted runners that are designed and not deployed; interactive designs (a Wishbone bridge, LEDs driven from the web page, booting MicroPython, Zephyr and Linux) |
 | Operations | | An admin page showing which devices are seen and their state; usage tracking |
 | Setting up a new site | Welland and PS1 are documented as built | Step-by-step instructions, including what a site needs from the network it sits behind |
+| Documentation | These pages; drawn wiring sheets for the Acorn | Drawn wiring sheets for the other boards; pages kept in step with the repositories they describe |
 
 ## Where the work is tracked
 
