@@ -331,8 +331,7 @@ means jumping through the gateway; the form is in
 # <host-ip> is the current address of the board, from the Welland host table.
 # The wrapper opens the serial port on the target host, so fpgas-tt has to be
 # stopped -- and started again after, or the board drops off the public site.
-# -J <you>@tweed.welland.mithis.com uses your own operator login on tweed. From
-# ten64 with the automation key, jump via ansible@10.99.21.2 instead.
+# -J <you>@tweed.welland.mithis.com uses your own operator login on tweed.
 $ ssh -J <you>@tweed.welland.mithis.com pi@<host-ip> sudo systemctl stop fpgas-tt
 $ uv run python verify_hardware.py --board tt --host welland-pi33
 $ ssh -J <you>@tweed.welland.mithis.com pi@<host-ip> sudo systemctl start fpgas-tt

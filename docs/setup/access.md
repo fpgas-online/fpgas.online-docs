@@ -83,26 +83,26 @@ running as it was. Re-run once GitHub answers again.
 
 | To reach | Command |
 |---|---|
-| tweed | `ssh <you>@tweed.welland.mithis.com` (from ten64: `ssh <you>@10.99.21.2`) |
+| tweed | `ssh <you>@tweed.welland.mithis.com` |
 | a board, with your key | `ssh -J <you>@tweed.welland.mithis.com pi@10.21.2.29`, or `-J pi@tweed.welland.mithis.com` through the jump account |
 | a board, from the jump shell | `ssh pi@tweed.welland.mithis.com`, then `ssh pi@10.21.2.29` |
-| a board, as the automation account (from ten64) | `ssh -i ~/.ssh/fpgas.online-ansible -o IdentitiesOnly=yes -J <you>@10.99.21.2 ansible@10.21.S.P` |
+| a board, as the automation account | `ssh -i ~/.ssh/fpgas.online-ansible -o IdentitiesOnly=yes -J <you>@tweed.welland.mithis.com ansible@10.21.S.P` |
 | a board, in a browser | the terminal on the board's page at [welland.fpgas.online](https://welland.fpgas.online) |
 
 `tweed.welland.mithis.com` is split-horizon DNS (looked up 2026-09-29). Public
-DNS gives A `87.121.95.37`, which is **ten64**, and the AAAAs
+DNS gives A `87.121.95.37`, which is the site's **upstream gateway**, not
+tweed, and the AAAAs
 `2404:e80:a137:2100::1` and `2404:e80:a137:9921::2`, which are tweed. Inside the
 site the name resolves to `10.99.21.2` and `10.21.0.1`, plus the same AAAAs.
 Checked on 2026-09-29:
 
 - inside the site or over the wg route, the name reaches tweed directly;
-- from ten64, use `10.99.21.2`;
 - from outside over IPv6, use `2404:e80:a137:2100::1`. Port 22 on
   `2404:e80:a137:9921::2` times out from outside, so use the address rather than
   the name;
-- from outside over IPv4 only, the name reaches ten64, so hop through it
-  (`-J <you>@ten64.welland.mithis.com`, then `10.99.21.2`) if you have an
-  account there.
+- from outside over IPv4 only, the name reaches the upstream gateway, which
+  proxies the web ports (80 and 443) but does not carry SSH to tweed. SSH to
+  tweed from outside is over IPv6.
 
 With `-J` your key has to be trusted at both hops. The boards trust only the
 operators' GitHub keys. A person who can use the jump account but is not an
