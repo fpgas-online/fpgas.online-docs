@@ -49,7 +49,7 @@ public IPv4 address to the gateway's uplink address, same port number.
 | tcp 443 | The web site, the web terminal and the camera players. **TLS ends on the gateway**: an upstream that proxies must pass TLS through untouched (route on the SNI name), not terminate it | built |
 | udp and tcp `webrtc_media_port` (8189) | WebRTC camera media. Signalling rides on 443; the media does not, and cannot go through an HTTP or TLS proxy | built |
 | tcp `<s><pp>22` and `<s><pp>44` for switch `s`, port `pp` | Per-board ssh and the per-board auxiliary port. The gateway forwards each to its board. See [Network and power](network.md) for the formula | built |
-| tcp 22 | Operators' ssh to the gateway, and deploys | built |
+| tcp 22 | Operators' ssh to the gateway, and deploys | built on a public address. Behind a NAT gateway it is not required while the gateway's ssh is reachable over IPv6: Welland's public IPv4 port 22 is not forwarded, and operators and deploys use IPv6 |
 | tcp 22, as the entry to the per-board ssh proxy | Logging in to a board by name (`ssh pi-sw2-p47@…`) without a port number | designed; whether public port 22 goes to the proxy is an open decision |
 
 If the upstream is an HTTP reverse proxy for port 80 rather than a plain port
@@ -108,7 +108,7 @@ at one (`apt_client_proxy`), as an optimisation only.
 
 Ansible must be able to reach the gateway's ssh as the `ansible` account
 from wherever the operator runs it: by the gateway's public name, over IPv6
-or the forwarded port 22. A site must not need an operator to be on the
+or, where it is forwarded, IPv4 port 22. A site must not need an operator to be on the
 upstream network to deploy.
 
 :::{todo}
