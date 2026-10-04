@@ -19,8 +19,11 @@ pages here describe how the pieces fit together.
         └──▶ the NFS root every Pi boots from
 ```
 
-A repository that ships something to a Pi builds its own Debian package in CI. The [`apt`](packages.md) repository pulls those packages in, and
-`fpgas.online-infra` installs them. Nothing is copied onto a running Pi by hand:
+Most repositories that ship something to a Pi build a Debian package in CI,
+and the [`apt`](packages.md) repository pulls it in. A few
+(`fpgas.online-fpga-tools`, `nfsroot-watchdog`, `migen`) publish their own
+signed apt repository instead. `fpgas.online-infra` installs the packages.
+Nothing is copied onto a running Pi by hand:
 a Pi boots a read-only root and forgets every change at power-off.
 
 ## The site: gateway and web tier
@@ -32,7 +35,7 @@ a Pi boots a read-only root and forgets every change at power-off.
 | [fpgas.online-poe](https://github.com/fpgas-online/fpgas.online-poe) | Switching PoE ports off and on over SNMP: a Python library, the Django views behind the power buttons, and command-line tools | no package; `fpgas.online-infra` deploys it from the repository | the gateway |
 | [fpgas.online-gw](https://github.com/fpgas-online/fpgas.online-gw) | The gateway's board-access service: board inventory, status, power, serial and events over HTTP, so a web front end never touches the Pi network, the switch credentials or redis | no package yet | written to run on the gateway |
 | [fpgas.online-e2e-tests](https://github.com/fpgas-online/fpgas.online-e2e-tests) | Browser tests that use the live sites as a visitor does: open board pages, press the buttons, type in the web terminal, watch the camera, upload a bitstream. Needs no secrets | nothing | CI, or any machine with a browser |
-| [nfsroot-watchdog](https://github.com/fpgas-online/nfsroot-watchdog) | Rebooting NFS-root machines whose root changed underneath them, one at a time and only once the update is finished | Debian packages | the gateway and the Pis |
+| [nfsroot-watchdog](https://github.com/fpgas-online/nfsroot-watchdog) | Rebooting NFS-root machines whose root changed underneath them, one at a time and only once the update is finished | Debian packages `nfsroot-watchdog` (client) and `nfsroot-watchdog-server`, in its own signed apt repository | the gateway (server) and the Pis (client) |
 | [fpgas-online.github.io](https://github.com/fpgas-online/fpgas-online.github.io) | The landing page at <https://fpgas.online>. Static HTML, no build step | GitHub Pages | GitHub |
 | [fpgas.online-api](https://github.com/fpgas-online/fpgas.online-api) | A public HTTPS API for leasing a board, uploading, running commands and reading the camera. **Design only: there is no code yet** | nothing yet | not deployed |
 
@@ -42,7 +45,7 @@ a Pi boots a read-only root and forgets every change at power-off.
 |---|---|---|---|
 | [fpgas.online-setup-pi](https://github.com/fpgas-online/fpgas.online-setup-pi) | What makes a bare Pi an fpgas.online host: shell environment, board detection, status reporting, network interface naming. See [The Pi hosts](setup/pi.md) | Debian package `fpgas-online-setup-pi` | every Pi |
 | [fpgas.online-cam](https://github.com/fpgas-online/fpgas.online-cam) | Capturing the Pi's camera and streaming it to the gateway, so a visitor can watch the board | Debian package `fpgas-online-cam` | every Pi with a camera |
-| [fpgas.online-fpga-tools](https://github.com/fpgas-online/fpgas.online-fpga-tools) | A maintained patch series on openFPGALoader and OpenOCD for what is not upstream yet (JTAG through the Pi 5's RP1, NeTV2, the Tiny Tapeout FPGA board), built as packages and static binaries | signed apt repository and GitHub Releases | every Pi |
+| [fpgas.online-fpga-tools](https://github.com/fpgas-online/fpgas.online-fpga-tools) | A maintained patch series on openFPGALoader and OpenOCD for what is not upstream yet (JTAG through the Pi 5's RP1, NeTV2, the Tiny Tapeout FPGA board), built as packages and static binaries | its own signed apt repository, separate from `apt.fpgas.online`, and static binaries on GitHub Releases | Pis that program an FPGA board |
 | [mithro/rp1-jtag](https://github.com/mithro/rp1-jtag) | The library and drivers for fast JTAG through the Raspberry Pi 5's RP1 chip. Development only: installable builds come from `fpgas.online-fpga-tools` | nothing | Pi 5 hosts, through the tools above |
 | [mithro/rpi-hwid](https://github.com/mithro/rpi-hwid) | Identifying a Pi and what is attached to it (model, serial, MAC addresses, HAT, power source), and printing the labels that go on the hardware | PyPI and Debian packages | a Pi, or an operator's machine over ssh |
 
