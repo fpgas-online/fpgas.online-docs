@@ -12,7 +12,7 @@ on their own Pis.
                           ┌────────────────────────────────────┐
                           │  tweed.welland.mithis.com          │
 Internet ─── eth-uplink ──│  Debian 13 (trixie)                │
- (10.99.21.2, via upstream)│  x86_64, kernel 6.12.105           │
+ (10.99.21.2, upstream)   │  x86_64, kernel 6.12.105           │
                           │  Intel Core i5-3610ME              │
                           │                                    │
                           │  dnsmasq (DHCP/DNS/TFTP/PXE)       │
