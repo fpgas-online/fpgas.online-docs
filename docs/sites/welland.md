@@ -12,7 +12,7 @@ on their own Pis.
                           ┌────────────────────────────────────┐
                           │  tweed.welland.mithis.com          │
 Internet ─── eth-uplink ──│  Debian 13 (trixie)                │
- (10.99.21.2, via ten64)  │  x86_64, kernel 6.12.105           │
+ (10.99.21.2, upstream)   │  x86_64, kernel 6.12.105           │
                           │  Intel Core i5-3610ME              │
                           │                                    │
                           │  dnsmasq (DHCP/DNS/TFTP/PXE)       │
@@ -63,30 +63,30 @@ switches' LLDP tables, and live probes of the hosts below on 2026-09-03.
 | Hardware   | Intel Core i5-3610ME (3rd Gen, QM77 chipset)                                         |
 | OS         | Debian 13 (trixie) — fresh install 2026-08-30                                        |
 | Kernel     | 6.12.105+deb13-amd64                                                                 |
-| eth-uplink | 10.99.21.2/30 + 2404:e80:a137:9921::2/126, point-to-point to ten64 (10.99.21.1), which publishes tweed's web names |
+| eth-uplink | 10.99.21.2/30 + 2404:e80:a137:9921::2/126, point-to-point to the site's upstream gateway (10.99.21.1), which forwards the web ports to tweed |
 | eth-local  | 10.21.0.1/16 trunk to the switches (per-port VLAN sub-interfaces)                    |
 | Domain     | `fpgas.welland.mithis.com`                                                             |
 | PCI        | 2× Intel 82574L GbE, Tundra PCI bridge, Matrox G200eW                                |
 | NFS roots  | `/srv/nfs/rpi/bookworm/{boot,root}` (armhf + arm64 kernels, `overlayroot=tmpfs`); apt packages `fpgas-online-setup-pi` 0.0.post62, `fpgas-online-tt` 0.0.post52, `fpgas-online-tt-demos` 0.0.post21, `fpgas-online-cam` 0.0.post45, `openfpgaloader-rp1pio` and `openocd-rp1pio` 0.0.post76 |
 
 Tweed hosts no FPGA boards itself. Login is public-key only. Ansible reaches it
-from ten64 as the `ansible` user on the uplink address 10.99.21.2. People log
+as the `ansible` user. People log
 in to their own operator accounts, or to the restricted `pi` jump account.
 Every account on tweed and on the Pis, and the keys each one trusts, is listed
 in [Accounts and logins](../setup/access.md).
 
 `tweed.welland.mithis.com` is split-horizon DNS (looked up 2026-09-29). Public
-DNS gives A `87.121.95.37`, which is ten64 (so over public IPv4 the name
-reaches ten64's reverse proxy, not tweed), and AAAA `2404:e80:a137:2100::1` and
+DNS gives A `87.121.95.37`, which is the site's upstream gateway (so over public
+IPv4 the name reaches that gateway's reverse proxy, not tweed), and AAAA `2404:e80:a137:2100::1` and
 `2404:e80:a137:9921::2`, which are tweed. Inside the site it resolves to
 `10.99.21.2` and `10.21.0.1`. SSH to the name therefore reaches tweed from inside
-the site or over the wg route. From ten64, use `10.99.21.2`. From outside, use
-`2404:e80:a137:2100::1` (port 22 on `9921::2` times out from outside), or hop
-through ten64 if you have an account there. Checked 2026-09-29; see
+the site or over the wg route. From outside, use
+`2404:e80:a137:2100::1` (port 22 on `9921::2` times out from outside). Checked
+2026-09-29; see
 [Accounts and logins](../setup/access.md).
 
-The Pis are not routable from outside tweed — with per-port VLANs they do not
-even answer pings from ten64 — so jump through it:
+The Pis are not routable from outside tweed — with per-port VLANs nothing
+upstream of tweed can even ping them — so jump through tweed:
 
 ```console
 $ ssh -J <you>@tweed.welland.mithis.com pi@10.21.2.29
@@ -221,9 +221,9 @@ these hosts yet, and they are not listed on
 [welland.fpgas.online](https://welland.fpgas.online) (see the Web application
 todo). Reach one through the gateway, e.g. from this workstation over the
 `wg-desktop` route: `ssh -J tim@tweed.welland.mithis.com pi@10.21.1.14` (the
-`pi` user has passwordless sudo, and `root` takes the same operator keys). From
-ten64, the automation account reaches them too:
-`ssh -i ~/.ssh/fpgas.online-ansible -o IdentitiesOnly=yes -J <you>@10.99.21.2 ansible@10.21.1.14`.
+`pi` user has passwordless sudo, and `root` takes the same operator keys). The
+automation account reaches them too:
+`ssh -i ~/.ssh/fpgas.online-ansible -o IdentitiesOnly=yes -J <you>@tweed.welland.mithis.com ansible@10.21.1.14`.
 See [Accounts and logins](../setup/access.md).
 
 Source: live re-probe of all five hosts 2026-09-06 (ping/ARP/NFS from tweed,

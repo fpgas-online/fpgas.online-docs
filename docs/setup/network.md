@@ -299,7 +299,7 @@ Both Welland switches answer the **standard** `POWER-ETHERNET-MIB`
 (`pethPsePortAdminEnable`, OID `1.3.6.1.2.1.105.1.1.1.3.1.<port>`) over SNMPv2c,
 so a manual PoE cycle is a plain `snmpset`. Run it **from
 [tweed](../sites/welland.md#gateway-tweed)**, which reaches the switch
-management network (10.1.5.0/24) over its default route through ten64 — the
+management network (10.1.5.0/24) over its default route — the
 same reachability `fpgas-switch-setup` needs. The port number is the switch
 port the Pi is plugged into (`p` in the [derivation table](#two-addressing-schemes)),
 not a VLAN or an address.
