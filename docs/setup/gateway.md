@@ -2,7 +2,7 @@
 
 Each site has exactly one x86 gateway, and it is everything at the site that is
 not a Pi: [tweed](../sites/welland.md#gateway-tweed) at Welland, which sits
-behind the ten64 reverse proxy on a private link, and
+behind a separately managed upstream gateway on a private link, and
 [val2](../sites/ps1.md#gateway-val2) at PS1, which faces the public internet
 directly. The gateway serves the boot chain, exports the NFS root, is the
 network edge and firewall for the Pi network, and runs the web tier that end
@@ -305,17 +305,18 @@ rekeyed by it.
 
 ## Web topology at Welland
 
-Tweed does not face the internet. `ten64` is the public edge: its nginx
+Tweed has no public IPv4 address. The site's upstream gateway, which is managed
+separately and is not part of fpgas.online, is the public IPv4 edge: its nginx
 reverse-proxies port 80 to tweed and passes port 443 through by SNI, so **tweed
 terminates TLS itself** with its own Let's Encrypt certificates, obtained by the
-webroot method — the HTTP-01 challenges arrive through ten64's `/.well-known/`
-passthrough. The names ten64 routes to tweed come from tweed's alias entry in
+webroot method — the HTTP-01 challenges arrive through the upstream gateway's
+`/.well-known/` passthrough. The names it routes to tweed come from tweed's alias entry in
 the site's network sheet: `welland.fpgas.online`, `*.welland.fpgas.online` and
 `welland.fpgas.mithis.com`. `tinytapeout.fpgas.online` is a CNAME to
-`welland.fpgas.online` and had to be added to that alias list, and ten64's nginx
-redeployed, before its certificate could be issued at all. Ansible reaches tweed
-over the private ten64-to-tweed link, so the playbooks are run from inside the
-Welland network.
+`welland.fpgas.online` and had to be added to that alias list, and the upstream
+gateway's nginx redeployed, before its certificate could be issued at all.
+Over IPv6 tweed is reached directly, which is how Ansible and operators get to
+it from outside the site.
 
 :::{warning}
 Three rules keep certbot away from the nginx configuration:
@@ -350,7 +351,7 @@ Debian package cannot read, so the role installs Debian's `certbot` only when no
 
 Tweed was rebuilt from bare metal three times between 2026-08-25 and
 2026-08-26. The operating-system install itself — the pxelinux menus, the
-preseed and the boot overrides, all of which live on ten64 rather than in the
+preseed and the boot overrides, none of which are in the
 infra repo — is out of scope for this page; what follows are the lessons that
 bear on the gateway coming back correctly. As a checklist for the next one:
 
@@ -497,7 +498,7 @@ fpgas.online-infra, `main`:
 - [`ansible/roles/pxe/templates/dnsmasq-base.conf.j2`](https://github.com/fpgas-online/fpgas.online-infra/blob/main/ansible/roles/pxe/templates/dnsmasq-base.conf.j2)
   — `bind-dynamic`, the pinned lease path, `no-resolv`, and the NTP DHCP option.
 - [`docs/superpowers/runbooks/2026-08-23-tweed-web-deploy.md`](https://github.com/fpgas-online/fpgas.online-infra/blob/main/docs/superpowers/runbooks/2026-08-23-tweed-web-deploy.md)
-  — the ten64 edge, the SNI passthrough, the webroot challenge path, the alias
+  — the upstream edge, the SNI passthrough, the webroot challenge path, the alias
   list and the `tinytapeout.fpgas.online` CNAME, the deploy commands and the
   narrowed `--tags site,ttsite,wssh` verify command, and the rollback note that
   `local_settings.py` is never overwritten.
