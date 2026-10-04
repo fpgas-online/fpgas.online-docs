@@ -18,24 +18,29 @@ Behind a NAT gateway
 
 Directly on a public IPv4 address
 : The gateway's uplink holds the public IPv4 address itself. Nothing is
-  forwarded. PS1 is built this way.
+  forwarded. PS1's inventory is built this way (see the note under
+  [Inbound IPv4](#inbound-ipv4)).
 
-The gateway's own firewall is the same in both cases: it accepts the ports
-below on its uplink and does the per-board forwarding itself. The difference
-is only whether something upstream has to pass the traffic on.
+The gateway's uplink rules are the same whether it is behind a NAT gateway
+or on a public address: it accepts the same ports on its uplink. What
+differs between sites is the per-board port scheme, which follows how the
+fleet is wired (see [Network and power](network.md)). The difference
+between the two placements is only whether something upstream has to pass
+the traffic on.
 
 Each requirement below says whether it is **built** (the deployed gateway
-relies on it now) or **designed** (a merged design needs it and no code uses
-it yet).
+relies on it now) or **designed** (a design, merged or in draft, needs it
+and no code uses it yet). A designed row says which of the two it is.
 
 ## The uplink
 
 | Requirement | State | Notes |
 |---|---|---|
-| One Ethernet link from the gateway's uplink interface to the upstream network | built | The fleet's VLANs never appear on this link. |
-| An IPv4 address, a default route and a DNS resolver for the gateway, static or by DHCP | built | Inventory: `eth_uplink_static` and the `eth_uplink_static_*` variables, or DHCP when `eth_uplink_static` is false. |
+| One Ethernet link from the gateway's uplink interface to the upstream network, a standard 1500-byte link | built | The fleet's VLANs never appear on this link. |
+| A fixed IPv4 address, a default route and a DNS resolver for the gateway, given in the inventory | built | `eth_uplink_static_*` and `eth_uplink_dns_server`. The inventory has no working DHCP uplink: the firewall and the web application use `eth_uplink_static_address` unconditionally. |
 | Outbound IPv4 from that address to the internet | built | The gateway masquerades the whole fleet behind its uplink address, so the upstream sees one source address. Behind a NAT gateway, the upstream NATs it once more. |
 | The address must not change | built | The gateway's firewall forwards per-board ports addressed to `eth_uplink_static_address`, and the web application lists it among its allowed host names. |
+| ICMP and ICMPv6 are not filtered | built | Path MTU discovery needs them. |
 
 ## Inbound IPv4
 
@@ -47,50 +52,81 @@ public IPv4 address to the gateway's uplink address, same port number.
 |---|---|---|
 | tcp 80 | The web site, and Let's Encrypt `http-01` challenges (`/.well-known/acme-challenge/`) for every public name of the site | built |
 | tcp 443 | The web site, the web terminal and the camera players. **TLS ends on the gateway**: an upstream that proxies must pass TLS through untouched (route on the SNI name), not terminate it | built |
-| udp and tcp `webrtc_media_port` (8189) | WebRTC camera media. Signalling rides on 443; the media does not, and cannot go through an HTTP or TLS proxy | built |
+| udp and tcp `webrtc_media_port` (8189) | WebRTC camera media. Signalling rides on 443; the media does not, and cannot go through an HTTP or TLS proxy | built at Welland |
 | tcp `<s><pp>22` and `<s><pp>44` for switch `s`, port `pp` | Per-board ssh and the per-board auxiliary port. The gateway forwards each to its board. See [Network and power](network.md) for the formula | built |
-| tcp 22 | Operators' ssh to the gateway, and deploys | built on a public address. Behind a NAT gateway it is not required while the gateway's ssh is reachable over IPv6: Welland's public IPv4 port 22 is not forwarded, and operators and deploys use IPv6 |
-| tcp 22, as the entry to the per-board ssh proxy | Logging in to a board by name (`ssh pi-sw2-p47@…`) without a port number | designed; whether public port 22 goes to the proxy is an open decision |
+| tcp 22 | Operators' ssh to the gateway, and deploys | built |
+| tcp 22, as the entry to the per-board ssh proxy | Logging in to a board by name (`ssh pi-sw2-p47@…`) without a port number | designed (merged); whether public port 22 goes to the proxy is an open decision |
 
-If the upstream is an HTTP reverse proxy for port 80 rather than a plain port
-forward, it must pass the `Host` header and the client address
-(`X-Forwarded-For`) on, and must not cache.
+Notes on the table:
+
+- The WebRTC media port is built at Welland only. The firewall opens it
+  only on a host that defines `webrtc_media_port`, and the web tier runs
+  the WebRTC role only on a host that defines `webrtc_additional_hosts`.
+  PS1 defines neither, so PS1 does not run WebRTC.
+- The gateway forwards the per-board ports to the boards. At Welland the
+  upstream did not forward them when last checked (2026-09-06), so
+  per-board ssh from outside over IPv4 does not work there. Note that the
+  per-board port scheme differs between sites: Welland uses `<s><pp>22`
+  and `<s><pp>44` with the forward policy set to drop, and PS1's legacy
+  scheme uses `<100+N>22` and `<100+N>44`.
+- Behind a NAT gateway, tcp 22 is not required while the gateway's ssh is
+  reachable over IPv6. Welland's public IPv4 port 22 is not forwarded, and
+  operators and deploys use IPv6.
+- If the upstream is an HTTP reverse proxy for port 80 rather than a plain
+  port forward, it must pass the `Host` header on: the gateway's virtual
+  hosts are selected by it.
+
+:::{todo}
+The infra repository contradicts itself on PS1. `ansible/web.yml` says PS1
+sits behind CGNAT, while PS1's `host_vars` and `docs/sites/ps1.md` give it a
+public address on its uplink. This page treats PS1 as the public-address
+example because the `host_vars` support it. The contradiction is to be
+settled in the infra repository.
+:::
 
 ### Clients inside the site
 
 A client on the upstream's own LAN usually cannot reach the public address
 and be forwarded back in ("hairpin"). Such clients need a route to the
 gateway's uplink address, and the site's names must resolve to it for them.
-The gateway offers its uplink address as a WebRTC candidate for the same
-reason (`webrtc_additional_hosts`).
+At Welland the gateway offers its uplink address as a WebRTC candidate for
+the same reason (`webrtc_additional_hosts`).
 
 ## IPv6
 
 | Requirement | State | Notes |
 |---|---|---|
 | A global IPv6 address for the gateway's uplink | built | IPv6 clients reach the web site and the WebRTC media port on it directly, with no forwarding. |
-| A prefix routed to the gateway's uplink address, large enough for one /64 per fleet switch (a /56 at Welland) | built | Each board gets one address inside its switch's /64. The gateway is the router for the prefix; the upstream only needs a route to it. Either a static route or DHCPv6 prefix delegation will do, provided the prefix does not change. |
-| The upstream does not filter that prefix, or filters it to the same ports the gateway allows | designed | The gateway's forward chain decides what reaches a board. An upstream filter in front of it must allow at least ICMPv6, and tcp 22, 80 and 443 to the prefix, or direct IPv6 access to boards cannot work. Both filters have to agree, and both have to be checked. |
-| Reverse DNS for the prefix delegated to the gateway | designed | Needed for per-board names to have matching reverse records. |
+| The upstream lets tcp 80, 443 and 22, and tcp and udp `webrtc_media_port`, reach the gateway's own global IPv6 address | built | Relied on today: the web site, the camera media, and ssh for operators and deploys. The draft IPv6 design recorded Welland's upstream admitting only tcp 22 to the gateway over IPv6 on 2026-09-06. That has to be re-checked. |
+| A prefix routed to the gateway's uplink address, large enough for one /64 per fleet switch (a /56 at Welland) | built | Each board gets one address inside its switch's /64. The gateway is the router for the prefix; the upstream only needs a route to it. The prefix is routed by a static route to the gateway's static IPv6 uplink address, and must not change. The inventory runs no prefix-delegation client. |
+| The upstream does not filter the board prefix, or filters it to the same ports the gateway allows | designed (draft) | The gateway's forward chain decides what reaches a board. An upstream filter in front of it must allow at least ICMPv6, and tcp 22, 80 and 443 to the prefix, or direct IPv6 access to boards cannot work. Both filters have to agree, and both have to be checked. |
+| Reverse DNS for the prefix routed to the gateway | designed (draft) | Needed for per-board names to have matching reverse records. |
 
 ## DNS
 
 | Requirement | State | Notes |
 |---|---|---|
-| `A` records for every public name of the site pointing at the public IPv4 address, and `AAAA` records pointing at the gateway's global IPv6 address | built | At Welland: the site name, the Tiny Tapeout site (a `CNAME` to it) and the package cache name. The names live in the public `fpgas.online` zone, which is not served by the site. |
+| `A` records for every public name of the site pointing at the public IPv4 address, and `AAAA` records pointing at the gateway's global IPv6 address | built | At Welland: the site name, the Tiny Tapeout site (a `CNAME` to it) and the package cache name. The names live in the public `fpgas.online` zone, which is not served by the site. The package cache name and its certificate exist only where `apt_cache_enabled` is true; PS1 sets it false. |
 | A resolver the gateway can use | built | `eth_uplink_dns_server`. The gateway runs its own resolver for the fleet and forwards to this one. |
-| Optional: an internal zone for the fleet delegated to the gateway | built, optional | The upstream's resolver delegates a zone (`dnsmasq_auth_zone`) to the gateway with an `NS` record and glue. Its queries arrive on the gateway's uplink, so their source address must be listed in `firewall_dns_query_sources`. A site that does not want this leaves the three `dnsmasq_auth_*` variables unset. |
-| A public zone for per-board names, `<site>.fpgas.online`, with `SSHFP` records | designed | Which zone, who serves it and whether it is signed are open decisions. |
+| Optional: an internal zone for the fleet delegated to the gateway | built, optional | The upstream's resolver delegates a zone (`dnsmasq_auth_zone`) to the gateway with an `NS` record and glue. The glue address must be reachable from the upstream resolver. Its queries arrive on the gateway's uplink, so their source address must be listed in `firewall_dns_query_sources`. A site that does not want this leaves the `dnsmasq_auth_*` variables (zone, glue, subnet, interface) unset. |
+| A public zone for per-board names, `<site>.fpgas.online`, with `SSHFP` records | designed (draft) | Which zone, who serves it and whether it is signed are open decisions. |
 
 ## Outbound, from the gateway
 
-| The gateway must be able to reach | For |
+The gateway must be able to reach the internet generally: outbound https,
+and http for the Debian, Raspberry Pi and Raspberry Pi OS download hosts.
+The hosts below are examples of what it fetches, and why.
+
+| The gateway fetches | For |
 |---|---|
-| Debian and Raspberry Pi package mirrors, and `fpgas.online` package repositories, over http and https | Its own packages and the package cache it runs for the fleet |
-| `ghcr.io` over https | The prebuilt fleet root file system |
-| `github.com` over https | Operators' public ssh keys |
-| Let's Encrypt over https | Certificates |
-| An NTP server | Its clock, which the fleet takes from it |
+| `deb.debian.org`, `archive.raspberrypi.com`, `raspbian.raspberrypi.com` (http), and `apt.fpgas.online` | Its own packages and the package cache it runs for the fleet |
+| `downloads.raspberrypi.org` (http) | The Raspberry Pi OS image the fleet root is built from |
+| `ghcr.io` | The prebuilt fleet root file system |
+| `github.com`: public ssh keys, release assets, `git+https` clones | Operators' ssh keys; the mediamtx tarball and the Tiny Tapeout commander releases; the site and PoE control packages |
+| `raw.githubusercontent.com` | One service unit file fetched while preparing the fleet root |
+| A Python package index | The site's `pip` installs |
+| Let's Encrypt | Certificates |
+| An NTP server, outbound udp 123 | Its clock, which the fleet takes from it |
 
 An upstream package cache is **not** required. A site may point the gateway
 at one (`apt_client_proxy`), as an optimisation only.
@@ -108,13 +144,14 @@ at one (`apt_client_proxy`), as an optimisation only.
 
 Ansible must be able to reach the gateway's ssh as the `ansible` account
 from wherever the operator runs it: by the gateway's public name, over IPv6
-or, where it is forwarded, IPv4 port 22. A site must not need an operator to be on the
-upstream network to deploy.
+or, where it is forwarded, IPv4 port 22. A site must not need an operator to
+be on the upstream network to deploy.
 
 :::{todo}
 The infra inventory still reaches the Welland gateway on its private uplink
-address, which only works from the upstream network. It has to move to a
-public name.
+address, which only works from the upstream network. A pull request open in
+fpgas.online-infra changes it to reach the gateway by its public name over
+IPv6.
 :::
 
 ## Checking a site against this page
