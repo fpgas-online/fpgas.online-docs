@@ -54,8 +54,10 @@ public IPv4 address to the gateway's uplink address, same port number.
 | tcp 443 | The web site, the web terminal and the camera players. **TLS ends on the gateway**: an upstream that proxies must pass TLS through untouched (route on the SNI name), not terminate it | built |
 | udp and tcp `webrtc_media_port` (8189) | WebRTC camera media. Signalling rides on 443; the media does not, and cannot go through an HTTP or TLS proxy | built at Welland |
 | tcp `<s><pp>22` and `<s><pp>44` for switch `s`, port `pp` | Per-board ssh and the per-board auxiliary port. The gateway forwards each to its board. See [Network and power](network.md) for the formula | built |
-| tcp 22 | Operators' ssh to the gateway, and deploys | built |
-| tcp 22, as the entry to the per-board ssh proxy | Logging in to a board by name (`ssh pi-sw2-p47@…`) without a port number | designed (merged); whether public port 22 goes to the proxy is an open decision |
+| tcp 22 | Logging in to a board by name (`ssh pi-sw2-p47@…`) without a port number: a username-routing ssh proxy on the upstream gateway forwards logins under board names (`pi…`) to the site gateway's ssh proxy, and other names stay with the upstream gateway | designed (decided 2026-10-04) |
+| tcp 2222 | The upstream gateway's own sshd (backup) | designed (decided 2026-10-04) |
+| tcp 2223 | Forwarded to the site gateway's own sshd (backup): operators and deploys over IPv4 | designed (decided 2026-10-04) |
+| tcp 2224 | Forwarded to the site gateway's ssh proxy (backup) | designed (decided 2026-10-04) |
 
 Notes on the table:
 
@@ -69,9 +71,15 @@ Notes on the table:
   per-board port scheme differs between sites: Welland uses `<s><pp>22`
   and `<s><pp>44` with the forward policy set to drop, and PS1's legacy
   scheme uses `<100+N>22` and `<100+N>44`.
-- Behind a NAT gateway, tcp 22 is not required while the gateway's ssh is
-  reachable over IPv6. Welland's public IPv4 port 22 is not forwarded, and
-  operators and deploys use IPv6.
+- The tcp 22 and 2222 to 2224 rows are decision D1 of the ssh proxy
+  design, decided 2026-10-04. A site whose gateway is directly on a public
+  address has no upstream proxy: port 22 there is the site gateway's proxy
+  and sshd arrangement as the ssh proxy design describes.
+- Today's state, as of 2026-10-04: at Welland none of this is built. Public
+  IPv4 port 22 is answered by the upstream router's own sshd, so a client
+  there sees that router's host key. Operators reach the site gateway's
+  sshd over IPv6, and deploys will too once the open inventory change in
+  fpgas.online-infra merges.
 - If the upstream is an HTTP reverse proxy for port 80 rather than a plain
   port forward, it must pass the `Host` header on: the gateway's virtual
   hosts are selected by it.
@@ -109,24 +117,23 @@ the same reason (`webrtc_additional_hosts`).
 | `A` records for every public name of the site pointing at the public IPv4 address, and `AAAA` records pointing at the gateway's global IPv6 address | built | At Welland: the site name, the Tiny Tapeout site (a `CNAME` to it) and the package cache name. The names live in the public `fpgas.online` zone, which is not served by the site. The package cache name and its certificate exist only where `apt_cache_enabled` is true; PS1 sets it false. |
 | A resolver the gateway can use | built | `eth_uplink_dns_server`. The gateway runs its own resolver for the fleet and forwards to this one. |
 | Optional: an internal zone for the fleet delegated to the gateway | built, optional | The upstream's resolver delegates a zone (`dnsmasq_auth_zone`) to the gateway with an `NS` record and glue. The glue address must be reachable from the upstream resolver. Its queries arrive on the gateway's uplink, so their source address must be listed in `firewall_dns_query_sources`. A site that does not want this leaves the `dnsmasq_auth_*` variables (zone, glue, subnet, interface) unset. |
-| A public zone for per-board names, `<site>.fpgas.online`, with `SSHFP` records | designed (draft) | Which zone, who serves it and whether it is signed are open decisions. |
+| A public zone for per-board names, `<site>.fpgas.online`, with `SSHFP` records | designed (merged) | Which zone, who serves it and whether it is signed are open decisions. |
 
 ## Outbound, from the gateway
 
 The gateway must be able to reach the internet generally: outbound https,
-and http for the Debian, Raspberry Pi and Raspberry Pi OS download hosts.
+and http for the Debian and Raspberry Pi package hosts.
 The hosts below are examples of what it fetches, and why.
 
 | The gateway fetches | For |
 |---|---|
-| `deb.debian.org`, `archive.raspberrypi.com`, `raspbian.raspberrypi.com` (http), and `apt.fpgas.online` | Its own packages and the package cache it runs for the fleet |
-| `downloads.raspberrypi.org` (http) | The Raspberry Pi OS image the fleet root is built from |
+| `deb.debian.org`, `archive.raspbian.org`, `archive.raspberrypi.com` (http), and `apt.fpgas.online` | Its own packages and the package cache it runs for the fleet |
 | `ghcr.io` | The prebuilt fleet root file system |
 | `github.com`: public ssh keys, release assets, `git+https` clones | Operators' ssh keys; the mediamtx tarball and the Tiny Tapeout commander releases; the site and PoE control packages |
 | `raw.githubusercontent.com` | One service unit file fetched while preparing the fleet root |
 | A Python package index | The site's `pip` installs |
 | Let's Encrypt | Certificates |
-| An NTP server, outbound udp 123 | Its clock, which the fleet takes from it |
+| NTP servers, outbound udp 123 (the gateway runs chrony with Debian's default pool; no site setting names a time server) | Its clock, which the fleet takes from it |
 
 An upstream package cache is **not** required. A site may point the gateway
 at one (`apt_client_proxy`), as an optimisation only.
@@ -144,7 +151,7 @@ at one (`apt_client_proxy`), as an optimisation only.
 
 Ansible must be able to reach the gateway's ssh as the `ansible` account
 from wherever the operator runs it: by the gateway's public name, over IPv6
-or, where it is forwarded, IPv4 port 22. A site must not need an operator to
+or, once built, over IPv4 on port 2223. A site must not need an operator to
 be on the upstream network to deploy.
 
 :::{todo}
