@@ -10,6 +10,9 @@ Extension Port (P1) and 4-pin UART header (P2).
 
 See [Acorn wiring](wiring.md) for the full RPi GPIO pinmap.
 
+```{include} ../generated/install-acorn.md
+```
+
 ## Key specifications
 
 | Parameter        | Value                            |

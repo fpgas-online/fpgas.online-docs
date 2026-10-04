@@ -14,6 +14,9 @@ Raspberry Pi GPIO. Before running anything against a deployed board, read
 [Serial port ownership](#serial-port-ownership) — a daemon holds the port open
 and the board is on a public web site while you work.
 
+```{include} generated/install-tt-fpga.md
+```
+
 ## Where they are
 
 Eight TT FPGA demo boards across two sites. Four are deployed at Welland on
