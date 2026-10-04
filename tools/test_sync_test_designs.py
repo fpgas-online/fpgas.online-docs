@@ -53,6 +53,17 @@ class RewriteLinks(unittest.TestCase):
             self.page("[x](../../elsewhere.md)")
 
 
+    def test_link_forms_it_cannot_rewrite_stop_the_sync(self):
+        for text in ("[x]: other.md", "![shot](shot.png)", "[x](<other file.md>)", '[x](other.md "title")',
+                     '<a href="other.md">x</a>', '<img src="shot.png">'):
+            with self.assertRaises(SystemExit, msg=text):
+                self.page(text)
+
+    def test_those_forms_inside_fenced_code_are_left_alone(self):
+        text = "```\n[x]: other.md\n![shot](shot.png)\n```"
+        self.assertEqual(self.page(text), text)
+
+
 class Section(unittest.TestCase):
     TEXT = "# Board\n\nintro\n\n## Installing\n\n```bash\n## not a heading\n```\n\n### Sub\n\nbody\n\n## Next\n\nmore\n"
 

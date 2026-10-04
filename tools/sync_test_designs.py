@@ -94,6 +94,15 @@ OWNED = sorted({*FILES, *(posixpath.dirname(d) for d in PAGES.values()),
 
 LINK = re.compile(r"(?<=\]\()([^)\s]+)(?=\))")
 FENCE = re.compile(r"^(```|~~~)")
+# Link forms LINK does not match. None is in the documents taken today; one appearing stops the sync, because
+# a relative link left as written would be wrong on this site.
+UNSUPPORTED = {
+    "a reference-style link definition": re.compile(r"^\s{0,3}\[[^\]]+\]:\s+\S"),
+    "an image": re.compile(r"!\[[^\]]*\]\("),
+    "an angle-bracket link target": re.compile(r"\]\(<"),
+    "a link with a title": re.compile(r"\]\([^)\s]+\s+[\"'(]"),
+    "a raw HTML link or image": re.compile(r"<(a|img)\s", re.I),
+}
 
 
 def slug(heading):
@@ -148,9 +157,14 @@ def rewrite_links(text, src, at, ref, own_fragments=None):
         return github(resolved, fragment)
 
     out, fenced = [], False
-    for line in text.split("\n"):
+    for number, line in enumerate(text.split("\n"), 1):
         if FENCE.match(line.lstrip()):
             fenced = not fenced
+        if not fenced:
+            for what, pattern in UNSUPPORTED.items():
+                if pattern.search(line):
+                    raise SystemExit(f"sync: {src}:{number}: {what}, which rewrite_links does not handle. "
+                                     f"Teach it to, or write the link inline in test-designs.")
         out.append(line if fenced else LINK.sub(one, line))
     return "\n".join(out)
 
@@ -289,6 +303,9 @@ def main(argv=None):
         return 1
     for what, path in changes:
         if what == "remove":
+            if not path.is_file():
+                raise SystemExit(f"sync: {path.relative_to(DOCS)} is not a file. The directories in OWNED hold "
+                                 f"only what this tool writes; move it out.")
             path.unlink()
         elif what == "source":
             pass  # rewritten below

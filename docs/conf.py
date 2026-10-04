@@ -70,6 +70,11 @@ myst_enable_extensions = [
 # 4, because the pulled fpgas-verify page links to its own fourth-level headings.
 myst_heading_anchors = 4
 
+# Only text that is written as a URL (with its scheme) becomes a link. With fuzzy matching on, a bare file
+# name such as "verify-goals.md" is read as a host name under the .md top-level domain and linked to
+# http://verify-goals.md.
+myst_linkify_fuzzy_links = False
+
 # -- HTML -------------------------------------------------------------------
 
 html_theme = "furo"
