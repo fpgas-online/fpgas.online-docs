@@ -56,6 +56,9 @@ take that picture apart:
   when one of them does not come back.
 - [The gateway host](gateway.md) — what the one x86 machine per site runs, how
   it is deployed, and what a rebuild from bare metal has to get right.
+- [What a site needs from its upstream network](upstream-gateway.md) — the
+  forwards, routes and DNS records the network above the gateway must
+  provide, behind a NAT gateway or on a public address.
 - [Accounts and logins](access.md) — who can log in to the gateway and to
   the Pis, with which keys, and why the Pis keep a password.
 - [The web application](webapp.md) — what a visitor sees, which Django apps
@@ -74,6 +77,7 @@ network
 pi
 orange-pi
 gateway
+upstream-gateway
 access
 webapp
 tinytapeout
