@@ -310,13 +310,14 @@ separately and is not part of fpgas.online, is the public IPv4 edge: its nginx
 reverse-proxies port 80 to tweed and passes port 443 through by SNI, so **tweed
 terminates TLS itself** with its own Let's Encrypt certificates, obtained by the
 webroot method — the HTTP-01 challenges arrive through the upstream gateway's
-`/.well-known/` passthrough. The names it routes to tweed come from tweed's alias entry in
+`/.well-known/` passthrough. The names it routes to tweed come from tweed's
+alias entry in
 the site's network sheet: `welland.fpgas.online`, `*.welland.fpgas.online` and
 `welland.fpgas.mithis.com`. `tinytapeout.fpgas.online` is a CNAME to
 `welland.fpgas.online` and had to be added to that alias list, and the upstream
 gateway's nginx redeployed, before its certificate could be issued at all.
-Over IPv6 tweed is reached directly, which is how Ansible and operators get to
-it from outside the site.
+Tweed is also reachable directly over IPv6 (`2404:e80:a137:2100::1`), which is
+how operators get to it from outside the site.
 
 :::{warning}
 Three rules keep certbot away from the nginx configuration:

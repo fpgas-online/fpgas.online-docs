@@ -90,7 +90,7 @@ running as it was. Re-run once GitHub answers again.
 | a board, in a browser | the terminal on the board's page at [welland.fpgas.online](https://welland.fpgas.online) |
 
 `tweed.welland.mithis.com` is split-horizon DNS (looked up 2026-09-29). Public
-DNS gives A `87.121.95.37`, which is **the site's upstream gateway** and not
+DNS gives A `87.121.95.37`, which is the site's **upstream gateway**, not
 tweed, and the AAAAs
 `2404:e80:a137:2100::1` and `2404:e80:a137:9921::2`, which are tweed. Inside the
 site the name resolves to `10.99.21.2` and `10.21.0.1`, plus the same AAAAs.
@@ -101,7 +101,8 @@ Checked on 2026-09-29:
   `2404:e80:a137:9921::2` times out from outside, so use the address rather than
   the name;
 - from outside over IPv4 only, the name reaches the upstream gateway, which
-  forwards the web ports and not SSH. SSH to tweed from outside is over IPv6.
+  proxies the web ports (80 and 443) but does not carry SSH to tweed. SSH to
+  tweed from outside is over IPv6.
 
 With `-J` your key has to be trusted at both hops. The boards trust only the
 operators' GitHub keys. A person who can use the jump account but is not an
