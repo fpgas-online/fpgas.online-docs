@@ -262,16 +262,16 @@ def boot_order(name, rows, title):
 def kit():
     body = []
     text(body, 20, 36, "What you need on the bench", 26, "bold")
-    items = [("1  The Pi 5", "out of its case or mount, so that you can reach its underside"),
+    items = [("1  The Pi 5", "out of its case, underside reachable"),
              ("2  A microSD card", "any size; everything on it is erased"),
-             ("3  A Linux computer", "with a card reader, and git, python3 and openssl installed"),
-             ("4  Something to bridge two pads", "a soldering iron and solder, OR fine tweezers or a short wire"),
-             ("5  The Pi's own network cable", "on its switch port; the Pi gets its power over this cable")]
+             ("3  A Linux computer", "with a card reader, git, python3 and openssl"),
+             ("4  Something to bridge two pads", "soldering iron and solder, OR fine tweezers"),
+             ("5  The Pi's own network cable", "on its switch port; it also powers the Pi")]
     for i, (title, what) in enumerate(items):
         y = 60 + i * 62
         box(body, 20, y, 910, 52, "#eef3f8")
         text(body, 36, y + 33, title, 21, "bold")
-        text(body, 400, y + 33, what, 18)
+        text(body, 420, y + 33, what, 18)
     write("kit.svg", 950, 380, body)
 
 
@@ -358,15 +358,15 @@ closeup("pi5-flash-wp-clear.jpg", "clear")
 sr1_bits()
 dip()
 blade()
-check_card("check-card.svg", "All three DONE: nothing to do. Any NOT DONE: the upgrade, further down this page.")
-check_card("check-card-after.svg", "All three DONE: finished. Anything else: the chart just below.")
+check_card("check-card.svg", "All three DONE: nothing to do. Any NOT DONE: upgrade it (next part).")
+check_card("check-card-after.svg", "All three DONE: finished. Anything else: the chart above.")
 FLEET, OTHER, PLAIN = "#e2f3e2", "#fde3e3", "#eef3f8"
 boot_order("boot-order.svg", (("f2", "0xf2: the fleet's Pi 5 setting. Network only.", FLEET),
                               ("f12", "0xf12: network, then an SD card. Not the fleet's.", OTHER),
                               ("f2461", "0xf2461: SD card, NVMe, USB, then network. Not the fleet's.", OTHER)),
            "Reading BOOT_ORDER: start at the LAST digit and go left")
-boot_order("boot-order-blade.svg", (("f2461", "0xf2461: SD card, NVMe, USB, then the network, then round again.", PLAIN),),
-           "This blade's BOOT_ORDER, read from the LAST digit: the network is in it")
+boot_order("boot-order-blade.svg", (("f2461", "0xf2461: SD card, NVMe, USB, then the network (the 2), then round again.", PLAIN),),
+           "This blade's BOOT_ORDER, read from the LAST digit")
 kit()
 card_files()
 cable("cable-out.svg", "Pull the network cable: the Pi is now off", False,

@@ -24,5 +24,5 @@
 <text x="500" y="378" font-size="22" font-weight="bold" fill="#111" text-anchor="middle" font-family="DejaVu Sans Mono, monospace">SR1 0xbc</text>
 <rect x="670" y="332" width="260" height="76" rx="8" fill="#fde3e3" stroke="#c81e1e" stroke-width="3"/>
 <text x="800" y="378" font-size="22" font-weight="bold" fill="#111" text-anchor="middle" font-family="DejaVu Sans Mono, monospace">SR1 0x0</text>
-<text x="20" y="456" font-size="20" font-weight="bold" fill="#111" text-anchor="start">All three DONE: nothing to do. Any NOT DONE: the upgrade, further down this page.</text>
+<text x="20" y="456" font-size="20" font-weight="bold" fill="#111" text-anchor="start">All three DONE: nothing to do. Any NOT DONE: upgrade it (next part).</text>
 </svg>

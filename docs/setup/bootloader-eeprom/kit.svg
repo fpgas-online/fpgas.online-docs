@@ -3,17 +3,17 @@
 <text x="20" y="36" font-size="26" font-weight="bold" fill="#111" text-anchor="start">What you need on the bench</text>
 <rect x="20" y="60" width="910" height="52" rx="8" fill="#eef3f8" stroke="#111" stroke-width="2"/>
 <text x="36" y="93" font-size="21" font-weight="bold" fill="#111" text-anchor="start">1  The Pi 5</text>
-<text x="400" y="93" font-size="18" font-weight="normal" fill="#111" text-anchor="start">out of its case or mount, so that you can reach its underside</text>
+<text x="420" y="93" font-size="18" font-weight="normal" fill="#111" text-anchor="start">out of its case, underside reachable</text>
 <rect x="20" y="122" width="910" height="52" rx="8" fill="#eef3f8" stroke="#111" stroke-width="2"/>
 <text x="36" y="155" font-size="21" font-weight="bold" fill="#111" text-anchor="start">2  A microSD card</text>
-<text x="400" y="155" font-size="18" font-weight="normal" fill="#111" text-anchor="start">any size; everything on it is erased</text>
+<text x="420" y="155" font-size="18" font-weight="normal" fill="#111" text-anchor="start">any size; everything on it is erased</text>
 <rect x="20" y="184" width="910" height="52" rx="8" fill="#eef3f8" stroke="#111" stroke-width="2"/>
 <text x="36" y="217" font-size="21" font-weight="bold" fill="#111" text-anchor="start">3  A Linux computer</text>
-<text x="400" y="217" font-size="18" font-weight="normal" fill="#111" text-anchor="start">with a card reader, and git, python3 and openssl installed</text>
+<text x="420" y="217" font-size="18" font-weight="normal" fill="#111" text-anchor="start">with a card reader, git, python3 and openssl</text>
 <rect x="20" y="246" width="910" height="52" rx="8" fill="#eef3f8" stroke="#111" stroke-width="2"/>
 <text x="36" y="279" font-size="21" font-weight="bold" fill="#111" text-anchor="start">4  Something to bridge two pads</text>
-<text x="400" y="279" font-size="18" font-weight="normal" fill="#111" text-anchor="start">a soldering iron and solder, OR fine tweezers or a short wire</text>
+<text x="420" y="279" font-size="18" font-weight="normal" fill="#111" text-anchor="start">soldering iron and solder, OR fine tweezers</text>
 <rect x="20" y="308" width="910" height="52" rx="8" fill="#eef3f8" stroke="#111" stroke-width="2"/>
 <text x="36" y="341" font-size="21" font-weight="bold" fill="#111" text-anchor="start">5  The Pi's own network cable</text>
-<text x="400" y="341" font-size="18" font-weight="normal" fill="#111" text-anchor="start">on its switch port; the Pi gets its power over this cable</text>
+<text x="420" y="341" font-size="18" font-weight="normal" fill="#111" text-anchor="start">on its switch port; it also powers the Pi</text>
 </svg>
