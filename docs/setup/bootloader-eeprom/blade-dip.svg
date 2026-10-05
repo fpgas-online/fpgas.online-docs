@@ -1,6 +1,6 @@
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 800 470" width="800" height="470" font-family="DejaVu Sans, Arial, sans-serif">
 <rect width="800" height="470" fill="#ffffff"/>
-<text x="20" y="34" font-size="24" font-weight="bold" fill="#111" text-anchor="start">Compute Blade, Dev model: the DIP switches (from the maker's table)</text>
+<text x="20" y="34" font-size="24" font-weight="bold" fill="#111" text-anchor="start">Dev model Compute Blade: the DIP switches</text>
 <text x="420" y="76" font-size="20" font-weight="bold" fill="#111" text-anchor="middle">LEFT</text>
 <text x="660" y="76" font-size="20" font-weight="bold" fill="#111" text-anchor="middle">RIGHT</text>
 <text x="20" y="128" font-size="21" font-weight="bold" fill="#111" text-anchor="start">1  Write protection</text>

@@ -8,14 +8,13 @@ you need:
 
 - **[Check a Pi 5](#check-a-pi-5-nothing-is-changed)**: is its bootloader the fleet's, and is it locked?
 - **[Upgrade a locked Raspberry Pi 5](#upgrade-a-locked-raspberry-pi-5)**: six steps, for someone with the Pi in hand.
-- **[A Compute Module or a Compute Blade](#compute-module-4-compute-module-5-and-the-compute-blade)**: whether it needs anything (usually not).
+- **[A Compute Module or a Compute Blade](#compute-module-4-compute-module-5-and-the-compute-blade)**: how to tell whether it needs anything (the two blades we read need nothing). There are no upgrade steps for it on this page.
 - **[What is behind this page](#what-is-behind-this-page)**: what has been run and measured, what is not known, what does not work.
 
 ## Check a Pi 5 (nothing is changed)
 
-Three reads, for a **Raspberry Pi 5**. (On a Pi 4 the first two reads work and
-the third does not; this page has no lock check and no upgrade steps for a
-Pi 4.)
+Three reads, for a **Raspberry Pi 5**. (This page has no check and no upgrade
+steps for a Pi 4.)
 
 ```{image} bootloader-eeprom/check-card.svg
 :alt: Three reads: the bootloader date should be 2026/09/25, the boot order BOOT_ORDER=0xf2, and the flash lock SR1 0xbc
@@ -59,7 +58,7 @@ $ git checkout a72213d02af27f2dc3b86f584988aec407e46378
 $ mkdir card
 ```
 
-Make the settings file. Paste these eight lines as they are:
+Make the settings file. Paste this whole block as it is:
 
 ```console
 $ cat > boot.conf <<'EOF'
@@ -82,8 +81,8 @@ $ cp firmware-2712/default/recovery.bin card/
 $ echo eeprom_write_protect=0 > card/config.txt
 ```
 
-Check them. The first command must print the six settings, and the second
-must list the four files with these sizes:
+Check them. The first command must print `[all]` and the five settings, and
+the second must list the four files with these sizes:
 
 ```console
 $ ./rpi-eeprom-config card/pieeprom.bin
@@ -121,9 +120,12 @@ sdb      29.7G STORAGE DEVICE
 The next commands erase everything on the card. Type your card's name in place
 of `sdX`, and check it twice: the wrong name erases another disk. (If your
 card's name is like `mmcblk0`, its first partition is `mmcblk0p1`, not
-`mmcblk01`: use that in the third and fourth commands.)
+`mmcblk01`: use that in the `mkfs.vfat` and `mount` commands.) The first
+command lets go of the card if your desktop opened it by itself; "not mounted"
+from it is fine.
 
 ```console
+$ sudo umount /dev/sdX*
 $ sudo wipefs -a /dev/sdX
 $ echo 'type=c' | sudo sfdisk /dev/sdX
 $ sudo mkfs.vfat -F 32 /dev/sdX1
@@ -143,8 +145,10 @@ Take the card out of the reader.
 :width: 80%
 ```
 
-1. Pull the Pi's network cable. The Pi is now off.
-2. Take the Pi out of whatever holds it, and turn it over.
+1. Pull the Pi's network cable. If the Pi also has a USB-C power supply, pull
+   that too. The Pi is now off.
+2. Take the Pi out of whatever holds it. Turn it over like the page of a
+   book: the USB sockets, on your right in this drawing, end up on your left.
 
 ### Step 3: join the two FLASH WP pads
 
@@ -179,18 +183,28 @@ Photo: Suyash Dwivedi, [Wikimedia Commons](https://commons.wikimedia.org/wiki/Fi
 Photo: Suyash Dwivedi, [Wikimedia Commons](https://commons.wikimedia.org/wiki/File:Raspberry_Pi5_8GB_Bottom_View_(1).jpg), [CC BY-SA 4.0](https://creativecommons.org/licenses/by-sa/4.0/); annotated, same licence.
 ```
 
+:::{warning}
+`TP1` carries power when the Pi is on. A bridge that touches anything besides
+`TP14` and `TP1` can damage the Pi. If yours does, take it off and make it
+again now, while the Pi is off.
+:::
+
 1. Find the two pads.
 2. Join `TP14` to `TP1` with a small blob of solder across both, as in the
-   RIGHT picture. (Without an iron: skip this now, and in step 4 hold a short
-   wire or fine tweezers across both pads.)
-3. Look at it against the two pictures. One blob, on those two pads, touching
-   nothing else. With a multimeter: `TP14` to `TP1` reads a short circuit.
+   RIGHT picture.
+3. Look at it against the RIGHT and WRONG pictures: one blob, on those two
+   pads, touching nothing else. With a multimeter: `TP14` to `TP1` reads a
+   short circuit.
 
-:::{warning}
-`TP1` is 3.3 V when the Pi is on. A bridge that touches anything besides
-`TP14` and `TP1` can damage the Pi. If it does, take it off and make it again
-now, while the Pi is off.
-:::
+No soldering iron? Skip 2 and 3. In step 4 you hold tweezers (or a short wire)
+on the two pads instead:
+
+```{figure} bootloader-eeprom/pi5-flash-wp-tweezers.jpg
+:alt: The same close-up with the two tips of a pair of tweezers drawn, one on TP14 and one on TP1
+:width: 100%
+
+Photo: Suyash Dwivedi, [Wikimedia Commons](https://commons.wikimedia.org/wiki/File:Raspberry_Pi5_8GB_Bottom_View_(1).jpg), [CC BY-SA 4.0](https://creativecommons.org/licenses/by-sa/4.0/); annotated, same licence.
+```
 
 ### Step 4: card in, network cable in, wait 60 seconds
 
@@ -208,9 +222,11 @@ Photo: Suyash Dwivedi, [Wikimedia Commons](https://commons.wikimedia.org/wiki/Fi
 :width: 80%
 ```
 
-2. Plug the network cable in, on the switch port the Pi was on. (Holding
-   tweezers or a wire on the pads instead of solder: put them on both pads
-   first and keep them there; plug the cable in with your other hand.)
+2. Plug the network cable in, on the switch port the Pi was on. (The drawing
+   shows the Pi top side up; yours is lying upside down. The Ethernet socket
+   is the one beside the two USB blocks.) Using tweezers or a wire instead of
+   solder: put them on both pads first, plug the cable in with your other
+   hand, and keep them on both pads for the whole 60 seconds.
 3. Wait 60 seconds by a clock. There is nothing to watch for: the Pi writes
    its new bootloader from the card and stops. Whatever the green light does,
    go on to step 5 when the 60 seconds are over.
@@ -241,7 +257,9 @@ Photo: Suyash Dwivedi, [Wikimedia Commons](https://commons.wikimedia.org/wiki/Fi
 :width: 80%
 ```
 
-5. Plug the network cable in, on the same switch port.
+5. Plug the network cable in, on the same switch port: the normal port the
+   Pi lives on. (Not a site's EEPROM service port, if it has one: a Pi
+   plugged in there is never locked again.)
 
 :::{warning}
 Leave the Pi alone for two minutes now. It starts from the network and locks
@@ -250,19 +268,21 @@ its flash again while it starts; do not pull the cable during that time.
 
 ### Step 6: read it back
 
-Do the three reads again and find your result here:
-
-```{image} bootloader-eeprom/outcomes.svg
-:alt: What step 6 can read and what to do: all three as wanted, done; the old date, nothing was written, go back to step 2; the new date but another boot order, make the card again; the new date and boot order but SR1 0x0, power the Pi off and on and read again; no answer after five minutes, go back to step 2 with a checked card
-:width: 100%
-```
+Do the three reads again, then find your result in the chart at the end of
+this step.
 
 ```{image} bootloader-eeprom/check-card-after.svg
 :alt: Three reads: the bootloader date should be 2026/09/25, the boot order BOOT_ORDER=0xf2, and the flash lock SR1 0xbc
 :width: 100%
 ```
-
 ```{include} bootloader-eeprom-read-state.inc
+```
+
+Your result:
+
+```{image} bootloader-eeprom/outcomes.svg
+:alt: What step 6 can read and what to do: all three as wanted, done; the old date, nothing was written, go back to step 2; the new date but another boot order, make the card again; the new date and boot order but SR1 0x0, power the Pi off and on and read again; no answer after five minutes, go back to step 2 with a checked card
+:width: 100%
 ```
 
 ## Compute Module 4, Compute Module 5 and the Compute Blade
@@ -270,7 +290,8 @@ Do the three reads again and find your result here:
 :::{warning}
 **There are no upgrade steps for a Compute Module in a Compute Blade on this
 page, because we have not done one.** What this part gives you is how to tell
-whether your blade needs anything. The two blades we read do not.
+whether your blade needs anything. Both blades we read are fine as they are
+and need nothing.
 :::
 
 ### Does this blade need anything?
@@ -307,9 +328,12 @@ running from the network.
 - Your blade starts from the network, and its `BOOT_ORDER` has a `2` in it (as
   `0xf2461` has): **do nothing.** Its bootloader is fine as it is.
 - Your blade does not start from the network, or its `BOOT_ORDER` has no `2`
-  in it: **do not try to change it from this page.** Open an issue at
+  in it: **do not try to change it from this page.** If the blade is part of
+  fpgas.online, open an issue at
   [fpgas-online/fpgas.online-docs](https://github.com/fpgas-online/fpgas.online-docs/issues)
-  with the two outputs above.
+  with the two outputs above. If it is your own, this page cannot help you
+  further: what the blade's maker and Raspberry Pi document is quoted at the
+  end of this page, untested by us.
 :::
 
 A date in the first line that is older or newer than the one above is not a
@@ -341,7 +365,16 @@ You do not need this part to do the job.
 ### What has been run
 
 - **Upgrade of a locked Pi 5, steps 2 to 6:** once, on one fleet Pi 5, on 3 Oct
-  2026. How the card used that day was made was not recorded.
+  2026, and not exactly as written here. How the card used that day was made
+  was not recorded. The Pi sat on the site's EEPROM service port for the
+  write and was moved to a normal port afterwards, where it read locked
+  (`SR1 0xbc`) when next looked at; the lock coming back in the first start
+  after a card write was not watched. That a normal fleet start locks an
+  unlocked flash within that one start was measured on another occasion
+  (`SR1` from `0x00` to `0xbc`).
+- **The times in the steps** (60 seconds for the write, two minutes for the
+  start, five minutes before calling a Pi gone) are generous round figures of
+  ours, not measurements of the write.
 - **Step 1:** the commands up to the four files were run on a PC on 5 Oct 2026
   (raspberrypi/rpi-eeprom at commit `a72213d`, fetched with `git clone --depth 1`
   on the day that commit was its newest); the outputs shown are from that run. Formatting a card and booting a Pi from a card made this way:
@@ -356,8 +389,10 @@ You do not need this part to do the job.
   rapid blink means success and an error pattern means failure. On our one run
   it blinked 3 long, 3 short, an error pattern, although the write had
   succeeded. That is why step 4 says to ignore it.
-- **The "new date but SR1 0x0" and "no answer" rows of step 6:** not seen by
-  us. That a Pi 5 runs `recovery.bin` from a card whatever its flash holds is
+- **The "another boot order", "SR1 0x0" and "no answer" rows of step 6:** not
+  seen by us. A Pi that is written but not locked can be changed by anyone
+  with root on it, which on a public site is every visitor: that is why its
+  row says to tell the operator if it stays unlocked. That a Pi 5 runs `recovery.bin` from a card whatever its flash holds is
   Raspberry Pi's documentation, not yet needed and so not yet run by us.
 - **Compute Module, Compute Blade:** only the two reads. Nothing that changes
   a bootloader has been run by us on that hardware.
@@ -393,7 +428,9 @@ the same settings as the blade shown above (pi16).
 :width: 100%
 ```
 
-The script prints `0x00` as `0x0`.
+The script prints `0x00` as `0x0`. The W25Q16JV datasheet also says that with
+QE = 1, as these flashes have, the `/WP` pin is not used; what that means for
+the lock is under [Not yet known](#not-yet-known).
 
 ### Why the flash is locked
 
@@ -530,11 +567,6 @@ and, for putting the module into USB boot:
 > The Device will reconnect several times. On the last time it will appear as a
 > USB media device.
 
-```{image} bootloader-eeprom/blade-dev.svg
-:alt: Outline of a Dev model Compute Blade with the USB Type-C port, the USB switch, the nRPIBOOT button and the DIP switches marked
-:width: 100%
-```
-
 The [USB switch](https://docs.computeblade.com/blade/guides/usb) is there
 because "The compute module can only operate one USB port at a time." The
 maker's [usbboot guide](https://docs.computeblade.com/blade/advanced-guides/usbboot)
@@ -549,11 +581,6 @@ maker's [DIP switch guide](https://docs.computeblade.com/blade/guides/dip):
 > DIP Switch is ONLY populated on Dev model Compute Blades.
 >
 > Only change switch positions when the Blade is unplugged from power.
-
-```{image} bootloader-eeprom/blade-dip.svg
-:alt: The three DIP switches of a Dev model Compute Blade: 1 write protection (left disabled, right enabled), 2 Wi-Fi (left enabled, right disabled), 3 Bluetooth (left enabled, right disabled)
-:width: 100%
-```
 
 > To enable write protection, changes are required to `config.txt`. It can be
 > found in the directory `/boot/firmware/`, or flash the EEPROM using usbboot

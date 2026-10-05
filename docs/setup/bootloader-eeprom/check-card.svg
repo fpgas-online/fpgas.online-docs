@@ -1,5 +1,5 @@
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 950 480" width="950" height="480" font-family="DejaVu Sans, Arial, sans-serif">
-<rect width="950" height="480" fill="#ffffff"/>
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 950 540" width="950" height="540" font-family="DejaVu Sans, Arial, sans-serif">
+<rect width="950" height="540" fill="#ffffff"/>
 <text x="20" y="36" font-size="26" font-weight="bold" fill="#111" text-anchor="start">Is this Pi 5 done? Three reads, three answers</text>
 <text x="500" y="80" font-size="22" font-weight="bold" fill="#1e8c3c" text-anchor="middle">DONE</text>
 <text x="800" y="80" font-size="22" font-weight="bold" fill="#c81e1e" text-anchor="middle">NOT DONE</text>
@@ -9,7 +9,7 @@
 <rect x="370" y="112" width="260" height="76" rx="8" fill="#e2f3e2" stroke="#1e8c3c" stroke-width="3"/>
 <text x="500" y="158" font-size="22" font-weight="bold" fill="#111" text-anchor="middle" font-family="DejaVu Sans Mono, monospace">2026/09/25 ...</text>
 <rect x="670" y="112" width="260" height="76" rx="8" fill="#fde3e3" stroke="#c81e1e" stroke-width="3"/>
-<text x="800" y="158" font-size="22" font-weight="bold" fill="#111" text-anchor="middle" font-family="DejaVu Sans Mono, monospace">any older date</text>
+<text x="800" y="158" font-size="22" font-weight="bold" fill="#111" text-anchor="middle" font-family="DejaVu Sans Mono, monospace">an older date</text>
 <text x="20" y="246" font-size="22" font-weight="bold" fill="#111" text-anchor="start">2  boot order</text>
 <text x="20" y="272" font-size="16" font-weight="normal" fill="#111" text-anchor="start">the BOOT_ORDER line of</text>
 <text x="20" y="294" font-size="15" font-weight="normal" fill="#111" text-anchor="start" font-family="DejaVu Sans Mono, monospace">vcgencmd bootloader_config</text>
@@ -25,4 +25,6 @@
 <rect x="670" y="332" width="260" height="76" rx="8" fill="#fde3e3" stroke="#c81e1e" stroke-width="3"/>
 <text x="800" y="378" font-size="22" font-weight="bold" fill="#111" text-anchor="middle" font-family="DejaVu Sans Mono, monospace">SR1 0x0</text>
 <text x="20" y="456" font-size="20" font-weight="bold" fill="#111" text-anchor="start">All three DONE: nothing to do. Any NOT DONE: upgrade it (next part).</text>
+<text x="20" y="492" font-size="18" font-weight="bold" fill="#c81e1e" text-anchor="start">A NEWER date, another SR1 value, or a jedec line that is not ef4015:</text>
+<text x="20" y="518" font-size="18" font-weight="bold" fill="#c81e1e" text-anchor="start">STOP. This page does not cover that Pi; change nothing on it.</text>
 </svg>
