@@ -408,51 +408,20 @@ back and insulated.** It is pin 6 of each Pico-EZmate connector. 3.3 V from the
 Acorn into the host can damage it.
 :::
 
-**Buzz every wire of the cable through with a meter before connecting.** The six
-wires are all black, the two halves of a cut cable have pin 1 on opposite
-sides, and nothing on the plug is numbered: pin 1 is the wire that lands nearest
-the M.2 edge connector once the plug is seated.
-
-### On the Acorn, for both carriers
-
-1. Plug the P1 Pico-EZmate connector into the Acorn's **P1** (JTAG) socket.
-2. Plug the P2 Pico-EZmate connector into the Acorn's **P2** (Serial/GPIO) socket.
-3. Route the cables so they don't obstruct the M.2 connector or the PCIe edge
-   fingers.
+The same steps and picture as the last step of [Building the
+cables](#building-the-cables), for a cable that is already built and checked.
 
 ### On a Raspberry Pi 5
 
-1. Mount the M.2 PCIe HAT onto the Pi.
-2. Insert the Acorn into the M.2 M-key slot, push until fully seated, and fit
-   the retention screw.
-3. Plug the **P2 housing** (2×3) onto header pins 5-10.
-4. Plug the **P1 housing** (2×4) onto header pins 19-26.
-5. Check that both VCC wires are cut back and insulated.
-
-![Acorn to Raspberry Pi 5 wiring sheet](generated/acorn-wiring-pi5.png)
-
-![Which wire is in which cavity of the P1 housing, Raspberry Pi 5](generated/acorn-cable-pi5-p1.png)
-
-![Which wire is in which cavity of the P2 housing, Raspberry Pi 5](generated/acorn-cable-pi5-p2.png)
+```{include} generated/acorn-fit-pi5.md
+:relative-images:
+```
 
 ### On a Compute Blade
 
-1. Power the blade off (unplug its PoE cable) before plugging anything into
-   the M.2 slot, the Extension Port or the UART header.
-2. Insert the Acorn into the blade's M.2 slot.
-3. Plug the **P1 housing** (2×5) over the whole Extension Port, pin 1 on printed
-   pin 1.
-4. Plug the **P2 housing** (1×4) over the whole UART header, pin 1 on printed
-   pin 1.
-5. Check that both VCC wires and the J5 and H5 wires are cut back and insulated,
-   that the 470 Ω resistor is in the J2 wire, and that the cavities over
-   Extension Port pins 6 and 7 and UART pin 1 (all 5 V) are empty.
-
-![Acorn to Compute Blade wiring sheet](generated/acorn-wiring-computeblade.png)
-
-![Which wire is in which cavity of the P1 housing, Compute Blade](generated/acorn-cable-blade-p1.png)
-
-![Which wire is in which cavity of the P2 housing, Compute Blade](generated/acorn-cable-blade-p2.png)
+```{include} generated/acorn-fit-blade.md
+:relative-images:
+```
 
 ## Verification
 

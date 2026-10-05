@@ -72,6 +72,12 @@ FILES = {
             "acorn-cable-pi5-p1.png",
             "acorn-cable-pi5-p2-prepare.png",
             "acorn-cable-pi5-p2.png",
+            "acorn-fit-blade.md",
+            "acorn-fit-pi5.md",
+            "acorn-cable-blade-fit.png",
+            "acorn-cable-pi5-fit.png",
+            "acorn-cable-blade-shell-check.png",
+            "acorn-cable-pi5-shell-check.png",
         ],
     ),
 }
