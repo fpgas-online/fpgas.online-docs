@@ -599,6 +599,22 @@ class Notes(unittest.TestCase):
         self.assertIn('<p class="admonition-title">Parts</p>', text)
         self.assertEqual(text.count("<li>"), 2)
 
+    def test_items_numbered_in_order_are_a_numbered_list_without_the_typed_numbers(self):
+        text = p.notes("Order\n1. first\n2.  second\n---\nOther\n1. only this one is numbered\nplain\n")
+        self.assertIn("<ol><li>first</li><li>second</li></ol>", text)
+        self.assertIn("<ul><li>1. only this one is numbered</li><li>plain</li></ul>", text)
+
+    def test_a_measurement_at_the_start_of_an_item_is_not_a_number_of_the_list(self):
+        self.assertIn("<ul><li>1.5 mm wire</li><li>3.3 V must never reach the host</li></ul>",
+                      p.notes("Parts\n1.5 mm wire\n3.3 V must never reach the host\n"))
+        self.assertIsNone(p.numbered([]))
+        self.assertEqual(p.numbered(["1. only"]), ["only"])
+        self.assertEqual(p.numbered([f"{n}. x" for n in range(1, 11)]), ["x"] * 10)
+
+    def test_numbers_that_do_not_count_up_from_one_stop_the_run(self):
+        with self.assertRaises(SystemExit):
+            p.notes("Order\n1. first\n3. third\n")
+
     def test_html_is_escaped(self):
         text = p.notes("<b>Head</b>\n<script>x</script>")
         self.assertNotIn("<script>", text)

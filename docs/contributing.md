@@ -99,7 +99,8 @@ each small copy names that sheet. A paragraph that holds only a picture is kept
 whole, and on the sheet of the paragraph before it, so a step and its picture
 are not parted. `--help` lists the rest:
 boxes of notes on the cover (several in one file, separated by a line of
-dashes), a last sheet, PDFs to append. Appended PDFs are not renumbered and must
+dashes; a box whose lines are written `1.`, `2.`, ... prints as a numbered
+list), a last sheet, PDFs to append. Appended PDFs are not renumbered and must
 already be on the chosen paper, or the run stops. The tool needs
 `google-chrome-stable` and `pdftotext` (poppler-utils, for the cover's sheet
 numbers), `pdfinfo` (also poppler-utils) to find a wide picture's sheet, and

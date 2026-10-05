@@ -570,14 +570,30 @@ def note_boxes(text: str) -> list[tuple[str, list[str]]]:
     return boxes
 
 
+def numbered(items: list[str]) -> list[str] | None:
+    """The items without their numbers when they are written "1. ", "2. ", ... in order; None when they are not.
+
+    A box in which every item starts with a number but the numbers do not count up from 1 stops the run:
+    printed as bullets it would show both a bullet and a wrong number.
+    """
+    found = [re.match(r"(\d+)\.\s+(.*)", item) for item in items]
+    if not items or not all(found):
+        return None
+    if [int(m[1]) for m in found] != list(range(1, len(items) + 1)):
+        raise SystemExit(f"a numbered notes box must count 1, 2, 3, ...: {[m[1] for m in found]}")
+    return [m[2] for m in found]
+
+
 def notes(text: str) -> str:
-    """The boxes of a notes file as HTML."""
+    """The boxes of a notes file as HTML: a box whose items are numbered in order is a numbered list."""
     out = []
     for heading, items in note_boxes(text):
-        listed = "".join(f"<li>{html.escape(item)}</li>" for item in items)
+        steps = numbered(items)
+        listed = "".join(f"<li>{html.escape(item)}</li>" for item in (items if steps is None else steps))
+        kind = "ul" if steps is None else "ol"
         out.append(
             f'<div class="admonition"><p class="admonition-title">{html.escape(heading)}</p>'
-            f"<ul>{listed}</ul></div>"
+            f"<{kind}>{listed}</{kind}></div>"
         )
     return "".join(out)
 
@@ -803,7 +819,8 @@ def main() -> int:
     parser.add_argument("--append", type=Path, action="append", default=[], metavar="PDF",
                         help="a PDF to put after the printed pages, unchanged (may be repeated)")
     parser.add_argument("--cover-notes", type=Path, metavar="FILE",
-                        help="a box for the cover: the file's first line is its heading, each later line an item; "
+                        help="a box for the cover: the file's first line is its heading, each later line an item "
+                        "(items written 1., 2., ... print as a numbered list); "
                         "several boxes may be separated by a line of dashes")
     parser.add_argument("--last-sheet", type=Path, metavar="FILE",
                         help="a box on a sheet of its own after the pages, in the same form "
