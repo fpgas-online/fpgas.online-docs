@@ -112,13 +112,16 @@ provenance unknown.
 
 ### Compute blades
 
-All four were up when last probed (2026-09-20). pi16 was read again on
-2026-10-05; what differed is under [pi16 on 5 October 2026](#pi16-on-5-october-2026).
+All four were up when last probed together (2026-09-20), and the table is that
+probe. On 2026-10-05 pi16 was read again; what differed is under [pi16 on 5
+October 2026](#pi16-on-5-october-2026). The same day the visitor SSH ports of
+pi14 and pi18 did not answer, so nothing was read from them; why is not known.
+pi20 was not tried that day.
 
 ```{rst-class} nowrap
 ```
 
-| Host | Switch Port | IP          | RPi MAC           | RPi Model             | Board (PCIe ID)             | FPGA DNA           | PCIe Bus | JTAG (P1)                | P2 cable | Status |
+| Host | Switch Port | IP          | RPi MAC           | RPi Model             | Board (PCIe ID)             | FPGA DNA           | PCIe Bus | JTAG (P1)                | P2 cable | Status on 2026-09-20 |
 |------|------|-------------|-------------------|-----------------------|-----------------------------|--------------------|----------|--------------------------|----------|--------|
 | pi14 | e14  | 10.21.0.114 | 2c:cf:67:37:d4:bd | CM4 Rev 1.1 4 GB      | Acorn CLE-101 `1e24:0101`   | not read           | 0000:01  | no response (P1 unmated) | untested | Online |
 | pi16 | e16  | 10.21.0.116 | 2c:cf:67:fb:91:e5 | CM5 Lite Rev 1.0 8 GB | Acorn CLE-101 `1e24:0101`   | not read           | 0001:01  | 2026-09-20: no response, TCK floating. 2026-10-05: cannot run (serial driver holds GPIO14) | untested | Online |
@@ -196,6 +199,24 @@ header's serial port itself has to be off at boot (`enable_uart=0`, and no
 cannot run. **Not yet run by us on this hardware.** The same will apply to any
 blade on this kernel: pi20's JTAG answered under kernel 6.12.75.
 
+#### Where a blade's boot configuration is
+
+Read on pi16 and pi20 themselves on 2026-10-05, not on the gateway: the kernel
+command line has `nfsroot=10.21.0.1:/srv/nfs/rpi/trixie/root` and
+`console=ttyAMA0,115200`; `/boot/firmware/cmdline.txt` on the host holds the
+same line with `console=serial0,115200`; `/boot/firmware/config.txt` has
+`enable_uart=1` under `[all]` and no overlay for the UART. Both blades have the
+same settings.
+
+So the settings to change for JTAG (`enable_uart`, and the `console=serial0`
+word) are in the `config.txt` and `cmdline.txt` that the blades netboot from, on
+the site's gateway: by this page's account under `/srv/nfs/rpi/trixie/boot`.
+**Not read by us:** the directory the firmware fetches the two files from at
+boot, whether `/boot/firmware` on a blade is that directory or a copy, and
+whether one copy serves all four blades. Whoever runs the gateway makes the
+change; it then applies to every blade that boots from that tree, and takes
+effect at the blade's next boot.
+
 #### What each blade still needs
 
 To reach the [Compute Blade wiring](../boards/acorn/wiring.md#compute-blade),
@@ -212,6 +233,13 @@ converted a card on one yet: **not yet run by us on this hardware**.
 The parts are in the wiring page's [Bill of
 Materials](../boards/acorn/wiring.md#bill-of-materials). Once a blade is wired,
 [check it with fpgas-verify](#checking-a-board-here).
+
+pi20's serial pair is direct on GPIO14 and GPIO15 without the resistor. From the
+check's code, not from a run on a blade: `fpgas-verify`'s `p2-serial` test never
+has both ends driving a wire at once (the Pi's pins are inputs while the FPGA
+drives, and the FPGA's are inputs while the Pi drives), so it does not rely on
+the resistor, and the fpgas.online design treats J2 as an input. What the
+missing resistor does not survive is a design that drives J2, such as pin-ID.
 
 The `RPi Model` column matters: a CM4 and a CM5 are not interchangeable, and
 what differs — the serial mux, and how many UARTs there are — is under [Compute
