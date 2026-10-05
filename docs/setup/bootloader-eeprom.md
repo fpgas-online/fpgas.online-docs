@@ -10,8 +10,9 @@ locked again afterwards.
 
 What is on this page has two kinds of source, and each section says which:
 
-- **Raspberry Pi 5**: what we ran and measured on fleet Pi 5s (Rev 1.1, boot
-  flash Winbond W25Q16, JEDEC id `ef4015`) on 3 and 4 Oct 2026.
+- **Raspberry Pi 5**: what we ran and measured on fleet Pi 5s (boot flash
+  Winbond W25Q16, JEDEC id `ef4015`) on 3 and 4 Oct 2026. The upgrade itself
+  was run once, on one board.
 - **Compute Module 4 and Compute Module 5**: Raspberry Pi's own documentation,
   quoted. **Not yet run by us on this hardware.**
 
@@ -26,9 +27,10 @@ What is on this page has two kinds of source, and each section says which:
 | `POWER_OFF_ON_HALT`, `WAKE_ON_GPIO` | `0`, `1` |
 | Flash protection | whole array protected: status register 1 reads `0xbc` |
 
-A Pi with another boot order (a stock Pi 5 has `0xf12` or `0xf21`: SD card
-first) still netboots when no card is fitted, but it will boot whatever card
-somebody puts in.
+`BOOT_ORDER` is read from its last digit backwards (`1` SD card, `2` network,
+`f` start again). A Pi whose order includes the SD card still netboots while no
+card is fitted, but can boot a card somebody puts in: one fleet Pi read `0xf12`
+(network first, then SD card), and `0xf21` would try the card first.
 
 ## Read the state (any Pi, no change made)
 
@@ -39,10 +41,10 @@ $ sudo rpi-eeprom-update
 ```
 
 `rpi-eeprom-update` without options only reports. The flash's own protection
-state is in its status registers, which no packaged tool prints. On a Pi 5 the
+state is in its status registers; we found no packaged tool that prints them. On a Pi 5 the
 boot flash is `/dev/spidev10.0`, and four read commands give the part and the
 three registers (`9Fh` JEDEC id, `05h` SR1, `35h` SR2, `15h` SR3). Read commands
-change nothing:
+change nothing. This is the code our survey ran on four fleet Pi 5s:
 
 ```python
 import array, ctypes, fcntl, os, struct
@@ -69,23 +71,26 @@ SR1 `0xbc` is `SRP=1`, `TB=1`, `BP2..0=111` (the whole array protected); SR2
 
 ### What was measured
 
-All of it on Pi 5 Rev 1.1 boards with the W25Q16 flash, netbooting the fleet
-root, on 3 and 4 Oct 2026.
+All of it on Pi 5 boards with the W25Q16 flash, netbooting the fleet root, on
+3 and 4 Oct 2026. Observations 2 to 5 are from one board.
 
 | | Observation |
 |---|---|
-| 1 | `eeprom_write_protect=1` in the `config.txt` served over netboot **is applied**: SR1 went from `0x00` to `0xbc` in one boot. This is how every fleet Pi gets locked, including Pis nobody has handled. |
-| 2 | `eeprom_write_protect=0` served over netboot **was not applied**: SR1 stayed `0xbc` over four boots. |
+| 1 | `eeprom_write_protect=1` in the `config.txt` served over netboot **is applied**: SR1 went from `0x00` to `0xbc` in one boot (one board). All four Pi 5s we read were locked this way, two of them never handled for it. |
+| 2 | `eeprom_write_protect=0` served over netboot **was not applied**: SR1 stayed `0xbc` over four boots. The `TP14` to `TP1` bridge was believed fitted during those boots, but that was not checked and cannot be read from software (observation 6). |
 | 3 | With the flash protected, the netboot self-update fetched `pieeprom.sig` and `pieeprom.upd`, wrote nothing, tried once more and then booted the operating system. **Nothing anywhere reported the failed update.** |
-| 4 | An SD card holding `recovery.bin`, `pieeprom.bin`, `pieeprom.sig` and a `config.txt` with `eeprom_write_protect=0`, with the `TP14` and `TP1` pads bridged, cleared the protection and wrote the new bootloader. The activity LED blinked 3 long, 3 short although the write had succeeded. |
+| 4 | An SD card holding `recovery.bin`, `pieeprom.bin` and a `config.txt` with `eeprom_write_protect=0` (whether `pieeprom.sig` was on it was not recorded), with the `TP14` and `TP1` pads bridged, cleared the protection and wrote the new bootloader. The activity LED blinked 3 long, 3 short although the write had succeeded. |
 | 5 | With the flash unprotected and already holding the offered image, the netboot self-update found nothing to do and booted on. |
 | 6 | The flash's `/WP` pin goes to no SoC GPIO: software cannot read whether the pads are bridged. |
 | 7 | A bootloader of `2026/05/26` already provides `/dev/pio0` (RP1 PIO). The upgrade to `2026/09/25` is for a uniform fleet. |
 
-Observations 1 and 2 do not fit a plain reading of Raspberry Pi's description
-below, where the setting is "for `recovery.bin`". We have not found out why the
-unlock over netboot fails (the bootloader's UART log during such a boot has not
-been captured).
+Observation 1 does not fit a plain reading of Raspberry Pi's description
+below, where the setting is "for `recovery.bin`": the bootloader applied it from
+a netbooted `config.txt`. For observation 2 the simplest explanation is a bridge
+that was not making contact; the other is that the bootloader sets but does not
+clear the protection outside `recovery.bin`. Which it is has not been found out
+(the bootloader's UART log during such a boot has not been captured), so an
+unlock over netboot is **not shown to work**, and not shown to be impossible.
 
 ### Not yet known
 
@@ -98,17 +103,27 @@ been captured).
   protection against accident and against the standard tools, not as proven
   against a determined visitor.
 - Whether the SD card route works without the bridge.
+- Whether `eeprom_write_protect=0` over netboot unlocks a Pi 5 whose bridge is
+  known to be fitted (observation 2).
+- What `rpi-eeprom-update -a` or `rpi-eeprom-config --apply` does on a locked,
+  netbooted fleet Pi. Neither has been run by us there.
 - Whether a Pi 5 that does not boot any more is repaired by the same card.
   Raspberry Pi documents that it is (below); we have not had such a board.
 
 ### Upgrade a locked Pi 5 (the one route that has worked for us)
+
+It worked once, on one board (observation 4). How that card was made was not
+recorded, so the commands of step 1 are Raspberry Pi's tools used as their help
+text describes: **step 1 as written is not yet run by us.** Steps 2 to 6 are
+what was done.
 
 Needed: a hand at the board, a microSD card, something to bridge two pads.
 
 1. **Prepare the card** (FAT partition), with these four files in its root:
    - `recovery.bin` and the release's `pieeprom.bin`, from the
      [rpi-eeprom](https://github.com/raspberrypi/rpi-eeprom) package or
-     repository (directory `firmware-2712` for a Pi 5);
+     repository (directory `firmware-2712` for a Pi 5: `recovery.bin` at its
+     top, the images under the release channel's directory, such as `default/`);
    - the configuration put into the image with
      `rpi-eeprom-config --config boot.conf --out pieeprom.bin pieeprom-<release>.bin`,
      where `boot.conf` holds the settings from [What the fleet
@@ -145,10 +160,12 @@ What can go wrong:
 
 ### What does not work
 
-- `rpi-eeprom-update -a` or `rpi-eeprom-config --apply` on a running fleet Pi:
-  the flash is protected, and the update they stage is then ignored silently
-  (observation 3).
-- Serving `eeprom_write_protect=0` to the Pi over netboot (observation 2).
+- A netboot self-update against the protected flash: nothing is written and
+  nothing reports it (observation 3). `rpi-eeprom-update -a` and
+  `rpi-eeprom-config --apply` stage the same kind of update for the bootloader
+  to apply, so the same outcome is expected; not yet run by us.
+- Serving `eeprom_write_protect=0` to the Pi over netboot did not unlock it when
+  tried, with the caveat of observation 2.
 - `flashrom`: Raspberry Pi's documentation says it "does not support clearing
   of the write-protect regions and will fail to update the EEPROM if
   write-protect regions are defined".
@@ -176,7 +193,11 @@ From the [`config.txt` documentation,
 > `EEPROM_nWP` or on a Raspberry Pi 4 `TP5`) does NOT write-protect the EEPROM
 > unless the `Write Status Register` has also been configured.
 >
+> [...]
+>
 > `eeprom_write_protect` settings in `config.txt` for `recovery.bin`.
+>
+> [...]
 >
 > On Raspberry Pi 5 `/WP` is pulled low by default and consequently
 > write-protect is enabled as soon as the `Write Status Register` is configured.
@@ -273,15 +294,19 @@ looked up in that carrier's documentation.
 So on a Compute Module the lock has two parts, as on the Pi 4: the status
 register, set by `eeprom_write_protect=1`, and the `EEPROM_nWP` pin of the
 module's connector, which the carrier must pull low for the status register to
-stay as set. Whether a given carrier pulls `EEPROM_nWP` low, leaves it open or
+stay as set. Raspberry Pi's step 5 names `/boot/firmware/config.txt` while step
+6 flashes from the `usbboot/recovery` directory, which has a `config.txt` of its
+own; which of the two the setting has to be in is not clear from the text and
+not tried by us. Whether a given carrier pulls `EEPROM_nWP` low, leaves it open or
 brings it to a jumper is a property of that carrier. For the upgrade it must
 **not** be low; for the lock it must be.
 
 ### Differences from the Pi 5 to keep in mind
 
-- No card route and no `recovery.bin` from storage: USB `rpiboot` is the
-  repair route, so a Compute Module whose bootloader is broken needs its
-  carrier's USB device port and `nRPI_BOOT`.
+- No card route and no `recovery.bin` from storage. Raspberry Pi names USB
+  `rpiboot` as the only way to reflash a CM4; for a CM5 we infer the same from
+  the passage above. A Compute Module whose bootloader is broken therefore
+  needs its carrier's USB device port and `nRPI_BOOT`.
 - Self-update over netboot exists but "does not update the bootloader
   atomically": a power cut during the write can leave a module that only
   `rpiboot` repairs.
