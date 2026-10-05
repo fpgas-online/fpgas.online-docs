@@ -404,6 +404,36 @@ class LongBlocks(unittest.TestCase):
         self.assertNotIn("class", short_one.attrs)
 
 
+class StepPictures(unittest.TestCase):
+    def run_steps(self, html_text):
+        article = p.BeautifulSoup(html_text, "html.parser")
+        p.step_pictures(article, p.BeautifulSoup("", "html.parser"))
+        return article
+
+    def test_a_picture_is_wrapped_with_the_paragraph_before_it(self):
+        article = self.run_steps('<p>1. Cut.</p><p><img src="a.png"></p><p>after</p>')
+        step = article.select_one("div.step")
+        self.assertEqual([child.name for child in step.children], ["p", "p"])
+        self.assertEqual(step.find("p").get_text(), "1. Cut.")
+        self.assertIn("picture", step.find_all("p")[1]["class"])
+        self.assertEqual(article.find_all("p")[-1].parent.name, "[document]")
+
+    def test_a_list_between_the_words_and_the_picture_comes_along_in_order(self):
+        article = self.run_steps('<p>14. Fit.</p><ol><li>off</li></ol><p><a href="x"><img src="a.png"></a></p>')
+        self.assertEqual([child.name for child in article.select_one("div.step").children], ["p", "ol", "p"])
+
+    def test_a_second_picture_of_a_step_stays_outside_and_is_still_a_picture(self):
+        article = self.run_steps('<p>5. Fill.</p><p><img src="a.png"></p><p><img src="b.png"></p>')
+        self.assertEqual(len(article.select("div.step")), 1)
+        self.assertEqual(len(article.select("div.step img")), 1)
+        self.assertEqual(len(article.select("p.picture")), 2)
+
+    def test_a_picture_after_a_heading_or_with_words_around_it_is_not_wrapped(self):
+        article = self.run_steps('<h3>Sheet</h3><p><img src="a.png"></p><p>see <img src="b.png"> here</p>')
+        self.assertIsNone(article.find("div"))
+        self.assertEqual(len(article.select("p.picture")), 1)
+
+
 class ShortTables(unittest.TestCase):
     def table(self, rows):
         return "<table>%s</table>" % "".join("<tr><td>%d</td></tr>" % n for n in range(rows))

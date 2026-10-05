@@ -119,7 +119,7 @@ p { margin: 0 0 2.5mm; orphans: 3; widows: 3; }
 ul, ol { margin: 0 0 2.5mm; padding-left: 6mm; }
 a { color: #000; text-decoration: underline; text-decoration-color: #999; }
 code, pre { font-family: "DejaVu Sans Mono", "Liberation Mono", monospace; }
-code { font-size: 8.8pt; background: #eee; padding: 0 0.6mm; }
+code { font-size: 8.8pt; background: #eee; padding: 0 0.6mm; overflow-wrap: anywhere; }
 pre { font-size: 8pt; line-height: 1.3; border: 0.4pt solid #888; background: #f6f6f6;
       padding: 2mm; margin: 0 0 3mm; white-space: pre-wrap; overflow-wrap: anywhere;
       break-inside: avoid; }
@@ -138,12 +138,21 @@ table { border-collapse: collapse; width: calc(100%% - 1pt); margin: 0 0 3.5mm; 
 .table-wrapper table { margin: 0; }
 th, td { border: 0.4pt solid #555; padding: 1mm 1.6mm; text-align: left; vertical-align: top; }
 th { background: #ddd; }
+/* A cell whose longest word is wider than its column would push the table past
+   the sheet's edge, and Chrome then shrinks every sheet of the PDF to fit it.
+   A cell may break a word; a heading may not, so no column is narrower than
+   the words of its heading. */
+td { overflow-wrap: anywhere; }
 thead { display: table-header-group; }
 tr { break-inside: avoid; }
 .admonition { border: 1.2pt solid #000; padding: 2mm 3mm; margin: 0 0 3.5mm; break-inside: avoid; }
 .admonition-title { font-weight: bold; text-transform: uppercase; margin-bottom: 1mm; }
 .admonition p:last-child { margin-bottom: 0; }
 img { max-width: 100%%; }
+/* A picture is never cut by the end of a sheet, and leaves room for its step's words above it. */
+p.picture { break-inside: avoid; text-align: center; }
+p.picture img { max-height: 200mm; }
+.step { break-inside: avoid; }
 .wide { page: wide; break-before: page; break-inside: avoid;
         margin: 0; text-align: center; }
 .wide img { width: 100%%; max-height: 172mm; object-fit: contain; }
@@ -449,6 +458,31 @@ def long_blocks(body: Tag) -> None:
             block["class"] = [*block.get("class", []), "long"]
 
 
+def step_pictures(body: Tag, soup: BeautifulSoup) -> None:
+    """Keep a picture whole, and on the sheet of the words it belongs to.
+
+    A paragraph that holds only an image is the picture of what comes just
+    before it: the paragraph of a step, or that paragraph and its list. They
+    are wrapped together so the sheet does not end between them. A second
+    picture of the same step stays whole but may start the next sheet.
+    """
+    for paragraph in body.find_all("p"):
+        if paragraph.find("img") is None or paragraph.get_text(strip=True):
+            continue
+        paragraph["class"] = [*paragraph.get("class", []), "picture"]
+        words = []
+        before = paragraph.find_previous_sibling()
+        if before is not None and before.name in ("ol", "ul"):
+            words.append(before)
+            before = before.find_previous_sibling()
+        if before is None or before.name != "p" or "picture" in before.get("class", []):
+            continue
+        step = soup.new_tag("div", attrs={"class": "step"})
+        before.insert_before(step)
+        for part in (before, *reversed(words), paragraph):
+            step.append(part.extract())
+
+
 def short_tables(body: Tag) -> None:
     """Keep a short table on one sheet; a long one may run over."""
     for table in body.find_all("table"):
@@ -470,6 +504,7 @@ def chapter(number: int, spec: str, commit: str, fetched: str) -> tuple[str, str
     links = link_notes(body, url, soup)
     long_blocks(body)
     short_tables(body)
+    step_pictures(body, soup)
     heading = body.find("h1")
     title = heading.get_text(strip=True) if heading else path
     note = f"Chapter {number} · Source: {url}"
