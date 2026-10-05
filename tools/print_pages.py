@@ -17,16 +17,18 @@ A page may be cut down to some of its sections, named by their anchors:
     boards/acorn/wiring#bill-of-materials,raspberry-pi-5
 
 keeps the page's title, the text before its first section, and those sections
-(with everything inside them), in the page's own order. A section that is not
-on the page stops the run.
+(with everything inside them), in the page's own order. A section kept only
+for one inside it keeps just its heading. A section that is not on the page
+stops the run.
 
 Every chapter starts on a new sheet under a line giving its source URL, the
 commit the site was built from and the date it was fetched; every sheet has
 the commit and a page number in its foot. An image wider than WIDE_PX is put
 on a landscape sheet of its own, at the full width of the paper, in its vector
-form when the page links one.
+form when the page links one. --append puts existing PDFs (label sheets) after
+the printed pages unchanged; they must already be on the right paper.
 
-Needs google-chrome-stable, which does the printing.
+Needs google-chrome-stable, which does the printing, and pdfunite for --append.
 """
 
 from __future__ import annotations
@@ -61,6 +63,7 @@ PAPERS = {"A4": "A4", "Letter": "letter"}
 # An image at least this many pixels wide (a wiring sheet) gets a landscape
 # sheet to itself; anything narrower stays in the text.
 WIDE_PX = 1200
+HEADINGS = ("h1", "h2", "h3", "h4", "h5", "h6")
 
 CSS = """
 @page {
@@ -73,7 +76,9 @@ CSS = """
 @page wide { size: %(paper)s landscape; margin: 10mm 10mm 14mm 10mm; }
 html { font: 10pt/1.4 "DejaVu Sans", "Liberation Sans", Arial, sans-serif; color: #000; }
 body { margin: 0; }
-.cover { break-after: page; padding-top: 60mm; }
+.cover { break-after: page; padding-top: 30mm; }
+.cover small { color: #444; word-break: break-all; }
+.cover .admonition { margin-top: 8mm; }
 .cover h1 { font-size: 26pt; border: 0; }
 .cover li { margin: 2mm 0; }
 .chapter { break-before: page; }
@@ -164,11 +169,18 @@ def keep_sections(body: Tag, wanted: list[str], url: str) -> None:
             return True
         children = [child for child in section.find_all("section", recursive=False)]
         alive = [child for child in children if prune(child)]
-        for child in children:
-            if child not in alive:
+        if not alive:
+            return False
+        # Kept only for what is inside it: its heading stays to say where the
+        # wanted sections sit, its own text and its other sections go.
+        for child in list(section.children):
+            if not isinstance(child, Tag):
+                child.extract()
+            elif child not in alive and child.name not in HEADINGS:
                 child.decompose()
-        return bool(alive)
+        return True
 
+    # The page's own section keeps its lead text whatever is wanted under it.
     top = body.find("section")
     for section in top.find_all("section", recursive=False):
         if not prune(section):
@@ -244,24 +256,40 @@ def chapter(spec: str, commit: str, fetched: str) -> tuple[str, str]:
     )
 
 
-def document(title: str, paper: str, specs: list[str]) -> str:
+def notes(text: str) -> str:
+    """A box from a notes file: its first line is the heading, each later line an item."""
+    lines = [line.strip() for line in text.splitlines() if line.strip()]
+    if not lines:
+        raise SystemExit("a notes file needs a heading line")
+    items = "".join(f"<li>{html.escape(line)}</li>" for line in lines[1:])
+    return (
+        f'<div class="admonition"><p class="admonition-title">{html.escape(lines[0])}</p>'
+        f"<ul>{items}</ul></div>"
+    )
+
+
+def document(title: str, paper: str, specs: list[str], cover_notes: str = "", last_sheet: str = "") -> str:
     commit = built_commit()
     fetched = datetime.date.today().isoformat()
     chapters = [chapter(spec, commit, fetched) for spec in specs]
     foot = f"{title} · docs.fpgas.online · commit {commit[:10]} · {fetched}".replace('"', "'")
     css = CSS % {"paper": PAPERS[paper], "foot": foot}
-    contents = "".join(f"<li>{html.escape(name)}</li>" for name, _ in chapters)
+    contents = "".join(
+        f"<li>{html.escape(name)} <small>({html.escape(spec)})</small></li>"
+        for spec, (name, _) in zip(specs, chapters)
+    )
     cover = (
         f'<div class="cover"><h1>{html.escape(title)}</h1>'
         f"<p>Printed from the pages published at {html.escape(SITE)}, "
         f"built from commit {html.escape(commit)} of fpgas-online/fpgas.online-docs, "
         f"fetched {fetched}. The published pages are the current ones; this is a copy.</p>"
-        f"<ol>{contents}</ol></div>"
+        f"<ol>{contents}</ol>{notes(cover_notes) if cover_notes else ''}</div>"
     )
+    last = f'<div class="chapter">{notes(last_sheet)}</div>' if last_sheet else ""
     return (
         f'<!doctype html><html lang="en"><head><meta charset="utf-8">'
         f"<title>{html.escape(title)}</title><style>{css}</style></head>"
-        f"<body>{cover}{''.join(text for _, text in chapters)}</body></html>"
+        f"<body>{cover}{''.join(text for _, text in chapters)}{last}</body></html>"
     )
 
 
@@ -291,24 +319,52 @@ def print_pdf(page: Path, output: Path) -> None:
         raise SystemExit(f"{CHROME} wrote no PDF at {output}")
 
 
+def append_pdfs(output: Path, extra: list[Path]) -> None:
+    """Put the extra PDFs (label sheets, say) after the printed pages, as they are."""
+    joiner = shutil.which("pdfunite")
+    if joiner is None:
+        raise SystemExit("pdfunite (poppler-utils) is not installed; --append needs it")
+    for path in extra:
+        if not path.is_file():
+            raise SystemExit(f"--append {path}: no such file")
+    printed = output.with_suffix(".printed.pdf")
+    output.rename(printed)
+    try:
+        subprocess.run([joiner, str(printed), *map(str, extra), str(output)], check=True)
+    finally:
+        printed.unlink()
+
+
 def main() -> int:
     parser = argparse.ArgumentParser(description=__doc__.split("\n\n")[0])
     parser.add_argument("--paper", choices=sorted(PAPERS), required=True)
     parser.add_argument("--title", required=True, help="printed on the cover and in each foot")
     parser.add_argument("--output", type=Path, required=True, help="the PDF to write")
     parser.add_argument("--keep-html", action="store_true", help="leave the joined page beside the PDF")
+    parser.add_argument("--append", type=Path, action="append", default=[], metavar="PDF",
+                        help="a PDF to put after the printed pages, unchanged (may be repeated)")
+    parser.add_argument("--cover-notes", type=Path, metavar="FILE",
+                        help="a box for the cover: the file's first line is its heading, each later line an item")
+    parser.add_argument("--last-sheet", type=Path, metavar="FILE",
+                        help="a box on a sheet of its own after the pages, in the same form")
     parser.add_argument("pages", nargs="+", metavar="PAGE", help='e.g. "boards/acorn/wiring#raspberry-pi-5"')
     args = parser.parse_args()
 
     output = args.output.resolve()
     output.parent.mkdir(parents=True, exist_ok=True)
     joined = output.with_suffix(".html")
-    joined.write_text(document(args.title, args.paper, args.pages), encoding="utf-8")
+    cover_notes = args.cover_notes.read_text(encoding="utf-8") if args.cover_notes else ""
+    last_sheet = args.last_sheet.read_text(encoding="utf-8") if args.last_sheet else ""
+    joined.write_text(
+        document(args.title, args.paper, args.pages, cover_notes, last_sheet), encoding="utf-8"
+    )
     try:
         print_pdf(joined, output)
     finally:
         if not args.keep_html:
             joined.unlink()
+    if args.append:
+        append_pdfs(output, args.append)
     print(f"wrote {output}")
     return 0
 
