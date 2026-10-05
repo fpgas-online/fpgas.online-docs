@@ -305,6 +305,17 @@ class LinkNotes(unittest.TestCase):
         self.assertIsNone(box)
         self.assertEqual(article.select("sup.ref"), [])
 
+    def test_the_heading_stays_with_the_first_addresses_and_numbering_runs_on(self):
+        links = ''.join(f'<a href="https://example.org/{n}">l{n}</a> ' for n in range(1, 8))
+        _, box = self.notes_for(f'<p>{links}</p>')
+        together = box.select_one('div.together')
+        self.assertEqual(together.find('h2').get_text(), 'Links in this chapter')
+        self.assertEqual(len(together.select('li')), p.LINKS_WITH_HEADING)
+        rest = box.find_all('ol')[1]
+        self.assertEqual(rest['start'], str(p.LINKS_WITH_HEADING + 1))
+        self.assertEqual([li.get_text() for li in box.select('li')],
+                         [f'https://example.org/{n}' for n in range(1, 8)])
+
     def test_a_link_in_a_listing_gets_no_mark(self):
         article, box = self.notes_for('<pre>see <a href="https://example.org/a">a</a></pre>')
         self.assertIsNone(box)

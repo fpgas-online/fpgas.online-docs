@@ -77,6 +77,8 @@ PAPER_POINTS = {"A4": (595.28, 841.89), "Letter": (612.0, 792.0)}
 WIDE_PX = 1200
 # A listing with more lines than this may run over the end of a sheet.
 LONG_LINES = 18
+# This many addresses stay on the sheet of the "Links in this chapter" heading.
+LINKS_WITH_HEADING = 4
 HEADINGS = ("h1", "h2", "h3", "h4", "h5", "h6")
 
 CSS = """
@@ -114,12 +116,16 @@ pre { font-size: 8pt; line-height: 1.3; border: 0.4pt solid #888; background: #f
 pre.long { break-inside: auto; }
 pre code { background: none; padding: 0; }
 sup.ref { font-size: 6.5pt; line-height: 0; color: #333; }
-.links { break-before: avoid; }
+.links .together { break-inside: avoid; }
+.links ol { margin-bottom: 0; }
 .links ol { font-size: 8pt; overflow-wrap: anywhere; }
 .inflow { margin: 0 0 3.5mm; break-inside: avoid; }
 .inflow img { width: 100%%; }
 .inflow figcaption { font-size: 8pt; color: #333; }
 table { border-collapse: collapse; width: calc(100%% - 1pt); margin: 0 0 3.5mm; font-size: 8.8pt; }
+/* A table that ran over a sheet's end loses its own bottom margin; its wrapper keeps the gap. */
+.table-wrapper { margin: 0 0 3.5mm; }
+.table-wrapper table { margin: 0; }
 th, td { border: 0.4pt solid #555; padding: 1mm 1.6mm; text-align: left; vertical-align: top; }
 th { background: #ddd; }
 thead { display: table-header-group; }
@@ -402,15 +408,22 @@ def link_notes(body: Tag, url: str, soup: BeautifulSoup) -> Tag | None:
     if not numbers:
         return None
     box = soup.new_tag("div", attrs={"class": "links"})
+    # The heading and the first few addresses are one block that is not split,
+    # so the heading is never the last line of a sheet.
+    head = soup.new_tag("div", attrs={"class": "together"})
     heading = soup.new_tag("h2")
     heading.string = "Links in this chapter"
-    box.append(heading)
-    listing = soup.new_tag("ol")
-    for target in numbers:
+    head.append(heading)
+    box.append(head)
+    first = soup.new_tag("ol")
+    rest = soup.new_tag("ol", start=str(LINKS_WITH_HEADING + 1))
+    for number, target in enumerate(numbers, 1):
         item = soup.new_tag("li")
         item.string = target
-        listing.append(item)
-    box.append(listing)
+        (first if number <= LINKS_WITH_HEADING else rest).append(item)
+    head.append(first)
+    if rest.find("li") is not None:
+        box.append(rest)
     return box
 
 
