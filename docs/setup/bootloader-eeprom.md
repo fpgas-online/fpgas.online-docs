@@ -213,6 +213,25 @@ is **not** protected (a new Pi, or one cleared with the card), and it is where a
 upgrade can be watched. Making it a managed feature that upgrades a locked Pi
 without a visit is open work.
 
+### Why there are no steps for a blade: what it would need
+
+```{image} bootloader-eeprom/blade-dev.svg
+:alt: Outline of a Dev model Compute Blade with the USB Type-C port (1), the USB switch (2), the nRPIBOOT button (3) and the DIP switches marked
+:width: 100%
+```
+
+A Compute Module's bootloader is written over USB from another computer, and
+that needs the three parts numbered 1, 2 and 3 in the drawing. The blade's
+maker says only the Dev model has them. A failed write on a Compute Module can
+be repaired only the same way, which is why a blade that works is left alone.
+
+```{image} bootloader-eeprom/blade-dip.svg
+:alt: The three DIP switches of a Dev model Compute Blade: 1 write protection (left disabled, right enabled), 2 Wi-Fi, 3 Bluetooth
+:width: 85%
+```
+
+The Dev model also has the switch that holds the bootloader's write protection.
+
 ### What the Compute Blade's maker documents
 
 :::{warning}
