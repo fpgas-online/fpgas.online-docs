@@ -96,3 +96,23 @@ html_css_files = ["custom.css"]
 intersphinx_mapping = {
     "python": ("https://docs.python.org/3", None),
 }
+
+# -- todo boxes on the contributing page --------------------------------------
+# {todolist} copies every {todo} box into docs/contributing.md and re-resolves
+# its cross-references from there. But sphinx.ext.todo stores the box nodes
+# themselves, not copies, and Sphinx keeps the read documents in memory when it
+# writes. So a page written before contributing.md (everything under boards/)
+# has already resolved its boxes' links relative to itself, and the copy on the
+# contributing page inherits links such as "pin-id.html" or a bare "#anchor".
+# Storing a copy leaves the page's own document alone and the list's copy
+# unresolved, so its links are resolved from contributing.md.
+
+
+def _copy_todos_for_the_list(app, doctree):
+    todos = app.env.get_domain("todo").todos
+    docname = app.env.docname
+    todos[docname] = [todo.deepcopy() for todo in todos.get(docname, [])]
+
+
+def setup(app):
+    app.connect("doctree-read", _copy_todos_for_the_list)
