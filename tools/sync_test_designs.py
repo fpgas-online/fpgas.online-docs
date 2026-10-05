@@ -54,6 +54,8 @@ FILES = {
             "acorn-blade-p2.md",
             "acorn-blade-ext.md",
             "acorn-blade-uart.md",
+            "acorn-pi5-bom.md",
+            "acorn-blade-bom.md",
         ],
     ),
 }
