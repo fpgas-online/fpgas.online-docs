@@ -43,11 +43,11 @@ import http.client
 import json
 import mimetypes
 import os
+import re
 import shutil
 import subprocess
 import sys
 import tempfile
-import urllib.error
 import urllib.parse
 import urllib.request
 from pathlib import Path
@@ -219,17 +219,99 @@ def absolute_links(body: Tag, url: str) -> None:
         link["href"] = urllib.parse.urljoin(url, link["href"])
 
 
+def content_kind(url: str, kind: str) -> str:
+    """The content type to trust: a server's vague answer yields to the file's extension."""
+    if kind in ("application/octet-stream", "text/plain"):
+        return mimetypes.guess_type(urllib.parse.urlparse(url).path)[0] or kind
+    return kind
+
+
+def as_data_uri(content: bytes, kind: str) -> str:
+    return f"data:{kind};base64,{base64.b64encode(content).decode()}"
+
+
 def data_uri(url: str) -> str:
     content, kind = fetch(url)
-    if kind in ("application/octet-stream", "text/plain"):
-        kind = mimetypes.guess_type(urllib.parse.urlparse(url).path)[0] or kind
-    return f"data:{kind};base64,{base64.b64encode(content).decode()}"
+    return as_data_uri(content, content_kind(url, kind))
 
 
 def png_width(content: bytes) -> int | None:
     if content[:8] == b"\x89PNG\r\n\x1a\n":
         return int.from_bytes(content[16:20], "big")
     return None
+
+
+def jpeg_width(content: bytes) -> int | None:
+    """The width in the first start-of-frame marker of a JPEG."""
+    if content[:2] != b"\xff\xd8":
+        return None
+    position = 2
+    while position + 4 <= len(content):
+        if content[position] != 0xFF:
+            return None
+        marker = content[position + 1]
+        if marker == 0xFF:  # fill byte
+            position += 1
+            continue
+        if marker in (0x01, *range(0xD0, 0xDA)):  # markers with no length
+            position += 2
+            continue
+        length = int.from_bytes(content[position + 2:position + 4], "big")
+        if marker in range(0xC0, 0xD0) and marker not in (0xC4, 0xC8, 0xCC):
+            if position + 9 > len(content):
+                return None
+            return int.from_bytes(content[position + 7:position + 9], "big")
+        position += 2 + length
+    return None
+
+
+def gif_width(content: bytes) -> int | None:
+    if content[:6] in (b"GIF87a", b"GIF89a") and len(content) >= 10:
+        return int.from_bytes(content[6:8], "little")
+    return None
+
+
+def svg_width(content: bytes) -> int | None:
+    """The width an SVG states: its width attribute, else its viewBox."""
+    root = re.search(rb"<svg\b[^>]*>", content)
+    if root is None:
+        return None
+    tag = root.group(0).decode("utf-8", "replace")
+    width = re.search(r"""\swidth\s*=\s*["']\s*([0-9.]+)\s*(px)?\s*["']""", tag)
+    if width:
+        return round(float(width.group(1)))
+    box = re.search(r"""\sviewBox\s*=\s*["']\s*[-0-9.]+[\s,]+[-0-9.]+[\s,]+([0-9.]+)[\s,]+[0-9.]+\s*["']""", tag)
+    if box:
+        return round(float(box.group(1)))
+    return None
+
+
+def image_width(content: bytes, kind: str) -> int | None:
+    """The pixel width of a PNG, JPEG, GIF or SVG; None when it cannot be read."""
+    if kind == "image/svg+xml":
+        return svg_width(content)
+    return png_width(content) or jpeg_width(content) or gif_width(content)
+
+
+def place_figure(movable: Tag, figure: Tag, lifted: dict[int, Tag]) -> None:
+    """Put figure where movable (an image, or the link holding only it) was, and movable in figure.
+
+    A figure cannot sit inside a paragraph: it goes after the paragraph, and
+    the paragraph's other text stays.
+    """
+    if movable.find_parent([*HEADINGS, "pre", "code"]) is not None:
+        raise SystemExit(f"cannot print a wide image inside a heading or a listing: {str(movable)[:80]}")
+    paragraph = movable.find_parent("p")
+    if paragraph is None:
+        movable.replace_with(figure)
+    else:
+        movable.extract()
+        # Several images of one paragraph keep their order after it.
+        lifted.get(id(paragraph), paragraph).insert_after(figure)
+        lifted[id(paragraph)] = figure
+        if not paragraph.get_text(strip=True) and paragraph.find("img") is None:
+            paragraph.decompose()
+    figure.append(movable)
 
 
 def inline_images(body: Tag, url: str, soup: BeautifulSoup) -> list[Tag]:
@@ -239,30 +321,43 @@ def inline_images(body: Tag, url: str, soup: BeautifulSoup) -> list[Tag]:
     returned hold it again at the full width of a landscape page.
     """
     sheets = []
+    lifted: dict[int, Tag] = {}
     for image in body.find_all("img", src=True):
         source = urllib.parse.urljoin(url, image["src"])
         content, kind = fetch(source)
-        width = png_width(content)
+        kind = content_kind(source, kind)
+        width = image_width(content, kind)
+        if width is None:
+            raise SystemExit(f"{source}: cannot read the type or width of this image (content type {kind})")
         link = image.find_parent("a", href=True)
-        vector = link["href"] if link and link["href"].lower().endswith(".svg") else None
+        vector = None
+        vector_width = None
+        if link is not None:
+            target = urllib.parse.urljoin(url, link["href"])
+            if urllib.parse.urlparse(target).path.lower().endswith(".svg"):
+                vector = target
         if vector:
-            image["src"] = data_uri(vector)
+            svg, svg_kind = fetch(vector)
+            svg_kind = content_kind(vector, svg_kind)
+            if svg_kind != "image/svg+xml":
+                raise SystemExit(f"{vector}: linked as an SVG but served as {svg_kind}")
+            vector_width = svg_width(svg)
+            image["src"] = as_data_uri(svg, svg_kind)
         else:
-            image["src"] = f"data:{kind};base64,{base64.b64encode(content).decode()}"
+            image["src"] = as_data_uri(content, kind)
         for attribute in ("width", "height", "style", "srcset"):
             image.attrs.pop(attribute, None)
-        if not (vector or (width is not None and width >= WIDE_PX)):
+        if width < WIDE_PX and (vector_width or 0) < WIDE_PX:
             continue
         name = image.get("alt", "").strip() or "Figure"
         figure = soup.new_tag("figure", attrs={"class": "inflow"})
+        # The link goes with the image only when it holds nothing else.
+        alone = link is not None and len(link.find_all("img")) == 1 and not link.get_text(strip=True)
+        place_figure(link if alone else image, figure, lifted)
+        if link is not None and not alone and not link.get_text(strip=True) and link.find("img") is None:
+            link.decompose()
         caption = soup.new_tag("figcaption")
         caption.string = f"{name}. The same sheet is at full size at the end of this chapter."
-        holder = link or image
-        # A block cannot sit inside the paragraph that held the image.
-        parent = holder.parent
-        alone = parent.name == "p" and not parent.get_text(strip=True) and len(parent.find_all("img")) == 1
-        (parent if alone else holder).replace_with(figure)
-        figure.append(image)
         figure.append(caption)
 
         sheet = soup.new_tag("figure", attrs={"class": "wide"})
