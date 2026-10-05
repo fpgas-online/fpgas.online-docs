@@ -301,6 +301,114 @@ not tried by us. Whether a given carrier pulls `EEPROM_nWP` low, leaves it open 
 brings it to a jumper is a property of that carrier. For the upgrade it must
 **not** be low; for the lock it must be.
 
+### On a Compute Blade
+
+:::{warning}
+**Not yet run by us on this hardware.** The reads below are ours; every step
+that changes a blade's bootloader is the maker's documentation (Uptime Lab,
+[docs.computeblade.com](https://docs.computeblade.com/), read 5 Oct 2026),
+quoted. We have not flashed or locked a bootloader on a Compute Blade.
+:::
+
+#### Does this blade need it at all?
+
+Read the state first; it changes nothing and needs no root:
+
+```console
+$ vcgencmd bootloader_version
+$ vcgencmd bootloader_config
+```
+
+Two PS1 blades read on 5 Oct 2026, both a Compute Module 5 Lite, both running
+the site's network-booted root at the time:
+
+| Blade | Bootloader | Configuration |
+|---|---|---|
+| pi16 | `2025/12/08` | `BOOT_UART=1`, `BOOT_ORDER=0xf2461` (commented in the image as "Default BOOT_ORDER for provisioning", "SD -> NVMe -> USB -> Network") |
+| pi20 | `2025/11/05` | the same |
+
+So these bootloaders **do netboot**, with the stock boot order: `0xf2461` tries
+SD card or eMMC, NVMe, USB and then the network, and starts again. Nothing we
+have measured says a blade needs a newer bootloader to netboot or to run the
+checks. `rpi-eeprom-update` prints "UPDATE AVAILABLE" on both; that only says a
+newer release exists in the installed package.
+
+What an upgrade or a new configuration would buy:
+
+- **A boot order without local media** (`0xf2`), so that a card, a USB stick or
+  an SSD someone fits cannot be booted. With `0xf2461` it can, and it is tried
+  before the network.
+- **One bootloader release across the fleet.**
+
+Neither is needed to get a blade working. If you do not need them, leave the
+bootloader alone: on a Compute Module a failed write is repaired only over USB
+(below).
+
+#### What the blade gives you for it
+
+Only the **Dev** model of the Compute Blade has the parts for the USB route.
+From the maker's [image guide](https://docs.computeblade.com/blade/getting-started/image):
+
+> eMMC can only be imaged on Dev blade as it has USB Type-C port, USB switch,
+> and nRPIBOOT button
+
+and, for putting the module into USB boot:
+
+> From the usbboot directory run `sudo ./rpiboot`
+>
+> Move the USB switch to the USB Type-C position. Then, while holding down the
+> nRPIBOOT button on the blade connect the USB Type-C cable.
+>
+> The Device will reconnect several times. On the last time it will appear as a
+> USB media device.
+
+The [USB switch](https://docs.computeblade.com/blade/guides/usb) is there
+because "The compute module can only operate one USB port at a time." The
+maker's [usbboot guide](https://docs.computeblade.com/blade/advanced-guides/usbboot)
+covers building `rpiboot` and says the configuration is edited in
+`/usbboot/<firmware directory>/config.txt`; for the flash itself it points to
+Raspberry Pi's "Flash Compute Module bootloader EEPROM", which is the procedure
+[above](#flash-the-bootloader-over-usb-rpiboot).
+
+The write-protect pin is on a DIP switch, again on the Dev model only. From the
+maker's [DIP switch guide](https://docs.computeblade.com/blade/guides/dip):
+
+> DIP Switch is ONLY populated on Dev model Compute Blades.
+>
+> Only change switch positions when the Blade is unplugged from power.
+
+| Switch | Left | Right |
+|---|---|---|
+| 1 - Write Protection | Disabled | Enabled |
+| 2 - Wi-Fi | Enabled | Disabled |
+| 3 - Bluetooth | Enabled | Disabled |
+
+> To enable write protection, changes are required to `config.txt`. It can be
+> found in the directory `/boot/firmware/`, or flash the EEPROM using usbboot
+> adding the following line to the `config.txt` file `eeprom_write_protect=1`
+> This will pull the `EEPROM_nWP` pin low. This will enable the DIP switch.
+
+Read with Raspberry Pi's description above, that is the same two-part lock:
+`eeprom_write_protect=1` sets the flash's status register, and switch 1 is what
+holds `EEPROM_nWP` low. For an upgrade switch 1 has to be at "Disabled".
+
+#### What is not known
+
+- **Which model the PS1 blades are** (Dev, TPM or Basic). We have not recorded
+  it; it is printed on the blade. On a blade that is not a Dev model the maker
+  describes no USB Type-C port, no nRPIBOOT button and no DIP switch, so
+  neither the USB route nor the hardware lock exists on the blade itself: the
+  module would have to go into another carrier that has them (a Raspberry Pi
+  IO board), which we have not done.
+- **What a blade without the DIP switch does with `EEPROM_nWP`** (tied low,
+  tied high or left open). The maker's pages we read do not say.
+- **Whether a blade's bootloader can be updated from the running system.**
+  Raspberry Pi's self-update needs update files in the boot file system it
+  booted from ("For network boot make sure that the TFTP `boot` directory can
+  be mounted through NFS and that `rpi-eeprom-update` can write to it"), is
+  "not atomic", and on a read-only netboot root has nowhere to write. Not tried
+  by us on any Compute Module.
+
 ### Differences from the Pi 5 to keep in mind
 
 - No card route and no `recovery.bin` from storage. Raspberry Pi names USB
@@ -316,7 +424,7 @@ brings it to a jumper is a property of that carrier. For the upgrade it must
 
 ## Sources
 
-- Measurements: fpgas.online Welland fleet, 3 and 4 Oct 2026, Pi 5 Rev 1.1.
+- Measurements: fpgas.online Welland fleet, 3 and 4 Oct 2026, Pi 5.
 - [Raspberry Pi documentation](https://github.com/raspberrypi/documentation),
   commit `287523e6`: `computers/config_txt/boot.adoc`,
   `computers/raspberry-pi/boot-eeprom.adoc`,
@@ -324,3 +432,8 @@ brings it to a jumper is a property of that carrier. For the upgrade it must
   `computers/compute-module/cm-bootloader.adoc`,
   `computers/compute-module/cm-emmc-flashing.adoc`.
 - Winbond W25Q16JV datasheet (status register bits, `/WP` and `QE`).
+- [Compute Blade documentation](https://docs.computeblade.com/) (Uptime Lab),
+  read 5 Oct 2026: getting-started/image, guides/dip, guides/usb,
+  advanced-guides/usbboot.
+- Bootloader reads of two PS1 Compute Blades (Compute Module 5 Lite), 5 Oct
+  2026.
