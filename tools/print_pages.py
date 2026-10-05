@@ -589,7 +589,7 @@ def main() -> int:
     parser.add_argument("--paper", choices=sorted(PAPERS), required=True)
     parser.add_argument("--title", required=True, help="printed on the cover and in each foot")
     parser.add_argument("--output", type=Path, required=True, help="the PDF to write; its name ends in .pdf")
-    parser.add_argument("--keep-html", action="store_true", help="leave the joined page as OUTPUT.html")
+    parser.add_argument("--keep-html", action="store_true", help="leave the joined page as OUTPUT.html (x.pdf.html for x.pdf)")
     parser.add_argument("--append", type=Path, action="append", default=[], metavar="PDF",
                         help="a PDF to put after the printed pages, unchanged (may be repeated)")
     parser.add_argument("--cover-notes", type=Path, metavar="FILE",
