@@ -3,7 +3,13 @@
 """Tests for the parts of print_pages.py that choose and change page content. No network
 and no browser: run with `python -m unittest discover -s tools -p 'test_*.py'`."""
 
+import contextlib
+import io
+import subprocess
+import sys
+import tempfile
 import unittest
+from pathlib import Path
 
 import print_pages as p
 
@@ -327,6 +333,180 @@ class Notes(unittest.TestCase):
         text = p.notes("<b>Head</b>\n<script>x</script>")
         self.assertNotIn("<script>", text)
         self.assertIn("&lt;script&gt;", text)
+
+
+class Document(unittest.TestCase):
+    def make(self, title="Wiring", paper="A4", **notes):
+        real = p.chapter
+        p.chapter = lambda spec, commit, fetched: (f"Chapter {spec}", f"<div>{spec} {commit[:10]}</div>")
+        try:
+            with FakeFetch({p.ADDONS: (b'{"builds": {"current": {"commit": "0123456789abcdef"}}}', "application/json")}):
+                return p.document(title, paper, ["boards/acorn/wiring#a,b", "sites/ps1"], **notes)
+        finally:
+            p.chapter = real
+
+    def test_the_cover_lists_each_spec_and_the_foot_has_ten_characters_of_commit(self):
+        text = self.make()
+        self.assertIn("Chapter boards/acorn/wiring#a,b", text)
+        self.assertIn("(boards/acorn/wiring: a, b)", text)
+        self.assertIn("(sites/ps1)", text)
+        self.assertIn("commit 0123456789 ·", text)
+        self.assertNotIn("0123456789a", text.split("</style>")[0])
+
+    def test_cover_notes_and_last_sheet_appear(self):
+        text = self.make(cover_notes="Cover head\nitem one", last_sheet="Last head\nitem two")
+        self.assertIn("Cover head", text)
+        self.assertIn("item one", text)
+        self.assertIn("Last head", text)
+        self.assertLess(text.index("Last head"), text.index("</body>"))
+
+    def test_a_quote_or_backslash_in_the_title_does_not_break_the_css_string(self):
+        text = self.make(title='Say "hi" \\ there')
+        style = text.split("<style>")[1].split("</style>")[0]
+        self.assertIn(r'content: "Say \"hi\" \\ there · docs.fpgas.online', style)
+
+    def test_a_title_with_a_line_break_or_angle_bracket_is_refused(self):
+        for bad in ("a\nb", "a</style>b"):
+            with self.assertRaises(SystemExit):
+                self.make(title=bad)
+
+    def test_letter_maps_to_letter(self):
+        self.assertIn("size: letter portrait", self.make(paper="Letter"))
+
+
+HERE = Path(__file__).parent
+
+
+class Printing(unittest.TestCase):
+    """main() with the browser and poppler faked: no output file unless a checked PDF came."""
+
+    def setUp(self):
+        self.work = tempfile.TemporaryDirectory(dir=HERE)
+        self.addCleanup(self.work.cleanup)
+        self.dir = Path(self.work.name)
+        self.commands = []
+        self.chrome_writes = True
+        self.united_fails = False
+        self.pages = "Pages:          1\nPage    1 size: 612 x 792 pts (letter)\n"
+        self.saved = (p.document, p.shutil.which, p.subprocess.run)
+        p.document = lambda *args: "<html></html>"
+        p.shutil.which = lambda name: "/fake/" + name
+        p.subprocess.run = self.fake_run
+        self.addCleanup(self.restore)
+
+    def restore(self):
+        p.document, p.shutil.which, p.subprocess.run = self.saved
+
+    def fake_run(self, command, **options):
+        self.commands.append(command)
+        name = Path(command[0]).name
+        if name == "chrome" or name == CHROME:
+            target = next(c for c in command if c.startswith("--print-to-pdf="))
+            if self.chrome_writes:
+                Path(target.split("=", 1)[1]).write_bytes(b"%PDF fresh")
+        elif name == "pdfinfo":
+            return subprocess.CompletedProcess(command, 0, stdout=self.pages, stderr="")
+        elif name == "pdfunite":
+            if self.united_fails:
+                raise subprocess.CalledProcessError(1, command)
+            Path(command[-1]).write_bytes(b"%PDF united")
+        return subprocess.CompletedProcess(command, 0, stdout="", stderr="")
+
+    def main(self, *extra, output="x.pdf"):
+        argv = ["print_pages", "--paper", "Letter", "--title", "T", "--output", str(self.dir / output), *extra, "a/b"]
+        saved = sys.argv
+        sys.argv = argv
+        try:
+            with contextlib.redirect_stdout(io.StringIO()), contextlib.redirect_stderr(io.StringIO()):
+                return p.main()
+        finally:
+            sys.argv = saved
+
+    def names(self):
+        return sorted(path.name for path in self.dir.iterdir())
+
+    def test_a_good_run_writes_the_pdf_and_leaves_nothing_else(self):
+        self.assertEqual(self.main(), 0)
+        self.assertEqual((self.dir / "x.pdf").read_bytes(), b"%PDF fresh")
+        self.assertEqual(self.names(), ["x.pdf"])
+
+    def test_chrome_writing_nothing_stops_the_run_and_leaves_no_output(self):
+        self.chrome_writes = False
+        with self.assertRaises(SystemExit):
+            self.main()
+        self.assertEqual(self.names(), [])
+
+    def test_a_stale_pdf_is_not_taken_for_a_new_one(self):
+        (self.dir / "x.pdf").write_bytes(b"%PDF stale")
+        self.chrome_writes = False
+        with self.assertRaises(SystemExit):
+            self.main()
+        self.assertEqual((self.dir / "x.pdf").read_bytes(), b"%PDF stale")
+        self.assertEqual(self.names(), ["x.pdf"])
+
+    def test_an_output_that_is_not_a_pdf_name_is_refused_and_nothing_is_written(self):
+        with self.assertRaises(SystemExit) as stop:
+            self.main(output="x.html")
+        self.assertEqual(stop.exception.code, 2)
+        self.assertEqual(self.names(), [])
+        self.assertEqual(self.commands, [])
+
+    def test_a_chrome_timeout_is_a_clean_stop(self):
+        def slow(command, **options):
+            raise subprocess.TimeoutExpired(command, 300)
+        p.subprocess.run = slow
+        with self.assertRaises(SystemExit) as stop:
+            self.main()
+        self.assertIn("did not finish", str(stop.exception))
+        self.assertEqual(self.names(), [])
+
+    def test_a_chrome_failure_is_a_clean_stop(self):
+        def broken(command, **options):
+            raise subprocess.CalledProcessError(1, command)
+        p.subprocess.run = broken
+        with self.assertRaises(SystemExit):
+            self.main()
+        self.assertEqual(self.names(), [])
+
+    def test_append_joins_after_the_printed_pages(self):
+        label = self.dir / "labels.pdf"
+        label.write_bytes(b"%PDF label")
+        self.main("--append", str(label))
+        self.assertEqual((self.dir / "x.pdf").read_bytes(), b"%PDF united")
+        self.assertEqual(self.names(), ["labels.pdf", "x.pdf"])
+
+    def test_a_failing_pdfunite_leaves_neither_output_nor_partial_file(self):
+        label = self.dir / "labels.pdf"
+        label.write_bytes(b"%PDF label")
+        self.united_fails = True
+        with self.assertRaises(SystemExit):
+            self.main("--append", str(label))
+        self.assertEqual(self.names(), ["labels.pdf"])
+
+    def test_an_appended_pdf_on_the_wrong_paper_stops_the_run_naming_file_and_size(self):
+        label = self.dir / "labels.pdf"
+        label.write_bytes(b"%PDF label")
+        self.pages = "Pages:          1\nPage    1 size: 595.28 x 841.89 pts (A4)\n"
+        with self.assertRaises(SystemExit) as stop:
+            self.main("--append", str(label))
+        self.assertIn("labels.pdf", str(stop.exception))
+        self.assertIn("595.28 x 841.89", str(stop.exception))
+        self.assertEqual(self.names(), ["labels.pdf"])
+
+    def test_an_appended_pdf_on_the_right_paper_either_way_up_is_accepted(self):
+        label = self.dir / "labels.pdf"
+        label.write_bytes(b"%PDF label")
+        self.pages = "Pages:          2\nPage    1 size: 792 x 612 pts\nPage    2 size: 612.5 x 791 pts\n"
+        self.main("--append", str(label))
+        self.assertEqual((self.dir / "x.pdf").read_bytes(), b"%PDF united")
+
+    def test_a_missing_appended_file_stops_the_run(self):
+        with self.assertRaises(SystemExit):
+            self.main("--append", str(self.dir / "none.pdf"))
+        self.assertEqual(self.names(), [])
+
+
+CHROME = p.CHROME
 
 
 class Css(unittest.TestCase):

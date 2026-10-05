@@ -27,10 +27,16 @@ the commit and a page number in its foot. Links are numbered and their
 addresses listed at the end of the chapter, because paper cannot follow them.
 An image at least WIDE_PX wide stays in the text at the width of the column and
 is printed again at the end of its chapter on a landscape sheet of its own, at
-the full width of the paper; both are in vector form when the page links one. --append puts existing PDFs (label sheets) after
-the printed pages unchanged; they must already be on the right paper.
+the full width of the paper; both are in vector form when the page links one.
+--append puts existing PDFs (label sheets) after the printed pages unchanged
+and not renumbered; every page of them must already be on the chosen paper,
+either way up, or the run stops.
 
-Needs google-chrome-stable, which does the printing, and pdfunite for --append.
+The PDF is printed beside the output under a ".part" name and takes the output's
+name only after it is checked, so a failed run leaves no PDF that looks new.
+
+Needs google-chrome-stable, which does the printing, and pdfunite and pdfinfo
+(poppler-utils) for --append.
 """
 
 from __future__ import annotations
@@ -63,6 +69,8 @@ ADDONS = (
 HEADERS = {"User-Agent": "Mozilla/5.0 (X11; Linux x86_64) fpgas.online-docs print_pages"}
 CHROME = "google-chrome-stable"
 PAPERS = {"A4": "A4", "Letter": "letter"}
+# Sheet sizes in points (width, height, portrait), for checking appended PDFs.
+PAPER_POINTS = {"A4": (595.28, 841.89), "Letter": (612.0, 792.0)}
 # An image at least this many pixels wide (a wiring sheet) gets a landscape
 # sheet to itself; anything narrower stays in the text.
 WIDE_PX = 1200
@@ -485,53 +493,83 @@ def document(title: str, paper: str, specs: list[str], cover_notes: str = "", la
     )
 
 
-def print_pdf(page: Path, output: Path) -> None:
+def run(command: list[str], what: str, timeout: int, **options) -> subprocess.CompletedProcess:
+    """Run a program; any way it can fail stops the run with a message."""
+    try:
+        return subprocess.run(command, check=True, timeout=timeout, **options)
+    except subprocess.CalledProcessError as error:
+        raise SystemExit(f"{what} failed with status {error.returncode}") from error
+    except subprocess.TimeoutExpired as error:
+        raise SystemExit(f"{what} did not finish in {timeout} s") from error
+    except OSError as error:
+        raise SystemExit(f"cannot run {what}: {error}") from error
+
+
+def print_pdf(page: Path, target: Path) -> None:
+    """Have Chrome print page to target, which must not exist yet and must hold a PDF after."""
     chrome = shutil.which(CHROME)
     if chrome is None:
         raise SystemExit(f"{CHROME} is not installed; it does the printing")
-    with tempfile.TemporaryDirectory(dir=output.parent) as profile:
-        subprocess.run(
+    # The profile sits beside the output: /tmp is not for this project's files.
+    with tempfile.TemporaryDirectory(dir=target.parent, ignore_cleanup_errors=True) as profile:
+        run(
             [
                 chrome,
                 "--headless",
                 "--disable-gpu",
                 f"--user-data-dir={profile}",
                 "--no-pdf-header-footer",
-                f"--print-to-pdf={output}",
+                f"--print-to-pdf={target}",
                 page.resolve().as_uri(),
             ],
-            check=True,
+            f"{CHROME} printing {page}",
             timeout=300,
             # Printing needs nothing from the desktop session. Given a session
             # bus, Chrome waits minutes on it before it exits; given an address
             # it cannot use, it logs that and prints in seconds.
             env={**os.environ, "DBUS_SESSION_BUS_ADDRESS": "disabled:"},
         )
-    if not output.is_file() or output.stat().st_size == 0:
-        raise SystemExit(f"{CHROME} wrote no PDF at {output}")
+    if not target.is_file() or target.stat().st_size == 0:
+        raise SystemExit(f"{CHROME} wrote no PDF at {target}")
 
 
-def append_pdfs(output: Path, extra: list[Path]) -> None:
-    """Put the extra PDFs (label sheets, say) after the printed pages, as they are."""
+def check_paper(path: Path, paper: str) -> None:
+    """Stop unless every page of the PDF is on the chosen paper, in either orientation."""
+    info = run(["pdfinfo", "-f", "1", "-l", "100000", str(path)], f"pdfinfo {path}", timeout=60,
+               capture_output=True, text=True).stdout
+    sizes = re.findall(r"^Page\s+\d+ size:\s*([0-9.]+) x ([0-9.]+) pts", info, re.MULTILINE)
+    pages = re.search(r"^Pages:\s*(\d+)", info, re.MULTILINE)
+    if not sizes or pages is None or len(sizes) != int(pages.group(1)):
+        raise SystemExit(f"--append {path}: pdfinfo did not give a size for every page")
+    wide, high = PAPER_POINTS[paper]
+    for number, (width, height) in enumerate(sizes, 1):
+        w, h = float(width), float(height)
+        if not (abs(w - wide) <= 2 and abs(h - high) <= 2 or abs(w - high) <= 2 and abs(h - wide) <= 2):
+            raise SystemExit(
+                f"--append {path}: page {number} is {width} x {height} pt, not {paper} "
+                f"({wide} x {high} pt, either way up); appended PDFs are not resized"
+            )
+
+
+def append_pdfs(printed: Path, extra: list[Path], paper: str, result: Path) -> None:
+    """Write result: the printed pages, then the extra PDFs (label sheets, say) as they are."""
     joiner = shutil.which("pdfunite")
-    if joiner is None:
-        raise SystemExit("pdfunite (poppler-utils) is not installed; --append needs it")
+    if joiner is None or shutil.which("pdfinfo") is None:
+        raise SystemExit("pdfunite and pdfinfo (poppler-utils) are not installed; --append needs them")
     for path in extra:
         if not path.is_file():
             raise SystemExit(f"--append {path}: no such file")
-    printed = output.with_suffix(".printed.pdf")
-    output.rename(printed)
-    try:
-        subprocess.run([joiner, str(printed), *map(str, extra), str(output)], check=True)
-    finally:
-        printed.unlink()
+        check_paper(path, paper)
+    run([joiner, str(printed), *map(str, extra), str(result)], "pdfunite", timeout=120)
+    if not result.is_file() or result.stat().st_size == 0:
+        raise SystemExit(f"pdfunite wrote no PDF at {result}")
 
 
 def main() -> int:
     parser = argparse.ArgumentParser(description=__doc__.split("\n\n")[0])
     parser.add_argument("--paper", choices=sorted(PAPERS), required=True)
     parser.add_argument("--title", required=True, help="printed on the cover and in each foot")
-    parser.add_argument("--output", type=Path, required=True, help="the PDF to write")
+    parser.add_argument("--output", type=Path, required=True, help="the PDF to write; its name ends in .pdf")
     parser.add_argument("--keep-html", action="store_true", help="leave the joined page beside the PDF")
     parser.add_argument("--append", type=Path, action="append", default=[], metavar="PDF",
                         help="a PDF to put after the printed pages, unchanged (may be repeated)")
@@ -541,22 +579,35 @@ def main() -> int:
                         help="a box on a sheet of its own after the pages, in the same form")
     parser.add_argument("pages", nargs="+", metavar="PAGE", help='e.g. "boards/acorn/wiring#raspberry-pi-5"')
     args = parser.parse_args()
+    if args.output.suffix.lower() != ".pdf":
+        parser.error(f"--output {args.output} must end in .pdf")
 
     output = args.output.resolve()
     output.parent.mkdir(parents=True, exist_ok=True)
     joined = output.with_suffix(".html")
+    # Chrome and pdfunite write these, never the output itself: the output is
+    # only ever replaced by a PDF that passed the checks.
+    printed = output.with_name(output.name + ".part")
+    united = output.with_name(output.name + ".united.part")
     cover_notes = args.cover_notes.read_text(encoding="utf-8") if args.cover_notes else ""
     last_sheet = args.last_sheet.read_text(encoding="utf-8") if args.last_sheet else ""
-    joined.write_text(
-        document(args.title, args.paper, args.pages, cover_notes, last_sheet), encoding="utf-8"
-    )
     try:
-        print_pdf(joined, output)
+        printed.unlink(missing_ok=True)
+        united.unlink(missing_ok=True)
+        joined.write_text(
+            document(args.title, args.paper, args.pages, cover_notes, last_sheet), encoding="utf-8"
+        )
+        print_pdf(joined, printed)
+        if args.append:
+            append_pdfs(printed, args.append, args.paper, united)
+            united.replace(output)
+        else:
+            printed.replace(output)
     finally:
+        printed.unlink(missing_ok=True)
+        united.unlink(missing_ok=True)
         if not args.keep_html:
-            joined.unlink()
-    if args.append:
-        append_pdfs(output, args.append)
+            joined.unlink(missing_ok=True)
     print(f"wrote {output}")
     return 0
 
