@@ -33,9 +33,9 @@ Two NFS roots, because the site runs two generations of hardware:
 - **bookworm** (armhf): `/srv/nfs/rpi/bookworm/{boot,root}` — RPi 3B/3B+/4B,
   read-only with overlayroot.
 - **trixie**: `/srv/nfs/rpi/trixie/{boot,root}` — the Compute Blades. Read as
-  arm64 with kernel 6.12.75+rpt-rpi-v8 on 2026-09-20; pi16 read as a 32-bit
-  (armhf) userspace on kernel 6.18.50+rpt-rpi-v8 on 2026-10-05. Which kernel
-  and userspace the other three blades run now has not been read.
+  arm64 with kernel 6.12.75+rpt-rpi-v8 on 2026-09-20; pi16 and pi20 both read as
+  a 32-bit (armhf) userspace on kernel 6.18.50+rpt-rpi-v8 on 2026-10-05. What
+  pi14 and pi18 run now has not been read.
 
 :::{warning}
 Both roots are read-only NFS exports with a tmpfs overlay, so anything staged
@@ -113,11 +113,10 @@ provenance unknown.
 ### Compute blades
 
 All four were up when last probed together (2026-09-20), and the table is that
-probe. On 2026-10-05 pi16 was read again; what differed is under [pi16 on 5
-October 2026](#pi16-on-5-october-2026). The same day the visitor SSH ports of
-pi14 and pi18 did not answer, so nothing was read from them; why is not known.
-Of pi20 only its boot configuration was read that day ([Where a blade's boot
-configuration is](#where-a-blades-boot-configuration-is)).
+probe. On 2026-10-05 pi16 and pi20 were read again; what differed is under [pi16
+on 5 October 2026](#pi16-on-5-october-2026) and [pi20 on 5 October
+2026](#pi20-on-5-october-2026). The same day the visitor SSH ports of pi14 and
+pi18 did not answer, so nothing was read from them; why is not known.
 
 ```{rst-class} nowrap
 ```
@@ -127,12 +126,14 @@ configuration is](#where-a-blades-boot-configuration-is)).
 | pi14 | e14  | 10.21.0.114 | 2c:cf:67:37:d4:bd | CM4 Rev 1.1 4 GB      | Acorn CLE-101 `1e24:0101`   | not read           | 0000:01  | no response (P1 unmated) | untested | Online |
 | pi16 | e16  | 10.21.0.116 | 2c:cf:67:fb:91:e5 | CM5 Lite Rev 1.0 8 GB | Acorn CLE-101 `1e24:0101`   | not read           | 0001:01  | 2026-09-20: no response, TCK floating. 2026-10-05: cannot run (serial driver holds GPIO14) | untested | Online |
 | pi18 | e18  | 10.21.0.118 | 2c:cf:67:37:d5:08 | CM4 Rev 1.1 4 GB      | none: M.2 slot empty        | —                  | —        | n/a                      | n/a      | Online |
-| pi20 | e20  | 10.21.0.120 | 2c:cf:67:fd:1e:be | CM5 Lite Rev 1.0 8 GB | vendor XDMA image `10ee:7011` | 0x0028e5c45e304854 | 0001:01  | OK, IDCODE `0x3631093` | on the Extension Port: K2 → GPIO15, J2 → GPIO14, no resistor; J5 and H5 not wired | Online |
+| pi20 | e20  | 10.21.0.120 | 2c:cf:67:fd:1e:be | CM5 Lite Rev 1.0 8 GB | vendor XDMA image `10ee:7011` | 0x0028e5c45e304854 | 0001:01  | 2026-09-20 (kernel 6.12.75): OK, IDCODE `0x3631093`. 2026-10-05 (kernel 6.18.50, serial port on): not tried, expected not to run | on the Extension Port: K2 → GPIO15, J2 → GPIO14, no resistor; J5 and H5 not wired | Online |
 
-pi20 is the only blade whose JTAG answers, so it is the only one with a device
-DNA: `0x0028e5c45e304854`, an XC7A100T. The fpgas.online Acorn design runs on it
-from SRAM (Gen2 x1, the same ident and DNA over PCIe and over the UART bridge);
-its flash holds the vendor XDMA sample image. "P1 unmated" on pi14 and pi16 is
+pi20 is the only blade whose JTAG has answered (on 2026-09-20), so it is the
+only one with a device DNA: `0x0028e5c45e304854`, an XC7A100T. The fpgas.online
+Acorn design ran on it from SRAM that day (Gen2 x1, the same ident and DNA over
+PCIe and over the UART bridge); by that probe its flash holds the vendor XDMA
+sample image, and on 2026-10-05 the card enumerated as `10ee:7011`, the ID of
+that sample design. "P1 unmated" on pi14 and pi16 is
 read off TCK: the Acorn pulls TCK up, and on pi20 the Pi's pull-down cannot move
 it, while on pi14 and pi16 it floats exactly as on pi18, which has no card.
 Reseating P1 is the fix.
@@ -197,26 +198,45 @@ Moving the console does not free JTAG. With `enable_uart=1` the serial driver
 holds GPIO14 whether or not a console or a getty uses the port. For JTAG the
 header's serial port itself has to be off at boot (`enable_uart=0`, and no
 `console=serial0` word), and in that boot the tests of the P2 serial pair
-cannot run. **Not yet run by us on this hardware.** The same will apply to any
-blade on this kernel: pi20's JTAG answered on 2026-09-20, under kernel 6.12.75.
-Which kernel pi20 runs now has not been read; its boot settings are the same
-as pi16's (below).
+cannot run. **Not yet run by us on this hardware.** The same applies to any
+blade on this kernel with the serial port on, pi20 included (next section).
+
+#### pi20 on 5 October 2026
+
+Read over SSH as the visitor, without sudo; nothing was installed, copied or
+changed.
+
+| | Read on pi20, 2026-10-05 |
+|---|---|
+| Module | Compute Module 5 Lite Rev 1.0, 8 GB, MAC `2c:cf:67:fd:1e:be` |
+| System | Raspbian 13 (trixie), 32-bit userspace on kernel `6.18.50+rpt-rpi-v8`; Debian's openFPGALoader 0.13.1 |
+| Serial port | `enable_uart=1`, `console=ttyAMA0,115200` on the kernel command line, and `serial-getty@ttyAMA0` active: the same boot settings as pi16 |
+| Card | `10ee:7011` at `0001:01:00.0`: the ID of Xilinx's XDMA sample design (`fpgas-verify` would report it as unconverted); not SQRL's factory image and not the fpgas.online design. Which image it is beyond that ID was not read |
+| `fpgas-verify` | not installed, so it has not run here |
+
+pi20's JTAG answered on 2026-09-20 under kernel 6.12.75. On 2026-10-05 it ran
+the same kernel as pi16 with the same serial-port settings, so its JTAG is
+**expected not to run** for the same reason (the serial driver holds GPIO14).
+**Not tried:** no JTAG command was run on pi20 that day.
 
 #### Where a blade's boot configuration is
 
-Read on pi16 and pi20 themselves on 2026-10-05, not on the gateway: the kernel
-command line has `nfsroot=10.21.0.1:/srv/nfs/rpi/trixie/root` and
-`console=ttyAMA0,115200`; `/boot/firmware/cmdline.txt` on the host holds the
-same line with `console=serial0,115200`; `/boot/firmware/config.txt` has
-`enable_uart=1` under `[all]` and no overlay for the UART. Both blades have the
-same settings.
+Read on pi16 and pi20 themselves on 2026-10-05, not on the gateway: on both,
+the kernel command line has `nfsroot=10.21.0.1:/srv/nfs/rpi/trixie/root` and
+`console=ttyAMA0,115200`, and `/boot/firmware/config.txt` has `enable_uart=1`
+under `[all]` and no overlay for the UART. On pi16 `/boot/firmware/cmdline.txt`
+holds the same line with `console=serial0,115200`; that file was not read on
+pi20.
 
-The settings to change for JTAG (`enable_uart`, and the `console=serial0` word)
-are in those two files, but where their master copy is was not read. The likely
-place is the site's gateway, by this page's account under
-`/srv/nfs/rpi/trixie/boot`. **Not read by us:** the directory the firmware
-fetches the two files from at boot, whether `/boot/firmware` on a blade is that
-directory or a copy, and whether one copy serves all four blades. Whoever runs
+The settings to change for JTAG (`enable_uart` in `config.txt`, and the
+`console=serial0` word in `cmdline.txt`) are in those two files, but where their
+master copy is was not read. The likely place is the site's gateway, by this
+page's account under `/srv/nfs/rpi/trixie/boot`: the bootloader's boot order on
+both blades ends with the network (`BOOT_ORDER=0xf2461`) and the label read saw
+no storage device on either module, which makes a network boot likely. **Not
+read by us:** the directory the firmware fetches the two files from at boot,
+whether `/boot/firmware` on a blade is that directory or a copy, and whether one
+copy serves all four blades. Whoever runs
 the gateway makes the change. If one copy serves all four blades, it applies to
 all of them; it takes effect at a blade's next boot.
 
@@ -231,7 +251,7 @@ converted a card on one yet: **not yet run by us on this hardware**.
 | pi14 | fitted, factory image: to be converted | did not answer: reseat or refit on the Extension Port | not known: build to the UART header, 470 Ω in the J2 wire, J5 and H5 cut back | read its kernel command line and serial getty again (last read 2026-09-20) |
 | pi16 | fitted, factory image: to be converted | not known (see above): check, reseat or refit on the Extension Port | not known: build to the UART header, 470 Ω in the J2 wire, J5 and H5 cut back | take the kernel console and the getty off `/dev/ttyAMA0` (needed in any case); for JTAG, the serial port off at boot, as above |
 | pi18 | none: fit one | fit on the Extension Port | fit on the UART header, 470 Ω in the J2 wire, J5 and H5 cut back | read its kernel command line and serial getty again (last read 2026-09-20) |
-| pi20 | fitted, vendor sample image in flash: to be converted | answers: leave | move the serial pair from Extension Port pins 9 and 10 to the UART header, and add the 470 Ω resistor in the J2 wire | boot configuration read 2026-10-05 (the same as pi16's: console and serial port on the FPGA UART); read its kernel again |
+| pi20 | fitted, vendor sample image in flash: to be converted | answered on 2026-09-20: leave the cable. JTAG is expected not to run as the blade boots now (not tried) | move the serial pair from Extension Port pins 9 and 10 to the UART header, and add the 470 Ω resistor in the J2 wire | as pi16 (read 2026-10-05: the same kernel and serial-port settings): take the kernel console and the getty off `/dev/ttyAMA0`; for JTAG, the serial port off at boot |
 
 The parts are in the wiring page's [Bill of
 Materials](../boards/acorn/wiring.md#bill-of-materials). Once a blade is wired,
@@ -426,6 +446,9 @@ been run on a blade.
   holds GPIO14 (TMS), so its P1 state is unknown, not known to be unmated; and
   its kernel console is on the FPGA's UART. See [pi16 on 5 October
   2026](#pi16-on-5-october-2026).
+- **pi20's JTAG is expected not to run either** as it was booted on 2026-10-05
+  (the same kernel and serial-port settings as pi16); not tried. See [pi20 on 5
+  October 2026](#pi20-on-5-october-2026).
 - **pi2** (Arty A7): recorded Offline. Port e2 shows link up and PoE delivering
   in the 2026-08-31 switch dump, so "offline" is the host, not the link. pi2 is
   also the only host with an Apple A1277 USB Ethernet adapter rather than an
