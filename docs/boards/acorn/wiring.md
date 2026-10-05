@@ -457,9 +457,11 @@ load](pcie-programming.md#bring-the-endpoint-back-after-a-jtag-load).
 **The kernel console must not be on the FPGA's UART.** If a host's kernel
 command line puts it there (`console=ttyAMA0`, or `console=serial0` on a Pi 5
 with `uart0-pi5` enabled), loading any design that drives serial TX — the UART
-SoC, pin-ID, the GPIO loopback — reboots or crashes the host. Every fleet host
+SoC, pin-ID, the GPIO loopback — reboots or crashes the host. A fleet host
 boots with `console=tty1` (Compute Blades) or `console=ttyAMA10` (Pi 5s); check
-this on any new host.
+this on any new host, and on a host that has been reinstalled: pi16 at PS1 had
+its console on the FPGA UART when read on 2026-10-05 ([pi16 on 5 October
+2026](../../sites/ps1.md#pi16-on-5-october-2026)).
 :::
 
 The FPGA drives K2 at its own baud rate (1200 for pin-ID, 115200 for the UART

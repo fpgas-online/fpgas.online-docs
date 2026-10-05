@@ -110,7 +110,8 @@ provenance unknown.
 
 ### Compute blades
 
-All four were up when last probed (2026-09-20).
+All four were up when last probed (2026-09-20). pi16 was read again on
+2026-10-05; what differed is under [pi16 on 5 October 2026](#pi16-on-5-october-2026).
 
 ```{rst-class} nowrap
 ```
@@ -145,11 +146,58 @@ and its J5 and H5 are not wired. How pi14's and pi16's P2 cables are wired is
 not known: their P1 is unmated, so nothing can be loaded to read it.
 
 All four blades use JTAG on `--pins 2:3:4:14` and the FPGA UART on
-`/dev/ttyAMA0` at GPIO14/15, netboot the trixie arm64 NFS root with overlayroot,
-and run openFPGALoader 0.13.1, which has `--read-dna`. All four boot with
-`console=tty1` and `serial-getty@ttyAMA0` inactive, so the [kernel console
-crash](../boards/acorn/wiring.md#kernel-console-on-the-fpga-uart) cannot happen.
-PCIe is through the blade's M.2 slot.
+`/dev/ttyAMA0` at GPIO14/15, and run openFPGALoader 0.13.1, which has
+`--read-dna`. PCIe is through the blade's M.2 slot. On 2026-09-20 all four
+netbooted the trixie arm64 NFS root with overlayroot, with `console=tty1` and
+`serial-getty@ttyAMA0` inactive, so that the [kernel console
+crash](../boards/acorn/wiring.md#kernel-console-on-the-fpga-uart) could not
+happen. That no longer holds on pi16 (below), and pi14, pi18 and pi20 have not
+been read since.
+
+#### pi16 on 5 October 2026
+
+Read over SSH as the visitor, nothing written to the card:
+
+| | Read on pi16, 2026-10-05 |
+|---|---|
+| Module | Compute Module 5 Lite Rev 1.0, 8 GB, MAC `2c:cf:67:fb:91:e5` |
+| System | Raspbian 13 (trixie), 32-bit userspace on kernel `6.18.50+rpt-rpi-v8` |
+| Serial port | `enable_uart=1`, `console=serial0,115200`, and a serial getty active on `/dev/ttyAMA0` |
+| Card | `1e24:0101` at `0001:01:00.0`: SQRL's factory image, not converted |
+| `fpgas-verify` | `pcie-link` passes (5.0 GT/s, x1); `jtag` cannot run |
+
+Two things follow from the serial port being on:
+
+- **JTAG cannot run.** TMS is GPIO14, which is also the serial port's TX pin.
+  The kernel's serial driver holds it (`pin gpio14 already requested by
+  1f00030000.serial; cannot claim`), this kernel does not lend a held pin, and
+  the driver cannot be detached from a running system. openFPGALoader 0.13.1
+  then stops on a libgpiod assertion instead of saying so. Tracked in
+  [test-designs issue
+  #127](https://github.com/fpgas-online/fpgas.online-test-designs/issues/127).
+  So whether pi16's P1 cable is mated cannot be told from a scan today; the
+  "P1 unmated" in the table is the pull-up reading of 2026-09-20.
+- **The kernel console is on the FPGA's UART**, which the [wiring
+  page](../boards/acorn/wiring.md#kernel-console-on-the-fpga-uart) warns
+  against: a design that drives serial TX can reboot or crash the host. It must
+  be moved (`console=tty1`, no serial getty) before such a design is loaded.
+
+#### What each blade still needs
+
+To reach the [Compute Blade wiring](../boards/acorn/wiring.md#compute-blade),
+from what the table above records. Nobody of us has wired a blade this way or
+converted a card on one yet: **not yet run by us on this hardware**.
+
+| Blade | Card | P1 (JTAG) cable | P2 (serial) cable | Host |
+|-------|------|-----------------|-------------------|------|
+| pi14 | fitted, factory image: to be converted | did not answer: reseat or refit on the Extension Port | not known: build to the UART header, 470 Ω in the J2 wire, J5 and H5 cut back | read it again |
+| pi16 | fitted, factory image: to be converted | not known (see above): check, reseat or refit on the Extension Port | not known: build to the UART header, 470 Ω in the J2 wire, J5 and H5 cut back | take the kernel console and the getty off `/dev/ttyAMA0` |
+| pi18 | none: fit one | fit on the Extension Port | fit on the UART header, 470 Ω in the J2 wire, J5 and H5 cut back | read it again |
+| pi20 | fitted, vendor sample image in flash: to be converted | answers: leave | move the serial pair from Extension Port pins 9 and 10 to the UART header, and add the 470 Ω resistor in the J2 wire | read it again |
+
+The parts are in the wiring page's [Bill of
+Materials](../boards/acorn/wiring.md#bill-of-materials). Once a blade is wired,
+[check it with fpgas-verify](#checking-a-board-here).
 
 The `RPi Model` column matters: a CM4 and a CM5 are not interchangeable, and
 what differs — the serial mux, and how many UARTs there are — is under [Compute
