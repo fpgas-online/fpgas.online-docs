@@ -335,8 +335,8 @@ $ openFPGALoader --cable libgpiod --pins 2:3:4:14 <bitstream.bit>
 Which file `<bitstream.bit>` is, and where it comes from, is under [The designs
 these steps load](#the-designs-these-steps-load).
 
-The `libgpiod` cable opens `/dev/gpiochip0`. On pi16 (a CM5, kernel 6.18.50,
-2026-10-05) `gpiodetect` listed the header's chip, `pinctrl-rp1`, as
+The `libgpiod` cable opens `/dev/gpiochip0`. On pi16 and pi20 (CM5s, kernel
+6.18.50, 2026-10-05) `gpiodetect` listed the header's chip, `pinctrl-rp1`, as
 `gpiochip0` already, so no link was needed; do not copy the Pi 5's
 `gpiochip15` link. On any other blade run `gpiodetect` first: the header's chip
 is the one labelled `pinctrl-rp1` on a CM5 and `pinctrl-bcm2711` on a CM4 (not
@@ -476,7 +476,7 @@ The steps are the same on both carriers; the commands are not. What differs:
 | | Raspberry Pi 5 | Compute Blade, CM4 | Compute Blade, CM5 |
 |---|---|---|---|
 | JTAG `--pins` (TDI:TDO:TCK:TMS) | `10:9:11:8` | `2:3:4:14` | `2:3:4:14` |
-| GPIO chip for the `libgpiod` cable, which opens `/dev/gpiochip0` | `gpiochip15` under kernel 6.12 at Welland: link it as `gpiochip0` first | not read by us: run `gpiodetect` and link the chip labelled `pinctrl-bcm2711` as `gpiochip0` only if it is not that already | `pinctrl-rp1` was `gpiochip0` already on pi16 (kernel 6.18.50, 2026-10-05): no link there. Not read on pi20: run `gpiodetect` first |
+| GPIO chip for the `libgpiod` cable, which opens `/dev/gpiochip0` | `gpiochip15` under kernel 6.12 at Welland: link it as `gpiochip0` first | not read by us: run `gpiodetect` and link the chip labelled `pinctrl-bcm2711` as `gpiochip0` only if it is not that already | `pinctrl-rp1` was `gpiochip0` already on pi16 and pi20 (kernel 6.18.50, 2026-10-05): no link there |
 | PCIe address of the card (`BDF` below) | `0001:01:00.0` | `0000:01:00.0` (pi14) | `0001:01:00.0` (pi16, pi20) |
 | Root complex behind the slot | `1000110000.pcie` | not read by us: find it as in Step 5 | `1000110000.pcie` (pi20, kernel 6.12.75) |
 | FPGA serial port | `/dev/ttyAMA0`, GPIO14/15 at `a4` | `/dev/ttyAMA0`, GPIO14/15 at `a0` | `/dev/ttyAMA0`, GPIO14/15 at `a4` |

@@ -131,8 +131,9 @@ pi18 did not answer, so nothing was read from them; why is not known.
 pi20 is the only blade whose JTAG has answered (on 2026-09-20), so it is the
 only one with a device DNA: `0x0028e5c45e304854`, an XC7A100T. The fpgas.online
 Acorn design ran on it from SRAM that day (Gen2 x1, the same ident and DNA over
-PCIe and over the UART bridge); its flash holds the vendor XDMA sample image,
-which is what it enumerated as (`10ee:7011`) on 2026-10-05. "P1 unmated" on pi14 and pi16 is
+PCIe and over the UART bridge); by that probe its flash holds the vendor XDMA
+sample image, and on 2026-10-05 the card enumerated as `10ee:7011`, the ID of
+that sample design. "P1 unmated" on pi14 and pi16 is
 read off TCK: the Acorn pulls TCK up, and on pi20 the Pi's pull-down cannot move
 it, while on pi14 and pi16 it floats exactly as on pi18, which has no card.
 Reseating P1 is the fix.
@@ -209,8 +210,8 @@ changed.
 |---|---|
 | Module | Compute Module 5 Lite Rev 1.0, 8 GB, MAC `2c:cf:67:fd:1e:be` |
 | System | Raspbian 13 (trixie), 32-bit userspace on kernel `6.18.50+rpt-rpi-v8`; Debian's openFPGALoader 0.13.1 |
-| Serial port | `enable_uart=1`, and a serial login prompt on `/dev/ttyAMA0`: the same boot settings as pi16 |
-| Card | `10ee:7011` at `0001:01:00.0`: the vendor XDMA sample image, not converted |
+| Serial port | `enable_uart=1`, `console=ttyAMA0,115200` on the kernel command line, and `serial-getty@ttyAMA0` active: the same boot settings as pi16 |
+| Card | `10ee:7011` at `0001:01:00.0`: the ID of Xilinx's XDMA sample design (`fpgas-verify` would report it as unconverted); not SQRL's factory image and not the fpgas.online design. Which image it is beyond that ID was not read |
 | `fpgas-verify` | not installed, so it has not run here |
 
 pi20's JTAG answered on 2026-09-20 under kernel 6.12.75. On 2026-10-05 it ran
@@ -220,22 +221,22 @@ the same kernel as pi16 with the same serial-port settings, so its JTAG is
 
 #### Where a blade's boot configuration is
 
-Read on pi16 and pi20 themselves on 2026-10-05, not on the gateway: the kernel
-command line has `nfsroot=10.21.0.1:/srv/nfs/rpi/trixie/root` and
-`console=ttyAMA0,115200`; `/boot/firmware/cmdline.txt` on the host holds the
-same line with `console=serial0,115200`; `/boot/firmware/config.txt` has
-`enable_uart=1` under `[all]` and no overlay for the UART. Both blades have the
-same settings.
+Read on pi16 and pi20 themselves on 2026-10-05, not on the gateway: on both,
+the kernel command line has `nfsroot=10.21.0.1:/srv/nfs/rpi/trixie/root` and
+`console=ttyAMA0,115200`, and `/boot/firmware/config.txt` has `enable_uart=1`
+under `[all]` and no overlay for the UART. On pi16 `/boot/firmware/cmdline.txt`
+holds the same line with `console=serial0,115200`; that file was not read on
+pi20.
 
-The settings to change for JTAG (`enable_uart`, and the `console=serial0` word)
-are in those two files, but where their master copy is was not read. The likely
-place is the site's gateway, by this page's account under
-`/srv/nfs/rpi/trixie/boot`: the bootloader's boot order on both blades ends with
-the network (`BOOT_ORDER=0xf2461`) and no storage device was seen on either
-module, which makes a network boot likely, and the site's keeper knows. **Not
-read by us:** the directory the firmware
-fetches the two files from at boot, whether `/boot/firmware` on a blade is that
-directory or a copy, and whether one copy serves all four blades. Whoever runs
+The settings to change for JTAG (`enable_uart` in `config.txt`, and the
+`console=serial0` word in `cmdline.txt`) are in those two files, but where their
+master copy is was not read. The likely place is the site's gateway, by this
+page's account under `/srv/nfs/rpi/trixie/boot`: the bootloader's boot order on
+both blades ends with the network (`BOOT_ORDER=0xf2461`) and the label read saw
+no storage device on either module, which makes a network boot likely. **Not
+read by us:** the directory the firmware fetches the two files from at boot,
+whether `/boot/firmware` on a blade is that directory or a copy, and whether one
+copy serves all four blades. Whoever runs
 the gateway makes the change. If one copy serves all four blades, it applies to
 all of them; it takes effect at a blade's next boot.
 
