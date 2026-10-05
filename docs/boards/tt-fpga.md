@@ -74,13 +74,13 @@ The RP2040-specific facts inherited from that v2 specification have not been
 re-verified on a v3 board: the ~66 MHz maximum clock in the table above, and
 the PWM first-call bug the source calls an RP2040 bug while the deployed
 workaround calls it an RP2350 bug (see [RP2350 PWM first-call
-bug](#rp2350-pwm-first-call-bug)). Measure both on a TTDBv3 in the fleet and
+bug](tt-fpga.md#rp2350-pwm-first-call-bug)). Measure both on a TTDBv3 in the fleet and
 record the date.
 :::
 
 :::{todo}
 The two sources disagree on how the iCE40UP5K's block RAM is divided. The table
-above says 15 × 8 Kbit EBR blocks; [FPGA Device](#fpga-device) under the pin
+above says 15 × 8 Kbit EBR blocks; [FPGA Device](tt-fpga.md#fpga-device) under the pin
 mapping says 30 EBR blocks. The totals agree (120 Kbit ≈ 15 KB), so one of the
 block counts is wrong. Check against the Lattice datasheet and fix the loser.
 :::
@@ -347,7 +347,7 @@ $ ssh -J <you>@tweed.welland.mithis.com pi@<host-ip> sudo systemctl start fpgas-
 is tracked on [Verifying a deployment](../setup/verification.md#running-the-hardware-tests);
 what is specific to this board is that the wrapper also needs to stop and
 restart the `fpgas-tt` daemon around a run
-(see [Serial port ownership](#serial-port-ownership)).
+(see [Serial port ownership](tt-fpga.md#serial-port-ownership)).
 :::
 
 ## Known Workarounds
@@ -587,7 +587,7 @@ read the decode (see [Pin identification](pin-id.md)), then correct whichever
 of the three copies loses: the tables on this page, the mapping in
 `verify-hardware.md`, or `drive_pins`/`read_pins` in `test_pmod_loopback.py`.
 Everything on this page that quotes RPi GPIO numbers — the
-[UART Interface](#uart-interface) rows and the loopback pre-test note — depends
+[UART Interface](tt-fpga.md#uart-interface) rows and the loopback pre-test note — depends
 on the answer.
 :::
 

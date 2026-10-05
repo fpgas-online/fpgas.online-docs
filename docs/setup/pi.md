@@ -95,7 +95,7 @@ failed to contact RP1 firmware`). `--read-dna`, `--read-xadc` and
 One decision is still open in `fpgas.online-infra`: whether `core_freq=500` is
 set. Its `TECHDEBT.md` entry leaves the PoE-versus-camera trade-off undecided,
 so one of the two failure modes stays possible either way (see
-[boot-time configuration](#boot-time-configuration)).
+[boot-time configuration](pi.md#boot-time-configuration)).
 :::
 
 The `cam/pi` role adds the streaming stack on top: `gstreamer1.0-tools`, the

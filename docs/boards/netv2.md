@@ -212,7 +212,7 @@ settles it:
 - The board specification calls RP1 PIO JTAG a capability still pending
   upstream, not something running here.
 - The 2026-03-09 SSH survey found OpenOCD installed on rpi5-netv2 and no
-  openFPGALoader at all ([Development hosts](#development-hosts)).
+  openFPGALoader at all ([Development hosts](netv2.md#development-hosts)).
 - [`alphamax-rpi5-sysfsgpio.cfg`](https://github.com/fpgas-online/fpgas.online-test-designs/blob/main/designs/pcie-enumeration/openocd/alphamax-rpi5-sysfsgpio.cfg)
   in test-designs is a checked-in OpenOCD Pi 5 configuration for this board —
   `sysfsgpio jtag_nums 575 588 598 593` and `sysfsgpio srst_num 595`, which is
