@@ -374,58 +374,31 @@ $ pinctrl set 14,15 a4       # GPIO14 = TXD0, GPIO15 = RXD0
 
 ## Building the cables
 
-This is the order the wiring tables imply. **It is written from the design, not
-from a bench**: the cables in service were built by hand before this section
-existed, and the Compute Blade cable (with its resistor) has not been built by
-us at all. Where it says nothing about a tool or a part number, none is
-recorded; the tools the steps need are listed with the parts, under [Bill of
-Materials](#bill-of-materials).
+One procedure for each carrier, each complete in itself: its parts, its tools and
+a picture under every step. Follow the one for your carrier from top to bottom;
+nothing in it needs another section of this page. The pictures and the words
+are generated from the same table as the wiring sheets.
 
-**Nothing here is connected to a host until step 8 has passed.** Work with the
-card out of its slot and unpowered: neither plug goes into a powered card, and
-no housing touches a host, before both VCC wires are cut back and insulated
-(step 3).
-
-1. **Cut** one Pico-EZmate cable (a plug at each end) in half. One half is the
-   P1 cable and the other the P2 cable; they are the same until the housings go
-   on.
-2. **Find pin 1** on each half. All six wires are black and the plug may not be
-   numbered: pin 1 is the wire that lands nearest the M.2 edge connector when
-   the plug is seated in the (unpowered) card ([Board
-   connectors](#board-connectors)). Check each half on its own; do not assume
-   the two halves match. Mark wire 1.
-3. **Cut back wire 6 (VCC)** on both halves, short, and cover its end with heat
-   shrink. On a Compute Blade do the same to wires 4 and 5 (J5, H5) of the P2
-   half.
-4. **Strip** about 3 mm from each remaining wire and **crimp** a 2.54 mm Dupont
-   female terminal onto it.
-5. On a Compute Blade, **fit the 470 Ω resistor into wire 2 of the P2 half
-   (J2)**, in series, at the housing end, and cover it and its joints with heat
-   shrink so that no bare lead can touch a neighbour.
-6. **Push each terminal into its cavity**, counting the cavities as the pins the
-   housing will sit on. Each cavity takes one wire:
-
-   | Cable | Housing, and where it sits | Wire → cavity (the pin it sits on) | Cavities left empty |
-   |---|---|---|---|
-   | P1, Raspberry Pi 5 | 2×4 on header pins 19-26 | 1 → 25, 2 → 23, 3 → 21, 4 → 24, 5 → 19 | 20, 22, 26 |
-   | P2, Raspberry Pi 5 | 2×3 on header pins 5-10 | 1 → 6, 2 → 8, 3 → 10, 4 → 5, 5 → 7 | 9 |
-   | P1, Compute Blade | 2×5 on Extension Port pins 1-10 | 1 → 8, 2 → 4, 3 → 3, 4 → 9, 5 → 2 | 1, 5, 6, 7, 10 |
-   | P2, Compute Blade | 1×4 on UART pins 1-4 | 1 → 2, 2 (through the resistor) → 3, 3 → 4 | 1 |
-
-   These are the same assignments as the pin tables under [Raspberry Pi
-   5](#raspberry-pi-5) and [Compute Blade](#compute-blade), which are generated
-   and are the ones to trust if the two ever differ.
-7. **Mark pin 1 on each housing**, so that it cannot go on turned round.
-8. **Buzz every wire through** with a meter, from its position in the
-   Pico-EZmate plug to its cavity, and check that no two neighbours are joined,
-   before the cable goes near a host.
-
-Step 8 is the one that matters. The two cable faults read at Welland on
-2026-10-04 were both of the kind it catches: on acorn-olive both pairs of P2
-were crossed with every wire conducting, and on acorn-sycamore P2 wire 4 (J5)
-was open. A cable that passes the meter and
-is still wrong is named, wire by wire, by [the
+The meter checks in these steps are the ones that matter. The two cable faults
+read at Welland on 2026-10-04 were both of the kind they catch: on acorn-olive
+both pairs of P2 were crossed with every wire conducting, and on acorn-sycamore
+P2 wire 4 (J5) was open. A cable that passes the meter and is still wrong is
+named, wire by wire, by [the
 check](../../verify/fpgas-verify.md#checking-an-acorns-wiring).
+
+### Cables for a Compute Blade
+
+```{include} generated/acorn-cables-blade.md
+:heading-offset: 1
+:relative-images:
+```
+
+### Cables for a Raspberry Pi 5
+
+```{include} generated/acorn-cables-pi5.md
+:heading-offset: 1
+:relative-images:
+```
 
 ## Assembly
 
@@ -456,6 +429,12 @@ the M.2 edge connector once the plug is seated.
 4. Plug the **P1 housing** (2×4) onto header pins 19-26.
 5. Check that both VCC wires are cut back and insulated.
 
+![Acorn to Raspberry Pi 5 wiring sheet](generated/acorn-wiring-pi5.png)
+
+![Which wire is in which cavity of the P1 housing, Raspberry Pi 5](generated/acorn-cable-pi5-p1.png)
+
+![Which wire is in which cavity of the P2 housing, Raspberry Pi 5](generated/acorn-cable-pi5-p2.png)
+
 ### On a Compute Blade
 
 1. Power the blade off (unplug its PoE cable) before plugging anything into
@@ -468,6 +447,12 @@ the M.2 edge connector once the plug is seated.
 5. Check that both VCC wires and the J5 and H5 wires are cut back and insulated,
    that the 470 Ω resistor is in the J2 wire, and that the cavities over
    Extension Port pins 6 and 7 and UART pin 1 (all 5 V) are empty.
+
+![Acorn to Compute Blade wiring sheet](generated/acorn-wiring-computeblade.png)
+
+![Which wire is in which cavity of the P1 housing, Compute Blade](generated/acorn-cable-blade-p1.png)
+
+![Which wire is in which cavity of the P2 housing, Compute Blade](generated/acorn-cable-blade-p2.png)
 
 ## Verification
 
