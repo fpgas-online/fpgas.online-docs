@@ -97,6 +97,13 @@ intersphinx_mapping = {
     "python": ("https://docs.python.org/3", None),
 }
 
+# -- link check -------------------------------------------------------------
+# GitHub builds a document's heading anchors in the browser, so the link check
+# cannot see them and reports every `blob/main/x.md#heading` as broken. The
+# page itself is still checked. tools/check_links.py then fails the build for a
+# broken link into our own repositories and sites.
+linkcheck_anchors_ignore_for_url = [r"https://github\.com/.*"]
+
 # -- todo boxes on the contributing page --------------------------------------
 # {todolist} copies every {todo} box into docs/contributing.md and re-resolves
 # its cross-references from there. But sphinx.ext.todo stores the box nodes
