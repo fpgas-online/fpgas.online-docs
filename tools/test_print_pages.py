@@ -91,6 +91,58 @@ class KeepSections(unittest.TestCase):
         self.assertIn("#no-such-section", str(stop.exception))
 
 
+    def test_the_pages_own_section_cannot_be_the_wanted_one(self):
+        with self.assertRaises(SystemExit) as stop:
+            self.kept(["acorn-wiring"])
+        self.assertIn("without sections", str(stop.exception))
+
+    def test_a_wanted_section_inside_a_div_is_not_silently_lost(self):
+        page = PAGE.replace('<section id="housings">', '<div><section id="housings">').replace(
+            "housing text</p></section>", "housing text</p></section></div>")
+        article = p.article(page, URL)
+        with self.assertRaises(SystemExit) as stop:
+            p.keep_sections(article, ["housings"], URL)
+        self.assertIn("#housings", str(stop.exception))
+
+
+class FakeFetch:
+    """Stands in for p.fetch: answers from a dict of url -> (body, content type)."""
+
+    def __init__(self, answers):
+        self.answers = answers
+
+    def __enter__(self):
+        self.real = p.fetch
+        p.fetch = self
+        return self
+
+    def __exit__(self, *exc):
+        p.fetch = self.real
+
+    def __call__(self, url):
+        if url not in self.answers:
+            raise SystemExit(f"cannot fetch {url}: not in the fake")
+        return self.answers[url]
+
+
+class BuiltCommit(unittest.TestCase):
+    def commit_from(self, body):
+        with FakeFetch({p.ADDONS: (body, "application/json")}):
+            return p.built_commit()
+
+    def test_the_commit_is_read(self):
+        self.assertEqual(self.commit_from(b'{"builds": {"current": {"commit": "abc123"}}}'), "abc123")
+
+    def test_a_missing_key_stops_the_run(self):
+        with self.assertRaises(SystemExit):
+            self.commit_from(b'{"builds": {}}')
+
+    def test_a_null_or_empty_or_non_string_commit_stops_the_run(self):
+        for value in ("null", '""', "5", '" "'):
+            with self.assertRaises(SystemExit, msg=value):
+                self.commit_from(('{"builds": {"current": {"commit": %s}}}' % value).encode())
+
+
 class AbsoluteLinks(unittest.TestCase):
     def test_every_link_points_at_the_published_site(self):
         article = body()

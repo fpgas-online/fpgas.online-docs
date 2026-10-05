@@ -39,6 +39,7 @@ import argparse
 import base64
 import datetime
 import html
+import http.client
 import json
 import mimetypes
 import os
@@ -131,17 +132,21 @@ def fetch(url: str) -> tuple[bytes, str]:
     try:
         with urllib.request.urlopen(request, timeout=60) as response:
             return response.read(), response.headers.get_content_type()
-    except urllib.error.URLError as error:
-        raise SystemExit(f"cannot fetch {url}: {error}") from error
+    except (OSError, http.client.HTTPException) as error:
+        # URLError, HTTPError and TimeoutError are all OSError.
+        raise SystemExit(f"cannot fetch {url}: {error!r}") from error
 
 
 def built_commit() -> str:
     """The commit the published site was built from, as Read the Docs reports it."""
     body, _ = fetch(ADDONS)
     try:
-        return json.loads(body)["builds"]["current"]["commit"]
+        commit = json.loads(body)["builds"]["current"]["commit"]
     except (KeyError, TypeError, ValueError) as error:
         raise SystemExit(f"cannot read the built commit from {ADDONS}: {error!r}") from error
+    if not isinstance(commit, str) or not commit.strip():
+        raise SystemExit(f"the built commit from {ADDONS} is not a commit: {commit!r}")
+    return commit
 
 
 def parse_spec(spec: str) -> tuple[str, list[str]]:
@@ -172,6 +177,12 @@ def keep_sections(body: Tag, wanted: list[str], url: str) -> None:
     missing = [anchor for anchor in wanted if body.find("section", id=anchor) is None]
     if missing:
         raise SystemExit(f"{url}: no section {', '.join('#' + m for m in missing)}")
+    top = body.find("section")
+    if top.get("id") in wanted:
+        raise SystemExit(
+            f"{url}: #{top['id']} is the whole page, not a section of it; "
+            "give the page without sections instead"
+        )
     kept = set(wanted)
 
     def prune(section: Tag) -> bool:
@@ -192,10 +203,14 @@ def keep_sections(body: Tag, wanted: list[str], url: str) -> None:
         return True
 
     # The page's own section keeps its lead text whatever is wanted under it.
-    top = body.find("section")
     for section in top.find_all("section", recursive=False):
         if not prune(section):
             section.decompose()
+    # A wanted section that does not hang from the page's own section through
+    # sections alone was pruned away: stop rather than print less than asked.
+    lost = [anchor for anchor in wanted if body.find("section", id=anchor) is None]
+    if lost:
+        raise SystemExit(f"{url}: cannot keep {', '.join('#' + m for m in lost)}: it is not nested in sections only")
 
 
 def absolute_links(body: Tag, url: str) -> None:
@@ -342,11 +357,19 @@ def notes(text: str) -> str:
     )
 
 
+def css_string(text: str) -> str:
+    """text for the inside of a double-quoted CSS string in a <style> element."""
+    if "\n" in text or "\r" in text or "<" in text:
+        raise SystemExit(f"the title may not hold a line break or '<': {text!r}")
+    return text.replace("\\", "\\\\").replace('"', '\\"')
+
+
 def document(title: str, paper: str, specs: list[str], cover_notes: str = "", last_sheet: str = "") -> str:
+    css_string(title)  # refuse a bad title before any fetching
     commit = built_commit()
     fetched = datetime.date.today().isoformat()
     chapters = [chapter(spec, commit, fetched) for spec in specs]
-    foot = f"{title} · docs.fpgas.online · commit {commit[:10]} · {fetched}".replace('"', "'")
+    foot = css_string(f"{title} · docs.fpgas.online · commit {commit[:10]} · {fetched}")
     css = CSS % {"paper": PAPERS[paper], "foot": foot}
     contents = "".join(
         f"<li>{html.escape(name)} <small>({html.escape(shown(spec))})</small></li>"
