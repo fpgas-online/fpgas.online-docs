@@ -23,9 +23,11 @@ stops the run.
 
 Every chapter starts on a new sheet under a line giving its source URL, the
 commit the site was built from and the date it was fetched; every sheet has
-the commit and a page number in its foot. An image wider than WIDE_PX is put
-on a landscape sheet of its own, at the full width of the paper, in its vector
-form when the page links one. --append puts existing PDFs (label sheets) after
+the commit and a page number in its foot. Links are numbered and their
+addresses listed at the end of the chapter, because paper cannot follow them.
+An image at least WIDE_PX wide stays in the text at the width of the column and
+is printed again at the end of its chapter on a landscape sheet of its own, at
+the full width of the paper; both are in vector form when the page links one. --append puts existing PDFs (label sheets) after
 the printed pages unchanged; they must already be on the right paper.
 
 Needs google-chrome-stable, which does the printing, and pdfunite for --append.
@@ -63,6 +65,8 @@ PAPERS = {"A4": "A4", "Letter": "letter"}
 # An image at least this many pixels wide (a wiring sheet) gets a landscape
 # sheet to itself; anything narrower stays in the text.
 WIDE_PX = 1200
+# A listing with more lines than this may run over the end of a sheet.
+LONG_LINES = 18
 HEADINGS = ("h1", "h2", "h3", "h4", "h5", "h6")
 
 CSS = """
@@ -77,13 +81,13 @@ CSS = """
 html { font: 10pt/1.4 "DejaVu Sans", "Liberation Sans", Arial, sans-serif; color: #000; }
 body { margin: 0; }
 .cover { break-after: page; padding-top: 30mm; }
-.cover small { color: #444; word-break: break-all; }
+.cover small { color: #444; }
 .cover .admonition { margin-top: 8mm; }
 .cover h1 { font-size: 26pt; border: 0; }
 .cover li { margin: 2mm 0; }
 .chapter { break-before: page; }
 .source { font-size: 8pt; color: #333; border-bottom: 0.4pt solid #888;
-          padding-bottom: 1.5mm; margin-bottom: 4mm; word-break: break-all; }
+          padding-bottom: 1.5mm; margin-bottom: 4mm; overflow-wrap: anywhere; }
 h1 { font-size: 20pt; margin: 0 0 4mm; }
 h2 { font-size: 15pt; margin: 7mm 0 2.5mm; border-bottom: 0.6pt solid #000; }
 h3 { font-size: 12pt; margin: 5mm 0 2mm; }
@@ -97,7 +101,14 @@ code { font-size: 8.8pt; background: #eee; padding: 0 0.6mm; }
 pre { font-size: 8pt; line-height: 1.3; border: 0.4pt solid #888; background: #f6f6f6;
       padding: 2mm; margin: 0 0 3mm; white-space: pre-wrap; overflow-wrap: anywhere;
       break-inside: avoid; }
+pre.long { break-inside: auto; }
 pre code { background: none; padding: 0; }
+sup.ref { font-size: 6.5pt; line-height: 0; color: #333; }
+.links { break-before: avoid; }
+.links ol { font-size: 8pt; overflow-wrap: anywhere; }
+.inflow { margin: 0 0 3.5mm; break-inside: avoid; }
+.inflow img { width: 100%%; }
+.inflow figcaption { font-size: 8pt; color: #333; }
 table { border-collapse: collapse; width: calc(100%% - 1pt); margin: 0 0 3.5mm; font-size: 8.8pt; }
 th, td { border: 0.4pt solid #555; padding: 1mm 1.6mm; text-align: left; vertical-align: top; }
 th { background: #ddd; }
@@ -107,7 +118,7 @@ tr { break-inside: avoid; }
 .admonition-title { font-weight: bold; text-transform: uppercase; margin-bottom: 1mm; }
 .admonition p:last-child { margin-bottom: 0; }
 img { max-width: 100%%; }
-.wide { page: wide; break-before: page; break-after: page; break-inside: avoid;
+.wide { page: wide; break-before: page; break-inside: avoid;
         margin: 0; text-align: center; }
 .wide img { width: 100%%; max-height: 172mm; object-fit: contain; }
 .wide figcaption { font-size: 8pt; color: #333; text-align: left; }
@@ -206,8 +217,13 @@ def png_width(content: bytes) -> int | None:
     return None
 
 
-def inline_images(body: Tag, url: str, soup: BeautifulSoup) -> None:
-    """Embed every image; give a wide one a landscape sheet, as vector if linked."""
+def inline_images(body: Tag, url: str, soup: BeautifulSoup) -> list[Tag]:
+    """Embed every image, as vector when the page links one.
+
+    A wide image stays in the text at the width of the column, and the sheets
+    returned hold it again at the full width of a landscape page.
+    """
+    sheets = []
     for image in body.find_all("img", src=True):
         source = urllib.parse.urljoin(url, image["src"])
         content, kind = fetch(source)
@@ -215,22 +231,72 @@ def inline_images(body: Tag, url: str, soup: BeautifulSoup) -> None:
         link = image.find_parent("a", href=True)
         vector = link["href"] if link and link["href"].lower().endswith(".svg") else None
         if vector:
-            image["src"] = data_uri(urllib.parse.urljoin(url, vector))
+            image["src"] = data_uri(vector)
         else:
             image["src"] = f"data:{kind};base64,{base64.b64encode(content).decode()}"
         for attribute in ("width", "height", "style", "srcset"):
             image.attrs.pop(attribute, None)
-        if vector or (width is not None and width >= WIDE_PX):
-            figure = soup.new_tag("figure", attrs={"class": "wide"})
-            caption = soup.new_tag("figcaption")
-            caption.string = f"{image.get('alt', '')} ({vector or source})".strip()
-            holder = link or image
-            # A block cannot sit inside the paragraph that held the image.
-            parent = holder.parent
-            target = parent if parent.name == "p" and not parent.get_text(strip=True) else holder
-            target.replace_with(figure)
-            figure.append(image)
-            figure.append(caption)
+        if not (vector or (width is not None and width >= WIDE_PX)):
+            continue
+        name = image.get("alt", "").strip() or "Figure"
+        figure = soup.new_tag("figure", attrs={"class": "inflow"})
+        caption = soup.new_tag("figcaption")
+        caption.string = f"{name}. The same sheet is at full size at the end of this chapter."
+        holder = link or image
+        # A block cannot sit inside the paragraph that held the image.
+        parent = holder.parent
+        alone = parent.name == "p" and not parent.get_text(strip=True) and len(parent.find_all("img")) == 1
+        (parent if alone else holder).replace_with(figure)
+        figure.append(image)
+        figure.append(caption)
+
+        sheet = soup.new_tag("figure", attrs={"class": "wide"})
+        sheet.append(soup.new_tag("img", src=image["src"], alt=name))
+        caption = soup.new_tag("figcaption")
+        caption.string = f"{name} ({vector or source})"
+        sheet.append(caption)
+        sheets.append(sheet)
+    return sheets
+
+
+def link_notes(body: Tag, url: str, soup: BeautifulSoup) -> Tag | None:
+    """Number each link and list the addresses, which paper cannot follow.
+
+    A link to a heading that is printed in this chapter needs no address, and
+    neither does one whose text is its address.
+    """
+    numbers: dict[str, int] = {}
+    for link in body.find_all("a", href=True):
+        target = link["href"]
+        page, _, fragment = target.partition("#")
+        if page == url and fragment and body.find(id=fragment) is not None:
+            continue
+        if link.find("img") is not None or link.get_text(strip=True) == target:
+            continue
+        number = numbers.setdefault(target, len(numbers) + 1)
+        mark = soup.new_tag("sup", attrs={"class": "ref"})
+        mark.string = f"[{number}]"
+        link.insert_after(mark)
+    if not numbers:
+        return None
+    box = soup.new_tag("div", attrs={"class": "links"})
+    heading = soup.new_tag("h2")
+    heading.string = "Links in this chapter"
+    box.append(heading)
+    listing = soup.new_tag("ol")
+    for target in numbers:
+        item = soup.new_tag("li")
+        item.string = target
+        listing.append(item)
+    box.append(listing)
+    return box
+
+
+def long_blocks(body: Tag) -> None:
+    """Let a long listing run over a sheet's end; a short one stays whole."""
+    for block in body.find_all("pre"):
+        if block.get_text().count("\n") > LONG_LINES:
+            block["class"] = [*block.get("class", []), "long"]
 
 
 def chapter(spec: str, commit: str, fetched: str) -> tuple[str, str]:
@@ -243,7 +309,9 @@ def chapter(spec: str, commit: str, fetched: str) -> tuple[str, str]:
     if wanted:
         keep_sections(body, wanted, url)
     absolute_links(body, url)
-    inline_images(body, url, soup)
+    sheets = inline_images(body, url, soup)
+    links = link_notes(body, url, soup)
+    long_blocks(body)
     heading = body.find("h1")
     title = heading.get_text(strip=True) if heading else path
     note = f"Source: {url}"
@@ -252,8 +320,14 @@ def chapter(spec: str, commit: str, fetched: str) -> tuple[str, str]:
     note += f" · docs commit {commit[:10]} · fetched {fetched}"
     return title, (
         f'<div class="chapter"><div class="source">{html.escape(note)}</div>'
-        f"{body.decode_contents()}</div>"
+        f"{body.decode_contents()}{links or ''}{''.join(map(str, sheets))}</div>"
     )
+
+
+def shown(spec: str) -> str:
+    """A page spec as the cover prints it, with room to wrap between sections."""
+    path, wanted = parse_spec(spec)
+    return path + (": " + ", ".join(wanted) if wanted else "")
 
 
 def notes(text: str) -> str:
@@ -275,7 +349,7 @@ def document(title: str, paper: str, specs: list[str], cover_notes: str = "", la
     foot = f"{title} · docs.fpgas.online · commit {commit[:10]} · {fetched}".replace('"', "'")
     css = CSS % {"paper": PAPERS[paper], "foot": foot}
     contents = "".join(
-        f"<li>{html.escape(name)} <small>({html.escape(spec)})</small></li>"
+        f"<li>{html.escape(name)} <small>({html.escape(shown(spec))})</small></li>"
         for spec, (name, _) in zip(specs, chapters)
     )
     cover = (
