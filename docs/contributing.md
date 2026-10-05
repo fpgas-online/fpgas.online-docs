@@ -89,9 +89,14 @@ $ uv run tools/print_pages.py --paper A4 --title "Wiring an Acorn to a Raspberry
 
 A page is given by its path, and may be cut down to sections named by their
 anchors. Each chapter carries its source URL and the commit the site was built
-from; a wiring sheet gets a landscape page to itself. `--help` lists the rest
-(a box of notes on the cover, a last sheet, PDFs to append). It needs
-`google-chrome-stable`.
+from, and every sheet's foot carries the commit and a page number. Links are
+numbered, with their addresses listed at the end of each chapter. An image at
+least 1200 px wide stays in the text and is printed again on a landscape sheet
+of its own at the end of its chapter. `--help` lists the rest (a box of notes on
+the cover, a last sheet, PDFs to append). Appended PDFs are not renumbered and
+must already be on the chosen paper, or the run stops. The tool needs
+`google-chrome-stable`, and `pdfunite` and `pdfinfo` (poppler-utils) only for
+`--append`.
 
 ## Open items
 
