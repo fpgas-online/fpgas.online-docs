@@ -14,6 +14,9 @@ peripheral, how it is programmed, and the measured
 [PMOD cable routing](#pmod-cable-routing-hat--arty). Which host carries which
 Arty is on the two site pages linked above.
 
+```{include} generated/install-arty-a7.md
+```
+
 ## Key Specifications
 
 | Parameter | Value |

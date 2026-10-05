@@ -12,6 +12,9 @@ analyser inline; their addresses, MACs and analysers are in the
 itself, its iCE40 pin assignments for each on-board peripheral, how it is
 programmed and monitored, and how it is wired to its Raspberry Pi.
 
+```{include} generated/install-fomu-evt.md
+```
+
 ## Key Specifications
 
 | Parameter            | Value                                     |

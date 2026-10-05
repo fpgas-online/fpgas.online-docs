@@ -23,6 +23,11 @@ when it was taken.
 : Each FPGA board type: specification, wiring to its Raspberry Pi, how to
   program it, and how to check the wiring.
 
+[Checking a board: fpgas-verify](verify/fpgas-verify.md)
+: Install `fpgas-verify` on any Raspberry Pi with a supported board, run it,
+  read the result, update the record after a change, and debug a failure. It
+  needs no fpgas.online infrastructure.
+
 [Setup](setup/index.md)
 : How the platform works: netboot and the NFS root, the network, what runs on
   the Pi hosts and on the gateway, and the web application.
@@ -34,6 +39,7 @@ when it was taken.
 sites/index
 boards/index
 setup/index
+verify/fpgas-verify
 packages
 contributing
 ```
@@ -61,3 +67,10 @@ The systems described here have their own repositories under the
 
 `apt`
 : The package repository at <https://apt.fpgas.online>. See [Packages](packages.md).
+
+```{toctree}
+:hidden:
+
+verify/identity
+verify/goals
+```

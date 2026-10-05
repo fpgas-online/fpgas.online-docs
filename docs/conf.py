@@ -43,6 +43,7 @@ exclude_patterns = [
     # Tables copied from fpgas.online-test-designs by tools/sync_test_designs.py. They are pulled into
     # pages with {include}, not built as pages of their own.
     "boards/acorn/generated/*.md",
+    "boards/generated/*.md",
 ]
 
 # MyST already warns (myst.xref_missing) on a Markdown link to a page or
@@ -66,7 +67,13 @@ myst_enable_extensions = [
 
 # Give every heading an anchor so other pages (and external links) can target
 # sections directly, e.g. `hardware.md#jtag`.
-myst_heading_anchors = 3
+# 4, because the pulled fpgas-verify page links to its own fourth-level headings.
+myst_heading_anchors = 4
+
+# Only text that is written as a URL (with its scheme) becomes a link. With fuzzy matching on, a bare file
+# name such as "verify-goals.md" is read as a host name under the .md top-level domain and linked to
+# http://verify-goals.md.
+myst_linkify_fuzzy_links = False
 
 # -- HTML -------------------------------------------------------------------
 

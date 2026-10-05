@@ -301,6 +301,14 @@ board — web SSH terminal, reset button, bitstream upload, PoE power cycle, and
 an HLS video feed at `/live/piN.m3u8` — all behind nginx on val2. How that is
 built and deployed is in [The web application](../setup/webapp.md).
 
+## Checking a board here
+
+The hosts here are checked the same way as any machine outside the fleet:
+install the Acorn packages on the host and run `fpgas-verify`. See
+[Installing the Acorn packages](../boards/acorn/index.md#installing-the-acorn-packages)
+and [Checking a board: fpgas-verify](../verify/fpgas-verify.md), which covers
+running it, reading the result, updating the record and debugging a failure.
+
 ## Known faults
 
 - **pi14 and pi16 do not respond to JTAG on any pin order.** All 24 permutations

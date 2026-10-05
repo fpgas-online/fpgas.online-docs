@@ -21,6 +21,18 @@ root reject an armoured file used directly as a `signed-by` keyring
 (`NO_PUBKEY`), which is why it is dearmoured above.
 :::
 
+## Checking a board
+
+To check a board from its Raspberry Pi, add the repository as above and install
+the package for the board, which brings `fpgas-verify` with it:
+[Acorn](boards/acorn/index.md#installing-the-acorn-packages),
+[Arty](boards/arty-a7.md#installing-the-arty-packages),
+[NeTV2](boards/netv2.md#installing-the-netv2-packages),
+[Fomu](boards/fomu-evt.md#installing-the-fomu-packages),
+[Tiny Tapeout FPGA](boards/tt-fpga.md#installing-the-tt-fpga-packages).
+[Checking a board: fpgas-verify](verify/fpgas-verify.md) covers running it and
+reading the result.
+
 ## How packages get there
 
 Each source repository builds its own `.deb` in CI and publishes it; the APT

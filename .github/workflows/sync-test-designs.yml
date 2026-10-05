@@ -1,7 +1,8 @@
 # .github/workflows/sync-test-designs.yml
 #
-# Every day, copy the files these docs take from fpgas.online-test-designs (tools/sync_test_designs.py:
-# the Acorn wiring sheets and pin tables) and open a pull request if they changed. The docs build itself
+# Every day, copy what these docs take from fpgas.online-test-designs (tools/sync_test_designs.py: the Acorn
+# wiring sheets and pin tables, the fpgas-verify pages, and each board's install section) and open a pull
+# request if any changed. The docs build itself
 # never reaches out to another repository.
 #
 # If test-designs no longer has a listed file, the sync fails, this run goes red, and an issue is
@@ -47,7 +48,7 @@ jobs:
       - name: Changed?
         id: diff
         run: |
-          git add -A docs/boards/acorn/generated
+          git add -A docs/boards/acorn/generated docs/boards/generated docs/verify
           if git diff --cached --quiet; then echo "changed=false" >> "$GITHUB_OUTPUT"; else echo "changed=true" >> "$GITHUB_OUTPUT"; fi
 
       # A pull request opened with GITHUB_TOKEN does not trigger the Docs workflow, so build here, with the same
@@ -67,9 +68,12 @@ jobs:
         with:
           branch: sync/test-designs
           delete-branch: true
-          add-paths: docs/boards/acorn/generated
-          commit-message: "acorn: sync the wiring sheets and pin tables from fpgas.online-test-designs"
-          title: "Sync the Acorn wiring from fpgas.online-test-designs"
+          add-paths: |
+            docs/boards/acorn/generated
+            docs/boards/generated
+            docs/verify
+          commit-message: "Sync the pages and tables taken from fpgas.online-test-designs"
+          title: "Sync the pages and tables taken from fpgas.online-test-designs"
           body-path: docs/boards/acorn/generated/SOURCE
 
       - name: Report a failed sync

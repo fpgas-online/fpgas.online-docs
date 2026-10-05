@@ -1,5 +1,18 @@
 # Verifying a deployment
 
+:::{important}
+Two different tools are called "verify".
+
+[`fpgas-verify`](../verify/fpgas-verify.md) is the check that runs **on the
+Raspberry Pi** a board is attached to, at boot or by hand. It is installed from
+the apt repository and works on any machine, in the fleet or not. To check,
+update or debug a board, start there.
+
+`verify_hardware.py`, described on this page, is an older script run **from a
+workstation**, which drives fleet hosts over ssh. This page keeps it for the
+procedure of adding a device to a site.
+:::
+
 This page covers adding **another device of a type the fleet already has** — a
 sixth Arty A7 at PS1, a fifth Acorn at Welland — and then proving the new host
 works. It is the test-designs repository's new-device deployment checklist,

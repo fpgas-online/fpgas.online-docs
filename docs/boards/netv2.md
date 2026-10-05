@@ -11,6 +11,9 @@ Every NeTV2 in the fleet is at Welland. This page covers the board itself, its
 FPGA pin assignments for each on-board peripheral, how it is wired to its
 Raspberry Pi, and how it is programmed and talked to.
 
+```{include} generated/install-netv2.md
+```
+
 ## Key Specifications
 
 | Parameter            | Value                                             |
