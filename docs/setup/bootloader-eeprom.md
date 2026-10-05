@@ -405,10 +405,12 @@ You do not need this part to do the job.
   rapid blink means success and an error pattern means failure. On our one run
   it blinked 3 long, 3 short, an error pattern, although the write had
   succeeded. That is why step 4 says to ignore it.
-- **The "another boot order", "SR1 0x0" and "no answer" rows of step 6:** not
-  seen by us. A Pi that is written but not locked can be changed by anyone
-  with root on it, which on a public site is every visitor: that is why its
-  row says to tell the operator if it stays unlocked. That a Pi 5 runs `recovery.bin` from a card whatever its flash holds is
+- **Three rows of the step 6 chart** ("but BOOT_ORDER is not 0xf2", "but SR1
+  0x0" and "no answer"): not seen by us. A Pi that is written but not locked
+  can be changed by anyone with root on it, which on a public site is every
+  visitor: that is why its row says to tell whoever runs the site if it stays
+  unlocked.
+- **That a Pi 5 runs `recovery.bin` from a card whatever its flash holds** is
   Raspberry Pi's documentation, not yet needed and so not yet run by us.
 - **Compute Module, Compute Blade:** only the two reads. Nothing that changes
   a bootloader has been run by us on that hardware.
