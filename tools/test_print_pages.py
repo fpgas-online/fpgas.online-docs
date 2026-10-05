@@ -9,6 +9,7 @@ import subprocess
 import sys
 import tempfile
 import unittest
+import urllib.parse
 from pathlib import Path
 
 import print_pages as p
@@ -219,10 +220,13 @@ class InlineImages(unittest.TestCase):
     def test_a_wide_png_alone_in_a_paragraph_is_a_figure_and_a_sheet(self):
         article, sheets = self.run_images('<p><img src="w.png" alt="Wiring"></p>', {"w.png": (png(3000), "image/png")})
         self.assertEqual(len(sheets), 1)
-        self.assertIsNotNone(article.select_one("figure.inflow img"))
+        self.assertIsNone(article.find("img"))
         self.assertIsNone(article.find("p"))
-        self.assertIn("full size at the end", article.select_one("figcaption").get_text())
+        self.assertEqual(article.select_one("figure.inflow figcaption").get_text(),
+                         "[Wiring: on a landscape sheet of its own at the end of this chapter.]")
         self.assertIn("wide", sheets[0]["class"])
+        self.assertIsNotNone(sheets[0].find("img"))
+        self.assertIn(IMAGES + "w.png", sheets[0].find("figcaption").get_text())
 
     def test_a_wide_png_among_text_keeps_the_text_and_no_figure_is_inside_a_paragraph(self):
         article, sheets = self.run_images(
@@ -230,12 +234,16 @@ class InlineImages(unittest.TestCase):
         self.assertEqual(len(sheets), 1)
         self.assertEqual(article.find("p").get_text(), "before  after")
         self.assertIsNone(article.select_one("p figure"))
-        self.assertIsNotNone(article.select_one("p + figure.inflow img"))
+        self.assertIsNotNone(article.select_one("p + figure.inflow figcaption"))
+        self.assertIsNone(article.find("img"))
 
-    def test_a_wide_png_in_a_list_item_stays_in_the_item(self):
-        article, _ = self.run_images('<ul><li>step <img src="w.png"></li></ul>', {"w.png": (png(3000), "image/png")})
-        self.assertIsNotNone(article.select_one("li figure.inflow img"))
+    def test_a_wide_png_in_a_list_item_leaves_its_pointer_in_the_item(self):
+        article, sheets = self.run_images(
+            '<ul><li>step <img src="w.png"></li></ul>', {"w.png": (png(3000), "image/png")})
+        self.assertIsNotNone(article.select_one("li figure.inflow figcaption"))
         self.assertIn("step", article.find("li").get_text())
+        self.assertIsNone(article.find("img"))
+        self.assertEqual(len(sheets), 1)
 
     def test_a_narrow_png_stays_inline_as_a_data_uri_without_sizes(self):
         article, sheets = self.run_images(
@@ -268,14 +276,19 @@ class InlineImages(unittest.TestCase):
             '<p><a href="https://example.org/x"><img src="a.png"><img src="b.png"></a></p>',
             {"a.png": (png(3000), "image/png"), "b.png": (png(2000), "image/png")})
         self.assertEqual(len(sheets), 2)
-        self.assertEqual(len(article.select("figure.inflow img")), 2)
+        self.assertEqual(len(article.select("figure.inflow figcaption")), 2)
+        self.assertEqual(len(article.select("figure.inflow img")), 0)
+        self.assertIsNone(article.find("img"))
         self.assertIsNone(article.select_one("p a"))
+        self.assertEqual(len([s for s in sheets if s.find("img") is not None]), 2)
 
     def test_text_in_the_same_link_as_a_wide_image_is_kept(self):
-        article, _ = self.run_images(
+        article, sheets = self.run_images(
             '<p><a href="https://example.org/x">the sheet <img src="a.png"></a></p>', {"a.png": (png(3000), "image/png")})
         self.assertEqual(article.find("a").get_text(strip=True), "the sheet")
-        self.assertIsNotNone(article.select_one("figure img"))
+        self.assertIsNone(article.find("img"))
+        self.assertIsNotNone(article.select_one("figure.inflow figcaption"))
+        self.assertIsNotNone(sheets[0].find("img"))
 
     def test_an_unreadable_image_stops_the_run_naming_its_url(self):
         with self.assertRaises(SystemExit) as stop:
@@ -350,10 +363,61 @@ class LongBlocks(unittest.TestCase):
         self.assertNotIn("class", short_one.attrs)
 
 
+class ShortTables(unittest.TestCase):
+    def table(self, rows):
+        return "<table>%s</table>" % "".join("<tr><td>%d</td></tr>" % n for n in range(rows))
+
+    def test_a_table_of_at_most_the_limit_is_kept_on_one_sheet_and_a_longer_one_is_not(self):
+        article = p.BeautifulSoup(self.table(p.SHORT_ROWS) + self.table(p.SHORT_ROWS + 1), "html.parser")
+        p.short_tables(article)
+        short_one, long_one = article.find_all("table")
+        self.assertIn("short", short_one["class"])
+        self.assertNotIn("class", long_one.attrs)
+
+    def test_a_table_with_a_class_keeps_it(self):
+        article = p.BeautifulSoup('<table class="docutils"><tr><td>1</td></tr></table>', "html.parser")
+        p.short_tables(article)
+        self.assertEqual(article.find("table")["class"], ["docutils", "short"])
+
+
+class Chapter(unittest.TestCase):
+    def make(self, number=3, spec="boards/acorn/wiring#raspberry-pi-5"):
+        with FakeFetch({URL: (PAGE.encode(), "text/html")}):
+            return p.chapter(number, spec, "0123456789abcdef", "2026-10-05")
+
+    def test_the_source_line_starts_with_the_chapter_number(self):
+        title, text = self.make()
+        self.assertEqual(title, "Acorn wiring")
+        self.assertIn(f"Chapter 3 · Source: {URL} (sections: raspberry-pi-5)", text)
+        self.assertIn("docs commit 0123456789 · fetched 2026-10-05", text)
+
+    def test_the_number_is_the_one_given(self):
+        _, text = self.make(number=12, spec="boards/acorn/wiring")
+        self.assertIn(f"Chapter 12 · Source: {URL} ·", text)
+
+
 class Notes(unittest.TestCase):
     def test_an_empty_file_stops_the_run(self):
         with self.assertRaises(SystemExit):
             p.notes("\n  \n")
+
+    def test_a_file_of_only_separators_stops_the_run(self):
+        with self.assertRaises(SystemExit):
+            p.note_boxes("\n---\n  ----  \n")
+
+    def test_several_boxes_are_split_at_lines_of_three_or_more_dashes(self):
+        text = "One\na\nb\n---\nTwo\nc\n\n------\nThree\n"
+        self.assertEqual(p.note_boxes(text), [("One", ["a", "b"]), ("Two", ["c"]), ("Three", [])])
+
+    def test_two_dashes_or_dashes_in_a_line_do_not_split(self):
+        self.assertEqual(p.note_boxes("One\n--\na --- b\n"), [("One", ["--", "a --- b"])])
+
+    def test_notes_renders_every_box(self):
+        text = p.notes("One\na\n---\nTwo\nb\nc\n")
+        self.assertEqual(text.count('class="admonition"'), 2)
+        self.assertIn('<p class="admonition-title">One</p>', text)
+        self.assertIn('<p class="admonition-title">Two</p>', text)
+        self.assertEqual(text.count("<li>"), 3)
 
     def test_heading_and_items_are_rendered(self):
         text = p.notes("Parts\n\none\ntwo\n")
@@ -369,7 +433,7 @@ class Notes(unittest.TestCase):
 class Document(unittest.TestCase):
     def make(self, title="Wiring", paper="A4", **notes):
         real = p.chapter
-        p.chapter = lambda spec, commit, fetched: (f"Chapter {spec}", f"<div>{spec} {commit[:10]}</div>")
+        p.chapter = lambda number, spec, commit, fetched: (f"Chapter {spec}", f"<div>{spec} {commit[:10]}</div>")
         try:
             with FakeFetch({p.ADDONS: (b'{"builds": {"current": {"commit": "0123456789abcdef"}}}', "application/json")}):
                 return p.document(title, paper, ["boards/acorn/wiring#a,b", "sites/ps1"], **notes)
@@ -391,6 +455,24 @@ class Document(unittest.TestCase):
         self.assertIn("Last head", text)
         self.assertLess(text.index("Last head"), text.index("</body>"))
 
+    def test_each_cover_entry_has_a_place_for_its_sheet_number(self):
+        text = self.make()
+        self.assertEqual(text.count("<!--sheet-of-chapter-"), 2)
+        self.assertIn("Chapter boards/acorn/wiring#a,b" + p.SHEET_PLACE % 1 + " <small>", text)
+        self.assertIn("Chapter sites/ps1" + p.SHEET_PLACE % 2 + " <small>", text)
+
+    def test_a_last_sheet_is_listed_on_the_cover_as_the_next_chapter(self):
+        text = self.make(last_sheet="Last head\nitem two\n---\nSecond box\nx")
+        self.assertIn("<li>Last head" + p.SHEET_PLACE % 3 + "</li>", text)
+        self.assertIn("Chapter 3 · Added to this copy; not a page of the site", text)
+        self.assertIn("Second box", text)
+        self.assertEqual(text.count("<!--sheet-of-chapter-"), 3)
+
+    def test_without_a_last_sheet_there_is_no_third_entry(self):
+        text = self.make()
+        self.assertNotIn(p.SHEET_PLACE % 3, text)
+        self.assertNotIn("Added to this copy", text)
+
     def test_a_quote_or_backslash_in_the_title_does_not_break_the_css_string(self):
         text = self.make(title='Say "hi" \\ there')
         style = text.split("<style>")[1].split("</style>")[0]
@@ -405,6 +487,54 @@ class Document(unittest.TestCase):
         self.assertIn("size: letter portrait", self.make(paper="Letter"))
 
 
+class WithSheets(unittest.TestCase):
+    PAGE = "<li>A%s</li><li>B%s</li>" % (p.SHEET_PLACE % 1, p.SHEET_PLACE % 2)
+
+    def test_with_no_sheets_every_place_is_removed(self):
+        self.assertEqual(p.with_sheets(self.PAGE, {}), "<li>A</li><li>B</li>")
+
+    def test_with_sheets_each_chapter_gets_its_number(self):
+        self.assertEqual(p.with_sheets(self.PAGE, {1: 2, 2: 7}), "<li>A, sheet 2</li><li>B, sheet 7</li>")
+
+    def test_a_chapter_missing_from_the_sheets_stops_the_run(self):
+        with self.assertRaises(SystemExit) as stop:
+            p.with_sheets(self.PAGE, {1: 2})
+        self.assertIn("chapter 2", str(stop.exception))
+
+
+class ChapterSheets(unittest.TestCase):
+    def setUp(self):
+        self.saved = (p.shutil.which, p.subprocess.run)
+        self.text = ""
+        p.shutil.which = lambda name: "/fake/" + name
+        p.subprocess.run = self.fake_run
+        self.addCleanup(self.restore)
+        self.commands = []
+
+    def restore(self):
+        p.shutil.which, p.subprocess.run = self.saved
+
+    def fake_run(self, command, **options):
+        self.commands.append(command)
+        return subprocess.CompletedProcess(command, 0, stdout=self.text, stderr="")
+
+    def test_each_chapter_is_on_the_first_sheet_with_its_source_line(self):
+        self.text = ("Cover\n\f"
+                     "Chapter 1 · Source: https://x/a\ntext\n\f"
+                     "more text mentioning Chapter 2 · in a line\n\f"
+                     "Chapter 2 · Source: https://x/b\n\f"
+                     "Chapter 2 · Source: https://x/b again\n")
+        self.assertEqual(p.chapter_sheets(Path("a.pdf")), {1: 2, 2: 4})
+        self.assertEqual(self.commands, [["pdftotext", "a.pdf", "-"]])
+
+    def test_a_missing_pdftotext_stops_the_run(self):
+        p.shutil.which = lambda name: None
+        with self.assertRaises(SystemExit) as stop:
+            p.chapter_sheets(Path("a.pdf"))
+        self.assertIn("pdftotext", str(stop.exception))
+        self.assertEqual(self.commands, [])
+
+
 HERE = Path(__file__).parent
 
 
@@ -416,6 +546,8 @@ class Printing(unittest.TestCase):
         self.addCleanup(self.work.cleanup)
         self.dir = Path(self.work.name)
         self.commands = []
+        self.printed_pages = []
+        self.sheet_texts = []
         self.chrome_writes = True
         self.united_fails = False
         self.pages = "Pages:          1\nPage    1 size: 612 x 792 pts (letter)\n"
@@ -433,8 +565,12 @@ class Printing(unittest.TestCase):
         name = Path(command[0]).name
         if name == "chrome" or name == CHROME:
             target = next(c for c in command if c.startswith("--print-to-pdf="))
+            # What Chrome was asked to print, as the page held at that moment.
+            self.printed_pages.append(Path(urllib.parse.urlparse(command[-1]).path).read_text(encoding="utf-8"))
             if self.chrome_writes:
                 Path(target.split("=", 1)[1]).write_bytes(b"%PDF fresh")
+        elif name == "pdftotext":
+            return subprocess.CompletedProcess(command, 0, stdout=self.sheet_texts.pop(0), stderr="")
         elif name == "pdfinfo":
             return subprocess.CompletedProcess(command, 0, stdout=self.pages, stderr="")
         elif name == "pdfunite":
@@ -460,6 +596,29 @@ class Printing(unittest.TestCase):
         self.assertEqual(self.main(), 0)
         self.assertEqual((self.dir / "x.pdf").read_bytes(), b"%PDF fresh")
         self.assertEqual(self.names(), ["x.pdf"])
+
+    def test_a_page_without_sheet_places_is_printed_once_and_not_read_back(self):
+        self.main()
+        self.assertEqual(len(self.printed_pages), 1)
+        self.assertNotIn("pdftotext", [Path(c[0]).name for c in self.commands])
+
+    def test_a_page_with_sheet_places_is_printed_twice_with_the_numbers_on_the_cover(self):
+        p.document = lambda *args: "<html><li>One%s</li></html>" % (p.SHEET_PLACE % 1)
+        same = "Cover\n\fChapter 1 · Source: https://x/a\n"
+        self.sheet_texts = [same, same]
+        self.assertEqual(self.main(), 0)
+        self.assertEqual(self.printed_pages, ["<html><li>One</li></html>", "<html><li>One, sheet 2</li></html>"])
+        self.assertEqual(self.sheet_texts, [])
+        self.assertEqual((self.dir / "x.pdf").read_bytes(), b"%PDF fresh")
+        self.assertEqual(self.names(), ["x.pdf"])
+
+    def test_chapters_that_moved_when_the_numbers_were_added_stop_the_run_and_leave_no_output(self):
+        p.document = lambda *args: "<html><li>One%s</li></html>" % (p.SHEET_PLACE % 1)
+        self.sheet_texts = ["Cover\n\fChapter 1 · Source: a\n", "Cover\n\f\fChapter 1 · Source: a\n"]
+        with self.assertRaises(SystemExit) as stop:
+            self.main()
+        self.assertIn("chapters moved", str(stop.exception))
+        self.assertEqual(self.names(), [])
 
     def test_a_file_named_like_the_output_but_html_is_not_touched(self):
         (self.dir / "x.html").write_text("precious")
