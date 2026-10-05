@@ -520,6 +520,10 @@ class StepPictures(unittest.TestCase):
         self.assertEqual([child.name for child in article.select_one("div.step").children], ["p", "figure"])
         self.assertIn("picture", article.find("figure")["class"])
 
+    def test_a_step_whose_words_hold_a_small_image_is_still_kept_with_its_picture(self):
+        article = self.run_steps('<p>3. Press <img src="key.png"> twice.</p><p><img src="a.png"></p>')
+        self.assertEqual([child.name for child in article.select_one("div.step").children], ["p", "p"])
+
     def test_a_picture_after_a_heading_or_with_words_around_it_is_not_wrapped(self):
         article = self.run_steps('<h3>Sheet</h3><p><img src="a.png"></p><p>see <img src="b.png"> here</p>')
         self.assertIsNone(article.find("div"))

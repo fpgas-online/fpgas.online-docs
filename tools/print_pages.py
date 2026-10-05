@@ -506,7 +506,8 @@ def step_pictures(body: Tag, soup: BeautifulSoup) -> None:
         if before is not None and before.name in ("ol", "ul"):
             words.append(before)
             before = before.find_previous_sibling()
-        if before is None or before.name != "p" or "picture" in before.get("class", []) or before.find("img"):
+        # A picture paragraph before this one was marked "picture" on its own turn, earlier in this loop.
+        if before is None or before.name != "p" or "picture" in before.get("class", []):
             continue
         step = soup.new_tag("div", attrs={"class": "step"})
         before.insert_before(step)
