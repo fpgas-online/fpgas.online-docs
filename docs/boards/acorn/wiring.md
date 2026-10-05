@@ -15,7 +15,8 @@ out — not on the site:
   only GPIO2, 3, 4, 14 and 15. P1 goes to the Extension Port and JTAG is
   `--pins 2:3:4:14`. P2's serial pair goes to the 4-pin UART header, and J5 and
   H5 are not connected. The UART header's TX pin is the same GPIO14 as TMS, so
-  the J2 wire has a 470 Ω resistor in it so that JTAG wins. No PS1 blade is
+  the J2 wire has a 470 Ω resistor in it so that JTAG should win (designed so,
+  not yet measured). No PS1 blade is
   wired this way yet; how each one is wired now is on [Compute
   blades](../../sites/ps1.md#compute-blades).
 
@@ -236,8 +237,9 @@ over the whole UART header. The unused cavities stay empty: Extension Port 1, 5,
 6, 7 and 10, and UART 1. No cavity holds two wires.
 
 Use full-length housings, not the shortest that holds the wires. A 2×3 on
-Extension Port rows 2-4 also fits one row higher, which puts the GND wire on
-pin 7 (5 V); a 1×3 on UART pins 2-4 also fits one pin higher, which puts GND on
+Extension Port rows 2-4 also fits one row toward pin 1, which puts the GND wire
+on pin 7 (5 V); a 1×3 on UART pins 2-4 also fits one pin toward pin 1, which
+puts GND on
 UART pin 1 (5 V). Either shorts the blade's 5 V rail, because the Acorn's ground
 is the blade's ground through the M.2 slot. A full-length housing has only one
 position, but it can still go on turned round — the 2×5 then puts TCK on pin 7,
@@ -302,7 +304,9 @@ whether or not a console or a getty uses the port, and kernel 6.18 does not hand
 a held pin to openFPGALoader, which then stops with `gpiod_line_request_set_values_subset:
 Assertion 'request' failed` (read on pi16, a CM5, on 2026-10-05: [pi16 on 5
 October 2026](../../sites/ps1.md#pi16-on-5-october-2026)). The serial port off
-means `enable_uart=0` and no `console=serial0` word on the kernel command line;
+means `enable_uart=0`, no `dtoverlay=uart0…` or `dtparam=uart0` line, and no
+`console=serial0` word on the kernel command line, which is expected to free
+GPIO14;
 in that boot there is no serial pair to test. **Booting a blade that way is not
 yet run by us on this hardware**, and nothing has been read on a CM4. pi20's
 JTAG answered under kernel 6.12.75 with the serial port on.
@@ -348,8 +352,9 @@ Give GPIO14 and GPIO15 back to the serial port only when the loaded design
 treats J2 as an input (the fpgas.online Acorn design does; pin-ID does not: see
 the warning under [P2](#p2-serial-pair-and-spare-gpios)). The UART function is
 a different alternate on each module, so run only the line for yours;
-`pinctrl funcs 14,15` lists them. Not yet run by us on a blade under kernel
-6.18.
+`pinctrl funcs 14,15` lists them. This applies only to a boot in which the
+serial port is on (kernel 6.12.75, as on pi20). In a kernel 6.18 boot with the
+serial port off there is no `/dev/ttyAMA0` and nothing to give back.
 
 On a **CM4** (BCM2711):
 
@@ -430,9 +435,16 @@ H5 parts of Steps 3 and 4 do not apply on a blade.
 
 Every blade block uses the card's address from `BDF`; set it once per shell:
 
+On a **CM5** blade (pi16, pi20):
+
 ```console
-$ BDF=0001:01:00.0           # a CM5 blade (pi16, pi20)
-$ BDF=0000:01:00.0           # a CM4 blade (pi14): run only the line for yours
+$ BDF=0001:01:00.0
+```
+
+On a **CM4** blade (pi14):
+
+```console
+$ BDF=0000:01:00.0
 ```
 
 ### Step 1: PCIe
@@ -499,7 +511,7 @@ $ echo 1 | sudo tee /sys/bus/pci/devices/$BDF/remove
 $ openFPGALoader --cable libgpiod --pins 2:3:4:14 --detect
 # Expected: idcode 0x3631093 (XC7A100T, an Acorn CLE-101 or LiteFury)
 #           idcode 0x3636093 (XC7A200T, a CLE-215+ or NiteFury)
-# openFPGALoader leaves its pins as outputs, after --detect too: put them back
+# openFPGALoader leaves its pins as outputs (seen after --detect on pi16): put them back
 $ pinctrl set 2,4 no pu
 # 2. Load to SRAM, and put the pins back again
 $ openFPGALoader --cable libgpiod --pins 2:3:4:14 <bitstream.bit>
@@ -537,17 +549,21 @@ $ gpioget gpiochip15 4
 
 On a **Compute Blade** there is no GPIO part (J5 and H5 are not wired), and the
 UART part cannot follow a JTAG load in the same boot under kernel 6.18: it needs
-the header's serial port on, and so a design that is already running from the
-card's flash. It is not yet run by us on this hardware. Before sending anything,
+the header's serial port on, and so a card whose flash already holds the
+fpgas.online design; no PS1 blade card has that yet (see [What each blade still
+needs](../../sites/ps1.md#what-each-blade-still-needs)). It is not yet run by us
+on this hardware. Before sending anything,
 make sure neither the kernel console nor a getty is on the port:
 
 ```console
 $ cat /proc/consoles          # ttyAMA0 must NOT be listed: if it is, stop here
+#                             (see "Kernel console on the FPGA UART")
 $ sudo systemctl stop serial-getty@ttyAMA0
 $ sudo systemctl mask serial-getty@ttyAMA0
 $ stty -F /dev/ttyAMA0 115200 raw -echo
 $ cat /dev/ttyAMA0 &          # shows what comes back
 $ echo "test" > /dev/ttyAMA0
+$ kill %1
 ```
 
 ### Step 4: pin ID
@@ -555,6 +571,7 @@ $ echo "test" > /dev/ttyAMA0
 On a **Raspberry Pi 5**:
 
 ```console
+$ echo 1 | sudo tee /sys/bus/pci/devices/0001:01:00.0/remove   # detach first, as in Step 2
 $ openFPGALoader --cable libgpiod --pins 10:9:11:8 pmod-pin-id-acorn.bit
 # Each ball transmits its own name at 1200 baud. Correctly wired:
 # GPIO15 → "K2" (serial TX, on the Pi's RXD0)
@@ -566,6 +583,7 @@ $ openFPGALoader --cable libgpiod --pins 10:9:11:8 pmod-pin-id-acorn.bit
 On a **Compute Blade** (not yet run by us on a blade wired as on this page):
 
 ```console
+$ echo 1 | sudo tee /sys/bus/pci/devices/$BDF/remove   # detach first, as in Step 2
 $ openFPGALoader --cable libgpiod --pins 2:3:4:14 pmod-pin-id-acorn.bit
 $ pinctrl set 2,4 no pu
 $ pinctrl set 14 ip pn       # an input, no pull: NOT a0 or a4 while pin-ID runs
@@ -610,8 +628,8 @@ $ lspci -nn -d 10ee:
 ```
 
 On a **Compute Blade** (the load, rescan and re-probe as measured on pi20, a
-CM5; the root complex's name on a CM4 is not read by us, so take it from the
-`readlink` line):
+CM5; the `pinctrl` line as run on pi16; the root complex's name on a CM4 is not
+read by us, so take it from the `readlink` line):
 
 ```console
 $ echo 1 | sudo tee /sys/bus/pci/devices/$BDF/remove   # detach first
@@ -681,7 +699,7 @@ issue #3](https://github.com/fpgas-online/fpgas.online-test-designs/issues/3).
 | GPIO pins don't respond | Cable wired incorrectly | Buzz each wire from its Pico-EZmate position (pin 1 = GND, nearest the M.2 edge) to the pin in the tables above |
 | PCIe device missing after loading a design | Not rescanned, or (on a CM5 blade) a LiteX design that needs PERST# | Rescan; if still missing, re-probe the slot's root complex ([procedure](pcie-programming.md#bring-the-endpoint-back-after-a-jtag-load)); if it still does not link, check the build's I/O report has the lane on B10/B6 |
 | JTAG fails on a Compute Blade | Wrong pin order | Use `--pins 2:3:4:14`, not `--pins 10:9:11:8` |
-| UART dead after JTAG on a Compute Blade | openFPGALoader left GPIO14 a plain output | On a CM4 `pinctrl set 14,15 a0`; on a CM5 `pinctrl set 14,15 a4` (one or the other), then open `/dev/ttyAMA0` |
+| UART dead after JTAG on a Compute Blade | openFPGALoader left GPIO14 a plain output | Only in a boot with the serial port on (kernel 6.12), and only once the loaded design treats J2 as an input: on a CM4 `pinctrl set 14,15 a0`; on a CM5 `pinctrl set 14,15 a4` (one or the other), then open `/dev/ttyAMA0`. Never with pin-ID loaded |
 | Board hung, ~0.4 W on PoE instead of ~8 W | Wedged Pi 5 | PoE cycle the switch port; a Pi 5 needs over 90 s to come back |
 
 ## Compatible boards

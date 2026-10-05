@@ -224,7 +224,8 @@ surprise removal. Detach the endpoint first, using the host's own bus from the
 `PCIe Bus` column above:
 
 ```console
-$ echo 1 | sudo tee /sys/bus/pci/devices/0001:01:00.0/remove
+$ BDF=0001:01:00.0           # pi16, pi20; 0000:01:00.0 on the CM4 blade pi14
+$ echo 1 | sudo tee /sys/bus/pci/devices/$BDF/remove
 ```
 
 Restore it by rebooting, or as described under [Bring the endpoint back after a
@@ -389,7 +390,8 @@ been run on a blade.
   JTAG works. For pi16 that run may have failed for the reason in the next
   entry instead: if the serial driver held GPIO14 then, every order would fail.
   Not known.
-- **pi16's JTAG cannot run at all** as read on 2026-10-05: the serial driver
+- **pi16's JTAG cannot run with the serial port on**, as it was booted on
+  2026-10-05: the serial driver
   holds GPIO14 (TMS), so its P1 state is unknown, not known to be unmated; and
   its kernel console is on the FPGA's UART. See [pi16 on 5 October
   2026](#pi16-on-5-october-2026).
