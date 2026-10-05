@@ -302,10 +302,20 @@ class InlineImages(unittest.TestCase):
         self.assertEqual(sheets, [])
         self.assertTrue(article.find("img")["src"].startswith("data:image/svg+xml;base64,"))
 
+    def test_a_step_picture_rendered_at_double_size_stays_in_the_text(self):
+        article, sheets = self.run_images('<p><img src="step.png" alt="Step"></p>', {"step.png": (png(1560), "image/png")})
+        self.assertEqual(sheets, [])
+        self.assertIsNotNone(article.find("img"))
+
+    def test_an_svg_drawn_wide_is_a_sheet_at_its_drawn_width(self):
+        article, sheets = self.run_images(
+            '<p><img src="w.svg" alt="Sheet"></p>', {"w.svg": (svg("viewBox='0 0 1600 900'"), "image/svg+xml")})
+        self.assertEqual(len(sheets), 1)
+
     def test_two_wide_images_in_one_link_do_not_crash_and_each_gets_a_sheet(self):
         article, sheets = self.run_images(
             '<p><a href="https://example.org/x"><img src="a.png"><img src="b.png"></a></p>',
-            {"a.png": (png(3000), "image/png"), "b.png": (png(2000), "image/png")})
+            {"a.png": (png(3000), "image/png"), "b.png": (png(2400), "image/png")})
         self.assertEqual(len(sheets), 2)
         self.assertEqual(len(article.select("figure.inflow figcaption")), 2)
         self.assertEqual(len(article.select("figure.inflow img")), 0)

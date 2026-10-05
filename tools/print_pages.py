@@ -25,7 +25,8 @@ Every chapter starts on a new sheet under a line giving its source URL, the
 commit the site was built from and the date it was fetched; every sheet has
 the commit and a page number in its foot. Links are numbered and their
 addresses listed at the end of the chapter, because paper cannot follow them.
-An image at least WIDE_PX wide is not left in the text: a line there says it is
+An image drawn at least WIDE_PX wide (a PNG of twice that, since the site's
+PNGs are rendered at double size) is not left in the text: a line there says it is
 on a landscape sheet of its own at the end of its chapter, where it is printed
 once at the full width of the paper (in vector form when the page links one).
 --append puts existing PDFs (label sheets) after the printed pages unchanged
@@ -72,9 +73,13 @@ CHROME = "google-chrome-stable"
 PAPERS = {"A4": "A4", "Letter": "letter"}
 # Sheet sizes in points (width, height, portrait), for checking appended PDFs.
 PAPER_POINTS = {"A4": (595.28, 841.89), "Letter": (612.0, 792.0)}
-# An image at least this many pixels wide (a wiring sheet) gets a landscape
-# sheet to itself; anything narrower stays in the text.
+# An image drawn at least this many pixels wide (a wiring sheet) gets a
+# landscape sheet to itself; anything narrower stays in the text.
 WIDE_PX = 1200
+# The site's PNGs are rendered at twice the size they are drawn at, so a PNG
+# (or any other raster) is that wide only from twice as many pixels. A step
+# picture drawn 780 px wide is a 1560 px PNG and belongs in the text.
+RASTER_WIDE_PX = 2 * WIDE_PX
 # A listing with more lines than this may run over the end of a sheet.
 LONG_LINES = 18
 # A table with at most this many rows is kept on one sheet.
@@ -370,7 +375,8 @@ def inline_images(body: Tag, url: str, soup: BeautifulSoup) -> list[Tag]:
             image["src"] = as_data_uri(content, kind)
         for attribute in ("width", "height", "style", "srcset"):
             image.attrs.pop(attribute, None)
-        if width < WIDE_PX and (vector_width or 0) < WIDE_PX:
+        limit = WIDE_PX if kind == "image/svg+xml" else RASTER_WIDE_PX
+        if width < limit and (vector_width or 0) < WIDE_PX:
             continue
         name = image.get("alt", "").strip() or "Figure"
         figure = soup.new_tag("figure", attrs={"class": "inflow"})

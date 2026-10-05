@@ -91,8 +91,8 @@ A page is given by its path, and may be cut down to sections named by their
 anchors. Chapters are numbered; each carries its source URL and the commit the
 site was built from, the cover lists the sheet each starts on, and every sheet's
 foot carries the commit and a page number. Links are numbered, with their
-addresses listed at the end of each chapter. An image at least 1200 px wide (a
-wiring sheet) is printed once, on a landscape sheet of its own at the end of its
+addresses listed at the end of each chapter. An image drawn at least 1200 px wide (a
+wiring sheet; for a PNG, which the site renders at double size, 2400 px) is printed once, on a landscape sheet of its own at the end of its
 chapter, and the text says so where the image was. `--help` lists the rest:
 boxes of notes on the cover (several in one file, separated by a line of
 dashes), a last sheet, PDFs to append. Appended PDFs are not renumbered and must
