@@ -1,0 +1,23 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1280 230" width="1280" height="230" font-family="DejaVu Sans, Arial, sans-serif">
+<rect width="1280" height="230" fill="#ffffff"/>
+<text x="20" y="36" font-size="26" font-weight="bold" fill="#111" text-anchor="start">What you need on the bench</text>
+<rect x="20" y="60" width="240" height="150" rx="8" fill="#eef3f8" stroke="#111" stroke-width="2"/>
+<text x="140" y="100" font-size="19" font-weight="bold" fill="#111" text-anchor="middle">The Pi 5</text>
+<text x="140" y="136" font-size="17" font-weight="normal" fill="#111" text-anchor="middle">out of its case or mount,</text>
+<text x="140" y="162" font-size="17" font-weight="normal" fill="#111" text-anchor="middle">underside reachable</text>
+<rect x="270" y="60" width="240" height="150" rx="8" fill="#eef3f8" stroke="#111" stroke-width="2"/>
+<text x="390" y="100" font-size="19" font-weight="bold" fill="#111" text-anchor="middle">microSD card</text>
+<text x="390" y="136" font-size="17" font-weight="normal" fill="#111" text-anchor="middle">any size; it is wiped</text>
+<rect x="520" y="60" width="240" height="150" rx="8" fill="#eef3f8" stroke="#111" stroke-width="2"/>
+<text x="640" y="100" font-size="19" font-weight="bold" fill="#111" text-anchor="middle">Computer</text>
+<text x="640" y="136" font-size="17" font-weight="normal" fill="#111" text-anchor="middle">Linux, with a card reader,</text>
+<text x="640" y="162" font-size="17" font-weight="normal" fill="#111" text-anchor="middle">git, python3, openssl</text>
+<rect x="770" y="60" width="240" height="150" rx="8" fill="#eef3f8" stroke="#111" stroke-width="2"/>
+<text x="890" y="100" font-size="19" font-weight="bold" fill="#111" text-anchor="middle">A bridge</text>
+<text x="890" y="136" font-size="17" font-weight="normal" fill="#111" text-anchor="middle">soldering iron and solder,</text>
+<text x="890" y="162" font-size="17" font-weight="normal" fill="#111" text-anchor="middle">OR fine tweezers / a wire</text>
+<rect x="1020" y="60" width="240" height="150" rx="8" fill="#eef3f8" stroke="#111" stroke-width="2"/>
+<text x="1140" y="100" font-size="19" font-weight="bold" fill="#111" text-anchor="middle">The Pi's network cable</text>
+<text x="1140" y="136" font-size="17" font-weight="normal" fill="#111" text-anchor="middle">on its switch port: it</text>
+<text x="1140" y="162" font-size="17" font-weight="normal" fill="#111" text-anchor="middle">powers the Pi (PoE)</text>
+</svg>

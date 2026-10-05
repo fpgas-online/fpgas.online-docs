@@ -1,0 +1,37 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 950 520" width="950" height="520" font-family="DejaVu Sans, Arial, sans-serif">
+<rect width="950" height="520" fill="#ffffff"/>
+<text x="20" y="36" font-size="26" font-weight="bold" fill="#111" text-anchor="start">Reading BOOT_ORDER: start at the LAST digit and go left</text>
+<text x="20" y="92" font-size="21" font-weight="bold" fill="#111" text-anchor="start">0xf2: the fleet's. Network only.</text>
+<rect x="20" y="106" width="170" height="84" rx="8" fill="#e2f3e2" stroke="#111" stroke-width="2"/>
+<text x="105" y="142" font-size="30" font-weight="bold" fill="#111" text-anchor="middle" font-family="DejaVu Sans Mono, monospace">f</text>
+<text x="105" y="174" font-size="16" font-weight="normal" fill="#111" text-anchor="middle">start again (then)</text>
+<rect x="200" y="106" width="170" height="84" rx="8" fill="#e2f3e2" stroke="#111" stroke-width="2"/>
+<text x="285" y="142" font-size="30" font-weight="bold" fill="#111" text-anchor="middle" font-family="DejaVu Sans Mono, monospace">2</text>
+<text x="285" y="174" font-size="16" font-weight="normal" fill="#111" text-anchor="middle">network (tried 1st)</text>
+<text x="20" y="242" font-size="21" font-weight="bold" fill="#111" text-anchor="start">0xf12: network, then an SD card. Not the fleet's.</text>
+<rect x="20" y="256" width="170" height="84" rx="8" fill="#fde3e3" stroke="#111" stroke-width="2"/>
+<text x="105" y="292" font-size="30" font-weight="bold" fill="#111" text-anchor="middle" font-family="DejaVu Sans Mono, monospace">f</text>
+<text x="105" y="324" font-size="16" font-weight="normal" fill="#111" text-anchor="middle">start again (then)</text>
+<rect x="200" y="256" width="170" height="84" rx="8" fill="#fde3e3" stroke="#111" stroke-width="2"/>
+<text x="285" y="292" font-size="30" font-weight="bold" fill="#111" text-anchor="middle" font-family="DejaVu Sans Mono, monospace">1</text>
+<text x="285" y="324" font-size="16" font-weight="normal" fill="#111" text-anchor="middle">SD card (tried 2nd)</text>
+<rect x="380" y="256" width="170" height="84" rx="8" fill="#fde3e3" stroke="#111" stroke-width="2"/>
+<text x="465" y="292" font-size="30" font-weight="bold" fill="#111" text-anchor="middle" font-family="DejaVu Sans Mono, monospace">2</text>
+<text x="465" y="324" font-size="16" font-weight="normal" fill="#111" text-anchor="middle">network (tried 1st)</text>
+<text x="20" y="392" font-size="21" font-weight="bold" fill="#111" text-anchor="start">0xf2461: SD card, NVMe, USB, then network. Not the fleet's.</text>
+<rect x="20" y="406" width="170" height="84" rx="8" fill="#fde3e3" stroke="#111" stroke-width="2"/>
+<text x="105" y="442" font-size="30" font-weight="bold" fill="#111" text-anchor="middle" font-family="DejaVu Sans Mono, monospace">f</text>
+<text x="105" y="474" font-size="16" font-weight="normal" fill="#111" text-anchor="middle">start again (then)</text>
+<rect x="200" y="406" width="170" height="84" rx="8" fill="#fde3e3" stroke="#111" stroke-width="2"/>
+<text x="285" y="442" font-size="30" font-weight="bold" fill="#111" text-anchor="middle" font-family="DejaVu Sans Mono, monospace">2</text>
+<text x="285" y="474" font-size="16" font-weight="normal" fill="#111" text-anchor="middle">network (tried 4th)</text>
+<rect x="380" y="406" width="170" height="84" rx="8" fill="#fde3e3" stroke="#111" stroke-width="2"/>
+<text x="465" y="442" font-size="30" font-weight="bold" fill="#111" text-anchor="middle" font-family="DejaVu Sans Mono, monospace">4</text>
+<text x="465" y="474" font-size="16" font-weight="normal" fill="#111" text-anchor="middle">USB (tried 3rd)</text>
+<rect x="560" y="406" width="170" height="84" rx="8" fill="#fde3e3" stroke="#111" stroke-width="2"/>
+<text x="645" y="442" font-size="30" font-weight="bold" fill="#111" text-anchor="middle" font-family="DejaVu Sans Mono, monospace">6</text>
+<text x="645" y="474" font-size="16" font-weight="normal" fill="#111" text-anchor="middle">NVMe SSD (tried 2nd)</text>
+<rect x="740" y="406" width="170" height="84" rx="8" fill="#fde3e3" stroke="#111" stroke-width="2"/>
+<text x="825" y="442" font-size="30" font-weight="bold" fill="#111" text-anchor="middle" font-family="DejaVu Sans Mono, monospace">1</text>
+<text x="825" y="474" font-size="16" font-weight="normal" fill="#111" text-anchor="middle">SD card (tried 1st)</text>
+</svg>

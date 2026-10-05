@@ -1,5 +1,5 @@
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1200 425" width="1200" height="425" font-family="DejaVu Sans, Arial, sans-serif">
-<rect width="1200" height="425" fill="#ffffff"/>
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1200 520" width="1200" height="520" font-family="DejaVu Sans, Arial, sans-serif">
+<rect width="1200" height="520" fill="#ffffff"/>
 <text x="20" y="32" font-size="22" font-weight="bold">Compute Blade, Dev model, seen from the component side (drawn from the maker's picture)</text>
 <rect x="20" y="70" width="1160" height="230" rx="14" fill="#1f4e8c" stroke="#111" stroke-width="2"/>
 <rect x="30" y="190" width="110" height="100" rx="5" fill="#c9d3df" stroke="#111" stroke-width="1.5"/>
@@ -33,11 +33,10 @@
 <rect x="1052" y="244" width="50" height="46" rx="5" fill="#f7d9d9" stroke="#c81e1e" stroke-width="5"/>
 <text x="1077.0" y="264.0" font-size="13" text-anchor="middle">nRPI</text>
 <text x="1077.0" y="280.0" font-size="13" text-anchor="middle">BOOT</text>
-<text x="470" y="345" font-size="17" fill="#22a022" font-weight="bold">1. USB Type-C port: the cable to the computer that runs rpiboot</text>
-<text x="470" y="371" font-size="17" fill="#c2188f" font-weight="bold">2. USB switch: moved to the USB Type-C position</text>
-<text x="470" y="397" font-size="17" fill="#c81e1e" font-weight="bold">3. nRPIBOOT button: held down while the cable is connected</text>
-<text x="30" y="345" font-size="17" fill="#b8860b" font-weight="bold">DIP: 1 write protection, 2 Wi-Fi, 3 Bluetooth</text>
-<text x="30" y="371" font-size="15">A drawing from documentation, not from a board</text>
-<text x="30" y="391" font-size="15">in hand: positions are approximate.</text>
-<text x="30" y="411" font-size="15">Only the Dev model has these parts.</text>
+<text x="30" y="379" font-size="19" fill="#22a022" font-weight="bold">1. USB Type-C port: the cable to the computer that runs rpiboot</text>
+<text x="30" y="407" font-size="19" fill="#c2188f" font-weight="bold">2. USB switch: moved to the USB Type-C position</text>
+<text x="30" y="435" font-size="19" fill="#c81e1e" font-weight="bold">3. nRPIBOOT button: held down while the cable is connected</text>
+<text x="30" y="349" font-size="19" fill="#b8860b" font-weight="bold">DIP: 1 write protection, 2 Wi-Fi, 3 Bluetooth</text>
+<text x="30" y="474" font-size="19" font-weight="bold">How to tell a Dev model: it has the USB Type-C socket and, beside it, the small nRPIBOOT button.</text>
+<text x="30" y="502" font-size="17">A drawing from documentation, not from a board in hand: positions are approximate.</text>
 </svg>

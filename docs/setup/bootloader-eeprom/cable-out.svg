@@ -1,0 +1,22 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 950 360" width="950" height="360" font-family="DejaVu Sans, Arial, sans-serif">
+<rect width="950" height="360" fill="#ffffff"/>
+<text x="20" y="36" font-size="26" font-weight="bold" fill="#111" text-anchor="start">Pull the network cable: the Pi is now off</text>
+<rect x="60" y="70" width="420" height="270" rx="14" fill="#2e7d32" stroke="#111" stroke-width="3"/>
+<text x="225" y="210" font-size="17" font-weight="bold" fill="#fff" text-anchor="middle">Raspberry Pi 5, from above</text>
+<rect x="390" y="250" width="110" height="76" rx="8" fill="#c9d3df" stroke="#111" stroke-width="2"/>
+<text x="445" y="294" font-size="16" font-weight="bold" fill="#111" text-anchor="middle">Ethernet</text>
+<rect x="400" y="90" width="100" height="64" rx="8" fill="#c9d3df" stroke="#111" stroke-width="2"/>
+<text x="450" y="128" font-size="15" font-weight="normal" fill="#111" text-anchor="middle">USB</text>
+<rect x="400" y="168" width="100" height="64" rx="8" fill="#c9d3df" stroke="#111" stroke-width="2"/>
+<text x="450" y="206" font-size="15" font-weight="normal" fill="#111" text-anchor="middle">USB</text>
+<rect x="70" y="300" width="70" height="34" rx="8" fill="#c9d3df" stroke="#111" stroke-width="2"/>
+<text x="105" y="322" font-size="13" font-weight="normal" fill="#111" text-anchor="middle">USB-C</text>
+<rect x="600" y="264" width="150" height="48" rx="8" fill="#e9ecef" stroke="#c81e1e" stroke-width="4"/>
+<text x="675" y="295" font-size="16" font-weight="bold" fill="#111" text-anchor="middle">network cable</text>
+<path d="M770 288 L870 288" stroke="#c81e1e" stroke-width="8" fill="none"/>
+<path d="M870 288 l-22 -14 l0 28 z" fill="#c81e1e"/>
+<text x="520" y="100" font-size="19" font-weight="bold" fill="#c81e1e" text-anchor="start">Network cable OUT</text>
+<text x="520" y="130" font-size="19" font-weight="normal" fill="#111" text-anchor="start">It carries the power (PoE).</text>
+<text x="520" y="160" font-size="19" font-weight="normal" fill="#111" text-anchor="start">If a USB-C supply is fitted,</text>
+<text x="520" y="190" font-size="19" font-weight="normal" fill="#111" text-anchor="start">pull that too.</text>
+</svg>

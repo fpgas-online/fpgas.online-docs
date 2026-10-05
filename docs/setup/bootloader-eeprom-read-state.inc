@@ -1,12 +1,10 @@
-Run these three on the Pi. None of them changes anything.
-
-```console
-$ vcgencmd bootloader_version
-$ vcgencmd bootloader_config
-$ sudo rpi-eeprom-update
+```{image} bootloader-eeprom/check-card.svg
+:alt: Three reads: the bootloader date should be 2026/09/25, the boot order BOOT_ORDER=0xf2, and the flash lock SR1 0xbc
+:width: 100%
 ```
 
-**What a Pi 5 that is done looks like** (read on a fleet Pi 5 on 4 Oct 2026):
+Log in to the Pi as user `pi` (ssh, or the web terminal on its board page) and
+run:
 
 ```console
 $ vcgencmd bootloader_version
@@ -24,39 +22,19 @@ BOOT_ORDER=0xf2
 NET_INSTALL_AT_POWER_ON=0
 ```
 
-**What a Pi 5 that still needs the upgrade looks like** (another fleet Pi 5, the
-same day): an older date in the first line, and a boot order that is not `0xf2`.
+That is a Pi that is done. Only the first line of the first command and the
+`BOOT_ORDER` line of the second matter for the check; the full settings the
+fleet wants are the six lines shown.
 
-```console
-$ vcgencmd bootloader_version
-2026/05/26 16:01:25
-version 086b83e3332dfc8927c56762771d082f3077a1ae (release)
-timestamp 1779807685
-update-time 0
-capabilities 0x0000007f
-$ vcgencmd bootloader_config
-[all]
-BOOT_UART=1
-BOOT_ORDER=0xf12
-NET_INSTALL_AT_POWER_ON=1
+```{image} bootloader-eeprom/boot-order.svg
+:alt: BOOT_ORDER is read from its last digit: 0xf2 is network only; 0xf12 and 0xf2461 also boot local media
+:width: 100%
 ```
 
-| Read | Wanted | If it is something else |
-|---|---|---|
-| first line of `bootloader_version` | `2026/09/25` | an older date: the upgrade has not been written |
-| `BOOT_ORDER` | `0xf2` (network, then start again; read from the last digit: `1` SD card, `2` network, `6` NVMe, `4` USB, `f` start again) | any `1`, `4` or `6` in it: the Pi can boot a card, a USB stick or an SSD someone fits |
-| `BOOT_UART` | `1` | the bootloader does not log to the debug UART |
-| `NET_INSTALL_AT_POWER_ON` | `0` | |
-| `POWER_OFF_ON_HALT`, `WAKE_ON_GPIO` | `0`, `1` | |
-
-`sudo rpi-eeprom-update` only reports; do not go by its "up to date" or "update
-available" line, which compares with the package installed in the root, not
-with what the fleet wants. On both Pis above it printed `BOOTLOADER: up to
-date`.
-
-**Is the flash locked?** No packaged tool we found prints the flash's status
-registers. This script does (read commands only; it changes nothing). Save it
-on the Pi as `read_flash_status.py`:
+For the third read, put this script on the Pi. Either
+{download}`download it <bootloader-eeprom/read_flash_status.py>` and copy it over, or
+type `cat > read_flash_status.py` on the Pi, paste the text below, and press
+Ctrl-D:
 
 ```{literalinclude} bootloader-eeprom/read_flash_status.py
 :language: python
@@ -70,14 +48,15 @@ SR2 0x2
 SR3 0x60
 ```
 
-Those are the values this code read on every locked fleet Pi 5 (4 Oct 2026,
-four boards; the script in exactly this form has not been run yet). `SR1 0xbc` is
-locked; `SR1 0x0` is not locked:
+It only reads. `SR1 0xbc` is locked, `SR1 0x0` is not:
 
 ```{image} bootloader-eeprom/sr1-bits.svg
 :alt: Status register 1 bit by bit: 0xbc is SRP, TB, BP2, BP1 and BP0 set (locked); 0x00 is not locked
 :width: 100%
 ```
 
-A `jedec` other than `ef4015` is a flash part we have not handled: stop and do
-not write anything to that Pi.
+If `jedec` is anything other than `ef4015`, this is a flash chip this page
+does not cover: stop, and write nothing to that Pi.
+
+Do not go by `sudo rpi-eeprom-update`: it prints "up to date" on Pis that are
+not on the fleet's bootloader.

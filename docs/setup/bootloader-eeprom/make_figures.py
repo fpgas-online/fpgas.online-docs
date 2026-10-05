@@ -36,48 +36,86 @@ def ring(d, box, width=7, colour=ORANGE):
     d.ellipse(box, outline=colour, width=width)
 
 
+def band(im, height):
+    """The picture with a white band under it for the labels, and a draw handle."""
+    out = Image.new("RGB", (im.width, im.height + height), WHITE)
+    out.paste(im, (0, 0))
+    return out, ImageDraw.Draw(out)
+
+
+def note(d, xy, text, size=30, fill=BLACK, anchor="mm"):
+    d.text(xy, text, font=font(size), fill=fill, anchor=anchor)
+
+
+def leader(d, start, end, colour=ORANGE):
+    d.line((start, end), fill=BLACK, width=11)
+    d.line((start, end), fill=colour, width=6)
+
+
+GREEN, RED = (30, 140, 60), (200, 30, 30)
+
+
 def underside(name, what):
     """The whole underside with its landmarks, and one thing ringed."""
-    im = Image.open(SRC / "pi5-underside.jpg").convert("RGB")
-    d = ImageDraw.Draw(im)
+    photo = Image.open(SRC / "pi5-underside.jpg").convert("RGB")
+    im, d = band(photo, 150)
     for xy, text in (((874, 110), "GPIO header"), ((70, 290), "USB-A"), ((871, 880), "micro-HDMI ×2"),
-                     ((1215, 795), "USB-C power"), ((520, 760), "CE mark")):
+                     ((1215, 795), "USB-C power"), ((520, 770), "CE mark")):
         label(d, xy, text, 24)
     if what == "pads":
-        ring(d, (700, 678, 812, 748))
-        d.line((756, 678, 756, 610), fill=BLACK, width=12)
-        d.line((756, 678, 756, 610), fill=ORANGE, width=6)
-        label(d, (756, 585), "TP14 and TP1: the two FLASH WP pads", 34, ORANGE)
-        label(d, (1262, 300), "microSD slot", 24)
+        ring(d, (690, 664, 824, 760), 9)
+        leader(d, (757, 760), (757, 935))
+        note(d, (700, 975), "TP14 and TP1: the two pads marked FLASH WP", 40, ORANGE)
+        note(d, (700, 1030), "right of the CE mark, above the two micro-HDMI sockets", 30)
     else:
-        ring(d, (1150, 330, 1362, 540))
-        d.line((1150, 435, 1020, 435), fill=BLACK, width=12)
-        d.line((1150, 435, 1020, 435), fill=ORANGE, width=6)
-        label(d, (1010, 435), "microSD slot: the card goes in here,", 30, ORANGE, "rm")
-        label(d, (1010, 475), "contacts towards the board", 30, ORANGE, "rm")
-        ring(d, (700, 678, 812, 748), 4, WHITE)
-        label(d, (756, 640), "bridge still fitted", 24)
+        ring(d, (1150, 330, 1362, 540), 9)
+        # a microSD card, drawn, on its way into the slot from the board's edge
+        d.rounded_rectangle((1372, 372, 1398, 498), radius=6, fill=(40, 40, 40), outline=WHITE, width=3)
+        leader(d, (1256, 540), (1256, 935))
+        note(d, (700, 975), "microSD slot: push the card in from the edge of the board,", 38, ORANGE)
+        note(d, (700, 1030), "gold contacts facing the board, until it stops", 38, ORANGE)
+        ring(d, (700, 678, 812, 748), 5, WHITE)
+        label(d, (756, 640), "bridge still on", 24)
     im.save(HERE / name, quality=88)
 
 
-def closeup(name, bridged):
-    im = Image.open(SRC / "pi5-flash-wp-closeup.jpg").convert("RGB")
-    im = im.resize((im.width * 2, im.height * 2), Image.LANCZOS)
-    d = ImageDraw.Draw(im)
-    tp14, tp1 = (826, 456), (1006, 456)  # pad centres, in the doubled picture
-    if bridged:
-        d.rounded_rectangle((tp14[0] - 34, tp14[1] - 30, tp1[0] + 34, tp1[1] + 30), radius=30,
-                            fill=SILVER, outline=BLACK, width=6)
-        label(d, (916, 660), "the bridge (drawn on the photo): a blob of solder, or a wire", 34, ORANGE)
-        label(d, (916, 706), "or tweezers held across both pads while the Pi is powered", 34, ORANGE)
-        d.line((916, 636, 916, 492), fill=BLACK, width=12)
-        d.line((916, 636, 916, 492), fill=ORANGE, width=6)
-    else:
-        for c, text, x in ((tp14, "TP14: the flash chip's /WP", 500), (tp1, "TP1: 3.3 V", 1330)):
+def closeup(name, what):
+    photo = Image.open(SRC / "pi5-flash-wp-closeup.jpg").convert("RGB")
+    photo = photo.resize((photo.width * 2, photo.height * 2), Image.LANCZOS)
+    im, d = band(photo, 190)
+    tp14, tp1, tp17 = (826, 456), (1006, 456), (650, 356)  # pad centres, in the doubled picture
+    y0 = photo.height
+
+    def bridge(left, right, colour):
+        d.rounded_rectangle((left[0] - 34, min(left[1], right[1]) - 30, right[0] + 34, max(left[1], right[1]) + 30),
+                            radius=30, fill=SILVER, outline=colour, width=8)
+
+    if what == "pads":
+        for c, text, x in ((tp14, "TP14 (left): the flash chip's write-protect line", 470),
+                           (tp1, "TP1 (right): 3.3 V", 1400)):
             ring(d, (c[0] - 84, c[1] - 84, c[0] + 84, c[1] + 84), 8)
-            label(d, (x, 690), text, 38, ORANGE)
-            d.line((x, 664, c[0], c[1] + 84), fill=BLACK, width=12)
-            d.line((x, 664, c[0], c[1] + 84), fill=ORANGE, width=6)
+            leader(d, (c[0], c[1] + 84), (c[0], y0 + 30))
+            note(d, (x, y0 + 70), text, 38, ORANGE)
+        note(d, (900, y0 + 140), "The board prints TP14 TP1 above the pads and FLASH WP below them.", 32)
+    elif what == "bridged":
+        bridge(tp14, tp1, GREEN)
+        leader(d, (916, 486), (916, y0 + 30), GREEN)
+        note(d, (900, y0 + 70), "RIGHT: the bridge joins TP14 and TP1 and touches nothing else", 40, GREEN)
+        note(d, (900, y0 + 135), "Drawn on the photo, not a photo of a real bridge: a blob of solder,", 30)
+        note(d, (900, y0 + 170), "or a wire or tweezers held across both pads during step 4.", 30)
+    elif what == "wrong":
+        d.rounded_rectangle((tp17[0] - 34, tp17[1] - 34, tp1[0] + 34, tp1[1] + 34), radius=34, fill=SILVER,
+                            outline=RED, width=8)
+        d.line((560, 260, 1100, 560), fill=RED, width=14)
+        d.line((560, 560, 1100, 260), fill=RED, width=14)
+        note(d, (900, y0 + 70), "WRONG: the bridge also touches TP17", 40, RED)
+        note(d, (900, y0 + 135), "Take it off and make it again before any power goes on.", 30)
+        note(d, (900, y0 + 170), "(Drawn on the photo.)", 30)
+    else:  # clear: the pads separate again
+        for c in (tp14, tp1):
+            ring(d, (c[0] - 84, c[1] - 84, c[0] + 84, c[1] + 84), 8, GREEN)
+        note(d, (900, y0 + 70), "Bridge off: TP14 and TP1 are two separate pads again,", 40, GREEN)
+        note(d, (900, y0 + 135), "and no solder went anywhere else.", 40, GREEN)
     im.save(HERE / name, quality=88)
 
 
@@ -99,15 +137,14 @@ def sr1_bits():
             body.append(f'<rect x="{x}" y="{y + 32}" width="104" height="70" fill="{colour if bit else "#f4f4f4"}" stroke="#111"/>')
             body.append(f'<text x="{x + 52}" y="{y + 60}" font-size="17" text-anchor="middle">bit {7 - i}: {name}</text>')
             body.append(f'<text x="{x + 52}" y="{y + 92}" font-size="26" font-weight="bold" text-anchor="middle">{bit}</text>')
-    body.append('<text x="20" y="366" font-size="17">SRP = 1: the register itself is protected while /WP is low.</text>')
-    body.append('<text x="20" y="390" font-size="17">TB = 1 with BP2 BP1 BP0 = 111: the whole chip is protected.</text>')
-    body.append('<text x="20" y="414" font-size="17">WEL and BUSY are 0 at rest. Status register 2 reads 0x02 either way (QE = 1).</text>')
+    body.append('<text x="20" y="366" font-size="19">SRP = 1: the register itself is protected while /WP is low.</text>')
+    body.append('<text x="20" y="390" font-size="19">TB = 1 with BP2 BP1 BP0 = 111: the whole chip is protected.</text>')
     (HERE / "sr1-bits.svg").write_text(SVG.format(w=910, h=430, body="\n".join(body) + "\n"))
 
 
 def dip():
     """The Dev blade's three DIP switches as the maker's table gives them."""
-    rows = [("1", "Write protection", "Disabled", "Enabled", "left for a bootloader upgrade"),
+    rows = [("1", "Write protection", "Disabled", "Enabled", "left for an upgrade: our reading, untested"),
             ("2", "Wi-Fi", "Enabled", "Disabled", ""), ("3", "Bluetooth", "Enabled", "Disabled", "")]
     body = ['<text x="20" y="32" font-size="22" font-weight="bold">Compute Blade, Dev model: the DIP switches (from the maker\'s table)</text>',
             '<text x="330" y="70" font-size="18" font-weight="bold" text-anchor="middle">LEFT</text>',
@@ -122,9 +159,9 @@ def dip():
         body.append(f'<text x="530" y="{y + 35}" font-size="18" fill="#333" text-anchor="middle">{right}</text>')
         if note:
             body.append(f'<text x="630" y="{y + 35}" font-size="17" fill="#b00" font-weight="bold">{note}</text>')
-    body.append('<text x="20" y="330" font-size="16">Drawn with every switch at LEFT. Which way is "left" on the board is the maker\'s wording; we have not held one.</text>')
-    body.append('<text x="20" y="354" font-size="16">The maker: "Only change switch positions when the Blade is unplugged from power."</text>')
-    (HERE / "blade-dip.svg").write_text(SVG.format(w=920, h=370, body="\n".join(body) + "\n"))
+    body.append('<text x="20" y="330" font-size="18">Drawn with every switch at LEFT. Which way is "left" on the board is the maker\'s wording; we have not held one.</text>')
+    body.append('<text x="20" y="356" font-size="18">The maker: "Only change switch positions when the Blade is unplugged from power."</text>')
+    (HERE / "blade-dip.svg").write_text(SVG.format(w=1010, h=370, body="\n".join(body) + "\n"))
 
 
 def blade():
@@ -150,22 +187,171 @@ def blade():
     part(945, 215, 78, 62, "USB-C", "#d9f7d9", 16, "#22a022")
     part(1040, 196, 110, 36, "USB switch", "#f7d9f1", 14, "#c2188f")
     part(1052, 244, 50, 46, "nRPI\nBOOT", "#f7d9d9", 13, "#c81e1e")
-    for x, y, tx, ty, text, colour in ((984, 277, 470, 345, "1. USB Type-C port: the cable to the computer that runs rpiboot", "#22a022"),
-                                       (1095, 196, 470, 371, "2. USB switch: moved to the USB Type-C position", "#c2188f"),
-                                       (1077, 290, 470, 397, "3. nRPIBOOT button: held down while the cable is connected", "#c81e1e"),
+    for x, y, tx, ty, text, colour in ((984, 277, 30, 375, "1. USB Type-C port: the cable to the computer that runs rpiboot", "#22a022"),
+                                       (1095, 196, 30, 403, "2. USB switch: moved to the USB Type-C position", "#c2188f"),
+                                       (1077, 290, 30, 431, "3. nRPIBOOT button: held down while the cable is connected", "#c81e1e"),
                                        (172, 128, 30, 345, "DIP: 1 write protection, 2 Wi-Fi, 3 Bluetooth", "#b8860b")):
-        body.append(f'<text x="{tx}" y="{ty}" font-size="17" fill="{colour}" font-weight="bold">{text}</text>')
-    body.append('<text x="30" y="371" font-size="15">A drawing from documentation, not from a board</text>')
-    body.append('<text x="30" y="391" font-size="15">in hand: positions are approximate.</text>')
-    body.append('<text x="30" y="411" font-size="15">Only the Dev model has these parts.</text>')
-    (HERE / "blade-dev.svg").write_text(SVG.format(w=1200, h=425, body="\n".join(body) + "\n"))
+        body.append(f'<text x="{tx}" y="{ty + 4}" font-size="19" fill="{colour}" font-weight="bold">{text}</text>')
+    body.append('<text x="30" y="474" font-size="19" font-weight="bold">How to tell a Dev model: it has the USB Type-C socket and, beside it, the small nRPIBOOT button.</text>')
+    body.append('<text x="30" y="502" font-size="17">A drawing from documentation, not from a board in hand: positions are approximate.</text>')
+    (HERE / "blade-dev.svg").write_text(SVG.format(w=1200, h=520, body="\n".join(body) + "\n"))
+
+
+def box(body, x, y, w, h, fill="#f4f4f4", stroke="#111", width=2, rx=8):
+    body.append(f'<rect x="{x}" y="{y}" width="{w}" height="{h}" rx="{rx}" fill="{fill}" stroke="{stroke}" stroke-width="{width}"/>')
+
+
+def text(body, x, y, t, size=20, weight="normal", fill="#111", anchor="start", mono=False):
+    family = ' font-family="DejaVu Sans Mono, monospace"' if mono else ""
+    body.append(f'<text x="{x}" y="{y}" font-size="{size}" font-weight="{weight}" fill="{fill}" text-anchor="{anchor}"{family}>{t}</text>')
+
+
+def write(name, w, h, body):
+    (HERE / name).write_text(SVG.format(w=w, h=h, body="\n".join(body) + "\n"))
+
+
+def check_card():
+    """The three things to read, each with the wanted value beside what is not wanted."""
+    body = []
+    text(body, 20, 36, "Is this Pi 5 done? Three reads, three answers", 26, "bold")
+    text(body, 500, 80, "DONE", 22, "bold", "#1e8c3c", "middle")
+    text(body, 800, 80, "NOT DONE", 22, "bold", "#c81e1e", "middle")
+    rows = [("1  bootloader date", "first line of", "vcgencmd bootloader_version", "2026/09/25 ...", "any older date"),
+            ("2  boot order", "the BOOT_ORDER line of", "vcgencmd bootloader_config", "BOOT_ORDER=0xf2", "anything else"),
+            ("3  flash lock", "the SR1 line of", "sudo python3 read_flash_status.py", "SR1 0xbc", "SR1 0x0")]
+    for i, (name, where, cmd, good, bad) in enumerate(rows):
+        y = 100 + i * 110
+        text(body, 20, y + 36, name, 22, "bold")
+        text(body, 20, y + 62, where, 16)
+        text(body, 20, y + 84, cmd, 15, mono=True)
+        box(body, 370, y + 12, 260, 76, "#e2f3e2", "#1e8c3c", 3)
+        text(body, 500, y + 58, good, 22, "bold", "#111", "middle", True)
+        box(body, 670, y + 12, 260, 76, "#fde3e3", "#c81e1e", 3)
+        text(body, 800, y + 58, bad, 22, "bold", "#111", "middle", True)
+    text(body, 20, 456, "All three DONE: nothing to do. Any NOT DONE: the upgrade below.", 20, "bold")
+    write("check-card.svg", 950, 480, body)
+
+
+def boot_order():
+    """BOOT_ORDER read from its last digit: the fleet's 0xf2 and one that is not."""
+    body = []
+    text(body, 20, 36, "Reading BOOT_ORDER: start at the LAST digit and go left", 26, "bold")
+    names = {"1": "SD card", "2": "network", "4": "USB", "6": "NVMe SSD", "f": "start again"}
+    for row, (value, title, colour) in enumerate((("f2", "0xf2: the fleet's. Network only.", "#e2f3e2"),
+                                                  ("f12", "0xf12: network, then an SD card. Not the fleet's.", "#fde3e3"),
+                                                  ("f2461", "0xf2461: SD card, NVMe, USB, then network. Not the fleet's.", "#fde3e3"))):
+        y = 70 + row * 150
+        text(body, 20, y + 22, title, 21, "bold")
+        n = len(value)
+        for i, digit in enumerate(value):
+            x = 20 + i * 180
+            order = n - i
+            box(body, x, y + 36, 170, 84, colour)
+            text(body, x + 85, y + 72, digit, 30, "bold", "#111", "middle", True)
+            text(body, x + 85, y + 104, f"{names[digit]} ({'tried ' + str(order) if digit != 'f' else 'then'})"
+                 .replace("tried 1", "tried 1st").replace("tried 2", "tried 2nd").replace("tried 3", "tried 3rd")
+                 .replace("tried 4", "tried 4th"), 16, "normal", "#111", "middle")
+    write("boot-order.svg", 950, 520, body)
+
+
+def kit():
+    body = []
+    text(body, 20, 36, "What you need on the bench", 26, "bold")
+    items = [("The Pi 5", "out of its case or mount,\nunderside reachable"), ("microSD card", "any size; it is wiped"),
+             ("Computer", "Linux, with a card reader,\ngit, python3, openssl"),
+             ("A bridge", "soldering iron and solder,\nOR fine tweezers / a wire"),
+             ("The Pi's network cable", "on its switch port: it\npowers the Pi (PoE)")]
+    for i, (name, what) in enumerate(items):
+        x = 20 + i * 250
+        box(body, x, 60, 240, 150, "#eef3f8")
+        text(body, x + 120, 100, name, 19, "bold", "#111", "middle")
+        for k, line in enumerate(what.split("\n")):
+            text(body, x + 120, 136 + k * 26, line, 17, "normal", "#111", "middle")
+    write("kit.svg", 1280, 230, body)
+
+
+def card_files():
+    body = []
+    text(body, 20, 36, "The finished card: these four files at the top level, nothing else", 26, "bold")
+    box(body, 20, 60, 910, 250, "#fffbe6", "#b8860b", 3)
+    text(body, 40, 92, "microSD card (one FAT32 partition)", 18, "bold", "#7a5a00")
+    files = [("recovery.bin", "104314 bytes", "the program the Pi runs from the card"),
+             ("pieeprom.bin", "2097152 bytes", "the 2026/09/25 bootloader with the fleet's settings"),
+             ("pieeprom.sig", "80 bytes", "the checksum of pieeprom.bin"),
+             ("config.txt", "23 bytes", "one line: eeprom_write_protect=0")]
+    for i, (name, size, what) in enumerate(files):
+        y = 112 + i * 48
+        box(body, 40, y, 870, 40, "#ffffff", "#111", 1.5, 5)
+        text(body, 56, y + 27, name, 19, "bold", mono=True)
+        text(body, 250, y + 27, size, 17, mono=True)
+        text(body, 430, y + 27, what, 17)
+    write("card-files.svg", 950, 330, body)
+
+
+def cable(name, title, plug_in, lines):
+    """A Pi 5 from above, in outline, with its network cable going in or coming out."""
+    body = []
+    text(body, 20, 36, title, 26, "bold")
+    box(body, 60, 70, 420, 270, "#2e7d32", "#111", 3, 14)
+    text(body, 225, 210, "Raspberry Pi 5, from above", 17, "bold", "#fff", "middle")
+    box(body, 390, 250, 110, 76, "#c9d3df")
+    text(body, 445, 294, "Ethernet", 16, "bold", "#111", "middle")
+    for k, y in enumerate((90, 168)):
+        box(body, 400, y, 100, 64, "#c9d3df")
+        text(body, 450, y + 38, "USB", 15, "normal", "#111", "middle")
+    box(body, 70, 300, 70, 34, "#c9d3df")
+    text(body, 105, 322, "USB-C", 13, "normal", "#111", "middle")
+    colour = "#1e8c3c" if plug_in else "#c81e1e"
+    x0 = 520 if plug_in else 600
+    box(body, x0, 264, 150, 48, "#e9ecef", colour, 4)
+    text(body, x0 + 75, 295, "network cable", 16, "bold", "#111", "middle")
+    arrow = f"M{x0 + 150 + 120} 288 L{x0 + 150 + 20} 288" if plug_in else f"M{x0 + 150 + 20} 288 L{x0 + 150 + 120} 288"
+    tip = x0 + 150 + 20 if plug_in else x0 + 150 + 120
+    d = -1 if plug_in else 1
+    body.append(f'<path d="{arrow}" stroke="{colour}" stroke-width="8" fill="none"/>')
+    body.append(f'<path d="M{tip} 288 l{-d * 22} -14 l0 28 z" fill="{colour}"/>')
+    for k, line in enumerate(lines):
+        text(body, 520, 100 + k * 30, line, 19, "bold" if k == 0 else "normal", colour if k == 0 else "#111")
+    write(name, 950, 360, body)
+
+
+def outcomes():
+    """What step 6 can read, and what to do for each."""
+    body = []
+    text(body, 20, 36, "Step 6: what you read, and what to do", 26, "bold")
+    rows = [("#e2f3e2", "#1e8c3c", "2026/09/25, BOOT_ORDER=0xf2\nand SR1 0xbc", "DONE. Nothing more to do."),
+            ("#fde3e3", "#c81e1e", "the old date and the old settings", "Nothing was written. Go back to step 2: check the bridge\ntouches both pads, and that the card holds the four files."),
+            ("#fff3d6", "#b8860b", "the new date, but SR1 0x0", "Written but not locked. Unplug the network cable, wait\n10 seconds, plug it in, wait 2 minutes, read again."),
+            ("#fde3e3", "#c81e1e", "no answer: the Pi does not come back\non the network after 5 minutes", "Go back to step 2 with a card whose pieeprom.bin you\nhave checked prints BOOT_ORDER=0xf2 (step 1).")]
+    for i, (fill, stroke, read, do) in enumerate(rows):
+        y = 60 + i * 106
+        box(body, 20, y, 400, 92, fill, stroke, 3)
+        for k, line in enumerate(read.split("\n")):
+            text(body, 220, y + (52 if "\n" not in read else 40) + k * 26, line, 17, "bold", "#111", "middle")
+        body.append(f'<path d="M424 {y + 46} L470 {y + 46}" stroke="#111" stroke-width="4"/>')
+        body.append(f'<path d="M482 {y + 46} l-16 -10 l0 20 z" fill="#111"/>')
+        box(body, 486, y, 680, 92, "#ffffff", "#111", 2)
+        for k, line in enumerate(do.split("\n")):
+            text(body, 500, y + (52 if "\n" not in do else 40) + k * 26, line, 17)
+    write("outcomes.svg", 1190, 500, body)
 
 
 underside("pi5-underside-flash-wp.jpg", "pads")
 underside("pi5-underside-sd-slot.jpg", "sd")
-closeup("pi5-flash-wp-closeup.jpg", False)
-closeup("pi5-flash-wp-bridged.jpg", True)
+closeup("pi5-flash-wp-closeup.jpg", "pads")
+closeup("pi5-flash-wp-bridged.jpg", "bridged")
+closeup("pi5-flash-wp-wrong.jpg", "wrong")
+closeup("pi5-flash-wp-clear.jpg", "clear")
 sr1_bits()
 dip()
 blade()
+check_card()
+boot_order()
+kit()
+card_files()
+cable("cable-out.svg", "Pull the network cable: the Pi is now off", False,
+      ["Network cable OUT", "It carries the power (PoE).", "If a USB-C supply is fitted,", "pull that too."])
+cable("cable-in.svg", "Plug the network cable in: the Pi is now on", True,
+      ["Network cable IN", "Same switch port as before.", "The Pi starts by itself."])
+outcomes()
 print("figures written to", HERE)

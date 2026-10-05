@@ -1,14 +1,15 @@
 # Bootloader EEPROM: upgrade and lock
 
 Every Raspberry Pi since the Pi 4 keeps its bootloader and the bootloader's
-settings in a small flash chip on the board, the bootloader EEPROM. The fleet
-keeps it locked ([why](netboot.md#eeprom-write-protect)), so a new bootloader
-cannot simply be installed. Pick the part you need:
+settings in a small flash chip on the board, the bootloader EEPROM. On a fleet
+Pi that chip is locked, so that nobody with root on the Pi can change how it
+boots; a new bootloader therefore cannot simply be installed. Pick the part
+you need:
 
 - **[Check a Pi](#check-a-pi-nothing-is-changed)**: is its bootloader the fleet's, and is it locked?
-- **[Upgrade a locked Raspberry Pi 5](#upgrade-a-locked-raspberry-pi-5)**: the steps, for someone with the Pi in hand.
-- **[A Compute Module or a Compute Blade](#compute-module-4-compute-module-5-and-the-compute-blade)**: whether it needs anything (usually not), and what is known.
-- **[What is behind this page](#what-is-behind-this-page)**: what was measured, what is not known, what does not work.
+- **[Upgrade a locked Raspberry Pi 5](#upgrade-a-locked-raspberry-pi-5)**: six steps, for someone with the Pi in hand.
+- **[A Compute Module or a Compute Blade](#compute-module-4-compute-module-5-and-the-compute-blade)**: whether it needs anything (usually not).
+- **[What is behind this page](#what-is-behind-this-page)**: what has been run and measured, what is not known, what does not work.
 
 ## Check a Pi (nothing is changed)
 
@@ -17,24 +18,28 @@ cannot simply be installed. Pick the part you need:
 
 ## Upgrade a locked Raspberry Pi 5
 
-Steps 2 to 6 were done once, on one fleet Pi 5, on 3 Oct 2026. Step 1 was run on
-a PC on 5 Oct 2026 as far as the finished files; a card made that way has not
-yet been booted by us (how the card used on 3 Oct was made was not recorded).
+For a Raspberry Pi 5 whose check above says NOT DONE. How far this has been
+tried: [What has been run](#what-has-been-run).
 
-**You need:** the Pi 5 and access to its underside; a microSD card and a
-computer with a card reader; something to join two pads about 2 mm apart (a soldering
-iron and solder, or a short wire or fine tweezers you can hold still for a
-minute); the Pi's network cable, which also powers it.
+```{image} bootloader-eeprom/kit.svg
+:alt: What you need: the Pi 5 with its underside reachable, a microSD card, a Linux computer with a card reader, something to bridge two pads, the Pi's network cable on its switch port
+:width: 100%
+```
 
 :::{warning}
-The Pi is **unplugged** for steps 2, 3 and 5. The only time it has power in this
-procedure is step 4, and you do not touch the board then except to hold a
-bridge that is not soldered.
+The Pi has power only in step 4. In every other step its network cable is out.
+`TP1`, one of the two pads you will join, is 3.3 V: the bridge must touch
+`TP14` and `TP1` and nothing else (pictures in step 3).
 :::
 
 ### Step 1: make the card
 
-On a computer with `git`, `python3` and `openssl`:
+```{image} bootloader-eeprom/card-files.svg
+:alt: The finished card holds four files at its top level: recovery.bin, pieeprom.bin, pieeprom.sig and config.txt
+:width: 100%
+```
+
+On the computer:
 
 ```console
 $ git clone --depth 1 https://github.com/raspberrypi/rpi-eeprom
@@ -42,15 +47,13 @@ $ cd rpi-eeprom
 $ mkdir card
 ```
 
-Save the fleet's settings as `boot.conf` in that directory. This is the whole
-file:
+Make a file `boot.conf` in that directory with exactly these six lines:
 
 ```{literalinclude} bootloader-eeprom/boot.conf
 :language: ini
 ```
 
-Put the settings into the `2026/09/25` bootloader image, make its checksum file,
-and add the two other files:
+Then:
 
 ```console
 $ ./rpi-eeprom-config --config boot.conf --out card/pieeprom.bin \
@@ -60,8 +63,8 @@ $ cp firmware-2712/default/recovery.bin card/
 $ echo eeprom_write_protect=0 > card/config.txt
 ```
 
-Check the result before it goes on a card. A boot order other than `0xf2` here
-gives a Pi that does not boot from the network afterwards:
+Check it. The first command must print the six lines of `boot.conf`, and the
+second must list the four files with these sizes:
 
 ```console
 $ ./rpi-eeprom-config card/pieeprom.bin
@@ -71,136 +74,161 @@ WAKE_ON_GPIO=1
 POWER_OFF_ON_HALT=0
 BOOT_ORDER=0xf2
 NET_INSTALL_AT_POWER_ON=0
-$ ls -l card
-       23 config.txt
-  2097152 pieeprom.bin
-       80 pieeprom.sig
-   104314 recovery.bin
-$ sha256sum firmware-2712/default/pieeprom-2026-09-25.bin
-02c4daa25df5af66af50da63ee97dfd03b21a40ac5b495a1c447979a2aa00edd  firmware-2712/default/pi...
+$ wc -c card/*
+     23 card/config.txt
+2097152 card/pieeprom.bin
+     80 card/pieeprom.sig
+ 104314 card/recovery.bin
+2201569 total
 ```
 
-(The listing is shortened to size and name, and the last line is cut after the checksum. `pieeprom.sig` holds the checksum of
-your `pieeprom.bin` and the time you made it, so its content differs from run to
-run.)
+If `BOOT_ORDER` there is not `0xf2`, stop and fix `boot.conf`: a card with
+another boot order leaves a Pi that does not start from the network.
 
-Format the microSD card with one FAT32 partition and copy the four files of
-`card/` into its top directory, nothing else. Eject it properly.
+Put the card in the reader and find its name. It is the disk that appears when
+you plug it in, with the card's size. In this example (yours will differ) it
+is `sdb`, the 29.7G one:
 
-### Step 2: unplug the Pi
+```console
+$ lsblk -d -o NAME,SIZE,MODEL
+NAME      SIZE MODEL
+nvme0n1 476.9G Samsung SSD 980
+sdb      29.7G STORAGE DEVICE
+```
 
-Pull the network cable (it carries the power). If the Pi has a USB-C supply as
-well, pull that too. Take off anything that hides the underside.
+Everything on the card is erased by the next commands. Use your card's name in
+place of `sdX`, and check it twice: the wrong name erases another disk.
 
-### Step 3: bridge the two FLASH WP pads
+```console
+$ sudo wipefs -a /dev/sdX
+$ echo 'type=c' | sudo sfdisk /dev/sdX
+$ sudo mkfs.vfat -F 32 /dev/sdX1
+$ sudo mount /dev/sdX1 /mnt
+$ sudo cp card/* /mnt/
+$ ls /mnt
+config.txt  pieeprom.bin  pieeprom.sig  recovery.bin
+$ sudo umount /mnt
+```
 
-Turn the Pi over, with the USB-A sockets on your left and the GPIO header along
-the top. The two pads are low and a little left of the middle: right of the CE
-mark, above the pair of micro-HDMI sockets. The board prints `TP14 TP1` above
-them and `FLASH WP` below. They are larger than the test points around them.
+### Step 2: network cable out
+
+```{image} bootloader-eeprom/cable-out.svg
+:alt: A Raspberry Pi 5 from above with its network cable pulled out of the Ethernet socket
+:width: 80%
+```
+
+1. Pull the Pi's network cable. The Pi is now off.
+2. Take the Pi out of whatever holds it, so that you can reach its underside.
+
+### Step 3: join the two FLASH WP pads
 
 ```{figure} bootloader-eeprom/pi5-underside-flash-wp.jpg
 :alt: Underside of a Raspberry Pi 5 with the two FLASH WP pads ringed, right of the CE mark and above the micro-HDMI sockets
 :width: 100%
 
-Where the pads are. Photo: Suyash Dwivedi, [Wikimedia Commons](https://commons.wikimedia.org/wiki/File:Raspberry_Pi5_8GB_Bottom_View_(1).jpg), [CC BY-SA 4.0](https://creativecommons.org/licenses/by-sa/4.0/); cropped and annotated by fpgas.online, this version under the same licence.
+The underside, USB-A sockets on the left, GPIO header along the top. Photo: Suyash Dwivedi, [Wikimedia Commons](https://commons.wikimedia.org/wiki/File:Raspberry_Pi5_8GB_Bottom_View_(1).jpg), [CC BY-SA 4.0](https://creativecommons.org/licenses/by-sa/4.0/); cropped and annotated by fpgas.online, this version under the same licence.
 ```
 
 ```{figure} bootloader-eeprom/pi5-flash-wp-closeup.jpg
 :alt: Close-up of the pads: TP14 on the left, TP1 on the right, FLASH WP printed below
 :width: 100%
 
-The two pads close up. TP14 (left) is the flash chip's write-protect line, held low by the board; TP1 (right) is 3.3 V. Photo: Suyash Dwivedi, [Wikimedia Commons](https://commons.wikimedia.org/wiki/File:Raspberry_Pi5_8GB_Bottom_View_(1).jpg), [CC BY-SA 4.0](https://creativecommons.org/licenses/by-sa/4.0/); cropped and annotated by fpgas.online, this version under the same licence.
+Photo: Suyash Dwivedi, [Wikimedia Commons](https://commons.wikimedia.org/wiki/File:Raspberry_Pi5_8GB_Bottom_View_(1).jpg), [CC BY-SA 4.0](https://creativecommons.org/licenses/by-sa/4.0/); cropped and annotated by fpgas.online, this version under the same licence.
 ```
 
-Join TP14 to TP1 and nothing else. Either solder a small blob across both pads
-(it comes off again in step 5), or be ready to hold a wire or tweezers across
-both for the whole of step 4.
+1. Turn the Pi over and find the two pads.
+2. Join `TP14` to `TP1`: a small blob of solder across both. (Without an iron:
+   have a short wire or fine tweezers ready, and hold them across both pads
+   for the whole of step 4.)
 
 ```{figure} bootloader-eeprom/pi5-flash-wp-bridged.jpg
-:alt: The same close-up with a bridge drawn across TP14 and TP1
+:alt: The same close-up with a bridge drawn across TP14 and TP1 only
 :width: 100%
 
-The bridge in place. **This bridge is drawn on the photo; it is not a photo of a real bridge.** Photo: Suyash Dwivedi, [Wikimedia Commons](https://commons.wikimedia.org/wiki/File:Raspberry_Pi5_8GB_Bottom_View_(1).jpg), [CC BY-SA 4.0](https://creativecommons.org/licenses/by-sa/4.0/); cropped and annotated by fpgas.online, this version under the same licence.
+Photo: Suyash Dwivedi, [Wikimedia Commons](https://commons.wikimedia.org/wiki/File:Raspberry_Pi5_8GB_Bottom_View_(1).jpg), [CC BY-SA 4.0](https://creativecommons.org/licenses/by-sa/4.0/); cropped and annotated by fpgas.online, this version under the same licence.
 ```
 
-*If the bridge touches a neighbouring test point (TP17 and TP13 are the nearest,
-to the left):* take it off and make it again before any power is applied.
+```{figure} bootloader-eeprom/pi5-flash-wp-wrong.jpg
+:alt: The same close-up with a bridge drawn that also touches TP17, crossed out
+:width: 100%
 
-### Step 4: card in, power on, wait one minute
+Photo: Suyash Dwivedi, [Wikimedia Commons](https://commons.wikimedia.org/wiki/File:Raspberry_Pi5_8GB_Bottom_View_(1).jpg), [CC BY-SA 4.0](https://creativecommons.org/licenses/by-sa/4.0/); cropped and annotated by fpgas.online, this version under the same licence.
+```
 
-Push the card into the slot on the underside, contacts towards the board, until
-it stops.
+### Step 4: card in, network cable in, wait 60 seconds
 
 ```{figure} bootloader-eeprom/pi5-underside-sd-slot.jpg
-:alt: Underside of a Raspberry Pi 5 with the microSD slot ringed on the right edge and the bridge still on the FLASH WP pads
+:alt: Underside of a Raspberry Pi 5 with the microSD slot ringed on the right edge, a card going in, and the bridge still on the FLASH WP pads
 :width: 100%
 
-The card slot, with the bridge still fitted. Photo: Suyash Dwivedi, [Wikimedia Commons](https://commons.wikimedia.org/wiki/File:Raspberry_Pi5_8GB_Bottom_View_(1).jpg), [CC BY-SA 4.0](https://creativecommons.org/licenses/by-sa/4.0/); cropped and annotated by fpgas.online, this version under the same licence.
+Photo: Suyash Dwivedi, [Wikimedia Commons](https://commons.wikimedia.org/wiki/File:Raspberry_Pi5_8GB_Bottom_View_(1).jpg), [CC BY-SA 4.0](https://creativecommons.org/licenses/by-sa/4.0/); cropped and annotated by fpgas.online, this version under the same licence.
 ```
 
-Plug the network cable in. The Pi runs `recovery.bin` from the card before
-anything else, whatever its boot order, writes the new bootloader and stops; it
-does not go on to start an operating system. Leave it for one full minute.
+1. Push the card into the slot.
 
-What you may see: the green LED blinking. Raspberry Pi's documentation says a
-steady rapid blink means success and an error pattern means failure; on our one
-run the LED blinked 3 long, 3 short (an error pattern) **although the write had
-succeeded**. So do not go by the LED. The proof is the read in step 6. We have
-no photo of the LED during a write.
+```{image} bootloader-eeprom/cable-in.svg
+:alt: A Raspberry Pi 5 from above with its network cable going into the Ethernet socket
+:width: 80%
+```
 
-*If nothing at all lights:* the Pi has no power; check the cable and the switch
-port.
+2. Plug the network cable in, on the switch port the Pi was on.
+3. Wait 60 seconds. There is nothing to watch for: the Pi writes its new
+   bootloader from the card and stops. Whatever the green light does, go on to
+   step 5 after the 60 seconds.
 
-### Step 5: unplug, card out, bridge off
+### Step 5: cable out, card out, bridge off, cable in
 
-Pull the network cable. Take the card out. Take the bridge off (wick the solder
-away, or just let go), and look that the two pads are separate again and no
-solder went anywhere else. Put back whatever you took off, and plug the Pi in on
-its normal fleet port.
+```{image} bootloader-eeprom/cable-out.svg
+:alt: A Raspberry Pi 5 from above with its network cable pulled out of the Ethernet socket
+:width: 80%
+```
 
-It now boots from the network, about two minutes to a login. The fleet's
-`config.txt` carries `eeprom_write_protect=1`, and the Pi's firmware locks the
-flash again in that same boot. Do not cut the power in the first seconds after
-plugging in.
+1. Pull the network cable.
+2. Take the card out.
+3. Take the bridge off (wick the solder away, or let go of the wire).
+
+```{figure} bootloader-eeprom/pi5-flash-wp-clear.jpg
+:alt: Close-up of TP14 and TP1 as two separate pads again
+:width: 100%
+
+Photo: Suyash Dwivedi, [Wikimedia Commons](https://commons.wikimedia.org/wiki/File:Raspberry_Pi5_8GB_Bottom_View_(1).jpg), [CC BY-SA 4.0](https://creativecommons.org/licenses/by-sa/4.0/); cropped and annotated by fpgas.online, this version under the same licence.
+```
+
+4. Put the Pi back where it was.
+
+```{image} bootloader-eeprom/cable-in.svg
+:alt: A Raspberry Pi 5 from above with its network cable going into the Ethernet socket
+:width: 80%
+```
+
+5. Plug the network cable in, on the same switch port.
+
+:::{warning}
+Leave the Pi alone for two minutes now. It starts from the network and locks
+its flash again while it starts; do not pull the cable during that time.
+:::
 
 ### Step 6: read it back
 
 ```{include} bootloader-eeprom-read-state.inc
 ```
 
-The upgrade is done when all three are true: the first line of
-`bootloader_version` is `2026/09/25`, the settings are the six lines of
-`boot.conf` from step 1, and `SR1` reads `0xbc`.
-
-| What you read | What happened | What to do |
-|---|---|---|
-| the old date, old settings | nothing was written: the bridge did not make contact, or the card was not read | repeat from step 2; check the card's four files on a computer |
-| the new date, `SR1 0x0` | written, but not locked again (not seen by us) | check that the Pi booted the fleet's root and not a card; power it off and on once and read again |
-| the Pi does not come back on the network at all | a wrong `BOOT_ORDER` in the image, or the write was cut short | put the bridge and the card back and run step 4 again with a checked card. The Pi runs `recovery.bin` from a card whatever its flash holds (Raspberry Pi's documentation; **not yet needed, so not yet run, by us**) |
+```{image} bootloader-eeprom/outcomes.svg
+:alt: What step 6 can read and what to do: all three as wanted, done; the old date, nothing was written, go back to step 2; the new date but SR1 0x0, power the Pi off and on and read again; no answer after five minutes, go back to step 2 with a checked card
+:width: 100%
+```
 
 ## Compute Module 4, Compute Module 5 and the Compute Blade
 
 :::{warning}
-**We cannot give you steps for upgrading the bootloader of a Compute Module in
-a Compute Blade yet.** We have not done it, and it depends on parts that only
-one model of the blade has (below). What we can give: how to tell whether a
-blade needs anything, which the two blades we read do not, and what the two
-makers document. Everything in this part beyond the reads is **not yet run by
-us on this hardware**.
+**There are no upgrade steps for a Compute Module in a Compute Blade on this
+page, because we have not done one.** What this part gives you is how to tell
+whether your blade needs anything. The two blades we read do not.
 :::
 
-### Does this blade need it at all?
+### Does this blade need anything?
 
-Usually not. Run these two on the blade; they change nothing and need no root:
-
-```console
-$ vcgencmd bootloader_version
-$ vcgencmd bootloader_config
-```
-
-What two PS1 blades printed on 5 Oct 2026 (both a Compute Module 5 Lite, both
-running the site's network-booted root at the time):
+Log in to the blade and run these two. They change nothing and need no root.
 
 ```console
 $ vcgencmd bootloader_version
@@ -217,196 +245,102 @@ BOOT_UART=1
 BOOT_ORDER=0xf2461
 ```
 
-(That is pi16. pi20 printed `2025/11/05 17:37:18` and the same settings.)
+That is what a PS1 blade (a Compute Module 5 Lite) printed while running from
+the network.
 
-**If your blade boots from the network and prints something like this, leave
-its bootloader alone.** These bootloaders netboot as they are: `0xf2461` tries
-the SD card (the eMMC on a module that has one; a Lite module has none), NVMe,
-USB and then the network, and starts again. `rpi-eeprom-update` prints "UPDATE
-AVAILABLE" on both; that only says a newer release exists in the installed
-package. On a Compute Module a failed bootloader write is repaired only over
-USB, which most blades cannot do (below).
+```{image} bootloader-eeprom/boot-order.svg
+:alt: BOOT_ORDER is read from its last digit: 0xf2 is network only; 0xf12 and 0xf2461 also boot local media
+:width: 100%
+```
 
-What a change would buy, and neither is needed to get a blade working:
+:::{important}
+**What to do**
 
-- **A boot order without local media** (`0xf2`), so that a USB stick, an SSD or
-  (on a blade with a microSD slot, which the maker says only the Dev model has)
-  a card someone fits cannot be booted. With `0xf2461` it can, and it is tried
-  before the network. Not tried by us on a blade.
-- **One bootloader release across the fleet.**
+- Your blade starts from the network and its `BOOT_ORDER` has a `2` in it (as
+  `0xf2461` has): **do nothing.** Its bootloader is fine as it is.
+- Your blade does not start from the network, or its `BOOT_ORDER` has no `2`
+  in it: **do not try to change it from this page.** Send the two outputs
+  above to whoever looks after the site, by opening an issue at
+  [fpgas-online/fpgas.online-docs](https://github.com/fpgas-online/fpgas.online-docs/issues).
+:::
 
-### What the Compute Blade has for it
+A date in the first line that is older or newer than the one above is not a
+reason to act, and neither is "UPDATE AVAILABLE" from `rpi-eeprom-update`.
 
-Only the **Dev** model of the Compute Blade has the parts for the USB route.
-The maker says so where it describes writing an operating system to a module's
-eMMC, in a guide written for the Compute Module 4 ([image
-guide](https://docs.computeblade.com/blade/getting-started/image)); the same
-port and button are what a bootloader flash over USB needs:
-
-> eMMC can only be imaged on Dev blade as it has USB Type-C port, USB switch,
-> and nRPIBOOT button
-
-and, for putting the module into USB boot:
-
-> From the usbboot directory run `sudo ./rpiboot`
->
-> Move the USB switch to the USB Type-C position. Then, while holding down the
-> nRPIBOOT button on the blade connect the USB Type-C cable.
->
-> The Device will reconnect several times. On the last time it will appear as a
-> USB media device.
+### Why there are no steps: what a blade would need
 
 ```{image} bootloader-eeprom/blade-dev.svg
 :alt: Outline of a Dev model Compute Blade with the USB Type-C port, the USB switch, the nRPIBOOT button and the DIP switches marked
 :width: 100%
 ```
 
-The [USB switch](https://docs.computeblade.com/blade/guides/usb) is there
-because "The compute module can only operate one USB port at a time." The
-maker's [usbboot guide](https://docs.computeblade.com/blade/advanced-guides/usbboot)
-covers building `rpiboot` and says the configuration is edited in
-`/usbboot/<firmware directory>/config.txt`; for the flash itself it points to
-Raspberry Pi's "Flash Compute Module bootloader EEPROM", which is the procedure
-printed again [below](#what-raspberry-pi-documents-for-a-compute-module).
-
-The write-protect pin is on a DIP switch, again on the Dev model only. From the
-maker's [DIP switch guide](https://docs.computeblade.com/blade/guides/dip):
-
-> DIP Switch is ONLY populated on Dev model Compute Blades.
->
-> Only change switch positions when the Blade is unplugged from power.
+A Compute Module's bootloader is written over USB from another computer, and
+that needs the three parts numbered in the drawing. The blade's maker says
+only the Dev model has them. A failed write on a Compute Module can be repaired
+only the same way, which is why a blade that works is left alone.
 
 ```{image} bootloader-eeprom/blade-dip.svg
-:alt: The three DIP switches of a Dev model Compute Blade: 1 write protection (left disabled, right enabled), 2 Wi-Fi (left enabled, right disabled), 3 Bluetooth (left enabled, right disabled)
+:alt: The three DIP switches of a Dev model Compute Blade: 1 write protection (left disabled, right enabled), 2 Wi-Fi, 3 Bluetooth
 :width: 100%
 ```
 
-> To enable write protection, changes are required to `config.txt`. It can be
-> found in the directory `/boot/firmware/`, or flash the EEPROM using usbboot
-> adding the following line to the `config.txt` file `eeprom_write_protect=1`
-> This will pull the `EEPROM_nWP` pin low. This will enable the DIP switch.
-
-Read with Raspberry Pi's description (quoted below), that is the same two-part lock:
-`eeprom_write_protect=1` sets the flash's status register, and switch 1 is what
-holds `EEPROM_nWP` low. Raspberry Pi requires `EEPROM_nWP` not to be low while
-the bootloader is flashed, and the maker's table calls the left position
-"Disabled", so left is the position for an upgrade. That last step is our
-inference from the two documents, not something either states or we have tried.
-
-### What is not known about the blade
-
-- **Which model the PS1 blades are.** We have not recorded it. The maker's
-  pages name a Dev model and a TPM model. On a blade that is not a Dev model
-  the maker describes no USB Type-C port, no nRPIBOOT button and no DIP
-  switch, so, as far as those pages go, neither the USB route nor the hardware
-  lock exists on the blade itself; the module would then have to go into a
-  carrier that has them (Raspberry Pi describes the route on its own IO
-  boards), which we have not done.
-- **What a blade without the DIP switch does with `EEPROM_nWP`** (tied low,
-  tied high or left open). The maker's pages we read do not say.
-- **Whether a blade's bootloader can be updated from the running system.**
-  Raspberry Pi's self-update needs update files in the boot file system it
-  booted from ("For network boot make sure that the TFTP `boot` directory can
-  be mounted through NFS and that `rpi-eeprom-update` can write to it"), and
-  it "does not update the bootloader atomically". On a netboot root like PS1's,
-  a read-only export under a tmpfs overlay, a file written on the blade never
-  reaches the boot directory the bootloader reads, so we expect it not to
-  work there. Not tried by us on any Compute Module.
-
-### What Raspberry Pi documents for a Compute Module
-
-:::{warning}
-**Not yet run by us on this hardware.** Everything in this section is Raspberry
-Pi's documentation, quoted from
-[raspberrypi/documentation](https://github.com/raspberrypi/documentation) at
-commit `287523e6`. No fpgas.online Compute Module has had its bootloader
-upgraded or locked by this procedure. Read the bootloader state first (the
-`vcgencmd` commands above work on a Compute Module; the device node of the boot
-flash and its part have not been read by us on a CM4 or CM5).
-:::
-
-The SD card route above **does not exist** on a Compute Module. From [Compute
-Module EEPROM
-bootloader](https://www.raspberrypi.com/documentation/computers/compute-module.html#compute-module-eeprom-bootloader):
-
-> On Compute Modules with an EEPROM bootloader, ROM never runs `recovery.bin`
-> from SD/eMMC. These Compute Modules disable the `rpi-eeprom-update` service by
-> default, because eMMC is not removable and an invalid `recovery.bin` file
-> could prevent the system from booting.
->
-> You can override this behaviour with `self-update` mode. In `self-update`
-> mode, you can update the bootloader from USB MSD or network boot.
->
-> WARNING: `self-update` mode does not update the bootloader atomically. If a
-> power failure occurs during an EEPROM update, you could corrupt the EEPROM.
-
-and from the Pi boot EEPROM page: "Reflashing the bootloader over USB is also
-the only option available for CM4 and CM4S."
-
-**Flashing the bootloader over USB (`rpiboot`).**
-
-This needs a second computer with
-[`rpiboot`](https://github.com/raspberrypi/usbboot) (`sudo apt install rpiboot`,
-or built from source), a USB cable to the carrier's USB device port, and the
-carrier's `nRPI_BOOT` jumper or button, which makes the module wait for a USB
-host instead of booting. Raspberry Pi describes it for its own IO boards ("Fit
-`nRPI_BOOT` to J2 (`disable eMMC Boot`) on the IO board jumper"); another
-carrier brings `nRPI_BOOT` and the USB device port out in its own way, to be
-looked up in that carrier's documentation.
-
-> To flash the bootloader EEPROM:
->
-> 1. Set up the hardware as you would when flashing the eMMC, but ensure
->    `EEPROM_nWP` is _not_ pulled low.
-> 2. Run the following command to write `recovery/pieeprom.bin` to the
->    bootloader EEPROM: `./rpiboot -d recovery`
-> 3. When complete, `EEPROM_nWP` can be pulled low again.
-
-**Setting the configuration and the lock.**
-
-> To modify the Compute Module EEPROM bootloader configuration:
->
-> 1. Navigate to the `usbboot/recovery` directory.
-> 2. If you require a specific bootloader release, replace
->    `pieeprom.original.bin` with the equivalent from your bootloader release.
-> 3. Edit the default `boot.conf` bootloader configuration file to define a
->    `BOOT_ORDER`: For network boot, use `BOOT_ORDER=0xf2`. For SD/eMMC boot,
->    use `BOOT_ORDER=0xf1`. For USB boot failing over to eMMC, use
->    `BOOT_ORDER=0xf15`. For NVMe boot, use `BOOT_ORDER=0xf6`.
-> 4. Run `./update-pieeprom.sh` to generate a new EEPROM image `pieeprom.bin`
->    image file.
-> 5. If you require EEPROM write-protection, add `eeprom_write_protect=1` to
->    `/boot/firmware/config.txt`. When enabled in software, you can lock
->    hardware write-protection by pulling the `EEPROM_nWP` pin low.
-> 6. Run the following command to write the updated `pieeprom.bin` image to
->    EEPROM: `../rpiboot -d .`
-
-So on a Compute Module the lock has two parts, as on the Pi 4: the status
-register, set by `eeprom_write_protect=1`, and the `EEPROM_nWP` pin of the
-module's connector, which the carrier must pull low for the status register to
-stay as set. Raspberry Pi's step 5 names `/boot/firmware/config.txt` while step
-6 flashes from the `usbboot/recovery` directory, which has a `config.txt` of its
-own; which of the two the setting has to be in is not clear from the text and
-not tried by us. Whether a given carrier pulls `EEPROM_nWP` low, leaves it open or
-brings it to a jumper is a property of that carrier. For the upgrade it must
-**not** be low; for the lock it must be.
-
-**Differences from the Pi 5.**
-
-- No card route and no `recovery.bin` from storage. Raspberry Pi names USB
-  `rpiboot` as the only way to reflash a CM4; for a CM5 we infer the same from
-  the passage above. A Compute Module whose bootloader is broken therefore
-  needs its carrier's USB device port and `nRPI_BOOT`.
-- Self-update over netboot exists but "does not update the bootloader
-  atomically": a power cut during the write can leave a module that only
-  `rpiboot` repairs.
-- Our Pi 5 finding that a protected flash ignores a netboot self-update
-  silently (observation 3) may hold here too: read the version after any
-  upgrade.
+The Dev model also has the switch that holds the bootloader's write protection.
 
 ## What is behind this page
 
-The steps above come from these findings. You do not need them to do the job.
+You do not need this part to do the job.
+
+### What has been run
+
+- **Upgrade of a locked Pi 5, steps 2 to 6:** once, on one fleet Pi 5, on 3 Oct
+  2026. How the card used that day was made was not recorded.
+- **Step 1:** the commands up to the four files were run on a PC on 5 Oct 2026
+  (raspberrypi/rpi-eeprom at commit `a72213d`); the outputs shown are from
+  that run. Formatting a card and booting a Pi from a card made this way:
+  **not yet run by us.**
+- **The check:** the outputs are from fleet Pi 5s on 4 Oct 2026 (four boards
+  for the status registers). The read script printed exactly as shown has
+  **not yet been run in that form**; the same code inside another tool
+  produced the values.
+- **The pictures of the bridge** are drawn on a photo. We have no photo of a
+  real bridge, of a card going in, or of the LED during a write.
+- **The LED during the write:** Raspberry Pi's documentation says a steady
+  rapid blink means success and an error pattern means failure. On our one run
+  it blinked 3 long, 3 short, an error pattern, although the write had
+  succeeded. That is why step 4 says to ignore it.
+- **The "new date but SR1 0x0" and "no answer" rows of step 6:** not seen by
+  us. That a Pi 5 runs `recovery.bin` from a card whatever its flash holds is
+  Raspberry Pi's documentation, not yet needed and so not yet run by us.
+- **Compute Module, Compute Blade:** only the two reads. Nothing that changes
+  a bootloader has been run by us on that hardware.
+
+### What two fleet Pi 5s printed
+
+A Pi that still needed the upgrade, 4 Oct 2026, beside the done one shown in
+the check:
+
+```console
+$ vcgencmd bootloader_version
+2026/05/26 16:01:25
+version 086b83e3332dfc8927c56762771d082f3077a1ae (release)
+timestamp 1779807685
+update-time 0
+capabilities 0x0000007f
+$ vcgencmd bootloader_config
+[all]
+BOOT_UART=1
+BOOT_ORDER=0xf12
+NET_INSTALL_AT_POWER_ON=1
+```
+
+`sudo rpi-eeprom-update` printed `BOOTLOADER: up to date` on both: it compares
+with the package installed in the root, not with what the fleet wants. The
+second PS1 blade read on 5 Oct 2026 (pi20) printed `2025/11/05 17:37:18` and
+the same settings as the blade shown above (pi16).
+
+### Why the flash is locked
+
+See [EEPROM write protect](netboot.md#eeprom-write-protect).
 
 ### What was measured on the Pi 5
 
@@ -513,6 +447,184 @@ port sees those files. With today's findings it upgrades only a Pi whose flash
 is **not** protected (a new Pi, or one cleared with the card), and it is where an
 upgrade can be watched. Making it a managed feature that upgrades a locked Pi
 without a visit is open work.
+
+### What the Compute Blade's maker documents
+
+:::{warning}
+Untested by us. Do not follow these as steps.
+:::
+
+Only the **Dev** model of the Compute Blade has the parts for the USB route.
+The maker says so where it describes writing an operating system to a module's
+eMMC, in a guide written for the Compute Module 4 ([image
+guide](https://docs.computeblade.com/blade/getting-started/image)); the same
+port and button are what a bootloader flash over USB needs:
+
+> eMMC can only be imaged on Dev blade as it has USB Type-C port, USB switch,
+> and nRPIBOOT button
+
+and, for putting the module into USB boot:
+
+> From the usbboot directory run `sudo ./rpiboot`
+>
+> Move the USB switch to the USB Type-C position. Then, while holding down the
+> nRPIBOOT button on the blade connect the USB Type-C cable.
+>
+> The Device will reconnect several times. On the last time it will appear as a
+> USB media device.
+
+```{image} bootloader-eeprom/blade-dev.svg
+:alt: Outline of a Dev model Compute Blade with the USB Type-C port, the USB switch, the nRPIBOOT button and the DIP switches marked
+:width: 100%
+```
+
+The [USB switch](https://docs.computeblade.com/blade/guides/usb) is there
+because "The compute module can only operate one USB port at a time." The
+maker's [usbboot guide](https://docs.computeblade.com/blade/advanced-guides/usbboot)
+covers building `rpiboot` and says the configuration is edited in
+`/usbboot/<firmware directory>/config.txt`; for the flash itself it points to
+Raspberry Pi's "Flash Compute Module bootloader EEPROM", which is the procedure
+printed again [below](#what-raspberry-pi-documents-for-a-compute-module).
+
+The write-protect pin is on a DIP switch, again on the Dev model only. From the
+maker's [DIP switch guide](https://docs.computeblade.com/blade/guides/dip):
+
+> DIP Switch is ONLY populated on Dev model Compute Blades.
+>
+> Only change switch positions when the Blade is unplugged from power.
+
+```{image} bootloader-eeprom/blade-dip.svg
+:alt: The three DIP switches of a Dev model Compute Blade: 1 write protection (left disabled, right enabled), 2 Wi-Fi (left enabled, right disabled), 3 Bluetooth (left enabled, right disabled)
+:width: 100%
+```
+
+> To enable write protection, changes are required to `config.txt`. It can be
+> found in the directory `/boot/firmware/`, or flash the EEPROM using usbboot
+> adding the following line to the `config.txt` file `eeprom_write_protect=1`
+> This will pull the `EEPROM_nWP` pin low. This will enable the DIP switch.
+
+Read with Raspberry Pi's description (quoted below), that is the same two-part lock:
+`eeprom_write_protect=1` sets the flash's status register, and switch 1 is what
+holds `EEPROM_nWP` low. Raspberry Pi requires `EEPROM_nWP` not to be low while
+the bootloader is flashed, and the maker's table calls the left position
+"Disabled", so left is the position for an upgrade. That last step is our
+inference from the two documents, not something either states or we have tried.
+
+### What is not known about the blade
+
+- **Which model the PS1 blades are.** We have not recorded it. The maker's
+  pages name a Dev model and a TPM model. On a blade that is not a Dev model
+  the maker describes no USB Type-C port, no nRPIBOOT button and no DIP
+  switch, so, as far as those pages go, neither the USB route nor the hardware
+  lock exists on the blade itself; the module would then have to go into a
+  carrier that has them (Raspberry Pi describes the route on its own IO
+  boards), which we have not done.
+- **What a blade without the DIP switch does with `EEPROM_nWP`** (tied low,
+  tied high or left open). The maker's pages we read do not say.
+- **Whether a blade's bootloader can be updated from the running system.**
+  Raspberry Pi's self-update needs update files in the boot file system it
+  booted from ("For network boot make sure that the TFTP `boot` directory can
+  be mounted through NFS and that `rpi-eeprom-update` can write to it"), and
+  it "does not update the bootloader atomically". On a netboot root like PS1's,
+  a read-only export under a tmpfs overlay, a file written on the blade never
+  reaches the boot directory the bootloader reads, so we expect it not to
+  work there. Not tried by us on any Compute Module.
+
+### What Raspberry Pi documents for a Compute Module
+
+:::{warning}
+Untested by us on this hardware. Do not follow these as steps on a blade: they
+are written for Raspberry Pi's own IO boards.
+:::
+
+:::{warning}
+**Not yet run by us on this hardware.** Everything in this section is Raspberry
+Pi's documentation, quoted from
+[raspberrypi/documentation](https://github.com/raspberrypi/documentation) at
+commit `287523e6`. No fpgas.online Compute Module has had its bootloader
+upgraded or locked by this procedure. Read the bootloader state first (the
+`vcgencmd` commands above work on a Compute Module; the device node of the boot
+flash and its part have not been read by us on a CM4 or CM5).
+:::
+
+The SD card route above **does not exist** on a Compute Module. From [Compute
+Module EEPROM
+bootloader](https://www.raspberrypi.com/documentation/computers/compute-module.html#compute-module-eeprom-bootloader):
+
+> On Compute Modules with an EEPROM bootloader, ROM never runs `recovery.bin`
+> from SD/eMMC. These Compute Modules disable the `rpi-eeprom-update` service by
+> default, because eMMC is not removable and an invalid `recovery.bin` file
+> could prevent the system from booting.
+>
+> You can override this behaviour with `self-update` mode. In `self-update`
+> mode, you can update the bootloader from USB MSD or network boot.
+>
+> WARNING: `self-update` mode does not update the bootloader atomically. If a
+> power failure occurs during an EEPROM update, you could corrupt the EEPROM.
+
+and from the Pi boot EEPROM page: "Reflashing the bootloader over USB is also
+the only option available for CM4 and CM4S."
+
+**Flashing the bootloader over USB (`rpiboot`).**
+
+This needs a second computer with
+[`rpiboot`](https://github.com/raspberrypi/usbboot) (`sudo apt install rpiboot`,
+or built from source), a USB cable to the carrier's USB device port, and the
+carrier's `nRPI_BOOT` jumper or button, which makes the module wait for a USB
+host instead of booting. Raspberry Pi describes it for its own IO boards ("Fit
+`nRPI_BOOT` to J2 (`disable eMMC Boot`) on the IO board jumper"); another
+carrier brings `nRPI_BOOT` and the USB device port out in its own way, to be
+looked up in that carrier's documentation.
+
+> To flash the bootloader EEPROM:
+>
+> 1. Set up the hardware as you would when flashing the eMMC, but ensure
+>    `EEPROM_nWP` is _not_ pulled low.
+> 2. Run the following command to write `recovery/pieeprom.bin` to the
+>    bootloader EEPROM: `./rpiboot -d recovery`
+> 3. When complete, `EEPROM_nWP` can be pulled low again.
+
+**Setting the configuration and the lock.**
+
+> To modify the Compute Module EEPROM bootloader configuration:
+>
+> 1. Navigate to the `usbboot/recovery` directory.
+> 2. If you require a specific bootloader release, replace
+>    `pieeprom.original.bin` with the equivalent from your bootloader release.
+> 3. Edit the default `boot.conf` bootloader configuration file to define a
+>    `BOOT_ORDER`: For network boot, use `BOOT_ORDER=0xf2`. For SD/eMMC boot,
+>    use `BOOT_ORDER=0xf1`. For USB boot failing over to eMMC, use
+>    `BOOT_ORDER=0xf15`. For NVMe boot, use `BOOT_ORDER=0xf6`.
+> 4. Run `./update-pieeprom.sh` to generate a new EEPROM image `pieeprom.bin`
+>    image file.
+> 5. If you require EEPROM write-protection, add `eeprom_write_protect=1` to
+>    `/boot/firmware/config.txt`. When enabled in software, you can lock
+>    hardware write-protection by pulling the `EEPROM_nWP` pin low.
+> 6. Run the following command to write the updated `pieeprom.bin` image to
+>    EEPROM: `../rpiboot -d .`
+
+So on a Compute Module the lock has two parts, as on the Pi 4: the status
+register, set by `eeprom_write_protect=1`, and the `EEPROM_nWP` pin of the
+module's connector, which the carrier must pull low for the status register to
+stay as set. Raspberry Pi's step 5 names `/boot/firmware/config.txt` while step
+6 flashes from the `usbboot/recovery` directory, which has a `config.txt` of its
+own; which of the two the setting has to be in is not clear from the text and
+not tried by us. Whether a given carrier pulls `EEPROM_nWP` low, leaves it open or
+brings it to a jumper is a property of that carrier. For the upgrade it must
+**not** be low; for the lock it must be.
+
+**Differences from the Pi 5.**
+
+- No card route and no `recovery.bin` from storage. Raspberry Pi names USB
+  `rpiboot` as the only way to reflash a CM4; for a CM5 we infer the same from
+  the passage above. A Compute Module whose bootloader is broken therefore
+  needs its carrier's USB device port and `nRPI_BOOT`.
+- Self-update over netboot exists but "does not update the bootloader
+  atomically": a power cut during the write can leave a module that only
+  `rpiboot` repairs.
+- Our Pi 5 finding that a protected flash ignores a netboot self-update
+  silently (observation 3) may hold here too: read the version after any
+  upgrade.
 
 ## Sources
 

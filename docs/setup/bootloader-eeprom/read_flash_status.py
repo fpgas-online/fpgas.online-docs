@@ -1,9 +1,10 @@
 # SPDX-License-Identifier: Apache-2.0
-"""Print the part and the three status registers of a Raspberry Pi 5's bootloader flash.
+"""Print the part and the status registers of a Pi 5's bootloader flash.
 
     sudo python3 read_flash_status.py
 
-Read commands only (9Fh JEDEC id, 05h SR1, 35h SR2, 15h SR3): nothing on the flash changes.
+Read commands only (9Fh JEDEC id, 05h SR1, 35h SR2, 15h SR3):
+nothing on the flash changes.
 """
 import array
 import ctypes
@@ -15,9 +16,11 @@ import struct
 def xfer(fd, tx):
     txb = ctypes.create_string_buffer(bytes(tx), len(tx))
     rxb = ctypes.create_string_buffer(len(tx))
-    msg = struct.pack("QQIIHBBBBBB", ctypes.addressof(txb), ctypes.addressof(rxb),
+    msg = struct.pack("QQIIHBBBBBB",
+                      ctypes.addressof(txb), ctypes.addressof(rxb),
                       len(tx), 1000000, 0, 8, 0, 0, 0, 0, 0)
-    fcntl.ioctl(fd, 0x40206B00, array.array("B", msg), True)  # SPI_IOC_MESSAGE(1)
+    # SPI_IOC_MESSAGE(1)
+    fcntl.ioctl(fd, 0x40206B00, array.array("B", msg), True)
     return rxb.raw
 
 

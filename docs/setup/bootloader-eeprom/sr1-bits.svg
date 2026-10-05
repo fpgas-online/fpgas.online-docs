@@ -51,7 +51,6 @@
 <rect x="790" y="252" width="104" height="70" fill="#f4f4f4" stroke="#111"/>
 <text x="842" y="280" font-size="17" text-anchor="middle">bit 0: BUSY</text>
 <text x="842" y="312" font-size="26" font-weight="bold" text-anchor="middle">0</text>
-<text x="20" y="366" font-size="17">SRP = 1: the register itself is protected while /WP is low.</text>
-<text x="20" y="390" font-size="17">TB = 1 with BP2 BP1 BP0 = 111: the whole chip is protected.</text>
-<text x="20" y="414" font-size="17">WEL and BUSY are 0 at rest. Status register 2 reads 0x02 either way (QE = 1).</text>
+<text x="20" y="366" font-size="19">SRP = 1: the register itself is protected while /WP is low.</text>
+<text x="20" y="390" font-size="19">TB = 1 with BP2 BP1 BP0 = 111: the whole chip is protected.</text>
 </svg>
