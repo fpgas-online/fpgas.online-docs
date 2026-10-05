@@ -32,8 +32,10 @@ Two NFS roots, because the site runs two generations of hardware:
 
 - **bookworm** (armhf): `/srv/nfs/rpi/bookworm/{boot,root}` — RPi 3B/3B+/4B,
   read-only with overlayroot.
-- **trixie** (arm64): `/srv/nfs/rpi/trixie/{boot,root}` — the Compute Blades,
-  kernel 6.12.75+rpt-rpi-v8.
+- **trixie**: `/srv/nfs/rpi/trixie/{boot,root}` — the Compute Blades. Read as
+  arm64 with kernel 6.12.75+rpt-rpi-v8 on 2026-09-20; pi16 read as a 32-bit
+  (armhf) userspace on kernel 6.18.50+rpt-rpi-v8 on 2026-10-05, and the other
+  blades have not been read since.
 
 :::{warning}
 Both roots are read-only NFS exports with a tmpfs overlay, so anything staged
@@ -119,7 +121,7 @@ All four were up when last probed (2026-09-20). pi16 was read again on
 | Host | Switch Port | IP          | RPi MAC           | RPi Model             | Board (PCIe ID)             | FPGA DNA           | PCIe Bus | JTAG (P1)                | P2 cable | Status |
 |------|------|-------------|-------------------|-----------------------|-----------------------------|--------------------|----------|--------------------------|----------|--------|
 | pi14 | e14  | 10.21.0.114 | 2c:cf:67:37:d4:bd | CM4 Rev 1.1 4 GB      | Acorn CLE-101 `1e24:0101`   | not read           | 0000:01  | no response (P1 unmated) | untested | Online |
-| pi16 | e16  | 10.21.0.116 | 2c:cf:67:fb:91:e5 | CM5 Lite Rev 1.0 8 GB | Acorn CLE-101 `1e24:0101`   | not read           | 0001:01  | no response (P1 unmated) | untested | Online |
+| pi16 | e16  | 10.21.0.116 | 2c:cf:67:fb:91:e5 | CM5 Lite Rev 1.0 8 GB | Acorn CLE-101 `1e24:0101`   | not read           | 0001:01  | 2026-09-20: no response, TCK floating. 2026-10-05: cannot run (serial driver holds GPIO14) | untested | Online |
 | pi18 | e18  | 10.21.0.118 | 2c:cf:67:37:d5:08 | CM4 Rev 1.1 4 GB      | none: M.2 slot empty        | —                  | —        | n/a                      | n/a      | Online |
 | pi20 | e20  | 10.21.0.120 | 2c:cf:67:fd:1e:be | CM5 Lite Rev 1.0 8 GB | vendor XDMA image `10ee:7011` | 0x0028e5c45e304854 | 0001:01  | OK, IDCODE `0x3631093` | on the Extension Port: K2 → GPIO15, J2 → GPIO14, no resistor; J5 and H5 not wired | Online |
 
@@ -149,8 +151,8 @@ loaded to read them.
 
 On all four blades the JTAG pins are `--pins 2:3:4:14` (it has only answered on
 pi20) and the FPGA UART is `/dev/ttyAMA0` at GPIO14/15. All four ran Debian's
-openFPGALoader 0.13.1, which has `--read-dna`, when probed. PCIe is through the blade's M.2 slot. On 2026-09-20 all four
-netbooted the trixie arm64 NFS root with overlayroot, with `console=tty1` and
+openFPGALoader 0.13.1, which has `--read-dna`, when probed. PCIe is through the blade's M.2 slot. On 2026-09-20
+all four netbooted the trixie NFS root (arm64 then) with overlayroot, with `console=tty1` and
 `serial-getty@ttyAMA0` inactive, so the [kernel console
 crash](../boards/acorn/wiring.md#kernel-console-on-the-fpga-uart) could not
 happen. That no longer holds on pi16 (below), and pi14, pi18 and pi20 have not
@@ -168,7 +170,7 @@ left as outputs by a hand-run `openFPGALoader --detect`, were put back.
 | System | Raspbian 13 (trixie), 32-bit userspace on kernel `6.18.50+rpt-rpi-v8`; Debian's openFPGALoader 0.13.1 |
 | Serial port | `enable_uart=1`, `console=serial0,115200`, and a serial getty active on `/dev/ttyAMA0` |
 | Card | `1e24:0101` at `0001:01:00.0`: SQRL's factory image, not converted |
-| `fpgas-verify` 0.0.post1100 | `pcie-link` (5.0 GT/s, x1) and `rp1-pio` pass; `jtag` cannot run; the seven tests that need the fpgas.online design are not run on a factory image |
+| `fpgas-verify` 0.0.post1100 | `pcie-link` (5.0 GT/s, x1) and `rp1-pio` pass; `jtag` cannot run; the tests that need the fpgas.online design are not run on a factory image, and `p2-gpio` is not run because J5 and H5 are not wired on a blade |
 
 Two things follow from the serial port being on:
 
@@ -369,6 +371,12 @@ install the Acorn packages on the host and run `fpgas-verify`. See
 and [Checking a board: fpgas-verify](../verify/fpgas-verify.md), which covers
 running it, reading the result, updating the record and debugging a failure.
 
+For an Acorn on a Compute Blade, [Checking an Acorn's
+wiring](../verify/fpgas-verify.md#checking-an-acorns-wiring) goes from a fresh
+boot to which wire a failing line points at, and [On a Compute
+Blade](../verify/fpgas-verify.md#on-a-compute-blade) says what has and has not
+been run on a blade.
+
 ## Known faults
 
 - **pi14 and pi16 did not respond to JTAG on any pin order on 2026-09-20.** All
@@ -378,7 +386,9 @@ running it, reading the result, updating the record and debugging a failure.
   drive, so that pull-up is the Acorn's own and should be present whenever the
   connector is mated. Both boards enumerate over PCIe, so the boards are
   alive — reseating P1 is the thing to try. Their P2 serial is untested until
-  JTAG works.
+  JTAG works. For pi16 that run may have failed for the reason in the next
+  entry instead: if the serial driver held GPIO14 then, every order would fail.
+  Not known.
 - **pi16's JTAG cannot run at all** as read on 2026-10-05: the serial driver
   holds GPIO14 (TMS), so its P1 state is unknown, not known to be unmated; and
   its kernel console is on the FPGA's UART. See [pi16 on 5 October
