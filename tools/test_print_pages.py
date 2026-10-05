@@ -357,6 +357,32 @@ class InlineImages(unittest.TestCase):
         self.assertIn("sheet.svg", sheets[0].find("figcaption").get_text())
         self.assertEqual(len(article.select("figure.inflow > img, figure.inflow > a > img")), 2)
 
+    def test_the_same_page_as_two_chapters_gives_each_its_own_sheet_and_key(self):
+        keys = []
+        for chapter in (1, 2):
+            article = p.BeautifulSoup('<p><img src="w.png" alt="Wiring"></p>', "html.parser")
+            with FakeFetch({IMAGES + "w.png": (png(3000), "image/png")}):
+                sheets = p.inline_images(article, IMAGES + "page.html", p.BeautifulSoup("", "html.parser"), chapter)
+            keys.append(sheets[0]["data-wide"])
+        self.assertNotEqual(keys[0], keys[1])
+
+    def test_two_different_wide_pictures_with_one_name_stop_the_run(self):
+        with self.assertRaises(SystemExit) as stop:
+            self.run_images(
+                '<p><img src="a/sheet.png"></p><p><img src="b/sheet.png"></p>',
+                {"a/sheet.png": (png(3000), "image/png"), "b/sheet.png": (png(3000), "image/png")})
+        self.assertIn("sheet", str(stop.exception))
+
+    def test_a_png_is_wide_from_twice_the_drawn_width_and_an_svg_from_the_drawn_width(self):
+        for name, content, kind, wide in (
+            ("a.png", png(p.RASTER_WIDE_PX - 1), "image/png", 0),
+            ("b.png", png(p.RASTER_WIDE_PX), "image/png", 1),
+            ("c.svg", svg(f"width='{p.WIDE_PX - 1}'"), "image/svg+xml", 0),
+            ("d.svg", svg(f"width='{p.WIDE_PX}'"), "image/svg+xml", 1),
+        ):
+            _, sheets = self.run_images(f'<p><img src="{name}"></p>', {name: (content, kind)})
+            self.assertEqual(len(sheets), wide, name)
+
     def test_an_unreadable_image_stops_the_run_naming_its_url(self):
         with self.assertRaises(SystemExit) as stop:
             self.run_images('<img src="bad.png">', {"bad.png": (b"<html>404</html>", "text/html")})
@@ -446,6 +472,16 @@ class WideSheets(unittest.TestCase):
         with unittest.mock.patch.object(p, "run", self.answer), self.assertRaises(SystemExit):
             p.wide_sheets(Path("a.pdf"), self.PAGE + '<figure class="wide" data-wide="cc33"></figure>')
 
+    def test_the_same_key_twice_stops_the_run(self):
+        twice = '<figure class="wide" data-wide="aa11"></figure>' * 2
+        with unittest.mock.patch.object(p, "run", self.answer), self.assertRaises(SystemExit):
+            p.wide_sheets(Path("a.pdf"), twice)
+
+    def test_words_that_look_like_a_wide_sheet_are_not_counted(self):
+        with unittest.mock.patch.object(p, "run", self.answer):
+            page = self.PAGE + '<p>data-wide="cc33"</p>'
+            self.assertEqual(p.wide_sheets(Path("a.pdf"), page), {"aa11": 2, "bb22": 4})
+
     def test_no_wide_picture_asks_nothing(self):
         self.assertEqual(p.wide_sheets(Path("a.pdf"), "<p>text</p>"), {})
 
@@ -477,6 +513,12 @@ class StepPictures(unittest.TestCase):
         self.assertEqual(len(article.select("div.step")), 1)
         self.assertEqual(len(article.select("div.step img")), 1)
         self.assertEqual(len(article.select("p.picture")), 2)
+
+    def test_the_small_copy_of_a_wide_picture_stays_with_the_words_before_it(self):
+        article = self.run_steps(
+            '<p>What you will have.</p><figure class="inflow"><img src="a.png"><figcaption>[x]</figcaption></figure>')
+        self.assertEqual([child.name for child in article.select_one("div.step").children], ["p", "figure"])
+        self.assertIn("picture", article.find("figure")["class"])
 
     def test_a_picture_after_a_heading_or_with_words_around_it_is_not_wrapped(self):
         article = self.run_steps('<h3>Sheet</h3><p><img src="a.png"></p><p>see <img src="b.png"> here</p>')

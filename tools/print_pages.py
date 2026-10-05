@@ -37,8 +37,8 @@ either way up, or the run stops.
 The PDF is printed beside the output under a ".part" name and takes the output's
 name only after it is checked, so a failed run leaves no PDF that looks new.
 
-Needs google-chrome-stable, which does the printing, and pdfunite and pdfinfo
-(poppler-utils) for --append.
+Needs google-chrome-stable, which does the printing, and from poppler-utils:
+pdftotext and pdfinfo to read the sheet numbers back, and pdfunite for --append.
 """
 
 from __future__ import annotations
@@ -92,7 +92,7 @@ SHEET_PLACE_RE = r"<!--sheet-of-chapter-(\d+)-->"
 # Where the number of a wide picture's own sheet goes, in the line under its small copy in the text.
 WIDE_PLACE = "sheet-of-wide-%s"
 WIDE_PLACE_RE = r"<!--sheet-of-wide-([0-9a-f]+)-->"
-WIDE_SHEET_RE = r'data-wide="([0-9a-f]+)"'
+WIDE_SHEET_RE = r'<figure class="wide" data-wide="([0-9a-f]+)">'
 # This many addresses stay on the sheet of the "Links in this chapter" heading.
 LINKS_WITH_HEADING = 4
 HEADINGS = ("h1", "h2", "h3", "h4", "h5", "h6")
@@ -157,8 +157,8 @@ tr { break-inside: avoid; }
 .admonition p:last-child { margin-bottom: 0; }
 img { max-width: 100%%; }
 /* A picture is never cut by the end of a sheet, and leaves room for its step's words above it. */
-p.picture { break-inside: avoid; text-align: center; }
-p.picture img { max-height: 200mm; }
+.picture { break-inside: avoid; text-align: center; }
+.picture img { max-height: 200mm; }
 .step { break-inside: avoid; }
 .wide { page: wide; break-before: page; break-inside: avoid;
         margin: 0; text-align: center; }
@@ -358,7 +358,7 @@ def place_figure(movable: Tag, figure: Tag, lifted: dict[int, Tag]) -> None:
     figure.append(movable)
 
 
-def inline_images(body: Tag, url: str, soup: BeautifulSoup) -> list[Tag]:
+def inline_images(body: Tag, url: str, soup: BeautifulSoup, chapter: int = 0) -> list[Tag]:
     """Embed every image, as vector when the page links one.
 
     A wide image stays in the text at the width of the column, as an overview,
@@ -367,7 +367,7 @@ def inline_images(body: Tag, url: str, soup: BeautifulSoup) -> list[Tag]:
     chapter shows it.
     """
     sheets = []
-    made: dict[str, tuple[Tag, bool]] = {}
+    made: dict[str, tuple[Tag, bool, str]] = {}
     lifted: dict[int, Tag] = {}
     for image in body.find_all("img", src=True):
         source = urllib.parse.urljoin(url, image["src"])
@@ -406,18 +406,24 @@ def inline_images(body: Tag, url: str, soup: BeautifulSoup) -> list[Tag]:
         # The same drawing is one sheet whether it is shown as its PNG or through a link to its SVG:
         # the two files differ only in their directory and ending.
         drawing = Path(urllib.parse.urlparse(vector or source).path).stem
-        key = hashlib.sha1(f"{url}\n{drawing}".encode()).hexdigest()[:12]
+        # The chapter's number is part of the key: the same page may be two chapters of one PDF.
+        key = hashlib.sha1(f"{chapter}\n{url}\n{drawing}".encode()).hexdigest()[:12]
         caption.append(f"[{name}: full size on a landscape sheet of its own")
         caption.append(Comment(WIDE_PLACE % key))
         caption.append(".]")
         figure.append(caption)
         if key in made:
-            sheet, is_vector = made[key]
+            sheet, is_vector, first = made[key]
+            if source != first:
+                raise SystemExit(
+                    f"{url}: two different wide pictures are both named {drawing!r} ({first} and {source}); "
+                    "they would share one sheet"
+                )
             if vector and not is_vector:
                 # Its sheet was made from a PNG; this place links the SVG, which prints sharper.
                 sheet.find("img")["src"] = image["src"]
                 sheet.find("figcaption").string = f"{name} ({vector})"
-                made[key] = (sheet, True)
+                made[key] = (sheet, True, first)
             continue
         sheet = soup.new_tag("figure", attrs={"class": "wide", "data-wide": key})
         sheet.append(soup.new_tag("img", src=image["src"], alt=name))
@@ -425,7 +431,7 @@ def inline_images(body: Tag, url: str, soup: BeautifulSoup) -> list[Tag]:
         caption.string = f"{name} ({vector or source})"
         sheet.append(caption)
         sheets.append(sheet)
-        made[key] = (sheet, bool(vector))
+        made[key] = (sheet, bool(vector), source)
     return sheets
 
 
@@ -482,13 +488,17 @@ def long_blocks(body: Tag) -> None:
 def step_pictures(body: Tag, soup: BeautifulSoup) -> None:
     """Keep a picture whole, and on the sheet of the words it belongs to.
 
-    A paragraph that holds only an image is the picture of what comes just
+    A paragraph that holds only an image, or the small copy of a wide picture
+    over its line, is the picture of what comes just
     before it: the paragraph of a step, or that paragraph and its list. They
     are wrapped together so the sheet does not end between them. A second
     picture of the same step stays whole but may start the next sheet.
     """
-    for paragraph in body.find_all("p"):
-        if paragraph.find("img") is None or paragraph.get_text(strip=True):
+    for paragraph in body.find_all(["p", "figure"]):
+        overview = paragraph.name == "figure" and "inflow" in paragraph.get("class", [])
+        if paragraph.find("img") is None or paragraph.name == "figure" and not overview:
+            continue
+        if not overview and paragraph.get_text(strip=True):
             continue
         paragraph["class"] = [*paragraph.get("class", []), "picture"]
         words = []
@@ -496,7 +506,7 @@ def step_pictures(body: Tag, soup: BeautifulSoup) -> None:
         if before is not None and before.name in ("ol", "ul"):
             words.append(before)
             before = before.find_previous_sibling()
-        if before is None or before.name != "p" or "picture" in before.get("class", []):
+        if before is None or before.name != "p" or "picture" in before.get("class", []) or before.find("img"):
             continue
         step = soup.new_tag("div", attrs={"class": "step"})
         before.insert_before(step)
@@ -521,7 +531,7 @@ def chapter(number: int, spec: str, commit: str, fetched: str) -> tuple[str, str
     if wanted:
         keep_sections(body, wanted, url)
     absolute_links(body, url)
-    sheets = inline_images(body, url, soup)
+    sheets = inline_images(body, url, soup, number)
     links = link_notes(body, url, soup)
     long_blocks(body)
     short_tables(body)
@@ -621,9 +631,11 @@ def document(title: str, paper: str, specs: list[str], cover_notes: str | None =
 
 
 def need_pdftotext() -> None:
-    """Stop unless pdftotext is there; the cover's sheet numbers are read back with it."""
+    """Stop unless pdftotext and pdfinfo are there; the sheet numbers are read back with them."""
     if shutil.which("pdftotext") is None:
         raise SystemExit("pdftotext (poppler-utils) is not installed; the cover's sheet numbers need it")
+    if shutil.which("pdfinfo") is None:
+        raise SystemExit("pdfinfo (poppler-utils) is not installed; a wide picture's sheet number needs it")
 
 
 def chapter_sheets(pdf: Path, chapters: int) -> dict[int, int]:
@@ -668,6 +680,8 @@ def wide_sheets(pdf: Path, page: str) -> dict[str, int]:
             f"{pdf}: {len(landscape)} landscape sheets for {len(keys)} wide pictures; "
             "cannot say which sheet each is on"
         )
+    if len(set(keys)) != len(keys):
+        raise SystemExit(f"{pdf}: two wide pictures have the same key; cannot say which sheet each is on")
     return dict(zip(keys, landscape, strict=True))
 
 
