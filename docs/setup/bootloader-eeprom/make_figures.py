@@ -236,7 +236,7 @@ def write(name, w, h, body):
     (HERE / name).write_text(SVG.format(w=w, h=h, body="\n".join(body) + "\n"))
 
 
-def check_card(name, verdict):
+def check_card(name, verdicts):
     """The three things to read, each with the wanted value beside what is not wanted."""
     body = []
     text(body, 20, 36, "Is this Pi 5 done? Three reads, three answers", 26, "bold")
@@ -244,7 +244,7 @@ def check_card(name, verdict):
     text(body, 800, 80, "NOT DONE", 22, "bold", "#c81e1e", "middle")
     rows = [("1  bootloader date", "first line of", "vcgencmd bootloader_version", "2026/09/25 ...", "an older date"),
             ("2  boot order", "the BOOT_ORDER line of", "vcgencmd bootloader_config", "BOOT_ORDER=0xf2", "anything else"),
-            ("3  flash lock", "the SR1 line of", "sudo python3 read_flash_status.py", "SR1 0xbc", "SR1 0x0")]
+            ("3  flash lock", "the SR1 line of the script", "sudo python3 read_flash_status.py", "SR1 0xbc", "SR1 0x0")]
     for i, (title, where, cmd, good, bad) in enumerate(rows):
         y = 100 + i * 110
         text(body, 20, y + 36, title, 22, "bold")
@@ -254,10 +254,11 @@ def check_card(name, verdict):
         text(body, 500, y + 58, good, 22, "bold", "#111", "middle", True)
         box(body, 670, y + 12, 260, 76, "#fde3e3", "#c81e1e", 3)
         text(body, 800, y + 58, bad, 22, "bold", "#111", "middle", True)
-    text(body, 20, 456, verdict, 20, "bold")
-    text(body, 20, 492, "A NEWER date, another SR1 value, or a jedec line that is not ef4015:", 18, "bold", "#c81e1e")
-    text(body, 20, 518, "STOP. This page does not cover that Pi; change nothing on it.", 18, "bold", "#c81e1e")
-    write(name, 950, 540, body)
+    y = 458
+    for line, weight, colour in verdicts:
+        text(body, 20, y, line, 19, weight, colour)
+        y += 27
+    write(name, 950, y + 4, body)
 
 
 def boot_order(name, rows, title):
@@ -284,7 +285,7 @@ def kit():
     text(body, 20, 36, "What you need on the bench", 26, "bold")
     items = [("1  The Pi 5", "out of its case, underside reachable"),
              ("2  A microSD card", "any size; everything on it is erased"),
-             ("3  A Linux computer", "with a card reader, git, python3 and sha256sum"),
+             ("3  A Linux computer", "card reader, internet, git, python3, sha256sum"),
              ("4  A soldering iron and solder", "OR fine tweezers or a short wire to hold"),
              ("5  Desoldering braid", "if you solder: to take the bridge off again"),
              ("6  The Pi's own network cable", "on its switch port; it also powers the Pi"),
@@ -347,28 +348,29 @@ def cable(name, title, plug_in, lines):
 def outcomes():
     """What step 6 can read, and what to do for each."""
     body = []
-    text(body, 20, 36, "Step 6: what you read, and what to do", 26, "bold")
+    text(body, 20, 36, "Step 6: your result. Take the FIRST row that fits.", 26, "bold")
     rows = [("#e2f3e2", "#1e8c3c", ["2026/09/25, BOOT_ORDER=0xf2", "and SR1 0xbc"],
              ["DONE. The Pi is back in service.", "Keep the card for the next Pi."]),
-            ("#fde3e3", "#c81e1e", ["the old date", "and the old settings"],
+            ("#fde3e3", "#c81e1e", ["an older date", "(whatever the rest says)"],
              ["Nothing was written. Go back to step 2. Check that the", "bridge is on both pads and the card holds the four files."]),
             ("#fde3e3", "#c81e1e", ["2026/09/25, but BOOT_ORDER", "is not 0xf2"],
              ["The card's boot.conf was wrong. Make the card again", "(step 1, and check what it prints), then from step 2."]),
             ("#fff3d6", "#b8860b", ["2026/09/25 and 0xf2,", "but SR1 0x0"],
-             ["Not locked. On a normal port, not an EEPROM service port?", "Cable out and in, 2 min, read again. Still 0x0: tell the operator."]),
+             ["Not locked. Pull the network cable, plug it in again on", "the Pi's normal port, wait 2 minutes, read again.", "Still 0x0: unplug the Pi and tell whoever runs the site."]),
             ("#fde3e3", "#c81e1e", ["no answer: the Pi is not back", "on the network after 5 minutes"],
              ["Go back to step 2, with a card whose pieeprom.bin you", "have checked prints BOOT_ORDER=0xf2 (step 1)."])]
     for i, (fill, stroke, read, do) in enumerate(rows):
-        y = 60 + i * 104
-        box(body, 20, y, 340, 90, fill, stroke, 3)
+        y = 60 + i * 114
+        box(body, 20, y, 340, 100, fill, stroke, 3)
         for k, line in enumerate(read):
-            text(body, 190, y + 38 + k * 28, line, 19, "bold", "#111", "middle")
-        body.append(f'<path d="M364 {y + 45} L396 {y + 45}" stroke="#111" stroke-width="4"/>')
-        body.append(f'<path d="M408 {y + 45} l-16 -10 l0 20 z" fill="#111"/>')
-        box(body, 412, y, 548, 90, "#ffffff", "#111", 2)
+            text(body, 190, y + 43 + k * 28, line, 19, "bold", "#111", "middle")
+        body.append(f'<path d="M364 {y + 50} L396 {y + 50}" stroke="#111" stroke-width="4"/>')
+        body.append(f'<path d="M408 {y + 50} l-16 -10 l0 20 z" fill="#111"/>')
+        box(body, 412, y, 568, 100, "#ffffff", "#111", 2)
+        top = y + (43 if len(do) == 2 else 32)
         for k, line in enumerate(do):
-            text(body, 426, y + 38 + k * 28, line, 19)
-    write("outcomes.svg", 980, 600, body)
+            text(body, 426, top + k * 27, line, 19)
+    write("outcomes.svg", 1000, 640, body)
 
 
 underside("pi5-underside-flash-wp.jpg", "pads")
@@ -381,8 +383,17 @@ closeup("pi5-flash-wp-clear.jpg", "clear")
 sr1_bits()
 dip()
 blade()
-check_card("check-card.svg", "All three DONE: nothing to do. Any NOT DONE: upgrade it (next part).")
-check_card("check-card-after.svg", "All three DONE: finished. Anything else: the chart at the end of this step.")
+STOP = [("A NEWER date, another SR1 value, or a jedec line that is not ef4015:", "bold", "#c81e1e"),
+        ("STOP. This page does not cover that Pi; change nothing on it.", "bold", "#c81e1e")]
+check_card("check-card.svg", [
+    ("All three DONE: nothing to do.", "bold", "#1e8c3c"),
+    ("Date or boot order NOT DONE: upgrade it (next part).", "bold", "#111"),
+    ("ONLY the lock NOT DONE (SR1 0x0): do NOT upgrade. Pull the network cable,", "bold", "#8a6500"),
+    ("plug it in again on the Pi's normal port, wait 2 minutes, read again.", "bold", "#8a6500"),
+    ("Still 0x0: unplug the Pi and tell whoever runs the site.", "bold", "#8a6500")] + STOP)
+check_card("check-card-after.svg", [
+    ("All three DONE: finished.", "bold", "#1e8c3c"),
+    ("Anything else: the chart at the end of this step.", "bold", "#111")] + STOP)
 FLEET, OTHER, PLAIN = "#e2f3e2", "#fde3e3", "#eef3f8"
 boot_order("boot-order.svg", (("f2", "0xf2: the fleet's Pi 5 setting. Network only.", FLEET),
                               ("f12", "0xf12: network, then an SD card. Not the fleet's.", OTHER),

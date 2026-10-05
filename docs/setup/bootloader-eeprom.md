@@ -117,19 +117,20 @@ nvme0n1 476.9G Samsung SSD 980
 sdb      29.7G STORAGE DEVICE
 ```
 
-The next commands erase everything on the card. Type your card's name in place
-of `sdX`, and check it twice: the wrong name erases another disk. (If your
-card's name is like `mmcblk0`, its first partition is `mmcblk0p1`, not
-`mmcblk01`: use that in the `mkfs.vfat` and `mount` commands.) The first
-command lets go of the card if your desktop opened it by itself; "not mounted"
-from it is fine.
+The next commands erase everything on the card. Put your card's name in the
+first line in place of `sdX`, and check it twice: the wrong name erases
+another disk. (For a name like `mmcblk0` the second line is
+`PART=${DISK}p1`.) The `umount` lets go of the card if your desktop opened it
+by itself; "not mounted" from it is fine.
 
 ```console
-$ sudo umount /dev/sdX*
-$ sudo wipefs -a /dev/sdX
-$ echo 'type=c' | sudo sfdisk /dev/sdX
-$ sudo mkfs.vfat -F 32 /dev/sdX1
-$ sudo mount /dev/sdX1 /mnt
+$ DISK=/dev/sdX
+$ PART=${DISK}1
+$ sudo umount ${DISK}*
+$ sudo wipefs -a $DISK
+$ echo 'type=c' | sudo sfdisk $DISK
+$ sudo mkfs.vfat -F 32 $PART
+$ sudo mount $PART /mnt
 $ sudo cp card/* /mnt/
 $ ls /mnt
 config.txt  pieeprom.bin  pieeprom.sig  recovery.bin
@@ -224,9 +225,20 @@ Photo: Suyash Dwivedi, [Wikimedia Commons](https://commons.wikimedia.org/wiki/Fi
 
 2. Plug the network cable in, on the switch port the Pi was on. (The drawing
    shows the Pi top side up; yours is lying upside down. The Ethernet socket
-   is the one beside the two USB blocks.) Using tweezers or a wire instead of
-   solder: put them on both pads first, plug the cable in with your other
-   hand, and keep them on both pads for the whole 60 seconds.
+   is the one beside the two USB blocks.)
+
+   No solder bridge? Do this instead of 2:
+
+   ```{figure} bootloader-eeprom/pi5-flash-wp-tweezers.jpg
+   :alt: The same close-up with the two tips of a pair of tweezers drawn, one on TP14 and one on TP1
+   :width: 100%
+
+   Photo: Suyash Dwivedi, [Wikimedia Commons](https://commons.wikimedia.org/wiki/File:Raspberry_Pi5_8GB_Bottom_View_(1).jpg), [CC BY-SA 4.0](https://creativecommons.org/licenses/by-sa/4.0/); annotated, same licence.
+   ```
+
+   - put one tip of the tweezers (or one end of the wire) on each pad;
+   - plug the network cable in with your other hand;
+   - keep the tips on both pads until the 60 seconds of item 3 are over.
 3. Wait 60 seconds by a clock. There is nothing to watch for: the Pi writes
    its new bootloader from the card and stops. Whatever the green light does,
    go on to step 5 when the 60 seconds are over.
@@ -257,9 +269,10 @@ Photo: Suyash Dwivedi, [Wikimedia Commons](https://commons.wikimedia.org/wiki/Fi
 :width: 80%
 ```
 
-5. Plug the network cable in, on the same switch port: the normal port the
-   Pi lives on. (Not a site's EEPROM service port, if it has one: a Pi
-   plugged in there is never locked again.)
+5. Plug the network cable in, on the same switch port: the port this Pi
+   normally lives on. (Some sites keep one port aside for bringing up new
+   Pis, an EEPROM service port. A Pi plugged in there is never locked: not
+   that port.)
 
 :::{warning}
 Leave the Pi alone for two minutes now. It starts from the network and locks
@@ -334,6 +347,8 @@ running from the network.
   with the two outputs above. If it is your own, this page cannot help you
   further: what the blade's maker and Raspberry Pi document is quoted at the
   end of this page, untested by us.
+- Your blade is meant to start from its own storage (an SSD or a card) and
+  does: it is not broken, and nothing on this page applies to it.
 :::
 
 A date in the first line that is older or newer than the one above is not a
@@ -383,6 +398,7 @@ You do not need this part to do the job.
   for the status registers). The read script printed exactly as shown has
   **not yet been run in that form**; the same code inside another tool
   produced the values.
+- **The board page and its web terminal** have no picture on this page yet.
 - **The pictures of the bridge** are drawn on a photo. We have no photo of a
   real bridge, of a card going in, or of the LED during a write.
 - **The LED during the write:** Raspberry Pi's documentation says a steady

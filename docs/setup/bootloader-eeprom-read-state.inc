@@ -1,6 +1,8 @@
-Open the Pi's board page on the site and use the web terminal there: it logs
-you in as user `pi`. (With ssh instead: `ssh pi@` followed by the address on
-that page; the same page shows the password.) Run:
+Open the web site of the place the Pi is at (for the Welland fleet,
+<https://welland.fpgas.online>), find this Pi in its list of boards and open
+the Pi's page. The web terminal on that page logs you in as user `pi`. (With
+ssh instead: `ssh pi@` followed by the address on that page; the same page
+shows the password.) Run:
 
 ```console
 $ vcgencmd bootloader_version
@@ -23,8 +25,8 @@ command. Read 2 is the `BOOT_ORDER` line of the second.
 
 Read 3 needs a small script on the Pi (a fleet Pi forgets it at every restart,
 so put it there each time). In the terminal on the Pi, type
-`cat > read_flash_status.py`, press Enter, paste the text below, press Enter
-and then Ctrl-D.
+`cat > read_flash_status.py`, press Enter, paste the text below, press Enter,
+and then press Ctrl-D on that empty line. Nothing is printed when it worked.
 
 ```{literalinclude} bootloader-eeprom/read_flash_status.py
 :language: python

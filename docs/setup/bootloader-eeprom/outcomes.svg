@@ -1,44 +1,45 @@
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 980 600" width="980" height="600" font-family="DejaVu Sans, Arial, sans-serif">
-<rect width="980" height="600" fill="#ffffff"/>
-<text x="20" y="36" font-size="26" font-weight="bold" fill="#111" text-anchor="start">Step 6: what you read, and what to do</text>
-<rect x="20" y="60" width="340" height="90" rx="8" fill="#e2f3e2" stroke="#1e8c3c" stroke-width="3"/>
-<text x="190" y="98" font-size="19" font-weight="bold" fill="#111" text-anchor="middle">2026/09/25, BOOT_ORDER=0xf2</text>
-<text x="190" y="126" font-size="19" font-weight="bold" fill="#111" text-anchor="middle">and SR1 0xbc</text>
-<path d="M364 105 L396 105" stroke="#111" stroke-width="4"/>
-<path d="M408 105 l-16 -10 l0 20 z" fill="#111"/>
-<rect x="412" y="60" width="548" height="90" rx="8" fill="#ffffff" stroke="#111" stroke-width="2"/>
-<text x="426" y="98" font-size="19" font-weight="normal" fill="#111" text-anchor="start">DONE. The Pi is back in service.</text>
-<text x="426" y="126" font-size="19" font-weight="normal" fill="#111" text-anchor="start">Keep the card for the next Pi.</text>
-<rect x="20" y="164" width="340" height="90" rx="8" fill="#fde3e3" stroke="#c81e1e" stroke-width="3"/>
-<text x="190" y="202" font-size="19" font-weight="bold" fill="#111" text-anchor="middle">the old date</text>
-<text x="190" y="230" font-size="19" font-weight="bold" fill="#111" text-anchor="middle">and the old settings</text>
-<path d="M364 209 L396 209" stroke="#111" stroke-width="4"/>
-<path d="M408 209 l-16 -10 l0 20 z" fill="#111"/>
-<rect x="412" y="164" width="548" height="90" rx="8" fill="#ffffff" stroke="#111" stroke-width="2"/>
-<text x="426" y="202" font-size="19" font-weight="normal" fill="#111" text-anchor="start">Nothing was written. Go back to step 2. Check that the</text>
-<text x="426" y="230" font-size="19" font-weight="normal" fill="#111" text-anchor="start">bridge is on both pads and the card holds the four files.</text>
-<rect x="20" y="268" width="340" height="90" rx="8" fill="#fde3e3" stroke="#c81e1e" stroke-width="3"/>
-<text x="190" y="306" font-size="19" font-weight="bold" fill="#111" text-anchor="middle">2026/09/25, but BOOT_ORDER</text>
-<text x="190" y="334" font-size="19" font-weight="bold" fill="#111" text-anchor="middle">is not 0xf2</text>
-<path d="M364 313 L396 313" stroke="#111" stroke-width="4"/>
-<path d="M408 313 l-16 -10 l0 20 z" fill="#111"/>
-<rect x="412" y="268" width="548" height="90" rx="8" fill="#ffffff" stroke="#111" stroke-width="2"/>
-<text x="426" y="306" font-size="19" font-weight="normal" fill="#111" text-anchor="start">The card's boot.conf was wrong. Make the card again</text>
-<text x="426" y="334" font-size="19" font-weight="normal" fill="#111" text-anchor="start">(step 1, and check what it prints), then from step 2.</text>
-<rect x="20" y="372" width="340" height="90" rx="8" fill="#fff3d6" stroke="#b8860b" stroke-width="3"/>
-<text x="190" y="410" font-size="19" font-weight="bold" fill="#111" text-anchor="middle">2026/09/25 and 0xf2,</text>
-<text x="190" y="438" font-size="19" font-weight="bold" fill="#111" text-anchor="middle">but SR1 0x0</text>
-<path d="M364 417 L396 417" stroke="#111" stroke-width="4"/>
-<path d="M408 417 l-16 -10 l0 20 z" fill="#111"/>
-<rect x="412" y="372" width="548" height="90" rx="8" fill="#ffffff" stroke="#111" stroke-width="2"/>
-<text x="426" y="410" font-size="19" font-weight="normal" fill="#111" text-anchor="start">Not locked. On a normal port, not an EEPROM service port?</text>
-<text x="426" y="438" font-size="19" font-weight="normal" fill="#111" text-anchor="start">Cable out and in, 2 min, read again. Still 0x0: tell the operator.</text>
-<rect x="20" y="476" width="340" height="90" rx="8" fill="#fde3e3" stroke="#c81e1e" stroke-width="3"/>
-<text x="190" y="514" font-size="19" font-weight="bold" fill="#111" text-anchor="middle">no answer: the Pi is not back</text>
-<text x="190" y="542" font-size="19" font-weight="bold" fill="#111" text-anchor="middle">on the network after 5 minutes</text>
-<path d="M364 521 L396 521" stroke="#111" stroke-width="4"/>
-<path d="M408 521 l-16 -10 l0 20 z" fill="#111"/>
-<rect x="412" y="476" width="548" height="90" rx="8" fill="#ffffff" stroke="#111" stroke-width="2"/>
-<text x="426" y="514" font-size="19" font-weight="normal" fill="#111" text-anchor="start">Go back to step 2, with a card whose pieeprom.bin you</text>
-<text x="426" y="542" font-size="19" font-weight="normal" fill="#111" text-anchor="start">have checked prints BOOT_ORDER=0xf2 (step 1).</text>
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1000 640" width="1000" height="640" font-family="DejaVu Sans, Arial, sans-serif">
+<rect width="1000" height="640" fill="#ffffff"/>
+<text x="20" y="36" font-size="26" font-weight="bold" fill="#111" text-anchor="start">Step 6: your result. Take the FIRST row that fits.</text>
+<rect x="20" y="60" width="340" height="100" rx="8" fill="#e2f3e2" stroke="#1e8c3c" stroke-width="3"/>
+<text x="190" y="103" font-size="19" font-weight="bold" fill="#111" text-anchor="middle">2026/09/25, BOOT_ORDER=0xf2</text>
+<text x="190" y="131" font-size="19" font-weight="bold" fill="#111" text-anchor="middle">and SR1 0xbc</text>
+<path d="M364 110 L396 110" stroke="#111" stroke-width="4"/>
+<path d="M408 110 l-16 -10 l0 20 z" fill="#111"/>
+<rect x="412" y="60" width="568" height="100" rx="8" fill="#ffffff" stroke="#111" stroke-width="2"/>
+<text x="426" y="103" font-size="19" font-weight="normal" fill="#111" text-anchor="start">DONE. The Pi is back in service.</text>
+<text x="426" y="130" font-size="19" font-weight="normal" fill="#111" text-anchor="start">Keep the card for the next Pi.</text>
+<rect x="20" y="174" width="340" height="100" rx="8" fill="#fde3e3" stroke="#c81e1e" stroke-width="3"/>
+<text x="190" y="217" font-size="19" font-weight="bold" fill="#111" text-anchor="middle">an older date</text>
+<text x="190" y="245" font-size="19" font-weight="bold" fill="#111" text-anchor="middle">(whatever the rest says)</text>
+<path d="M364 224 L396 224" stroke="#111" stroke-width="4"/>
+<path d="M408 224 l-16 -10 l0 20 z" fill="#111"/>
+<rect x="412" y="174" width="568" height="100" rx="8" fill="#ffffff" stroke="#111" stroke-width="2"/>
+<text x="426" y="217" font-size="19" font-weight="normal" fill="#111" text-anchor="start">Nothing was written. Go back to step 2. Check that the</text>
+<text x="426" y="244" font-size="19" font-weight="normal" fill="#111" text-anchor="start">bridge is on both pads and the card holds the four files.</text>
+<rect x="20" y="288" width="340" height="100" rx="8" fill="#fde3e3" stroke="#c81e1e" stroke-width="3"/>
+<text x="190" y="331" font-size="19" font-weight="bold" fill="#111" text-anchor="middle">2026/09/25, but BOOT_ORDER</text>
+<text x="190" y="359" font-size="19" font-weight="bold" fill="#111" text-anchor="middle">is not 0xf2</text>
+<path d="M364 338 L396 338" stroke="#111" stroke-width="4"/>
+<path d="M408 338 l-16 -10 l0 20 z" fill="#111"/>
+<rect x="412" y="288" width="568" height="100" rx="8" fill="#ffffff" stroke="#111" stroke-width="2"/>
+<text x="426" y="331" font-size="19" font-weight="normal" fill="#111" text-anchor="start">The card's boot.conf was wrong. Make the card again</text>
+<text x="426" y="358" font-size="19" font-weight="normal" fill="#111" text-anchor="start">(step 1, and check what it prints), then from step 2.</text>
+<rect x="20" y="402" width="340" height="100" rx="8" fill="#fff3d6" stroke="#b8860b" stroke-width="3"/>
+<text x="190" y="445" font-size="19" font-weight="bold" fill="#111" text-anchor="middle">2026/09/25 and 0xf2,</text>
+<text x="190" y="473" font-size="19" font-weight="bold" fill="#111" text-anchor="middle">but SR1 0x0</text>
+<path d="M364 452 L396 452" stroke="#111" stroke-width="4"/>
+<path d="M408 452 l-16 -10 l0 20 z" fill="#111"/>
+<rect x="412" y="402" width="568" height="100" rx="8" fill="#ffffff" stroke="#111" stroke-width="2"/>
+<text x="426" y="434" font-size="19" font-weight="normal" fill="#111" text-anchor="start">Not locked. Pull the network cable, plug it in again on</text>
+<text x="426" y="461" font-size="19" font-weight="normal" fill="#111" text-anchor="start">the Pi's normal port, wait 2 minutes, read again.</text>
+<text x="426" y="488" font-size="19" font-weight="normal" fill="#111" text-anchor="start">Still 0x0: unplug the Pi and tell whoever runs the site.</text>
+<rect x="20" y="516" width="340" height="100" rx="8" fill="#fde3e3" stroke="#c81e1e" stroke-width="3"/>
+<text x="190" y="559" font-size="19" font-weight="bold" fill="#111" text-anchor="middle">no answer: the Pi is not back</text>
+<text x="190" y="587" font-size="19" font-weight="bold" fill="#111" text-anchor="middle">on the network after 5 minutes</text>
+<path d="M364 566 L396 566" stroke="#111" stroke-width="4"/>
+<path d="M408 566 l-16 -10 l0 20 z" fill="#111"/>
+<rect x="412" y="516" width="568" height="100" rx="8" fill="#ffffff" stroke="#111" stroke-width="2"/>
+<text x="426" y="559" font-size="19" font-weight="normal" fill="#111" text-anchor="start">Go back to step 2, with a card whose pieeprom.bin you</text>
+<text x="426" y="586" font-size="19" font-weight="normal" fill="#111" text-anchor="start">have checked prints BOOT_ORDER=0xf2 (step 1).</text>
 </svg>
