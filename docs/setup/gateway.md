@@ -463,8 +463,8 @@ fpgas.online-infra, `main`:
   [`firewall`](https://github.com/fpgas-online/fpgas.online-infra/blob/main/ansible/roles/firewall/tasks/main.yml)
   (the `nftables` tag, the untagged install, and the `state: restarted` on
   `Enable nftables service`),
-  [`vlan-ports`](https://github.com/fpgas-online/fpgas.online-infra/blob/main/ansible/roles/vlan-ports/tasks/main.yml),
-  [`switch-vlans`](https://github.com/fpgas-online/fpgas.online-infra/blob/main/ansible/roles/switch-vlans/tasks/main.yml),
+  [`vlan_ports`](https://github.com/fpgas-online/fpgas.online-infra/blob/main/ansible/roles/vlan_ports/tasks/main.yml),
+  [`switch_vlans`](https://github.com/fpgas-online/fpgas.online-infra/blob/main/ansible/roles/switch_vlans/tasks/main.yml),
   [`nfs`](https://github.com/fpgas-online/fpgas.online-infra/blob/main/ansible/roles/nfs/tasks/main.yml),
   [`img`](https://github.com/fpgas-online/fpgas.online-infra/blob/main/ansible/roles/img/tasks/main.yml),
   [`fixpi`](https://github.com/fpgas-online/fpgas.online-infra/blob/main/ansible/roles/fixpi/tasks/main.yml),
@@ -473,7 +473,7 @@ fpgas.online-infra, `main`:
   [`uhubctl`](https://github.com/fpgas-online/fpgas.online-infra/blob/main/ansible/roles/uhubctl/tasks/main.yml),
   [`site`](https://github.com/fpgas-online/fpgas.online-infra/blob/main/ansible/roles/site/tasks/main.yml),
   [`wssh`](https://github.com/fpgas-online/fpgas.online-infra/blob/main/ansible/roles/wssh/tasks/main.yml),
-  [`cam/stream-server`](https://github.com/fpgas-online/fpgas.online-infra/blob/main/ansible/roles/cam/stream-server/tasks/main.yml)
+  [`stream_server`](https://github.com/fpgas-online/fpgas.online-infra/blob/main/ansible/roles/stream_server/tasks/main.yml)
   and [`ttsite`](https://github.com/fpgas-online/fpgas.online-infra/blob/main/ansible/roles/ttsite/tasks/main.yml).
 - [`ansible/roles/site/tasks/nginx.yml`](https://github.com/fpgas-online/fpgas.online-infra/blob/main/ansible/roles/site/tasks/nginx.yml),
   [`certbot.yml`](https://github.com/fpgas-online/fpgas.online-infra/blob/main/ansible/roles/site/tasks/certbot.yml),
@@ -491,8 +491,8 @@ fpgas.online-infra, `main`:
   — the `state: reloaded` notify handler, against the role's `state: restarted`
   converge task. Debian's `nftables.service` supplies the rest: `ExecReload` is
   a plain `nft -f`, while `ExecStop` is `nft flush ruleset`.
-- [`ansible/roles/cam/stream-server/tasks/base.yml`](https://github.com/fpgas-online/fpgas.online-infra/blob/main/ansible/roles/cam/stream-server/tasks/base.yml)
-  and [`back.yml`](https://github.com/fpgas-online/fpgas.online-infra/blob/main/ansible/roles/cam/stream-server/tasks/back.yml)
+- [`ansible/roles/stream_server/tasks/base.yml`](https://github.com/fpgas-online/fpgas.online-infra/blob/main/ansible/roles/stream_server/tasks/base.yml)
+  and [`back.yml`](https://github.com/fpgas-online/fpgas.online-infra/blob/main/ansible/roles/stream_server/tasks/back.yml)
   — the rtmp and fancyindex modules and the tmpfs HLS directory.
 - [`ansible/roles/uhubctl/templates/udev/52-uhubctl.rules.j2`](https://github.com/fpgas-online/fpgas.online-infra/blob/main/ansible/roles/uhubctl/templates/udev/52-uhubctl.rules.j2)
   — the DUB-H7 USB ID and what the rule relaxes.

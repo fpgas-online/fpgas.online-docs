@@ -442,11 +442,11 @@ fpgas.online-infra, `main`:
   [`tweeks.yml`](https://github.com/fpgas-online/fpgas.online-infra/blob/main/ansible/roles/onpi/tasks/tweeks.yml)
   — the atftpd port rewrite and `/srv/tftp` ownership, the `nfsvers=4.2`
   safety net, and the `pi` home directories.
-- [`ansible/roles/onpi/tasks/pistat.yml`](https://github.com/fpgas-online/fpgas.online-infra/blob/main/ansible/roles/onpi/tasks/pistat.yml),
-  [`arty_here.yml`](https://github.com/fpgas-online/fpgas.online-infra/blob/main/ansible/roles/onpi/tasks/arty_here.yml),
-  [`arty_wire.yml`](https://github.com/fpgas-online/fpgas.online-infra/blob/main/ansible/roles/onpi/tasks/arty_wire.yml)
-  and [`arty_blink.yml`](https://github.com/fpgas-online/fpgas.online-infra/blob/main/ansible/roles/onpi/tasks/arty_blink.yml)
-  — the orphaned enablement tasks, still using the pre-package unit names.
+- [`ansible/roles/onpi/tasks/main.yml`](https://github.com/fpgas-online/fpgas.online-infra/blob/main/ansible/roles/onpi/tasks/main.yml)
+  — the `fpgas-online-setup-pi` package install, whose comment lists the pistat
+  reporter scripts and services and the arty board detection services it
+  provides; the role no longer carries separate pistat or arty enablement
+  tasks.
 - [`ansible/roles/fixpi/tasks/tweeks.yml`](https://github.com/fpgas-online/fpgas.online-infra/blob/main/ansible/roles/fixpi/tasks/tweeks.yml)
   — every `config.txt` line quoted above and the reasoning behind each, plus
   the `pistat_host` entry in `/etc/environment`, the deleted
@@ -464,13 +464,13 @@ fpgas.online-infra, `main`:
 - [`ansible/roles/fixpi/templates/boot/cmdline.txt.j2`](https://github.com/fpgas-online/fpgas.online-infra/blob/main/ansible/roles/fixpi/templates/boot/cmdline.txt.j2)
   and [`cmdline-pi5.txt.j2`](https://github.com/fpgas-online/fpgas.online-infra/blob/main/ansible/roles/fixpi/templates/boot/cmdline-pi5.txt.j2)
   — `console=serial0,115200` versus `console=ttyAMA10,115200`.
-- [`ansible/roles/cam/pi/tasks/main.yml`](https://github.com/fpgas-online/fpgas.online-infra/blob/main/ansible/roles/cam/pi/tasks/main.yml)
+- [`ansible/roles/cam_pi/tasks/main.yml`](https://github.com/fpgas-online/fpgas.online-infra/blob/main/ansible/roles/cam_pi/tasks/main.yml)
   — the GStreamer package set and the `fpgas-cam.service` enable.
-- [`ansible/roles/cam/stream-server/templates/live-hls.conf.j2`](https://github.com/fpgas-online/fpgas.online-infra/blob/main/ansible/roles/cam/stream-server/templates/live-hls.conf.j2)
-  and [`nginx-rtmp.conf.j2`](https://github.com/fpgas-online/fpgas.online-infra/blob/main/ansible/roles/cam/stream-server/templates/nginx-rtmp.conf.j2)
+- [`ansible/roles/stream_server/templates/live-hls.conf.j2`](https://github.com/fpgas-online/fpgas.online-infra/blob/main/ansible/roles/stream_server/templates/live-hls.conf.j2)
+  and [`nginx-rtmp.conf.j2`](https://github.com/fpgas-online/fpgas.online-infra/blob/main/ansible/roles/stream_server/templates/nginx-rtmp.conf.j2)
   — the `/live` HLS location and its `no-cache` header.
-- [`ansible/roles/fpgas-apt/tasks/main.yml`](https://github.com/fpgas-online/fpgas.online-infra/blob/main/ansible/roles/fpgas-apt/tasks/main.yml)
-  and [`defaults/main.yml`](https://github.com/fpgas-online/fpgas.online-infra/blob/main/ansible/roles/fpgas-apt/defaults/main.yml)
+- [`ansible/roles/fpgas_apt/tasks/main.yml`](https://github.com/fpgas-online/fpgas.online-infra/blob/main/ansible/roles/fpgas_apt/tasks/main.yml)
+  and [`defaults/main.yml`](https://github.com/fpgas-online/fpgas.online-infra/blob/main/ansible/roles/fpgas_apt/defaults/main.yml)
   — the repository URL, suite and dearmoured keyring.
 - [`ansible/inventory/group_vars/all/ci.yml`](https://github.com/fpgas-online/fpgas.online-infra/blob/main/ansible/inventory/group_vars/all/ci.yml)
   — `tftpd_port: 6069`.

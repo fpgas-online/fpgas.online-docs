@@ -176,7 +176,7 @@ drops and retrains once the new image is loaded. LiteX's `ICAP` core
 ## Installing the fpgas.online images
 
 This is how a board is moved to the fpgas.online images with `spi_flash.py`
-([`designs/acorn-pcie/host/spi_flash.py`](https://github.com/fpgas-online/fpgas.online-test-designs/blob/main/designs/acorn-pcie/host/spi_flash.py)),
+([`verify/src/fpgas_online_verify/boards/acorn/spi_flash.py`](https://github.com/fpgas-online/fpgas.online-test-designs/blob/main/verify/src/fpgas_online_verify/boards/acorn/spi_flash.py)),
 which drives the SoC's flash core through PCIe BAR0 from Python, with no kernel
 module. It is read-only unless told otherwise, checks an image against the slot
 (the golden slot wants the flavour that chain-loads 0x400000, the operational

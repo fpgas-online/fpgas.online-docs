@@ -410,10 +410,11 @@ fpgas.online-site, `main`:
 - [`pibfpgas/src/pibfpgas/views.py`](https://github.com/fpgas-online/fpgas.online-site/blob/main/pibfpgas/src/pibfpgas/views.py)
   — the three views, the lookup by `port` alone, the port-as-board-id comment,
   and `tt` calling `one` with a literal 21.
-- [`pibfpgas/src/pibfpgas/models.py`](https://github.com/fpgas-online/fpgas.online-site/blob/main/pibfpgas/src/pibfpgas/models.py)
-  — the `(switch, port)` identity, the absence of a unique constraint on `port`,
-  and the derived `hostname`, `ip`, `ssh_port` and `stream_url` properties for
-  both the flat and the per-port-VLAN schemes.
+- [`pibfpgas/src/pibfpgas/pis.py`](https://github.com/fpgas-online/fpgas.online-site/blob/main/pibfpgas/src/pibfpgas/pis.py)
+  — the `Pi` record, which has replaced `models.py`: the `(switch, port)`
+  identity parsed from a registered hostname, and the derived `hostname`, `ip`,
+  `ssh_port` and `stream_url` properties for both the flat and the
+  per-port-VLAN schemes.
 - [`pibfpgas/src/pibfpgas/templates/index.html`](https://github.com/fpgas-online/fpgas.online-site/blob/main/pibfpgas/src/pibfpgas/templates/index.html)
   and [`fpga.html`](https://github.com/fpgas-online/fpgas.online-site/blob/main/pibfpgas/src/pibfpgas/templates/fpga.html)
   — the card grid and its video element; the control, demo, camera, terminal,
@@ -487,14 +488,12 @@ fpgas.online-infra, `main`:
   and the [`templates/includes/`](https://github.com/fpgas-online/fpgas.online-infra/tree/main/ansible/roles/site/templates/includes)
   files — the four location includes, the gunicorn socket, the daphne `/ws/`
   proxy and the `/` to `/fpgas` redirect.
-- [`ansible/roles/site/tasks/pibup.yml`](https://github.com/fpgas-online/fpgas.online-infra/blob/main/ansible/roles/site/tasks/pibup.yml),
-  [`pibfpgas.yml`](https://github.com/fpgas-online/fpgas.online-infra/blob/main/ansible/roles/site/tasks/pibfpgas.yml),
-  [`pibdemos.yml`](https://github.com/fpgas-online/fpgas.online-infra/blob/main/ansible/roles/site/tasks/pibdemos.yml)
+- [`ansible/roles/site/tasks/fpgas-online-site.yml`](https://github.com/fpgas-online/fpgas.online-infra/blob/main/ansible/roles/site/tasks/fpgas-online-site.yml)
   and [`snmp.yml`](https://github.com/fpgas-online/fpgas.online-infra/blob/main/ansible/roles/site/tasks/snmp.yml)
-  — that these per-app task files install nothing themselves, the pip install
-  being handled in `fpgas-online-site.yml`.
+  — the site and PoE packages installed in one `pip` task, so there are no
+  per-app task files any more (`snmp.yml` only populates `/etc/environment`).
   [`pistat.yml`](https://github.com/fpgas-online/fpgas.online-infra/blob/main/ansible/roles/site/tasks/pistat.yml)
-  is the exception: it installs redis and the dnsmasq `send_stat.conf` hook.
+  installs redis and the dnsmasq `send_stat.conf` hook.
 - [`ansible/roles/site/templates/vhost.conf.j2`](https://github.com/fpgas-online/fpgas.online-infra/blob/main/ansible/roles/site/templates/vhost.conf.j2)
   and [`roles/ttsite/templates/vhost.conf.j2`](https://github.com/fpgas-online/fpgas.online-infra/blob/main/ansible/roles/ttsite/templates/vhost.conf.j2)
   / [`ws-board.conf.j2`](https://github.com/fpgas-online/fpgas.online-infra/blob/main/ansible/roles/ttsite/templates/ws-board.conf.j2)
@@ -513,11 +512,11 @@ fpgas.online-infra, `main`:
 - [`ansible/roles/wssh/tasks/main.yml`](https://github.com/fpgas-online/fpgas.online-infra/blob/main/ansible/roles/wssh/tasks/main.yml)
   and its nginx include — webssh in its own venv behind a systemd socket, and
   the `/wssh/` location.
-- [`ansible/roles/cam/stream-server/tasks/main.yml`](https://github.com/fpgas-online/fpgas.online-infra/blob/main/ansible/roles/cam/stream-server/tasks/main.yml),
-  [`base.yml`](https://github.com/fpgas-online/fpgas.online-infra/blob/main/ansible/roles/cam/stream-server/tasks/base.yml),
-  [`back.yml`](https://github.com/fpgas-online/fpgas.online-infra/blob/main/ansible/roles/cam/stream-server/tasks/back.yml)
-  and the [`pib.conf.j2`](https://github.com/fpgas-online/fpgas.online-infra/blob/main/ansible/roles/cam/stream-server/templates/pib.conf.j2)
-  / [`live-hls.conf.j2`](https://github.com/fpgas-online/fpgas.online-infra/blob/main/ansible/roles/cam/stream-server/templates/live-hls.conf.j2)
+- [`ansible/roles/stream_server/tasks/main.yml`](https://github.com/fpgas-online/fpgas.online-infra/blob/main/ansible/roles/stream_server/tasks/main.yml),
+  [`base.yml`](https://github.com/fpgas-online/fpgas.online-infra/blob/main/ansible/roles/stream_server/tasks/base.yml),
+  [`back.yml`](https://github.com/fpgas-online/fpgas.online-infra/blob/main/ansible/roles/stream_server/tasks/back.yml)
+  and the [`pib.conf.j2`](https://github.com/fpgas-online/fpgas.online-infra/blob/main/ansible/roles/stream_server/templates/pib.conf.j2)
+  / [`live-hls.conf.j2`](https://github.com/fpgas-online/fpgas.online-infra/blob/main/ansible/roles/stream_server/templates/live-hls.conf.j2)
   templates — the RTMP modules, the single worker, the publish restriction, the
   tmpfs `fstab` line, and the `/live` location with `no-cache`.
 - [`ansible/inventory/group_vars/all/site.yml`](https://github.com/fpgas-online/fpgas.online-infra/blob/main/ansible/inventory/group_vars/all/site.yml),

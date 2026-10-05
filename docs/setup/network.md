@@ -513,11 +513,11 @@ fpgas.online-infra, `main`:
   false`.
 - [`ansible/filter_plugins/port_vlans.py`](https://github.com/fpgas-online/fpgas.online-infra/blob/main/ansible/filter_plugins/port_vlans.py)
   — the single implementation of the per-port formulas.
-- [`ansible/roles/vlan-ports/tasks/main.yml`](https://github.com/fpgas-online/fpgas.online-infra/blob/main/ansible/roles/vlan-ports/tasks/main.yml)
-  and its [`templates/`](https://github.com/fpgas-online/fpgas.online-infra/tree/main/ansible/roles/vlan-ports/templates)
+- [`ansible/roles/vlan_ports/tasks/main.yml`](https://github.com/fpgas-online/fpgas.online-infra/blob/main/ansible/roles/vlan_ports/tasks/main.yml)
+  and its [`templates/`](https://github.com/fpgas-online/fpgas.online-infra/tree/main/ansible/roles/vlan_ports/templates)
   — the per-port netdev/network files, the `/32` gateway IPv4 and the `/64`
   per-switch gateway IPv6, proxy ARP, and the trunk's 1504-byte MTU.
-- [`ansible/roles/switch-vlans/tasks/main.yml`](https://github.com/fpgas-online/fpgas.online-infra/blob/main/ansible/roles/switch-vlans/tasks/main.yml)
+- [`ansible/roles/switch_vlans/tasks/main.yml`](https://github.com/fpgas-online/fpgas.online-infra/blob/main/ansible/roles/switch_vlans/tasks/main.yml)
   — the CLI venv, `/etc/fpgas/switches.yml`, and the per-switch converge with
   `FPGAS_SWITCH_COMMUNITY` from a vaulted variable.
 - [`ansible/roles/firewall/templates/nftables.conf.j2`](https://github.com/fpgas-online/fpgas.online-infra/blob/main/ansible/roles/firewall/templates/nftables.conf.j2)
