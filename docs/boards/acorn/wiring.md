@@ -478,7 +478,7 @@ The steps are the same on both carriers; the commands are not. What differs:
 | JTAG `--pins` (TDI:TDO:TCK:TMS) | `10:9:11:8` | `2:3:4:14` | `2:3:4:14` |
 | GPIO chip for the `libgpiod` cable, which opens `/dev/gpiochip0` | `gpiochip15` under kernel 6.12 at Welland: link it as `gpiochip0` first | not read by us: run `gpiodetect` and link the chip labelled `pinctrl-bcm2711` as `gpiochip0` only if it is not that already | `pinctrl-rp1` was `gpiochip0` already on pi16 (kernel 6.18.50, 2026-10-05): no link there. Not read on pi20: run `gpiodetect` first |
 | PCIe address of the card (`BDF` below) | `0001:01:00.0` | `0000:01:00.0` (pi14) | `0001:01:00.0` (pi16, pi20) |
-| Root complex behind the slot | `1000110000.pcie` | not read by us: find it as in Step 5 | `1000110000.pcie` (pi20) |
+| Root complex behind the slot | `1000110000.pcie` | not read by us: find it as in Step 5 | `1000110000.pcie` (pi20, kernel 6.12.75) |
 | FPGA serial port | `/dev/ttyAMA0`, GPIO14/15 at `a4` | `/dev/ttyAMA0`, GPIO14/15 at `a0` | `/dev/ttyAMA0`, GPIO14/15 at `a4` |
 | J5 and H5 | wired to GPIO3 and GPIO4 | not wired | not wired |
 | Boot configuration for the JTAG steps | as the fleet boots | not read by us on a CM4 | `enable_uart=0` and no `console=serial0`: on pi16 (kernel 6.18.50, 2026-10-05) JTAG cannot run with `enable_uart=1`. Not yet run by us on this hardware |
