@@ -324,20 +324,22 @@ the site's network-booted root at the time:
 
 | Blade | Bootloader | Configuration |
 |---|---|---|
-| pi16 | `2025/12/08` | `BOOT_UART=1`, `BOOT_ORDER=0xf2461` (commented in the image as "Default BOOT_ORDER for provisioning", "SD -> NVMe -> USB -> Network") |
+| pi16 | `2025/12/08` | `BOOT_UART=1`, `BOOT_ORDER=0xf2461` (with the comments "Default BOOT_ORDER for provisioning" and "SD -> NVMe -> USB -> Network" in the bootloader configuration as `vcgencmd` prints it) |
 | pi20 | `2025/11/05` | the same |
 
-So these bootloaders **do netboot**, with the stock boot order: `0xf2461` tries
-SD card or eMMC, NVMe, USB and then the network, and starts again. Nothing we
+So these bootloaders **do netboot**, with the boot order they carry: `0xf2461`
+tries the SD card (the eMMC on a module that has one; a Lite module has none),
+NVMe, USB and then the network, and starts again. Nothing we
 have measured says a blade needs a newer bootloader to netboot or to run the
 checks. `rpi-eeprom-update` prints "UPDATE AVAILABLE" on both; that only says a
 newer release exists in the installed package.
 
 What an upgrade or a new configuration would buy:
 
-- **A boot order without local media** (`0xf2`), so that a card, a USB stick or
-  an SSD someone fits cannot be booted. With `0xf2461` it can, and it is tried
-  before the network.
+- **A boot order without local media** (`0xf2`), so that a USB stick, an SSD
+  or (on a blade with a microSD slot, which the maker says only the Dev model
+  has) a card someone fits cannot be booted. With `0xf2461` it can, and it is
+  tried before the network. Not tried by us on a blade.
 - **One bootloader release across the fleet.**
 
 Neither is needed to get a blade working. If you do not need them, leave the
@@ -347,7 +349,10 @@ bootloader alone: on a Compute Module a failed write is repaired only over USB
 #### What the blade gives you for it
 
 Only the **Dev** model of the Compute Blade has the parts for the USB route.
-From the maker's [image guide](https://docs.computeblade.com/blade/getting-started/image):
+The maker says so where it describes writing an operating system to a module's
+eMMC, in a guide written for the Compute Module 4 ([image
+guide](https://docs.computeblade.com/blade/getting-started/image)); the same
+port and button are what a bootloader flash over USB needs:
 
 > eMMC can only be imaged on Dev blade as it has USB Type-C port, USB switch,
 > and nRPIBOOT button
@@ -390,24 +395,30 @@ maker's [DIP switch guide](https://docs.computeblade.com/blade/guides/dip):
 
 Read with Raspberry Pi's description above, that is the same two-part lock:
 `eeprom_write_protect=1` sets the flash's status register, and switch 1 is what
-holds `EEPROM_nWP` low. For an upgrade switch 1 has to be at "Disabled".
+holds `EEPROM_nWP` low. Raspberry Pi requires `EEPROM_nWP` not to be low while
+the bootloader is flashed, and the maker's table calls the left position
+"Disabled", so left is the position for an upgrade. That last step is our
+inference from the two documents, not something either states or we have tried.
 
 #### What is not known
 
-- **Which model the PS1 blades are** (Dev, TPM or Basic). We have not recorded
-  it; it is printed on the blade. On a blade that is not a Dev model the maker
-  describes no USB Type-C port, no nRPIBOOT button and no DIP switch, so
-  neither the USB route nor the hardware lock exists on the blade itself: the
-  module would have to go into another carrier that has them (a Raspberry Pi
-  IO board), which we have not done.
+- **Which model the PS1 blades are.** We have not recorded it. The maker's
+  pages name a Dev model and a TPM model. On a blade that is not a Dev model
+  the maker describes no USB Type-C port, no nRPIBOOT button and no DIP
+  switch, so, as far as those pages go, neither the USB route nor the hardware
+  lock exists on the blade itself; the module would then have to go into a
+  carrier that has them (Raspberry Pi describes the route on its own IO
+  boards), which we have not done.
 - **What a blade without the DIP switch does with `EEPROM_nWP`** (tied low,
   tied high or left open). The maker's pages we read do not say.
 - **Whether a blade's bootloader can be updated from the running system.**
   Raspberry Pi's self-update needs update files in the boot file system it
   booted from ("For network boot make sure that the TFTP `boot` directory can
-  be mounted through NFS and that `rpi-eeprom-update` can write to it"), is
-  "not atomic", and on a read-only netboot root has nowhere to write. Not tried
-  by us on any Compute Module.
+  be mounted through NFS and that `rpi-eeprom-update` can write to it"), and
+  it "does not update the bootloader atomically". On a netboot root like PS1's,
+  a read-only export under a tmpfs overlay, a file written on the blade never
+  reaches the boot directory the bootloader reads, so we expect it not to
+  work there. Not tried by us on any Compute Module.
 
 ### Differences from the Pi 5 to keep in mind
 
