@@ -75,6 +75,24 @@ When a page records a measurement — a pinout, a device ID, a fault — say whe
 it was taken and on which host. A pinout with no date is impossible to trust
 later.
 
+## Printing pages
+
+`tools/print_pages.py` renders published pages to one PDF, on A4 or US Letter,
+for the bench or for someone who needs it on paper. It fetches the pages from
+the live site, so the paper says what the site says: to change the print, change
+the page and publish it.
+
+```console
+$ uv run tools/print_pages.py --paper A4 --title "Wiring an Acorn to a Raspberry Pi 5" \
+    --output acorn-pi5.pdf "boards/acorn/wiring#bill-of-materials,raspberry-pi-5,assembly"
+```
+
+A page is given by its path, and may be cut down to sections named by their
+anchors. Each chapter carries its source URL and the commit the site was built
+from; a wiring sheet gets a landscape page to itself. `--help` lists the rest
+(a box of notes on the cover, a last sheet, PDFs to append). It needs
+`google-chrome-stable`.
+
 ## Open items
 
 Every unresolved question found while writing these pages is a `{todo}` on
