@@ -75,6 +75,29 @@ When a page records a measurement — a pinout, a device ID, a fault — say whe
 it was taken and on which host. A pinout with no date is impossible to trust
 later.
 
+## Printing pages
+
+`tools/print_pages.py` renders published pages to one PDF, on A4 or US Letter,
+for the bench or for someone who needs it on paper. It fetches the pages from
+the live site, so the paper says what the site says: to change the print, change
+the page and publish it.
+
+```console
+$ uv run tools/print_pages.py --paper A4 --title "Wiring an Acorn to a Raspberry Pi 5" \
+    --output acorn-pi5.pdf "boards/acorn/wiring#bill-of-materials,raspberry-pi-5,assembly"
+```
+
+A page is given by its path, and may be cut down to sections named by their
+anchors. Each chapter carries its source URL and the commit the site was built
+from, and every sheet's foot carries the commit and a page number. Links are
+numbered, with their addresses listed at the end of each chapter. An image at
+least 1200 px wide stays in the text and is printed again on a landscape sheet
+of its own at the end of its chapter. `--help` lists the rest (a box of notes on
+the cover, a last sheet, PDFs to append). Appended PDFs are not renumbered and
+must already be on the chosen paper, or the run stops. The tool needs
+`google-chrome-stable`, and `pdfunite` and `pdfinfo` (poppler-utils) only for
+`--append`.
+
 ## Open items
 
 Every unresolved question found while writing these pages is a `{todo}` on
