@@ -112,7 +112,7 @@ host holds to it:
 |-----------|-------|
 | Device    | `/dev/ttyAMA0` |
 | Baud rate | 115200 |
-| Pre-test  | `systemctl stop serial-getty@ttyAMA0` (inactive on the fleet) |
+| Pre-test  | `systemctl stop serial-getty@ttyAMA0` (inactive on the Welland fleet; active on pi16 at PS1 on 2026-10-05) |
 
 **A Pi 5 needs an explicit overlay for this UART.** `bcm2712-rpi-5-b.dtb` ships
 the RP1 header UART (`serial0`) disabled, and `dtoverlay=disable-bt`, which frees
@@ -198,8 +198,12 @@ front of you at the bench. The legend above the Extension Port is spelled
 "Extention Port" on the board. TX and RX on the UART header are named from the
 blade's side.
 
+The Extension Port (2×5), by printed pin:
+
 ```{include} generated/acorn-blade-ext.md
 ```
+
+The UART header (1×4), by printed pin:
 
 ```{include} generated/acorn-blade-uart.md
 ```
@@ -261,10 +265,12 @@ JTAG and the running design do not use the line at the same moment in normal
 use: JTAG loads the FPGA, openFPGALoader exits, and only then does the host open
 `/dev/ttyAMA0`. The fpgas.online Acorn design only ever receives on J2.
 
-:::{todo}
-The resistor value is a design choice, not a measurement. On the first blade
-wired this way, confirm that `--detect` answers while a design drives J2, and
-that `/dev/ttyAMA0` still transmits through the resistor.
+:::{note}
+470 Ω is a chosen value, not a measured one: it limits the current to about
+7 mA if the FPGA drives J2 against the Pi at 3.3 V. Whether `--detect` answers
+while a design drives J2, and whether `/dev/ttyAMA0` still transmits through
+the resistor, is **not yet run by us on this hardware**: no blade is wired this
+way yet. Check both on the first blade that is.
 :::
 
 :::{warning}
@@ -288,8 +294,25 @@ $ openFPGALoader --cable libgpiod --pins 2:3:4:14 --detect
 $ openFPGALoader --cable libgpiod --pins 2:3:4:14 <bitstream.bit>
 ```
 
-Detach the PCIe endpoint first here too. The bus address differs per blade, so
-take it from [Compute blades](../../sites/ps1.md#compute-blades).
+:::{warning}
+**Detach the PCIe endpoint before loading a bitstream**, as on a Pi 5. The bus
+address differs per blade (`0000:01:00.0` on the CM4 blade pi14, `0001:01:00.0`
+on the CM5 blades pi16 and pi20), so take it from `lspci` or from [Compute
+blades](../../sites/ps1.md#compute-blades):
+
+```console
+$ echo 1 | sudo tee /sys/bus/pci/devices/0001:01:00.0/remove
+```
+:::
+
+:::{warning}
+**JTAG needs the header's serial port off.** TMS is GPIO14, the serial port's
+TX pin. With `enable_uart=1` the kernel's serial driver holds GPIO14, and
+kernel 6.18 does not hand a held pin to openFPGALoader (read on pi16 on
+2026-10-05: [pi16 on 5 October
+2026](../../sites/ps1.md#pi16-on-5-october-2026)). The commands below were run
+on pi20 under kernel 6.12.75.
+:::
 
 openFPGALoader 0.13.1 leaves GPIO2, GPIO4 and GPIO14 as **outputs** when it
 exits. Put them back before anything else uses the shared line. The UART
@@ -305,68 +328,99 @@ $ stty -F /dev/ttyAMA0 115200 raw -echo
 
 ## Assembly
 
-1. Plug the P1 Pico-EZmate connector into the Acorn's **P1** (JTAG) socket.
-2. Plug the P2 Pico-EZmate connector into the Acorn's **P2** (Serial/GPIO) socket.
-3. Route the cables so they don't obstruct the M.2 connector or the PCIe edge
-   fingers.
-
-On a **Raspberry Pi 5**:
-
-4. Mount the M.2 PCIe HAT onto the Pi.
-5. Insert the Acorn into the M.2 M-key slot, push until fully seated, and fit
-   the retention screw.
-6. Plug the **P2 housing** (2×3) onto header pins 5-10.
-7. Plug the **P1 housing** (2×4) onto header pins 19-26.
-
-On a **Compute Blade**:
-
-4. Insert the Acorn into the blade's M.2 slot.
-5. Plug the **P1 housing** (2×5) over the whole Extension Port, pin 1 on printed
-   pin 1.
-6. Plug the **P2 housing** (1×4) over the whole UART header, pin 1 on printed
-   pin 1.
-
-Then check that both VCC wires (and on a blade, J5 and H5) are cut back and
-insulated, and on a blade that the 470 Ω resistor is in the J2 wire.
+:::{warning}
+**Before anything is plugged in: the VCC (3.3 V) wire of both P1 and P2 is cut
+back and insulated.** It is pin 6 of each Pico-EZmate connector. 3.3 V from the
+Acorn into the host can damage it.
+:::
 
 **Buzz every wire of the cable through with a meter before connecting.** The six
 wires are all black, the two halves of a cut cable have pin 1 on opposite
 sides, and nothing on the plug is numbered: pin 1 is the wire that lands nearest
 the M.2 edge connector once the plug is seated.
 
+### On the Acorn, for both carriers
+
+1. Plug the P1 Pico-EZmate connector into the Acorn's **P1** (JTAG) socket.
+2. Plug the P2 Pico-EZmate connector into the Acorn's **P2** (Serial/GPIO) socket.
+3. Route the cables so they don't obstruct the M.2 connector or the PCIe edge
+   fingers.
+
+### On a Raspberry Pi 5
+
+1. Mount the M.2 PCIe HAT onto the Pi.
+2. Insert the Acorn into the M.2 M-key slot, push until fully seated, and fit
+   the retention screw.
+3. Plug the **P2 housing** (2×3) onto header pins 5-10.
+4. Plug the **P1 housing** (2×4) onto header pins 19-26.
+5. Check that both VCC wires are cut back and insulated.
+
+### On a Compute Blade
+
+1. Insert the Acorn into the blade's M.2 slot.
+2. Plug the **P1 housing** (2×5) over the whole Extension Port, pin 1 on printed
+   pin 1.
+3. Plug the **P2 housing** (1×4) over the whole UART header, pin 1 on printed
+   pin 1.
+4. Check that both VCC wires and the J5 and H5 wires are cut back and insulated,
+   that the 470 Ω resistor is in the J2 wire, and that the cavities over
+   Extension Port pins 6 and 7 and UART pin 1 (all 5 V) are empty.
+
 ## Verification
 
-The Pi 5 commands are shown; on a Compute Blade use `--pins 2:3:4:14` and the
-blade's own PCIe bus address.
+The steps are the same on both carriers; the commands are not. What differs:
+
+| | Raspberry Pi 5 | Compute Blade, CM4 | Compute Blade, CM5 |
+|---|---|---|---|
+| JTAG `--pins` (TDI:TDO:TCK:TMS) | `10:9:11:8` | `2:3:4:14` | `2:3:4:14` |
+| GPIO chip for the `libgpiod` cable | `gpiochip15`, linked as `gpiochip0` first | the BCM2711's own chip | the RP1's chip |
+| PCIe address of the card | `0001:01:00.0` | `0000:01:00.0` (pi14) | `0001:01:00.0` (pi16, pi20) |
+| Root complex behind the slot | `1000110000.pcie` | not read by us: find it as in Step 5 | `1000110000.pcie` (pi20) |
+| FPGA serial port | `/dev/ttyAMA0`, GPIO14/15 at `a4` | `/dev/ttyAMA0`, GPIO14/15 at `a0` | `/dev/ttyAMA0`, GPIO14/15 at `a4` |
+| J5 and H5 | wired to GPIO3 and GPIO4 | not wired | not wired |
+| Before JTAG | nothing | the header's serial port off (see [JTAG on a blade](#jtag-on-a-blade)) | the same |
+
+On a Compute Blade, Steps 1, 2 and 5 are the commands that were run on pi20 (a
+CM5, kernel 6.12.75, with its P2 pair on the Extension Port). The serial parts
+of Steps 3 and 4 are **not yet run by us on this hardware**: no blade has its P2
+cable on the UART header yet. The J5 and H5 parts of Steps 3 and 4 do not apply
+on a blade.
 
 ### Step 1: PCIe
 
 ```console
+# Raspberry Pi 5, and a CM5 blade
 $ lspci -nn -s 0001:01:00.0
+# A CM4 blade
+$ lspci -nn -s 0000:01:00.0
 # The factory Sqrl firmware:
 #   0001:01:00.0 Processing accelerators [1200]: Squirrels Research Labs Acorn CLE-215+ [1e24:021f]
+#   0001:01:00.0 Processing accelerators [1200]: Squirrels Research Labs Acorn CLE-101 [1e24:0101]
 # The vendor (RHS Research) XDMA sample image:
 #   0001:01:00.0 Processing accelerators [1200]: Xilinx Corporation 7-Series FPGA Hard PCIe block (AXI/debug) [10ee:7011]
 # The fpgas.online Acorn design (or any LiteX x1 PCIe design):
 #   0001:01:00.0 Memory controller [0580]: Xilinx Corporation Device [10ee:7021]
 ```
 
-If the Acorn doesn't appear, check the M.2 seating and the HAT's FPC cable, and
-`dmesg | grep -i pci`.
+If the Acorn doesn't appear, check the M.2 seating (and on a Pi 5 the HAT's FPC
+cable), and `dmesg | grep -i pci`.
 
 ### Step 2: JTAG
 
 :::{warning}
-**Detach the PCIe endpoint before every JTAG reconfiguration.** Reconfiguring
-the FPGA while its endpoint is enumerated is a surprise removal that the BCM2712
-root complex does not survive: the Pi drops SSH and reboots. With the endpoint
-removed first the load completes and the host is unaffected.
+**Detach the PCIe endpoint before every JTAG reconfiguration**, on either
+carrier. Reconfiguring the FPGA while its endpoint is enumerated is a surprise
+removal that the BCM2712 root complex does not survive: the Pi drops SSH and
+reboots. With the endpoint removed first the load completes and the host is
+unaffected.
 :::
+
+On a **Raspberry Pi 5**:
 
 ```console
 # 0. Detach the endpoint (bring it back as in Step 5, or reboot)
 $ echo 1 | sudo tee /sys/bus/pci/devices/0001:01:00.0/remove
-# Pi 5 only: the libgpiod cable opens gpiochip0, the header is gpiochip15
+# The libgpiod cable opens gpiochip0, the header is gpiochip15
 $ sudo ln -sfn /dev/gpiochip15 /dev/gpiochip0
 # 1. Read-only check (safe without step 0)
 $ openFPGALoader --cable libgpiod --pins 10:9:11:8 --detect
@@ -375,17 +429,37 @@ $ openFPGALoader --cable libgpiod --pins 10:9:11:8 --detect
 $ openFPGALoader --cable libgpiod --pins 10:9:11:8 <bitstream.bit>
 ```
 
+On a **Compute Blade**:
+
+```console
+# 0. Detach the endpoint, at the address of this blade (0000:01:00.0 on a CM4)
+$ echo 1 | sudo tee /sys/bus/pci/devices/0001:01:00.0/remove
+# 1. Read-only check (safe without step 0)
+$ openFPGALoader --cable libgpiod --pins 2:3:4:14 --detect
+# Expected: idcode 0x3631093 (XC7A100T, an Acorn CLE-101 or LiteFury)
+#           idcode 0x3636093 (XC7A200T, a CLE-215+ or NiteFury)
+# 2. Load to SRAM
+$ openFPGALoader --cable libgpiod --pins 2:3:4:14 <bitstream.bit>
+# 3. Put the pins back (see "JTAG on a blade")
+$ pinctrl set 2,3,4 ip
+$ pinctrl set 14,15 a0       # CM4
+$ pinctrl set 14,15 a4       # CM5
+```
+
 Never pass `--write-flash` here: an SRAM load is lost at power-off, so a reboot
 restores whatever is in flash, which makes every experiment safe. Writing the
 flash is covered in [Acorn PCIe programming and multiboot](pcie-programming.md).
 
 :::{warning}
-**Files staged under `/home/pi` do not survive a reboot.** The Pi root is
-`overlayroot=tmpfs` on a read-only NFS root. The symptom is openFPGALoader
-printing `Open file … FAIL` in under 0.1 s: copy the bitstream again.
+**Files staged under `/home/pi` do not survive a reboot** on a host whose root
+is an overlay in memory (`overlayroot=tmpfs` on a read-only NFS root, as on the
+fleet). The symptom is openFPGALoader printing `Open file … FAIL` in under
+0.1 s: copy the bitstream again.
 :::
 
 ### Step 3: UART and GPIO loopback
+
+On a **Raspberry Pi 5**:
 
 ```console
 $ sudo systemctl stop serial-getty@ttyAMA0
@@ -401,7 +475,18 @@ $ gpioget gpiochip15 4
 # Expected: 0
 ```
 
+On a **Compute Blade** only the UART part applies (J5 and H5 are not wired), and
+it is not yet run by us on this hardware. Load the bitstream with
+`--pins 2:3:4:14`, put the pins back as in Step 2, and then:
+
+```console
+$ stty -F /dev/ttyAMA0 115200 raw -echo
+$ echo "test" > /dev/ttyAMA0
+```
+
 ### Step 4: pin ID
+
+On a **Raspberry Pi 5**:
 
 ```console
 $ openFPGALoader --cable libgpiod --pins 10:9:11:8 pmod-pin-id-acorn.bit
@@ -410,7 +495,16 @@ $ openFPGALoader --cable libgpiod --pins 10:9:11:8 pmod-pin-id-acorn.bit
 # GPIO14 → "J2" (serial RX, on the Pi's TXD0)
 # GPIO3  → "J5" (spare GPIO)
 # GPIO4  → "H5" (spare GPIO)
-# On a Compute Blade only GPIO14 and GPIO15 answer: J5 and H5 are not connected there.
+```
+
+On a **Compute Blade** (not yet run by us on a blade wired as on this page):
+
+```console
+$ openFPGALoader --cable libgpiod --pins 2:3:4:14 pmod-pin-id-acorn.bit
+# Only GPIO15 → "K2" and GPIO14 → "J2" answer: J5 and H5 are not connected.
+# The design drives J2, which shares GPIO14 with TMS. The 470 Ω resistor in the
+# J2 wire is there so that JTAG still works afterwards; without it JTAG is lost
+# until a power cycle (see "The shared line and the 470 Ω resistor").
 ```
 
 Only GPIO15 can be a hardware UART receiver on a Pi 5, so the other three are
@@ -436,15 +530,33 @@ move has the card on the end of it, and one that follows has nothing.
 
 ### Step 5: PCIe design
 
+On a **Raspberry Pi 5**:
+
 ```console
 $ echo 1 | sudo tee /sys/bus/pci/devices/0001:01:00.0/remove   # detach first
 $ openFPGALoader --cable libgpiod --pins 10:9:11:8 pcie-acorn.bit
 $ echo 1 | sudo tee /sys/bus/pci/rescan
 $ lspci -nn -d 10ee:
-# Expected: Xilinx Corporation Device [10ee:7021] (LitePCIe's default for one lane)
-# Nothing? Re-probe the slot's root complex (needed on a CM5 blade):
+# Expected: Xilinx Corporation Device [10ee:7021] (the LitePCIe default for one lane)
+```
+
+On a **Compute Blade** (as measured on pi20, a CM5; on a CM4 use its own address
+and take the root complex's name from the first command, which is not yet run by
+us on a CM4):
+
+```console
+$ echo 1 | sudo tee /sys/bus/pci/devices/0001:01:00.0/remove   # detach first
+$ openFPGALoader --cable libgpiod --pins 2:3:4:14 pcie-acorn.bit
+$ pinctrl set 2,3,4 ip
+$ echo 1 | sudo tee /sys/bus/pci/rescan
+$ lspci -nn -d 10ee:
+# Nothing? On pi20 a rescan was not enough: re-probe the root complex of the slot.
+$ readlink -f /sys/bus/pci/devices/0001:00:00.0 | grep -o '[0-9a-f]*\.pcie'
+1000110000.pcie
 $ echo 1000110000.pcie | sudo tee /sys/bus/platform/drivers/brcm-pcie/unbind
 $ echo 1000110000.pcie | sudo tee /sys/bus/platform/drivers/brcm-pcie/bind
+$ lspci -nn -d 10ee:
+# Expected: Xilinx Corporation Device [10ee:7021]
 ```
 
 When the rescan is enough and when the re-probe is needed is under [Bring the
@@ -458,7 +570,7 @@ load](pcie-programming.md#bring-the-endpoint-back-after-a-jtag-load).
 command line puts it there (`console=ttyAMA0`, or `console=serial0` on a Pi 5
 with `uart0-pi5` enabled), loading any design that drives serial TX — the UART
 SoC, pin-ID, the GPIO loopback — reboots or crashes the host. A fleet host
-boots with `console=tty1` (Compute Blades) or `console=ttyAMA10` (Pi 5s); check
+is meant to boot with `console=tty1` (Compute Blades) or `console=ttyAMA10` (Pi 5s); check
 this on any new host, and on a host that has been reinstalled: pi16 at PS1 had
 its console on the FPGA UART when read on 2026-10-05 ([pi16 on 5 October
 2026](../../sites/ps1.md#pi16-on-5-october-2026)).

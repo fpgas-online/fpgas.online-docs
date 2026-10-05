@@ -143,35 +143,40 @@ on Extension Port pins 9 and 10 instead, sharing pin 9 (GPIO14) directly with
 TMS and with no resistor, so a design that drives J2 costs JTAG until a PoE
 cycle ([why](../boards/acorn/wiring.md#the-shared-line-and-the-470-ω-resistor)),
 and its J5 and H5 are not wired. How pi14's and pi16's P2 cables are wired is
-not known: their P1 is unmated, so nothing can be loaded to read it.
+not known: pi14's P1 did not answer on 2026-09-20 and pi16's JTAG cannot run
+today ([pi16 on 5 October 2026](#pi16-on-5-october-2026)), so nothing can be
+loaded to read them.
 
-All four blades use JTAG on `--pins 2:3:4:14` and the FPGA UART on
-`/dev/ttyAMA0` at GPIO14/15, and run openFPGALoader 0.13.1, which has
-`--read-dna`. PCIe is through the blade's M.2 slot. On 2026-09-20 all four
+On all four blades the JTAG pins are `--pins 2:3:4:14` (it has only answered on
+pi20) and the FPGA UART is `/dev/ttyAMA0` at GPIO14/15. All four ran Debian's
+openFPGALoader 0.13.1, which has `--read-dna`, when probed. PCIe is through the blade's M.2 slot. On 2026-09-20 all four
 netbooted the trixie arm64 NFS root with overlayroot, with `console=tty1` and
-`serial-getty@ttyAMA0` inactive, so that the [kernel console
+`serial-getty@ttyAMA0` inactive, so the [kernel console
 crash](../boards/acorn/wiring.md#kernel-console-on-the-fpga-uart) could not
 happen. That no longer holds on pi16 (below), and pi14, pi18 and pi20 have not
 been read since.
 
 #### pi16 on 5 October 2026
 
-Read over SSH as the visitor, nothing written to the card:
+Read over SSH as the visitor. Nothing was written to the host's storage or to
+the Acorn; a report file in `/run` was made and removed, and GPIO2 and GPIO4,
+left as outputs by a hand-run `openFPGALoader --detect`, were put back.
 
 | | Read on pi16, 2026-10-05 |
 |---|---|
 | Module | Compute Module 5 Lite Rev 1.0, 8 GB, MAC `2c:cf:67:fb:91:e5` |
-| System | Raspbian 13 (trixie), 32-bit userspace on kernel `6.18.50+rpt-rpi-v8` |
+| System | Raspbian 13 (trixie), 32-bit userspace on kernel `6.18.50+rpt-rpi-v8`; Debian's openFPGALoader 0.13.1 |
 | Serial port | `enable_uart=1`, `console=serial0,115200`, and a serial getty active on `/dev/ttyAMA0` |
 | Card | `1e24:0101` at `0001:01:00.0`: SQRL's factory image, not converted |
-| `fpgas-verify` | `pcie-link` passes (5.0 GT/s, x1); `jtag` cannot run |
+| `fpgas-verify` 0.0.post1100 | `pcie-link` (5.0 GT/s, x1) and `rp1-pio` pass; `jtag` cannot run; the seven tests that need the fpgas.online design are not run on a factory image |
 
 Two things follow from the serial port being on:
 
 - **JTAG cannot run.** TMS is GPIO14, which is also the serial port's TX pin.
   The kernel's serial driver holds it (`pin gpio14 already requested by
   1f00030000.serial; cannot claim`), this kernel does not lend a held pin, and
-  the driver cannot be detached from a running system. openFPGALoader 0.13.1
+  the serial driver has no `unbind` file and is the kernel console, so it
+  cannot be detached from the running system. openFPGALoader 0.13.1
   then stops on a libgpiod assertion instead of saying so. Tracked in
   [test-designs issue
   #127](https://github.com/fpgas-online/fpgas.online-test-designs/issues/127).
@@ -182,18 +187,25 @@ Two things follow from the serial port being on:
   against: a design that drives serial TX can reboot or crash the host. It must
   be moved (`console=tty1`, no serial getty) before such a design is loaded.
 
+Moving the console does not free JTAG. With `enable_uart=1` the serial driver
+holds GPIO14 whether or not a console or a getty uses the port. For JTAG the
+header's serial port itself has to be off at boot (`enable_uart=0`, and no
+`console=serial0` word), and in that boot the tests of the P2 serial pair
+cannot run. **Not yet run by us on this hardware.** The same will apply to any
+blade on this kernel: pi20's JTAG answered under kernel 6.12.75.
+
 #### What each blade still needs
 
 To reach the [Compute Blade wiring](../boards/acorn/wiring.md#compute-blade),
-from what the table above records. Nobody of us has wired a blade this way or
+from what the table above records. None of us has wired a blade this way or
 converted a card on one yet: **not yet run by us on this hardware**.
 
 | Blade | Card | P1 (JTAG) cable | P2 (serial) cable | Host |
 |-------|------|-----------------|-------------------|------|
-| pi14 | fitted, factory image: to be converted | did not answer: reseat or refit on the Extension Port | not known: build to the UART header, 470 Ω in the J2 wire, J5 and H5 cut back | read it again |
-| pi16 | fitted, factory image: to be converted | not known (see above): check, reseat or refit on the Extension Port | not known: build to the UART header, 470 Ω in the J2 wire, J5 and H5 cut back | take the kernel console and the getty off `/dev/ttyAMA0` |
-| pi18 | none: fit one | fit on the Extension Port | fit on the UART header, 470 Ω in the J2 wire, J5 and H5 cut back | read it again |
-| pi20 | fitted, vendor sample image in flash: to be converted | answers: leave | move the serial pair from Extension Port pins 9 and 10 to the UART header, and add the 470 Ω resistor in the J2 wire | read it again |
+| pi14 | fitted, factory image: to be converted | did not answer: reseat or refit on the Extension Port | not known: build to the UART header, 470 Ω in the J2 wire, J5 and H5 cut back | read its kernel command line and serial getty again (last read 2026-09-20) |
+| pi16 | fitted, factory image: to be converted | not known (see above): check, reseat or refit on the Extension Port | not known: build to the UART header, 470 Ω in the J2 wire, J5 and H5 cut back | take the kernel console and the getty off `/dev/ttyAMA0` (needed in any case); for JTAG, the serial port off at boot, as above |
+| pi18 | none: fit one | fit on the Extension Port | fit on the UART header, 470 Ω in the J2 wire, J5 and H5 cut back | read its kernel command line and serial getty again (last read 2026-09-20) |
+| pi20 | fitted, vendor sample image in flash: to be converted | answers: leave | move the serial pair from Extension Port pins 9 and 10 to the UART header, and add the 470 Ω resistor in the J2 wire | read its kernel, kernel command line and serial getty again (last read 2026-09-20) |
 
 The parts are in the wiring page's [Bill of
 Materials](../boards/acorn/wiring.md#bill-of-materials). Once a blade is wired,
@@ -359,13 +371,18 @@ running it, reading the result, updating the record and debugging a failure.
 
 ## Known faults
 
-- **pi14 and pi16 do not respond to JTAG on any pin order.** All 24 permutations
-  of the four available GPIOs were tried. GPIO4 (TCK) shows a pull-up only on
-  pi20; on pi14 and pi16 it floats exactly as it does on pi18, whose M.2 slot is
-  empty. TCK is a dedicated JTAG pin that no design can drive, so that pull-up
-  is the Acorn's own and should be present whenever the connector is mated.
-  Both boards enumerate over PCIe, so the boards are alive — reseating P1 is the
-  thing to try. Their P2 serial is untested until JTAG works.
+- **pi14 and pi16 did not respond to JTAG on any pin order on 2026-09-20.** All
+  24 permutations of the four available GPIOs were tried. GPIO4 (TCK) showed a
+  pull-up only on pi20; on pi14 and pi16 it floated exactly as it did on pi18,
+  whose M.2 slot is empty. TCK is a dedicated JTAG pin that no design can
+  drive, so that pull-up is the Acorn's own and should be present whenever the
+  connector is mated. Both boards enumerate over PCIe, so the boards are
+  alive — reseating P1 is the thing to try. Their P2 serial is untested until
+  JTAG works.
+- **pi16's JTAG cannot run at all** as read on 2026-10-05: the serial driver
+  holds GPIO14 (TMS), so its P1 state is unknown, not known to be unmated; and
+  its kernel console is on the FPGA's UART. See [pi16 on 5 October
+  2026](#pi16-on-5-october-2026).
 - **pi2** (Arty A7): recorded Offline. Port e2 shows link up and PoE delivering
   in the 2026-08-31 switch dump, so "offline" is the host, not the link. pi2 is
   also the only host with an Apple A1277 USB Ethernet adapter rather than an
