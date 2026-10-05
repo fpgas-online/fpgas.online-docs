@@ -25,9 +25,9 @@ Every chapter starts on a new sheet under a line giving its source URL, the
 commit the site was built from and the date it was fetched; every sheet has
 the commit and a page number in its foot. Links are numbered and their
 addresses listed at the end of the chapter, because paper cannot follow them.
-An image at least WIDE_PX wide stays in the text at the width of the column and
-is printed again at the end of its chapter on a landscape sheet of its own, at
-the full width of the paper; both are in vector form when the page links one.
+An image at least WIDE_PX wide is not left in the text: a line there says it is
+on a landscape sheet of its own at the end of its chapter, where it is printed
+once at the full width of the paper (in vector form when the page links one).
 --append puts existing PDFs (label sheets) after the printed pages unchanged
 and not renumbered; every page of them must already be on the chosen paper,
 either way up, or the run stops.
@@ -59,7 +59,7 @@ import urllib.parse
 import urllib.request
 from pathlib import Path
 
-from bs4 import BeautifulSoup, Tag
+from bs4 import BeautifulSoup, Comment, Tag
 
 SITE = "https://docs.fpgas.online/en/latest/"
 ADDONS = (
@@ -77,6 +77,13 @@ PAPER_POINTS = {"A4": (595.28, 841.89), "Letter": (612.0, 792.0)}
 WIDE_PX = 1200
 # A listing with more lines than this may run over the end of a sheet.
 LONG_LINES = 18
+# A table with at most this many rows is kept on one sheet.
+SHORT_ROWS = 12
+# Where a chapter's sheet number goes in the cover's list, once it is known.
+SHEET_PLACE = "<!--sheet-of-chapter-%d-->"
+SHEET_PLACE_RE = r"<!--sheet-of-chapter-(\d+)-->"
+# This many addresses stay on the sheet of the "Links in this chapter" heading.
+LINKS_WITH_HEADING = 4
 HEADINGS = ("h1", "h2", "h3", "h4", "h5", "h6")
 
 CSS = """
@@ -114,12 +121,16 @@ pre { font-size: 8pt; line-height: 1.3; border: 0.4pt solid #888; background: #f
 pre.long { break-inside: auto; }
 pre code { background: none; padding: 0; }
 sup.ref { font-size: 6.5pt; line-height: 0; color: #333; }
-.links { break-before: avoid; }
+.links .together { break-inside: avoid; }
+.links ol { margin-bottom: 0; }
 .links ol { font-size: 8pt; overflow-wrap: anywhere; }
 .inflow { margin: 0 0 3.5mm; break-inside: avoid; }
-.inflow img { width: 100%%; }
-.inflow figcaption { font-size: 8pt; color: #333; }
+.inflow figcaption { font-style: italic; }
+table.short { break-inside: avoid; }
 table { border-collapse: collapse; width: calc(100%% - 1pt); margin: 0 0 3.5mm; font-size: 8.8pt; }
+/* A table that ran over a sheet's end loses its own bottom margin; its wrapper keeps the gap. */
+.table-wrapper { margin: 0 0 3.5mm; }
+.table-wrapper table { margin: 0; }
 th, td { border: 0.4pt solid #555; padding: 1mm 1.6mm; text-align: left; vertical-align: top; }
 th { background: #ddd; }
 thead { display: table-header-group; }
@@ -178,6 +189,9 @@ def article(page: str, url: str) -> Tag:
         raise SystemExit(f"{url}: no <article role=main>; is this a page of the site?")
     for junk in body.select("a.headerlink, button, script, style, .toc-drawer, .related-pages"):
         junk.decompose()
+    # A comment of the page must never look like one of our sheet places.
+    for comment in body.find_all(string=lambda text: isinstance(text, Comment)):
+        comment.extract()
     return body
 
 
@@ -326,8 +340,8 @@ def place_figure(movable: Tag, figure: Tag, lifted: dict[int, Tag]) -> None:
 def inline_images(body: Tag, url: str, soup: BeautifulSoup) -> list[Tag]:
     """Embed every image, as vector when the page links one.
 
-    A wide image stays in the text at the width of the column, and the sheets
-    returned hold it again at the full width of a landscape page.
+    A wide image is taken out of the text, which keeps a line saying where it
+    is; the sheets returned hold it at the full width of a landscape page.
     """
     sheets = []
     lifted: dict[int, Tag] = {}
@@ -363,10 +377,8 @@ def inline_images(body: Tag, url: str, soup: BeautifulSoup) -> list[Tag]:
         # The link goes with the image only when it holds nothing else.
         alone = link is not None and len(link.find_all("img")) == 1 and not link.get_text(strip=True)
         place_figure(link if alone else image, figure, lifted)
-        if link is not None and not alone and not link.get_text(strip=True) and link.find("img") is None:
-            link.decompose()
         caption = soup.new_tag("figcaption")
-        caption.string = f"{name}. The same sheet is at full size at the end of this chapter."
+        caption.string = f"[{name}: on a landscape sheet of its own at the end of this chapter.]"
         figure.append(caption)
 
         sheet = soup.new_tag("figure", attrs={"class": "wide"})
@@ -375,6 +387,9 @@ def inline_images(body: Tag, url: str, soup: BeautifulSoup) -> list[Tag]:
         caption.string = f"{name} ({vector or source})"
         sheet.append(caption)
         sheets.append(sheet)
+        # At the width of the column a wiring sheet cannot be read, so the text
+        # keeps only the line saying where the sheet is.
+        (link if alone else image).extract()
     return sheets
 
 
@@ -402,15 +417,22 @@ def link_notes(body: Tag, url: str, soup: BeautifulSoup) -> Tag | None:
     if not numbers:
         return None
     box = soup.new_tag("div", attrs={"class": "links"})
+    # The heading and the first few addresses are one block that is not split,
+    # so the heading is never the last line of a sheet.
+    head = soup.new_tag("div", attrs={"class": "together"})
     heading = soup.new_tag("h2")
     heading.string = "Links in this chapter"
-    box.append(heading)
-    listing = soup.new_tag("ol")
-    for target in numbers:
+    head.append(heading)
+    box.append(head)
+    first = soup.new_tag("ol")
+    rest = soup.new_tag("ol", start=str(LINKS_WITH_HEADING + 1))
+    for number, target in enumerate(numbers, 1):
         item = soup.new_tag("li")
         item.string = target
-        listing.append(item)
-    box.append(listing)
+        (first if number <= LINKS_WITH_HEADING else rest).append(item)
+    head.append(first)
+    if rest.find("li") is not None:
+        box.append(rest)
     return box
 
 
@@ -421,8 +443,15 @@ def long_blocks(body: Tag) -> None:
             block["class"] = [*block.get("class", []), "long"]
 
 
-def chapter(spec: str, commit: str, fetched: str) -> tuple[str, str]:
-    """The title and the printable HTML of one page."""
+def short_tables(body: Tag) -> None:
+    """Keep a short table on one sheet; a long one may run over."""
+    for table in body.find_all("table"):
+        if len(table.find_all("tr")) <= SHORT_ROWS:
+            table["class"] = [*table.get("class", []), "short"]
+
+
+def chapter(number: int, spec: str, commit: str, fetched: str) -> tuple[str, str]:
+    """The title and the printable HTML of one page, as chapter number of the PDF."""
     path, wanted = parse_spec(spec)
     url = page_url(path)
     page, _ = fetch(url)
@@ -434,9 +463,10 @@ def chapter(spec: str, commit: str, fetched: str) -> tuple[str, str]:
     sheets = inline_images(body, url, soup)
     links = link_notes(body, url, soup)
     long_blocks(body)
+    short_tables(body)
     heading = body.find("h1")
     title = heading.get_text(strip=True) if heading else path
-    note = f"Source: {url}"
+    note = f"Chapter {number} · Source: {url}"
     if wanted:
         note += " (sections: " + ", ".join(wanted) + ")"
     note += f" · docs commit {commit[:10]} · fetched {fetched}"
@@ -452,16 +482,31 @@ def shown(spec: str) -> str:
     return path + (": " + ", ".join(wanted) if wanted else "")
 
 
-def notes(text: str) -> str:
-    """A box from a notes file: its first line is the heading, each later line an item."""
-    lines = [line.strip() for line in text.splitlines() if line.strip()]
-    if not lines:
+def note_boxes(text: str) -> list[tuple[str, list[str]]]:
+    """The boxes of a notes file: (heading, items) for each part between lines of dashes.
+
+    In each part the first line is the heading and each later line an item.
+    """
+    boxes = []
+    for part in re.split(r"(?m)^\s*-{3,}\s*$", text):
+        lines = [line.strip() for line in part.splitlines() if line.strip()]
+        if lines:
+            boxes.append((lines[0], lines[1:]))
+    if not boxes:
         raise SystemExit("a notes file needs a heading line")
-    items = "".join(f"<li>{html.escape(line)}</li>" for line in lines[1:])
-    return (
-        f'<div class="admonition"><p class="admonition-title">{html.escape(lines[0])}</p>'
-        f"<ul>{items}</ul></div>"
-    )
+    return boxes
+
+
+def notes(text: str) -> str:
+    """The boxes of a notes file as HTML."""
+    out = []
+    for heading, items in note_boxes(text):
+        listed = "".join(f"<li>{html.escape(item)}</li>" for item in items)
+        out.append(
+            f'<div class="admonition"><p class="admonition-title">{html.escape(heading)}</p>'
+            f"<ul>{listed}</ul></div>"
+        )
+    return "".join(out)
 
 
 def css_string(text: str) -> str:
@@ -471,30 +516,95 @@ def css_string(text: str) -> str:
     return text.replace("\\", "\\\\").replace('"', '\\"')
 
 
-def document(title: str, paper: str, specs: list[str], cover_notes: str = "", last_sheet: str = "") -> str:
+def document(title: str, paper: str, specs: list[str], cover_notes: str | None = None,
+             last_sheet: str | None = None) -> str:
+    """The joined page, with a place on the cover for each chapter's sheet number.
+
+    cover_notes and last_sheet are the text of a notes file, or None when not
+    given; a given one that holds no heading stops the run.
+    """
     css_string(title)  # refuse a bad title before any fetching
+    for text in (cover_notes, last_sheet):
+        if text is not None:
+            note_boxes(text)
     commit = built_commit()
     fetched = datetime.date.today().isoformat()
-    chapters = [chapter(spec, commit, fetched) for spec in specs]
+    chapters = [chapter(number, spec, commit, fetched) for number, spec in enumerate(specs, 1)]
     foot = css_string(f"{title} · docs.fpgas.online · commit {commit[:10]} · {fetched}")
     css = CSS % {"paper": PAPERS[paper], "foot": foot}
     contents = "".join(
-        f"<li>{html.escape(name)} <small>({html.escape(shown(spec))})</small></li>"
-        for spec, (name, _) in zip(specs, chapters)
+        f"<li>{html.escape(name)}{SHEET_PLACE % number} <small>({html.escape(shown(spec))})</small></li>"
+        for number, (spec, (name, _)) in enumerate(zip(specs, chapters), 1)
     )
+    last = ""
+    if last_sheet is not None:
+        number = len(chapters) + 1
+        contents += f"<li>{html.escape(note_boxes(last_sheet)[0][0])}{SHEET_PLACE % number}</li>"
+        last = (
+            f'<div class="chapter"><div class="source">Chapter {number} · '
+            f"Added to this copy; not a page of the site</div>{notes(last_sheet)}</div>"
+        )
     cover = (
         f'<div class="cover"><h1>{html.escape(title)}</h1>'
         f"<p>Printed from the pages published at {html.escape(SITE)}, "
         f"built from commit {html.escape(commit)} of fpgas-online/fpgas.online-docs, "
         f"fetched {fetched}. The published pages are the current ones; this is a copy.</p>"
-        f"<ol>{contents}</ol>{notes(cover_notes) if cover_notes else ''}</div>"
+        f"<ol>{contents}</ol>{notes(cover_notes) if cover_notes is not None else ''}</div>"
     )
-    last = f'<div class="chapter">{notes(last_sheet)}</div>' if last_sheet else ""
     return (
         f'<!doctype html><html lang="en"><head><meta charset="utf-8">'
         f"<title>{html.escape(title)}</title><style>{css}</style></head>"
         f"<body>{cover}{''.join(text for _, text in chapters)}{last}</body></html>"
     )
+
+
+def need_pdftotext() -> None:
+    """Stop unless pdftotext is there; the cover's sheet numbers are read back with it."""
+    if shutil.which("pdftotext") is None:
+        raise SystemExit("pdftotext (poppler-utils) is not installed; the cover's sheet numbers need it")
+
+
+def chapter_sheets(pdf: Path, chapters: int) -> dict[int, int]:
+    """The sheet each chapter starts on, read back from a printed PDF.
+
+    Only a chapter's own first line counts, not text that happens to start
+    "Chapter 2 · ". The chapters found must be exactly 1 to chapters, each once,
+    in order; anything else means the PDF or this reading of it is wrong.
+    """
+    need_pdftotext()
+    pages = run(["pdftotext", str(pdf), "-"], f"pdftotext {pdf}", timeout=120,
+                capture_output=True, text=True).stdout.split("\f")
+    sheets: dict[int, int] = {}
+    for sheet, page in enumerate(pages, 1):
+        for found in re.findall(r"(?m)^\s*Chapter (\d+) · (?:Source: |Added to this copy)", page):
+            number = int(found)
+            if number in sheets:
+                raise SystemExit(f"{pdf}: chapter {number} starts on sheet {sheets[number]} and again on sheet {sheet}")
+            sheets[number] = sheet
+    if sorted(sheets) != list(range(1, chapters + 1)):
+        raise SystemExit(f"{pdf}: found chapters {sorted(sheets)} in the text, expected 1 to {chapters}")
+    for number in range(2, chapters + 1):
+        if sheets[number] < sheets[number - 1]:
+            raise SystemExit(
+                f"{pdf}: chapter {number} starts on sheet {sheets[number]}, "
+                f"before chapter {number - 1} on sheet {sheets[number - 1]}"
+            )
+    return sheets
+
+
+def without_sheets(page: str) -> str:
+    """The joined page for the first print, before any sheet number is known."""
+    return re.sub(SHEET_PLACE_RE, "", page)
+
+
+def with_sheets(page: str, sheets: dict[int, int]) -> str:
+    """The joined page with each chapter's sheet number in the cover's list."""
+    def place(match: re.Match) -> str:
+        number = int(match.group(1))
+        if number not in sheets:
+            raise SystemExit(f"chapter {number} was not found in the printed PDF")
+        return f", sheet {sheets[number]}"
+    return re.sub(SHEET_PLACE_RE, place, page)
 
 
 def run(command: list[str], what: str, timeout: int, **options) -> subprocess.CompletedProcess:
@@ -593,14 +703,19 @@ def main() -> int:
     parser.add_argument("--append", type=Path, action="append", default=[], metavar="PDF",
                         help="a PDF to put after the printed pages, unchanged (may be repeated)")
     parser.add_argument("--cover-notes", type=Path, metavar="FILE",
-                        help="a box for the cover: the file's first line is its heading, each later line an item")
+                        help="a box for the cover: the file's first line is its heading, each later line an item; "
+                        "several boxes may be separated by a line of dashes")
     parser.add_argument("--last-sheet", type=Path, metavar="FILE",
-                        help="a box on a sheet of its own after the pages, in the same form")
+                        help="a box on a sheet of its own after the pages, in the same form "
+                        "(several boxes may be separated by a line of dashes)")
     parser.add_argument("pages", nargs="+", metavar="PAGE", help='e.g. "boards/acorn/wiring#raspberry-pi-5"')
     args = parser.parse_args()
     if args.output.suffix.lower() != ".pdf":
         parser.error(f"--output {args.output} must end in .pdf")
 
+    # Every page has chapters, so every run reads sheet numbers back: refuse
+    # now rather than after a print.
+    need_pdftotext()
     output = args.output.resolve()
     output.parent.mkdir(parents=True, exist_ok=True)
     # Only these names are written, never the output itself or a file the user
@@ -612,15 +727,24 @@ def main() -> int:
     kept = output.with_name(output.name + ".html")
     printed = output.with_name(output.name + ".part")
     united = output.with_name(output.name + ".united.part")
-    cover_notes = args.cover_notes.read_text(encoding="utf-8") if args.cover_notes else ""
-    last_sheet = args.last_sheet.read_text(encoding="utf-8") if args.last_sheet else ""
+    cover_notes = None if args.cover_notes is None else args.cover_notes.read_text(encoding="utf-8")
+    last_sheet = None if args.last_sheet is None else args.last_sheet.read_text(encoding="utf-8")
     try:
         printed.unlink(missing_ok=True)
         united.unlink(missing_ok=True)
-        joined.write_text(
-            document(args.title, args.paper, args.pages, cover_notes, last_sheet), encoding="utf-8"
-        )
+        page = document(args.title, args.paper, args.pages, cover_notes, last_sheet)
+        places = set(re.findall(SHEET_PLACE_RE, page))
+        joined.write_text(without_sheets(page), encoding="utf-8")
         print_pdf(joined, printed)
+        if places:
+            # Printed once to learn which sheet each chapter starts on, and again
+            # with those numbers on the cover; they must not have moved.
+            sheets = chapter_sheets(printed, len(places))
+            printed.unlink()
+            joined.write_text(with_sheets(page, sheets), encoding="utf-8")
+            print_pdf(joined, printed)
+            if chapter_sheets(printed, len(places)) != sheets:
+                raise SystemExit("the chapters moved when their sheet numbers were put on the cover")
         if args.append:
             append_pdfs(printed, args.append, args.paper, united)
             united.replace(output)
