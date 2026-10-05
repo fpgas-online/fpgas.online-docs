@@ -305,6 +305,26 @@ class LinkNotes(unittest.TestCase):
         self.assertIsNone(box)
         self.assertEqual(article.select("sup.ref"), [])
 
+    def test_a_link_in_a_listing_gets_no_mark(self):
+        article, box = self.notes_for('<pre>see <a href="https://example.org/a">a</a></pre>')
+        self.assertIsNone(box)
+        self.assertEqual(article.select("sup.ref"), [])
+
+    def test_a_link_in_a_heading_is_numbered_like_any_other(self):
+        article, box = self.notes_for('<h2>Using <a href="https://example.org/a">a</a></h2>')
+        self.assertEqual([m.get_text() for m in article.select("h2 sup.ref")], ["[1]"])
+        self.assertEqual([li.get_text() for li in box.select("li")], ["https://example.org/a"])
+
+    def test_a_link_that_only_wraps_an_image_gets_no_number_but_one_with_words_does(self):
+        _, box = self.notes_for('<p><a href="https://example.org/a"><img src="x"/></a></p>')
+        self.assertIsNone(box)
+        _, box = self.notes_for('<p><a href="https://example.org/a"><img src="x"/> the sheet</a></p>')
+        self.assertEqual([li.get_text() for li in box.select("li")], ["https://example.org/a"])
+
+    def test_a_link_to_a_heading_that_was_cut_away_keeps_its_address(self):
+        _, box = self.notes_for(f'<p><a href="{URL}#gone">elsewhere</a></p>')
+        self.assertEqual([li.get_text() for li in box.select("li")], [URL + "#gone"])
+
     def test_a_link_whose_text_is_its_address_gets_no_number(self):
         _, box = self.notes_for('<p><a href="https://example.org/a">https://example.org/a</a></p>')
         self.assertIsNone(box)
@@ -428,6 +448,25 @@ class Printing(unittest.TestCase):
     def test_a_good_run_writes_the_pdf_and_leaves_nothing_else(self):
         self.assertEqual(self.main(), 0)
         self.assertEqual((self.dir / "x.pdf").read_bytes(), b"%PDF fresh")
+        self.assertEqual(self.names(), ["x.pdf"])
+
+    def test_a_file_named_like_the_output_but_html_is_not_touched(self):
+        (self.dir / "x.html").write_text("precious")
+        self.assertEqual(self.main(), 0)
+        self.chrome_writes = False
+        with self.assertRaises(SystemExit):
+            self.main()
+        self.assertEqual((self.dir / "x.html").read_text(), "precious")
+        self.assertEqual(self.names(), ["x.html", "x.pdf"])
+
+    def test_keep_html_leaves_the_joined_page_beside_a_good_pdf_only(self):
+        self.assertEqual(self.main("--keep-html"), 0)
+        self.assertEqual(self.names(), ["x.pdf", "x.pdf.html"])
+        self.assertEqual((self.dir / "x.pdf.html").read_text(), "<html></html>")
+        (self.dir / "x.pdf.html").unlink()
+        self.chrome_writes = False
+        with self.assertRaises(SystemExit):
+            self.main("--keep-html")
         self.assertEqual(self.names(), ["x.pdf"])
 
     def test_chrome_writing_nothing_stops_the_run_and_leaves_no_output(self):

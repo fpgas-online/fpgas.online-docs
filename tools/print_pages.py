@@ -54,6 +54,7 @@ import shutil
 import subprocess
 import sys
 import tempfile
+import time
 import urllib.parse
 import urllib.request
 from pathlib import Path
@@ -381,7 +382,9 @@ def link_notes(body: Tag, url: str, soup: BeautifulSoup) -> Tag | None:
     """Number each link and list the addresses, which paper cannot follow.
 
     A link to a heading that is printed in this chapter needs no address, and
-    neither does one whose text is its address.
+    neither does one whose text is its address or one that only wraps an
+    image. A listing is left as it is: a mark inside it would look like part
+    of what to type.
     """
     numbers: dict[str, int] = {}
     for link in body.find_all("a", href=True):
@@ -389,7 +392,8 @@ def link_notes(body: Tag, url: str, soup: BeautifulSoup) -> Tag | None:
         page, _, fragment = target.partition("#")
         if page == url and fragment and body.find(id=fragment) is not None:
             continue
-        if link.find("img") is not None or link.get_text(strip=True) == target:
+        words = link.get_text(strip=True)
+        if not words or words == target or link.find_parent("pre") is not None:
             continue
         number = numbers.setdefault(target, len(numbers) + 1)
         mark = soup.new_tag("sup", attrs={"class": "ref"})
@@ -498,11 +502,23 @@ def run(command: list[str], what: str, timeout: int, **options) -> subprocess.Co
     try:
         return subprocess.run(command, check=True, timeout=timeout, **options)
     except subprocess.CalledProcessError as error:
-        raise SystemExit(f"{what} failed with status {error.returncode}") from error
+        said = (error.stderr or "").strip().splitlines() if isinstance(error.stderr, str) else []
+        why = f": {said[0]}" if said else ""
+        raise SystemExit(f"{what} failed with status {error.returncode}{why}") from error
     except subprocess.TimeoutExpired as error:
         raise SystemExit(f"{what} did not finish in {timeout} s") from error
     except OSError as error:
         raise SystemExit(f"cannot run {what}: {error}") from error
+
+
+def remove_profile(profile: Path) -> None:
+    """Remove Chrome's profile directory, which its helpers write to for a moment after it exits."""
+    for _ in range(50):
+        shutil.rmtree(profile, ignore_errors=True)
+        if not profile.exists():
+            return
+        time.sleep(0.1)
+    print(f"could not remove {profile}; remove it by hand", file=sys.stderr)
 
 
 def print_pdf(page: Path, target: Path) -> None:
@@ -511,7 +527,8 @@ def print_pdf(page: Path, target: Path) -> None:
     if chrome is None:
         raise SystemExit(f"{CHROME} is not installed; it does the printing")
     # The profile sits beside the output: /tmp is not for this project's files.
-    with tempfile.TemporaryDirectory(dir=target.parent, ignore_cleanup_errors=True) as profile:
+    profile = tempfile.mkdtemp(dir=target.parent, prefix=".print-pages-profile-")
+    try:
         run(
             [
                 chrome,
@@ -529,6 +546,8 @@ def print_pdf(page: Path, target: Path) -> None:
             # it cannot use, it logs that and prints in seconds.
             env={**os.environ, "DBUS_SESSION_BUS_ADDRESS": "disabled:"},
         )
+    finally:
+        remove_profile(Path(profile))
     if not target.is_file() or target.stat().st_size == 0:
         raise SystemExit(f"{CHROME} wrote no PDF at {target}")
 
@@ -570,7 +589,7 @@ def main() -> int:
     parser.add_argument("--paper", choices=sorted(PAPERS), required=True)
     parser.add_argument("--title", required=True, help="printed on the cover and in each foot")
     parser.add_argument("--output", type=Path, required=True, help="the PDF to write; its name ends in .pdf")
-    parser.add_argument("--keep-html", action="store_true", help="leave the joined page beside the PDF")
+    parser.add_argument("--keep-html", action="store_true", help="leave the joined page as OUTPUT.html")
     parser.add_argument("--append", type=Path, action="append", default=[], metavar="PDF",
                         help="a PDF to put after the printed pages, unchanged (may be repeated)")
     parser.add_argument("--cover-notes", type=Path, metavar="FILE",
@@ -584,9 +603,13 @@ def main() -> int:
 
     output = args.output.resolve()
     output.parent.mkdir(parents=True, exist_ok=True)
-    joined = output.with_suffix(".html")
-    # Chrome and pdfunite write these, never the output itself: the output is
-    # only ever replaced by a PDF that passed the checks.
+    # Only these names are written, never the output itself or a file the user
+    # may have beside it: the output is only ever replaced by a PDF that passed
+    # the checks, and --keep-html leaves the joined page as OUTPUT.html.
+    # The joined page's name must end in .html: Chrome goes by the name of a
+    # local file, and waits for ever on one it does not take for a page.
+    joined = output.with_name(output.name + ".part.html")
+    kept = output.with_name(output.name + ".html")
     printed = output.with_name(output.name + ".part")
     united = output.with_name(output.name + ".united.part")
     cover_notes = args.cover_notes.read_text(encoding="utf-8") if args.cover_notes else ""
@@ -603,11 +626,12 @@ def main() -> int:
             united.replace(output)
         else:
             printed.replace(output)
+        if args.keep_html:
+            joined.replace(kept)
     finally:
         printed.unlink(missing_ok=True)
         united.unlink(missing_ok=True)
-        if not args.keep_html:
-            joined.unlink(missing_ok=True)
+        joined.unlink(missing_ok=True)
     print(f"wrote {output}")
     return 0
 
