@@ -25,9 +25,11 @@ Every chapter starts on a new sheet under a line giving its source URL, the
 commit the site was built from and the date it was fetched; every sheet has
 the commit and a page number in its foot. Links are numbered and their
 addresses listed at the end of the chapter, because paper cannot follow them.
-An image at least WIDE_PX wide is not left in the text: a line there says it is
-on a landscape sheet of its own at the end of its chapter, where it is printed
-once at the full width of the paper (in vector form when the page links one).
+An image drawn at least WIDE_PX wide (a PNG of twice that, since the site's
+PNGs are rendered at double size) stays in the text at the column's width as
+an overview; the line under it names the landscape sheet at the end of the
+chapter where it is printed once at the full width of the paper (in vector
+form when the page links one).
 --append puts existing PDFs (label sheets) after the printed pages unchanged
 and not renumbered; every page of them must already be on the chosen paper,
 either way up, or the run stops.
@@ -35,8 +37,8 @@ either way up, or the run stops.
 The PDF is printed beside the output under a ".part" name and takes the output's
 name only after it is checked, so a failed run leaves no PDF that looks new.
 
-Needs google-chrome-stable, which does the printing, and pdfunite and pdfinfo
-(poppler-utils) for --append.
+Needs google-chrome-stable, which does the printing, and from poppler-utils:
+pdftotext and pdfinfo to read the sheet numbers back, and pdfunite for --append.
 """
 
 from __future__ import annotations
@@ -44,6 +46,7 @@ from __future__ import annotations
 import argparse
 import base64
 import datetime
+import hashlib
 import html
 import http.client
 import json
@@ -72,9 +75,13 @@ CHROME = "google-chrome-stable"
 PAPERS = {"A4": "A4", "Letter": "letter"}
 # Sheet sizes in points (width, height, portrait), for checking appended PDFs.
 PAPER_POINTS = {"A4": (595.28, 841.89), "Letter": (612.0, 792.0)}
-# An image at least this many pixels wide (a wiring sheet) gets a landscape
-# sheet to itself; anything narrower stays in the text.
+# An image drawn at least this many pixels wide (a wiring sheet) gets a
+# landscape sheet to itself; anything narrower stays in the text.
 WIDE_PX = 1200
+# The site's PNGs are rendered at twice the size they are drawn at, so a PNG
+# (or any other raster) is that wide only from twice as many pixels. A step
+# picture drawn 780 px wide is a 1560 px PNG and belongs in the text.
+RASTER_WIDE_PX = 2 * WIDE_PX
 # A listing with more lines than this may run over the end of a sheet.
 LONG_LINES = 18
 # A table with at most this many rows is kept on one sheet.
@@ -82,6 +89,10 @@ SHORT_ROWS = 12
 # Where a chapter's sheet number goes in the cover's list, once it is known.
 SHEET_PLACE = "<!--sheet-of-chapter-%d-->"
 SHEET_PLACE_RE = r"<!--sheet-of-chapter-(\d+)-->"
+# Where the number of a wide picture's own sheet goes, in the line under its small copy in the text.
+WIDE_PLACE = "sheet-of-wide-%s"
+WIDE_PLACE_RE = r"<!--sheet-of-wide-([0-9a-f]+)-->"
+WIDE_SHEET_RE = r'<figure class="wide" data-wide="([0-9a-f]+)">'
 # This many addresses stay on the sheet of the "Links in this chapter" heading.
 LINKS_WITH_HEADING = 4
 HEADINGS = ("h1", "h2", "h3", "h4", "h5", "h6")
@@ -109,12 +120,13 @@ h1 { font-size: 20pt; margin: 0 0 4mm; }
 h2 { font-size: 15pt; margin: 7mm 0 2.5mm; border-bottom: 0.6pt solid #000; }
 h3 { font-size: 12pt; margin: 5mm 0 2mm; }
 h4 { font-size: 10.5pt; margin: 4mm 0 1.5mm; }
-h1, h2, h3, h4 { break-after: avoid; line-height: 1.2; }
+h5, h6 { font-size: 10pt; margin: 3mm 0 1.5mm; }
+h1, h2, h3, h4, h5, h6 { break-after: avoid; line-height: 1.2; }
 p { margin: 0 0 2.5mm; orphans: 3; widows: 3; }
 ul, ol { margin: 0 0 2.5mm; padding-left: 6mm; }
 a { color: #000; text-decoration: underline; text-decoration-color: #999; }
 code, pre { font-family: "DejaVu Sans Mono", "Liberation Mono", monospace; }
-code { font-size: 8.8pt; background: #eee; padding: 0 0.6mm; }
+code { font-size: 8.8pt; background: #eee; padding: 0 0.6mm; overflow-wrap: anywhere; }
 pre { font-size: 8pt; line-height: 1.3; border: 0.4pt solid #888; background: #f6f6f6;
       padding: 2mm; margin: 0 0 3mm; white-space: pre-wrap; overflow-wrap: anywhere;
       break-inside: avoid; }
@@ -133,12 +145,21 @@ table { border-collapse: collapse; width: calc(100%% - 1pt); margin: 0 0 3.5mm; 
 .table-wrapper table { margin: 0; }
 th, td { border: 0.4pt solid #555; padding: 1mm 1.6mm; text-align: left; vertical-align: top; }
 th { background: #ddd; }
+/* A cell whose longest word is wider than its column would push the table past
+   the sheet's edge, and Chrome then shrinks every sheet of the PDF to fit it.
+   A cell may break a word; a heading may not, so no column is narrower than
+   the words of its heading. */
+td { overflow-wrap: anywhere; }
 thead { display: table-header-group; }
 tr { break-inside: avoid; }
 .admonition { border: 1.2pt solid #000; padding: 2mm 3mm; margin: 0 0 3.5mm; break-inside: avoid; }
 .admonition-title { font-weight: bold; text-transform: uppercase; margin-bottom: 1mm; }
 .admonition p:last-child { margin-bottom: 0; }
 img { max-width: 100%%; }
+/* A picture is never cut by the end of a sheet, and leaves room for its step's words above it. */
+.picture { break-inside: avoid; text-align: center; }
+.picture img { max-height: 200mm; }
+.step { break-inside: avoid; }
 .wide { page: wide; break-before: page; break-inside: avoid;
         margin: 0; text-align: center; }
 .wide img { width: 100%%; max-height: 172mm; object-fit: contain; }
@@ -337,13 +358,16 @@ def place_figure(movable: Tag, figure: Tag, lifted: dict[int, Tag]) -> None:
     figure.append(movable)
 
 
-def inline_images(body: Tag, url: str, soup: BeautifulSoup) -> list[Tag]:
+def inline_images(body: Tag, url: str, soup: BeautifulSoup, chapter: int = 0) -> list[Tag]:
     """Embed every image, as vector when the page links one.
 
-    A wide image is taken out of the text, which keeps a line saying where it
-    is; the sheets returned hold it at the full width of a landscape page.
+    A wide image stays in the text at the width of the column, as an overview,
+    over a line saying which sheet holds it at full size; the sheets returned
+    hold it at the full width of a landscape page, once however often the
+    chapter shows it.
     """
     sheets = []
+    made: dict[str, tuple[Tag, bool, str]] = {}
     lifted: dict[int, Tag] = {}
     for image in body.find_all("img", src=True):
         source = urllib.parse.urljoin(url, image["src"])
@@ -370,7 +394,8 @@ def inline_images(body: Tag, url: str, soup: BeautifulSoup) -> list[Tag]:
             image["src"] = as_data_uri(content, kind)
         for attribute in ("width", "height", "style", "srcset"):
             image.attrs.pop(attribute, None)
-        if width < WIDE_PX and (vector_width or 0) < WIDE_PX:
+        limit = WIDE_PX if kind == "image/svg+xml" else RASTER_WIDE_PX
+        if width < limit and (vector_width or 0) < WIDE_PX:
             continue
         name = image.get("alt", "").strip() or "Figure"
         figure = soup.new_tag("figure", attrs={"class": "inflow"})
@@ -378,18 +403,35 @@ def inline_images(body: Tag, url: str, soup: BeautifulSoup) -> list[Tag]:
         alone = link is not None and len(link.find_all("img")) == 1 and not link.get_text(strip=True)
         place_figure(link if alone else image, figure, lifted)
         caption = soup.new_tag("figcaption")
-        caption.string = f"[{name}: on a landscape sheet of its own at the end of this chapter.]"
+        # The same drawing is one sheet whether it is shown as its PNG or through a link to its SVG:
+        # the two files differ only in their directory and ending.
+        drawing = Path(urllib.parse.urlparse(vector or source).path).stem
+        # The chapter's number is part of the key: the same page may be two chapters of one PDF.
+        key = hashlib.sha1(f"{chapter}\n{url}\n{drawing}".encode()).hexdigest()[:12]
+        caption.append(f"[{name}: full size on a landscape sheet of its own")
+        caption.append(Comment(WIDE_PLACE % key))
+        caption.append(".]")
         figure.append(caption)
-
-        sheet = soup.new_tag("figure", attrs={"class": "wide"})
+        if key in made:
+            sheet, is_vector, first = made[key]
+            if source != first:
+                raise SystemExit(
+                    f"{url}: two different wide pictures are both named {drawing!r} ({first} and {source}); "
+                    "they would share one sheet"
+                )
+            if vector and not is_vector:
+                # Its sheet was made from a PNG; this place links the SVG, which prints sharper.
+                sheet.find("img")["src"] = image["src"]
+                sheet.find("figcaption").string = f"{name} ({vector})"
+                made[key] = (sheet, True, first)
+            continue
+        sheet = soup.new_tag("figure", attrs={"class": "wide", "data-wide": key})
         sheet.append(soup.new_tag("img", src=image["src"], alt=name))
         caption = soup.new_tag("figcaption")
         caption.string = f"{name} ({vector or source})"
         sheet.append(caption)
         sheets.append(sheet)
-        # At the width of the column a wiring sheet cannot be read, so the text
-        # keeps only the line saying where the sheet is.
-        (link if alone else image).extract()
+        made[key] = (sheet, bool(vector), source)
     return sheets
 
 
@@ -443,6 +485,36 @@ def long_blocks(body: Tag) -> None:
             block["class"] = [*block.get("class", []), "long"]
 
 
+def step_pictures(body: Tag, soup: BeautifulSoup) -> None:
+    """Keep a picture whole, and on the sheet of the words it belongs to.
+
+    A paragraph that holds only an image, or the small copy of a wide picture
+    over its line, is the picture of what comes just
+    before it: the paragraph of a step, or that paragraph and its list. They
+    are wrapped together so the sheet does not end between them. A second
+    picture of the same step stays whole but may start the next sheet.
+    """
+    for paragraph in body.find_all(["p", "figure"]):
+        overview = paragraph.name == "figure" and "inflow" in paragraph.get("class", [])
+        if paragraph.find("img") is None or paragraph.name == "figure" and not overview:
+            continue
+        if not overview and paragraph.get_text(strip=True):
+            continue
+        paragraph["class"] = [*paragraph.get("class", []), "picture"]
+        words = []
+        before = paragraph.find_previous_sibling()
+        if before is not None and before.name in ("ol", "ul"):
+            words.append(before)
+            before = before.find_previous_sibling()
+        # A picture paragraph before this one was marked "picture" on its own turn, earlier in this loop.
+        if before is None or before.name != "p" or "picture" in before.get("class", []):
+            continue
+        step = soup.new_tag("div", attrs={"class": "step"})
+        before.insert_before(step)
+        for part in (before, *reversed(words), paragraph):
+            step.append(part.extract())
+
+
 def short_tables(body: Tag) -> None:
     """Keep a short table on one sheet; a long one may run over."""
     for table in body.find_all("table"):
@@ -460,10 +532,11 @@ def chapter(number: int, spec: str, commit: str, fetched: str) -> tuple[str, str
     if wanted:
         keep_sections(body, wanted, url)
     absolute_links(body, url)
-    sheets = inline_images(body, url, soup)
+    sheets = inline_images(body, url, soup, number)
     links = link_notes(body, url, soup)
     long_blocks(body)
     short_tables(body)
+    step_pictures(body, soup)
     heading = body.find("h1")
     title = heading.get_text(strip=True) if heading else path
     note = f"Chapter {number} · Source: {url}"
@@ -559,9 +632,11 @@ def document(title: str, paper: str, specs: list[str], cover_notes: str | None =
 
 
 def need_pdftotext() -> None:
-    """Stop unless pdftotext is there; the cover's sheet numbers are read back with it."""
+    """Stop unless pdftotext and pdfinfo are there; the sheet numbers are read back with them."""
     if shutil.which("pdftotext") is None:
         raise SystemExit("pdftotext (poppler-utils) is not installed; the cover's sheet numbers need it")
+    if shutil.which("pdfinfo") is None:
+        raise SystemExit("pdfinfo (poppler-utils) is not installed; a wide picture's sheet number needs it")
 
 
 def chapter_sheets(pdf: Path, chapters: int) -> dict[int, int]:
@@ -592,13 +667,38 @@ def chapter_sheets(pdf: Path, chapters: int) -> dict[int, int]:
     return sheets
 
 
+def wide_sheets(pdf: Path, page: str) -> dict[str, int]:
+    """The sheet each wide picture is on at full size: the landscape sheets of the PDF, in the page's order."""
+    keys = re.findall(WIDE_SHEET_RE, page)
+    if not keys:
+        return {}
+    info = run(["pdfinfo", "-f", "1", "-l", "100000", str(pdf)], f"pdfinfo {pdf}", timeout=60,
+               capture_output=True, text=True).stdout
+    sizes = re.findall(r"^Page\s+(\d+) size:\s*([0-9.]+) x ([0-9.]+) pts", info, re.MULTILINE)
+    landscape = [int(number) for number, width, height in sizes if float(width) > float(height)]
+    if len(landscape) != len(keys):
+        raise SystemExit(
+            f"{pdf}: {len(landscape)} landscape sheets for {len(keys)} wide pictures; "
+            "cannot say which sheet each is on"
+        )
+    if len(set(keys)) != len(keys):
+        raise SystemExit(f"{pdf}: two wide pictures have the same key; cannot say which sheet each is on")
+    return dict(zip(keys, landscape, strict=True))
+
+
 def without_sheets(page: str) -> str:
     """The joined page for the first print, before any sheet number is known."""
-    return re.sub(SHEET_PLACE_RE, "", page)
+    return re.sub(WIDE_PLACE_RE, "", re.sub(SHEET_PLACE_RE, "", page))
 
 
-def with_sheets(page: str, sheets: dict[int, int]) -> str:
-    """The joined page with each chapter's sheet number in the cover's list."""
+def with_sheets(page: str, sheets: dict[int, int], wide: dict[str, int] | None = None) -> str:
+    """The joined page with each chapter's sheet number in the cover's list, and each wide picture's in its line."""
+    def wide_place(match: re.Match) -> str:
+        if wide is None or match.group(1) not in wide:
+            raise SystemExit(f"the sheet of wide picture {match.group(1)} was not found in the printed PDF")
+        return f", sheet {wide[match.group(1)]}"
+    page = re.sub(WIDE_PLACE_RE, wide_place, page)
+
     def place(match: re.Match) -> str:
         number = int(match.group(1))
         if number not in sheets:
@@ -740,11 +840,12 @@ def main() -> int:
             # Printed once to learn which sheet each chapter starts on, and again
             # with those numbers on the cover; they must not have moved.
             sheets = chapter_sheets(printed, len(places))
+            wide = wide_sheets(printed, page)
             printed.unlink()
-            joined.write_text(with_sheets(page, sheets), encoding="utf-8")
+            joined.write_text(with_sheets(page, sheets, wide), encoding="utf-8")
             print_pdf(joined, printed)
-            if chapter_sheets(printed, len(places)) != sheets:
-                raise SystemExit("the chapters moved when their sheet numbers were put on the cover")
+            if chapter_sheets(printed, len(places)) != sheets or wide_sheets(printed, page) != wide:
+                raise SystemExit("the sheets moved when their numbers were put in")
         if args.append:
             append_pdfs(printed, args.append, args.paper, united)
             united.replace(output)
