@@ -34,7 +34,8 @@ BOOT_ORDER=0xf2461
 ```
 
 That is what one blade of ours (a Compute Module 5 Lite) printed while it was
-running from the network.
+running from the network. A Compute Module 4 answers the same two commands with
+the same fields (not read by us on one).
 
 ```{image} bootloader-eeprom/boot-order-blade.svg
 :alt: 0xf2461 read from its last digit: SD card, NVMe, USB, then the network, then round again
