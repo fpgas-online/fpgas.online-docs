@@ -49,6 +49,9 @@ take that picture apart:
   that the root is shared.
 - [Network and power](network.md) — how a Pi gets its address and its power,
   and why the two sites lay that out differently.
+- [Bootloader EEPROM: upgrade and lock](bootloader-eeprom.md): reading a Pi's
+  bootloader state, upgrading a locked Pi 5, and what Raspberry Pi documents for
+  the Compute Modules.
 - [What runs on a Pi host](pi.md) — the packages, systemd units and boot-time
   settings that building the root leaves behind on every host.
 - [Orange Pi H3 hosts](orange-pi.md) — how five non-Raspberry boards boot the
@@ -73,6 +76,7 @@ take that picture apart:
 :maxdepth: 1
 
 netboot
+bootloader-eeprom
 network
 pi
 orange-pi

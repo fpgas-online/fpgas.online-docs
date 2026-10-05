@@ -301,11 +301,16 @@ Values: `1` = protect entire EEPROM, `0` = clear protection, `-1` = do nothing
 
 | Model | `/WP` default | Effect of `eeprom_write_protect=1` |
 |-------|---------------|-------------------------------------|
-| **Pi 5** (BCM2712) | pulled **low** by default | **Hardware-enforced immediately.** Even root cannot clear the Write Status Register or reflash without physically bridging `TP14`↔`TP1`. Tamper-resistant. |
+| **Pi 5** (BCM2712) | pulled **low** by default | Applied in one netboot (measured: status register 1 goes to `0xbc`). The standard tooling and a netboot self-update then write nothing. Raspberry Pi's documentation says the register cannot be cleared without bridging `TP14`↔`TP1`; whether root can clear it anyway has **not been tested** ([Not yet known](bootloader-eeprom.md#not-yet-known)). |
 | **Pi 4** (BCM2711) | `TP5`, **not asserted** by default | Blocks the standard tooling (`rpi-eeprom-update`, `rpi-eeprom-config --apply`) and accidental changes, but a determined root user could clear the Write Status Register. **Pull `TP5` low** to make it hardware-enforced. |
+| **Compute Module 4, Compute Module 5** | `EEPROM_nWP` on the module's connector; what it is tied to depends on the carrier | Not yet run by us on this hardware. Raspberry Pi: "When enabled in software, you can lock hardware write-protection by pulling the `EEPROM_nWP` pin low." See [Compute Module 4 and Compute Module 5](bootloader-eeprom.md#compute-module-4-and-compute-module-5). |
 
-So on the Pi 5 the software setting alone is a real lock; on the Pi 4 it raises
-the bar and, combined with grounding `TP5`, becomes a real lock too.
+So on the Pi 5 the software setting alone stops the standard tools and, by
+Raspberry Pi's description, is a hardware lock (the open question is in the
+table); on the Pi 4 it raises the bar and, combined with grounding `TP5`,
+becomes a real lock too. The setting takes effect from the `config.txt` a board
+boots with: the fleet's served one for a netbooted Pi, `/boot/firmware/config.txt`
+on a board that boots its own storage.
 
 ### Verify
 
@@ -323,18 +328,13 @@ the built NFS-root `config.txt` contains `eeprom_write_protect=1`.
 
 ### Legitimately updating an EEPROM later
 
-Because protection is re-applied from the read-only image every boot, you cannot
-just clear it on the board. To update a board's bootloader EEPROM:
-
-1. On the gateway, temporarily set `eeprom_write_protect=0` (or `-1`) in the
-   served `config.txt` — either fleet-wide in `fixpi` or for one board via a
-   per-board boot config — and rebuild and deploy.
-2. Reboot the target board so it boots with protection cleared. On a Pi 4 with
-   `TP5` grounded, or on any Pi 5, you must additionally undo the hardware
-   assertion (Pi 5: bridge `TP14` to `TP1`) before the flash will accept writes.
-3. Run `sudo rpi-eeprom-update -a` (or `rpi-eeprom-config --apply`), reboot,
-   confirm.
-4. Restore `eeprom_write_protect=1` in the served `config.txt`, redeploy, reboot.
+The procedure, what was measured and what is not known are on [Bootloader
+EEPROM: upgrade and lock](bootloader-eeprom.md). In short, on a Pi 5: clearing
+the protection by serving `eeprom_write_protect=0` over netboot did **not** work
+when tried, and `rpi-eeprom-update -a` on a protected board stages an update
+that is then ignored without any error. The route that works is a recovery SD
+card with the `TP14`↔`TP1` pads bridged; the fleet's `config.txt` locks the
+board again at its next netboot.
 
 A change here takes effect when a board next netboots the rebuilt image. Confirm
 on one board before relying on it fleet-wide.
