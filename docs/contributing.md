@@ -102,7 +102,8 @@ boxes of notes on the cover (several in one file, separated by a line of
 dashes), a last sheet, PDFs to append. Appended PDFs are not renumbered and must
 already be on the chosen paper, or the run stops. The tool needs
 `google-chrome-stable` and `pdftotext` (poppler-utils, for the cover's sheet
-numbers), and `pdfunite` and `pdfinfo` (also poppler-utils) for `--append`.
+numbers), `pdfinfo` (also poppler-utils) to find a wide picture's sheet, and
+`pdfunite` and `pdfinfo` for `--append`.
 
 ## Open items
 
