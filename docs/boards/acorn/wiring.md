@@ -536,7 +536,8 @@ On a **Raspberry Pi 5**:
 ```console
 $ sudo systemctl stop serial-getty@ttyAMA0
 $ sudo systemctl mask serial-getty@ttyAMA0
-# Load the loopback bitstream (detach PCIe first, see Step 2)
+# Detach the endpoint first, as in Step 2, then load the loopback bitstream
+$ echo 1 | sudo tee /sys/bus/pci/devices/0001:01:00.0/remove
 $ openFPGALoader --cable libgpiod --pins 10:9:11:8 gpio-loopback-acorn.bit
 # UART (the loopback inverts)
 $ stty -F /dev/ttyAMA0 115200 raw -echo
