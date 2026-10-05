@@ -26,9 +26,10 @@ commit the site was built from and the date it was fetched; every sheet has
 the commit and a page number in its foot. Links are numbered and their
 addresses listed at the end of the chapter, because paper cannot follow them.
 An image drawn at least WIDE_PX wide (a PNG of twice that, since the site's
-PNGs are rendered at double size) is not left in the text: a line there says it is
-on a landscape sheet of its own at the end of its chapter, where it is printed
-once at the full width of the paper (in vector form when the page links one).
+PNGs are rendered at double size) stays in the text at the column's width as
+an overview; the line under it names the landscape sheet at the end of the
+chapter where it is printed once at the full width of the paper (in vector
+form when the page links one).
 --append puts existing PDFs (label sheets) after the printed pages unchanged
 and not renumbered; every page of them must already be on the chosen paper,
 either way up, or the run stops.
@@ -45,6 +46,7 @@ from __future__ import annotations
 import argparse
 import base64
 import datetime
+import hashlib
 import html
 import http.client
 import json
@@ -87,6 +89,10 @@ SHORT_ROWS = 12
 # Where a chapter's sheet number goes in the cover's list, once it is known.
 SHEET_PLACE = "<!--sheet-of-chapter-%d-->"
 SHEET_PLACE_RE = r"<!--sheet-of-chapter-(\d+)-->"
+# Where the number of a wide picture's own sheet goes, in the line under its small copy in the text.
+WIDE_PLACE = "sheet-of-wide-%s"
+WIDE_PLACE_RE = r"<!--sheet-of-wide-([0-9a-f]+)-->"
+WIDE_SHEET_RE = r'data-wide="([0-9a-f]+)"'
 # This many addresses stay on the sheet of the "Links in this chapter" heading.
 LINKS_WITH_HEADING = 4
 HEADINGS = ("h1", "h2", "h3", "h4", "h5", "h6")
@@ -114,7 +120,8 @@ h1 { font-size: 20pt; margin: 0 0 4mm; }
 h2 { font-size: 15pt; margin: 7mm 0 2.5mm; border-bottom: 0.6pt solid #000; }
 h3 { font-size: 12pt; margin: 5mm 0 2mm; }
 h4 { font-size: 10.5pt; margin: 4mm 0 1.5mm; }
-h1, h2, h3, h4 { break-after: avoid; line-height: 1.2; }
+h5, h6 { font-size: 10pt; margin: 3mm 0 1.5mm; }
+h1, h2, h3, h4, h5, h6 { break-after: avoid; line-height: 1.2; }
 p { margin: 0 0 2.5mm; orphans: 3; widows: 3; }
 ul, ol { margin: 0 0 2.5mm; padding-left: 6mm; }
 a { color: #000; text-decoration: underline; text-decoration-color: #999; }
@@ -354,10 +361,13 @@ def place_figure(movable: Tag, figure: Tag, lifted: dict[int, Tag]) -> None:
 def inline_images(body: Tag, url: str, soup: BeautifulSoup) -> list[Tag]:
     """Embed every image, as vector when the page links one.
 
-    A wide image is taken out of the text, which keeps a line saying where it
-    is; the sheets returned hold it at the full width of a landscape page.
+    A wide image stays in the text at the width of the column, as an overview,
+    over a line saying which sheet holds it at full size; the sheets returned
+    hold it at the full width of a landscape page, once however often the
+    chapter shows it.
     """
     sheets = []
+    made: dict[str, tuple[Tag, bool]] = {}
     lifted: dict[int, Tag] = {}
     for image in body.find_all("img", src=True):
         source = urllib.parse.urljoin(url, image["src"])
@@ -393,18 +403,29 @@ def inline_images(body: Tag, url: str, soup: BeautifulSoup) -> list[Tag]:
         alone = link is not None and len(link.find_all("img")) == 1 and not link.get_text(strip=True)
         place_figure(link if alone else image, figure, lifted)
         caption = soup.new_tag("figcaption")
-        caption.string = f"[{name}: on a landscape sheet of its own at the end of this chapter.]"
+        # The same drawing is one sheet whether it is shown as its PNG or through a link to its SVG:
+        # the two files differ only in their directory and ending.
+        drawing = Path(urllib.parse.urlparse(vector or source).path).stem
+        key = hashlib.sha1(f"{url}\n{drawing}".encode()).hexdigest()[:12]
+        caption.append(f"[{name}: full size on a landscape sheet of its own")
+        caption.append(Comment(WIDE_PLACE % key))
+        caption.append(".]")
         figure.append(caption)
-
-        sheet = soup.new_tag("figure", attrs={"class": "wide"})
+        if key in made:
+            sheet, is_vector = made[key]
+            if vector and not is_vector:
+                # Its sheet was made from a PNG; this place links the SVG, which prints sharper.
+                sheet.find("img")["src"] = image["src"]
+                sheet.find("figcaption").string = f"{name} ({vector})"
+                made[key] = (sheet, True)
+            continue
+        sheet = soup.new_tag("figure", attrs={"class": "wide", "data-wide": key})
         sheet.append(soup.new_tag("img", src=image["src"], alt=name))
         caption = soup.new_tag("figcaption")
         caption.string = f"{name} ({vector or source})"
         sheet.append(caption)
         sheets.append(sheet)
-        # At the width of the column a wiring sheet cannot be read, so the text
-        # keeps only the line saying where the sheet is.
-        (link if alone else image).extract()
+        made[key] = (sheet, bool(vector))
     return sheets
 
 
@@ -633,13 +654,36 @@ def chapter_sheets(pdf: Path, chapters: int) -> dict[int, int]:
     return sheets
 
 
+def wide_sheets(pdf: Path, page: str) -> dict[str, int]:
+    """The sheet each wide picture is on at full size: the landscape sheets of the PDF, in the page's order."""
+    keys = re.findall(WIDE_SHEET_RE, page)
+    if not keys:
+        return {}
+    info = run(["pdfinfo", "-f", "1", "-l", "100000", str(pdf)], f"pdfinfo {pdf}", timeout=60,
+               capture_output=True, text=True).stdout
+    sizes = re.findall(r"^Page\s+(\d+) size:\s*([0-9.]+) x ([0-9.]+) pts", info, re.MULTILINE)
+    landscape = [int(number) for number, width, height in sizes if float(width) > float(height)]
+    if len(landscape) != len(keys):
+        raise SystemExit(
+            f"{pdf}: {len(landscape)} landscape sheets for {len(keys)} wide pictures; "
+            "cannot say which sheet each is on"
+        )
+    return dict(zip(keys, landscape, strict=True))
+
+
 def without_sheets(page: str) -> str:
     """The joined page for the first print, before any sheet number is known."""
-    return re.sub(SHEET_PLACE_RE, "", page)
+    return re.sub(WIDE_PLACE_RE, "", re.sub(SHEET_PLACE_RE, "", page))
 
 
-def with_sheets(page: str, sheets: dict[int, int]) -> str:
-    """The joined page with each chapter's sheet number in the cover's list."""
+def with_sheets(page: str, sheets: dict[int, int], wide: dict[str, int] | None = None) -> str:
+    """The joined page with each chapter's sheet number in the cover's list, and each wide picture's in its line."""
+    def wide_place(match: re.Match) -> str:
+        if wide is None or match.group(1) not in wide:
+            raise SystemExit(f"the sheet of wide picture {match.group(1)} was not found in the printed PDF")
+        return f", sheet {wide[match.group(1)]}"
+    page = re.sub(WIDE_PLACE_RE, wide_place, page)
+
     def place(match: re.Match) -> str:
         number = int(match.group(1))
         if number not in sheets:
@@ -781,11 +825,12 @@ def main() -> int:
             # Printed once to learn which sheet each chapter starts on, and again
             # with those numbers on the cover; they must not have moved.
             sheets = chapter_sheets(printed, len(places))
+            wide = wide_sheets(printed, page)
             printed.unlink()
-            joined.write_text(with_sheets(page, sheets), encoding="utf-8")
+            joined.write_text(with_sheets(page, sheets, wide), encoding="utf-8")
             print_pdf(joined, printed)
-            if chapter_sheets(printed, len(places)) != sheets:
-                raise SystemExit("the chapters moved when their sheet numbers were put on the cover")
+            if chapter_sheets(printed, len(places)) != sheets or wide_sheets(printed, page) != wide:
+                raise SystemExit("the sheets moved when their numbers were put in")
         if args.append:
             append_pdfs(printed, args.append, args.paper, united)
             united.replace(output)
