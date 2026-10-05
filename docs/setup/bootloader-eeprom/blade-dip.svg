@@ -1,24 +1,26 @@
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1010 370" width="1010" height="370" font-family="DejaVu Sans, Arial, sans-serif">
-<rect width="1010" height="370" fill="#ffffff"/>
-<text x="20" y="32" font-size="22" font-weight="bold">Compute Blade, Dev model: the DIP switches (from the maker's table)</text>
-<text x="330" y="70" font-size="18" font-weight="bold" text-anchor="middle">LEFT</text>
-<text x="530" y="70" font-size="18" font-weight="bold" text-anchor="middle">RIGHT</text>
-<text x="20" y="126" font-size="19"><tspan font-weight="bold">1</tspan>  Write protection</text>
-<rect x="250" y="90" width="360" height="56" rx="10" fill="#e9ecef" stroke="#111" stroke-width="2"/>
-<rect x="258" y="97" width="150" height="42" rx="7" fill="#b00"/>
-<text x="330" y="125" font-size="18" fill="#fff" text-anchor="middle" font-weight="bold">Disabled</text>
-<text x="530" y="125" font-size="18" fill="#333" text-anchor="middle">Enabled</text>
-<text x="630" y="125" font-size="17" fill="#b00" font-weight="bold">left for an upgrade: our reading, untested</text>
-<text x="20" y="200" font-size="19"><tspan font-weight="bold">2</tspan>  Wi-Fi</text>
-<rect x="250" y="164" width="360" height="56" rx="10" fill="#e9ecef" stroke="#111" stroke-width="2"/>
-<rect x="258" y="171" width="150" height="42" rx="7" fill="#666"/>
-<text x="330" y="199" font-size="18" fill="#fff" text-anchor="middle" font-weight="bold">Enabled</text>
-<text x="530" y="199" font-size="18" fill="#333" text-anchor="middle">Disabled</text>
-<text x="20" y="274" font-size="19"><tspan font-weight="bold">3</tspan>  Bluetooth</text>
-<rect x="250" y="238" width="360" height="56" rx="10" fill="#e9ecef" stroke="#111" stroke-width="2"/>
-<rect x="258" y="245" width="150" height="42" rx="7" fill="#666"/>
-<text x="330" y="273" font-size="18" fill="#fff" text-anchor="middle" font-weight="bold">Enabled</text>
-<text x="530" y="273" font-size="18" fill="#333" text-anchor="middle">Disabled</text>
-<text x="20" y="330" font-size="18">Drawn with every switch at LEFT. Which way is "left" on the board is the maker's wording; we have not held one.</text>
-<text x="20" y="356" font-size="18">The maker: "Only change switch positions when the Blade is unplugged from power."</text>
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 800 470" width="800" height="470" font-family="DejaVu Sans, Arial, sans-serif">
+<rect width="800" height="470" fill="#ffffff"/>
+<text x="20" y="34" font-size="24" font-weight="bold" fill="#111" text-anchor="start">Compute Blade, Dev model: the DIP switches (from the maker's table)</text>
+<text x="420" y="76" font-size="20" font-weight="bold" fill="#111" text-anchor="middle">LEFT</text>
+<text x="660" y="76" font-size="20" font-weight="bold" fill="#111" text-anchor="middle">RIGHT</text>
+<text x="20" y="128" font-size="21" font-weight="bold" fill="#111" text-anchor="start">1  Write protection</text>
+<rect x="300" y="92" width="480" height="56" rx="10" fill="#e9ecef" stroke="#111" stroke-width="2"/>
+<rect x="308" y="99" width="224" height="42" rx="7" fill="#b00" stroke="#111" stroke-width="0"/>
+<text x="420" y="127" font-size="20" font-weight="bold" fill="#fff" text-anchor="middle">Disabled</text>
+<text x="660" y="127" font-size="20" font-weight="normal" fill="#333" text-anchor="middle">Enabled</text>
+<text x="20" y="202" font-size="21" font-weight="bold" fill="#111" text-anchor="start">2  Wi-Fi</text>
+<rect x="300" y="166" width="480" height="56" rx="10" fill="#e9ecef" stroke="#111" stroke-width="2"/>
+<rect x="308" y="173" width="224" height="42" rx="7" fill="#666" stroke="#111" stroke-width="0"/>
+<text x="420" y="201" font-size="20" font-weight="bold" fill="#fff" text-anchor="middle">Enabled</text>
+<text x="660" y="201" font-size="20" font-weight="normal" fill="#333" text-anchor="middle">Disabled</text>
+<text x="20" y="276" font-size="21" font-weight="bold" fill="#111" text-anchor="start">3  Bluetooth</text>
+<rect x="300" y="240" width="480" height="56" rx="10" fill="#e9ecef" stroke="#111" stroke-width="2"/>
+<rect x="308" y="247" width="224" height="42" rx="7" fill="#666" stroke="#111" stroke-width="0"/>
+<text x="420" y="275" font-size="20" font-weight="bold" fill="#fff" text-anchor="middle">Enabled</text>
+<text x="660" y="275" font-size="20" font-weight="normal" fill="#333" text-anchor="middle">Disabled</text>
+<text x="20" y="338" font-size="19" font-weight="bold" fill="#b00" text-anchor="start">Switch 1 at LEFT for a bootloader upgrade: that is our reading of the</text>
+<text x="20" y="364" font-size="19" font-weight="bold" fill="#b00" text-anchor="start">two makers' documents. Untested by us.</text>
+<text x="20" y="400" font-size="18" font-weight="normal" fill="#111" text-anchor="start">Drawn with every switch at LEFT. Which way is left on the board is the</text>
+<text x="20" y="424" font-size="18" font-weight="normal" fill="#111" text-anchor="start">maker's wording; we have not held one. The maker: change switch</text>
+<text x="20" y="448" font-size="18" font-weight="normal" fill="#111" text-anchor="start">positions only when the blade is unplugged from power.</text>
 </svg>

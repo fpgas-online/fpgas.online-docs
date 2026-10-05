@@ -1,10 +1,6 @@
-```{image} bootloader-eeprom/check-card.svg
-:alt: Three reads: the bootloader date should be 2026/09/25, the boot order BOOT_ORDER=0xf2, and the flash lock SR1 0xbc
-:width: 100%
-```
-
-Log in to the Pi as user `pi` (ssh, or the web terminal on its board page) and
-run:
+Log in to the Pi as user `pi`, over ssh or with the web terminal on the Pi's
+board page of the site. (The password is the one the site publishes for its
+boards.) Run:
 
 ```console
 $ vcgencmd bootloader_version
@@ -22,23 +18,20 @@ BOOT_ORDER=0xf2
 NET_INSTALL_AT_POWER_ON=0
 ```
 
-That is a Pi that is done. Only the first line of the first command and the
-`BOOT_ORDER` line of the second matter for the check; the full settings the
-fleet wants are the six lines shown.
+That is what a Pi that is done prints. Read 1 is the first line of the first
+command. Read 2 is the `BOOT_ORDER` line of the second.
 
-```{image} bootloader-eeprom/boot-order.svg
-:alt: BOOT_ORDER is read from its last digit: 0xf2 is network only; 0xf12 and 0xf2461 also boot local media
-:width: 100%
-```
-
-For the third read, put this script on the Pi. Either
-{download}`download it <bootloader-eeprom/read_flash_status.py>` and copy it over, or
-type `cat > read_flash_status.py` on the Pi, paste the text below, and press
-Ctrl-D:
+Read 3 needs a small script on the Pi (a fleet Pi forgets it at every restart,
+so put it there each time). On the Pi, type `cat > read_flash_status.py`,
+press Enter, paste the text below, press Enter and then Ctrl-D. (On the web,
+you can {download}`download the script <bootloader-eeprom/read_flash_status.py>`
+instead of pasting.)
 
 ```{literalinclude} bootloader-eeprom/read_flash_status.py
 :language: python
 ```
+
+Then run it. It only reads:
 
 ```console
 $ sudo python3 read_flash_status.py
@@ -48,15 +41,9 @@ SR2 0x2
 SR3 0x60
 ```
 
-It only reads. `SR1 0xbc` is locked, `SR1 0x0` is not:
+Read 3 is the `SR1` line: `0xbc` is locked, `0x0` is not locked. If the `jedec`
+line is anything other than `ef4015`, this is a flash chip this page does not
+cover: stop, and write nothing to that Pi.
 
-```{image} bootloader-eeprom/sr1-bits.svg
-:alt: Status register 1 bit by bit: 0xbc is SRP, TB, BP2, BP1 and BP0 set (locked); 0x00 is not locked
-:width: 100%
-```
-
-If `jedec` is anything other than `ef4015`, this is a flash chip this page
-does not cover: stop, and write nothing to that Pi.
-
-Do not go by `sudo rpi-eeprom-update`: it prints "up to date" on Pis that are
-not on the fleet's bootloader.
+Do not use `sudo rpi-eeprom-update` for this check: it prints "up to date" on
+Pis that are not on the fleet's bootloader.

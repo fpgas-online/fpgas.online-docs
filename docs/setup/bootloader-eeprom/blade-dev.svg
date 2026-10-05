@@ -27,12 +27,14 @@
 <rect x="880" y="205" width="46" height="80" rx="5" fill="#c9d3df" stroke="#111" stroke-width="1.5"/>
 <text x="903.0" y="250.0" font-size="15" text-anchor="middle">UART</text>
 <rect x="945" y="215" width="78" height="62" rx="5" fill="#d9f7d9" stroke="#22a022" stroke-width="5"/>
-<text x="984.0" y="251.0" font-size="16" text-anchor="middle">USB-C</text>
+<text x="984.0" y="241.5" font-size="16" text-anchor="middle">1</text>
+<text x="984.0" y="260.5" font-size="16" text-anchor="middle">USB-C</text>
 <rect x="1040" y="196" width="110" height="36" rx="5" fill="#f7d9f1" stroke="#c2188f" stroke-width="5"/>
-<text x="1095.0" y="219.0" font-size="14" text-anchor="middle">USB switch</text>
-<rect x="1052" y="244" width="50" height="46" rx="5" fill="#f7d9d9" stroke="#c81e1e" stroke-width="5"/>
-<text x="1077.0" y="264.0" font-size="13" text-anchor="middle">nRPI</text>
-<text x="1077.0" y="280.0" font-size="13" text-anchor="middle">BOOT</text>
+<text x="1095.0" y="219.0" font-size="14" text-anchor="middle">2  USB switch</text>
+<rect x="1052" y="238" width="62" height="56" rx="5" fill="#f7d9d9" stroke="#c81e1e" stroke-width="5"/>
+<text x="1083.0" y="255.0" font-size="13" text-anchor="middle">3</text>
+<text x="1083.0" y="271.0" font-size="13" text-anchor="middle">nRPI</text>
+<text x="1083.0" y="287.0" font-size="13" text-anchor="middle">BOOT</text>
 <text x="30" y="379" font-size="19" fill="#22a022" font-weight="bold">1. USB Type-C port: the cable to the computer that runs rpiboot</text>
 <text x="30" y="407" font-size="19" fill="#c2188f" font-weight="bold">2. USB switch: moved to the USB Type-C position</text>
 <text x="30" y="435" font-size="19" fill="#c81e1e" font-weight="bold">3. nRPIBOOT button: held down while the cable is connected</text>

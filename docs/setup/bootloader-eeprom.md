@@ -6,54 +6,73 @@ Pi that chip is locked, so that nobody with root on the Pi can change how it
 boots; a new bootloader therefore cannot simply be installed. Pick the part
 you need:
 
-- **[Check a Pi](#check-a-pi-nothing-is-changed)**: is its bootloader the fleet's, and is it locked?
+- **[Check a Pi 5](#check-a-pi-5-nothing-is-changed)**: is its bootloader the fleet's, and is it locked?
 - **[Upgrade a locked Raspberry Pi 5](#upgrade-a-locked-raspberry-pi-5)**: six steps, for someone with the Pi in hand.
 - **[A Compute Module or a Compute Blade](#compute-module-4-compute-module-5-and-the-compute-blade)**: whether it needs anything (usually not).
 - **[What is behind this page](#what-is-behind-this-page)**: what has been run and measured, what is not known, what does not work.
 
-## Check a Pi (nothing is changed)
+## Check a Pi 5 (nothing is changed)
+
+Three reads, for a **Raspberry Pi 5**. (On a Pi 4 the first two reads work and
+the third does not; this page has no lock check and no upgrade steps for a
+Pi 4.)
+
+```{image} bootloader-eeprom/check-card.svg
+:alt: Three reads: the bootloader date should be 2026/09/25, the boot order BOOT_ORDER=0xf2, and the flash lock SR1 0xbc
+:width: 100%
+```
 
 ```{include} bootloader-eeprom-read-state.inc
 ```
 
+```{image} bootloader-eeprom/boot-order.svg
+:alt: BOOT_ORDER is read from its last digit: 0xf2 is network only; 0xf12 and 0xf2461 also boot local media
+:width: 100%
+```
+
 ## Upgrade a locked Raspberry Pi 5
 
-For a Raspberry Pi 5 whose check above says NOT DONE. How far this has been
-tried: [What has been run](#what-has-been-run).
+For a Raspberry Pi 5 whose check says NOT DONE. (How far each step has been
+tried by us is listed under [What has been run](#what-has-been-run).)
 
 ```{image} bootloader-eeprom/kit.svg
 :alt: What you need: the Pi 5 with its underside reachable, a microSD card, a Linux computer with a card reader, something to bridge two pads, the Pi's network cable on its switch port
 :width: 100%
 ```
 
-:::{warning}
-The Pi has power only in step 4. In every other step its network cable is out.
-`TP1`, one of the two pads you will join, is 3.3 V: the bridge must touch
-`TP14` and `TP1` and nothing else (pictures in step 3).
-:::
-
 ### Step 1: make the card
+
+The Pi stays plugged in and running during this step.
 
 ```{image} bootloader-eeprom/card-files.svg
 :alt: The finished card holds four files at its top level: recovery.bin, pieeprom.bin, pieeprom.sig and config.txt
 :width: 100%
 ```
 
-On the computer:
+On the computer, get Raspberry Pi's bootloader files, at the version these
+steps were written with:
 
 ```console
-$ git clone --depth 1 https://github.com/raspberrypi/rpi-eeprom
+$ git clone https://github.com/raspberrypi/rpi-eeprom
 $ cd rpi-eeprom
+$ git checkout a72213d02af27f2dc3b86f584988aec407e46378
 $ mkdir card
 ```
 
-Make a file `boot.conf` in that directory with exactly these six lines:
+Make the settings file. Paste these eight lines as they are:
 
-```{literalinclude} bootloader-eeprom/boot.conf
-:language: ini
+```console
+$ cat > boot.conf <<'EOF'
+[all]
+BOOT_UART=1
+WAKE_ON_GPIO=1
+POWER_OFF_ON_HALT=0
+BOOT_ORDER=0xf2
+NET_INSTALL_AT_POWER_ON=0
+EOF
 ```
 
-Then:
+Make the four files:
 
 ```console
 $ ./rpi-eeprom-config --config boot.conf --out card/pieeprom.bin \
@@ -63,8 +82,8 @@ $ cp firmware-2712/default/recovery.bin card/
 $ echo eeprom_write_protect=0 > card/config.txt
 ```
 
-Check it. The first command must print the six lines of `boot.conf`, and the
-second must list the four files with these sizes:
+Check them. The first command must print the six settings, and the second
+must list the four files with these sizes:
 
 ```console
 $ ./rpi-eeprom-config card/pieeprom.bin
@@ -82,22 +101,27 @@ $ wc -c card/*
 2201569 total
 ```
 
-If `BOOT_ORDER` there is not `0xf2`, stop and fix `boot.conf`: a card with
-another boot order leaves a Pi that does not start from the network.
+If `BOOT_ORDER` there is not `0xf2`, stop and make `boot.conf` again: a card
+with another boot order leaves a Pi that does not start from the network.
 
-Put the card in the reader and find its name. It is the disk that appears when
-you plug it in, with the card's size. In this example (yours will differ) it
-is `sdb`, the 29.7G one:
+Now the card. Find its name: run `lsblk` before you put the card in the reader
+and again after. The line that is new is the card. In this example (yours
+will differ) it is `sdb`:
 
 ```console
+$ lsblk -d -o NAME,SIZE,MODEL
+NAME      SIZE MODEL
+nvme0n1 476.9G Samsung SSD 980
 $ lsblk -d -o NAME,SIZE,MODEL
 NAME      SIZE MODEL
 nvme0n1 476.9G Samsung SSD 980
 sdb      29.7G STORAGE DEVICE
 ```
 
-Everything on the card is erased by the next commands. Use your card's name in
-place of `sdX`, and check it twice: the wrong name erases another disk.
+The next commands erase everything on the card. Type your card's name in place
+of `sdX`, and check it twice: the wrong name erases another disk. (If your
+card's name is like `mmcblk0`, its first partition is `mmcblk0p1`, not
+`mmcblk01`: use that in the third and fourth commands.)
 
 ```console
 $ sudo wipefs -a /dev/sdX
@@ -110,50 +134,63 @@ config.txt  pieeprom.bin  pieeprom.sig  recovery.bin
 $ sudo umount /mnt
 ```
 
+Take the card out of the reader.
+
 ### Step 2: network cable out
 
 ```{image} bootloader-eeprom/cable-out.svg
-:alt: A Raspberry Pi 5 from above with its network cable pulled out of the Ethernet socket
+:alt: A Raspberry Pi 5, top side up, with its network cable pulled out of the Ethernet socket
 :width: 80%
 ```
 
 1. Pull the Pi's network cable. The Pi is now off.
-2. Take the Pi out of whatever holds it, so that you can reach its underside.
+2. Take the Pi out of whatever holds it, and turn it over.
 
 ### Step 3: join the two FLASH WP pads
+
+The Pi is off (step 2). This is its underside, USB-A sockets on the left, GPIO
+header along the top:
 
 ```{figure} bootloader-eeprom/pi5-underside-flash-wp.jpg
 :alt: Underside of a Raspberry Pi 5 with the two FLASH WP pads ringed, right of the CE mark and above the micro-HDMI sockets
 :width: 100%
 
-The underside, USB-A sockets on the left, GPIO header along the top. Photo: Suyash Dwivedi, [Wikimedia Commons](https://commons.wikimedia.org/wiki/File:Raspberry_Pi5_8GB_Bottom_View_(1).jpg), [CC BY-SA 4.0](https://creativecommons.org/licenses/by-sa/4.0/); cropped and annotated by fpgas.online, this version under the same licence.
+Photo: Suyash Dwivedi, [Wikimedia Commons](https://commons.wikimedia.org/wiki/File:Raspberry_Pi5_8GB_Bottom_View_(1).jpg), [CC BY-SA 4.0](https://creativecommons.org/licenses/by-sa/4.0/); annotated, same licence.
 ```
 
 ```{figure} bootloader-eeprom/pi5-flash-wp-closeup.jpg
 :alt: Close-up of the pads: TP14 on the left, TP1 on the right, FLASH WP printed below
 :width: 100%
 
-Photo: Suyash Dwivedi, [Wikimedia Commons](https://commons.wikimedia.org/wiki/File:Raspberry_Pi5_8GB_Bottom_View_(1).jpg), [CC BY-SA 4.0](https://creativecommons.org/licenses/by-sa/4.0/); cropped and annotated by fpgas.online, this version under the same licence.
+Photo: Suyash Dwivedi, [Wikimedia Commons](https://commons.wikimedia.org/wiki/File:Raspberry_Pi5_8GB_Bottom_View_(1).jpg), [CC BY-SA 4.0](https://creativecommons.org/licenses/by-sa/4.0/); annotated, same licence.
 ```
 
-1. Turn the Pi over and find the two pads.
-2. Join `TP14` to `TP1`: a small blob of solder across both. (Without an iron:
-   have a short wire or fine tweezers ready, and hold them across both pads
-   for the whole of step 4.)
-
 ```{figure} bootloader-eeprom/pi5-flash-wp-bridged.jpg
-:alt: The same close-up with a bridge drawn across TP14 and TP1 only
+:alt: The same close-up with a blob of solder drawn across TP14 and TP1 only
 :width: 100%
 
-Photo: Suyash Dwivedi, [Wikimedia Commons](https://commons.wikimedia.org/wiki/File:Raspberry_Pi5_8GB_Bottom_View_(1).jpg), [CC BY-SA 4.0](https://creativecommons.org/licenses/by-sa/4.0/); cropped and annotated by fpgas.online, this version under the same licence.
+Photo: Suyash Dwivedi, [Wikimedia Commons](https://commons.wikimedia.org/wiki/File:Raspberry_Pi5_8GB_Bottom_View_(1).jpg), [CC BY-SA 4.0](https://creativecommons.org/licenses/by-sa/4.0/); annotated, same licence.
 ```
 
 ```{figure} bootloader-eeprom/pi5-flash-wp-wrong.jpg
-:alt: The same close-up with a bridge drawn that also touches TP17, crossed out
+:alt: The same close-up with a blob of solder drawn that also reaches TP17, marked wrong
 :width: 100%
 
-Photo: Suyash Dwivedi, [Wikimedia Commons](https://commons.wikimedia.org/wiki/File:Raspberry_Pi5_8GB_Bottom_View_(1).jpg), [CC BY-SA 4.0](https://creativecommons.org/licenses/by-sa/4.0/); cropped and annotated by fpgas.online, this version under the same licence.
+Photo: Suyash Dwivedi, [Wikimedia Commons](https://commons.wikimedia.org/wiki/File:Raspberry_Pi5_8GB_Bottom_View_(1).jpg), [CC BY-SA 4.0](https://creativecommons.org/licenses/by-sa/4.0/); annotated, same licence.
 ```
+
+1. Find the two pads.
+2. Join `TP14` to `TP1` with a small blob of solder across both, as in the
+   RIGHT picture. (Without an iron: skip this now, and in step 4 hold a short
+   wire or fine tweezers across both pads.)
+3. Look at it against the two pictures. One blob, on those two pads, touching
+   nothing else. With a multimeter: `TP14` to `TP1` reads a short circuit.
+
+:::{warning}
+`TP1` is 3.3 V when the Pi is on. A bridge that touches anything besides
+`TP14` and `TP1` can damage the Pi. If it does, take it off and make it again
+now, while the Pi is off.
+:::
 
 ### Step 4: card in, network cable in, wait 60 seconds
 
@@ -161,43 +198,46 @@ Photo: Suyash Dwivedi, [Wikimedia Commons](https://commons.wikimedia.org/wiki/Fi
 :alt: Underside of a Raspberry Pi 5 with the microSD slot ringed on the right edge, a card going in, and the bridge still on the FLASH WP pads
 :width: 100%
 
-Photo: Suyash Dwivedi, [Wikimedia Commons](https://commons.wikimedia.org/wiki/File:Raspberry_Pi5_8GB_Bottom_View_(1).jpg), [CC BY-SA 4.0](https://creativecommons.org/licenses/by-sa/4.0/); cropped and annotated by fpgas.online, this version under the same licence.
+Photo: Suyash Dwivedi, [Wikimedia Commons](https://commons.wikimedia.org/wiki/File:Raspberry_Pi5_8GB_Bottom_View_(1).jpg), [CC BY-SA 4.0](https://creativecommons.org/licenses/by-sa/4.0/); annotated, same licence.
 ```
 
 1. Push the card into the slot.
 
 ```{image} bootloader-eeprom/cable-in.svg
-:alt: A Raspberry Pi 5 from above with its network cable going into the Ethernet socket
+:alt: A Raspberry Pi 5, top side up, with its network cable going into the Ethernet socket
 :width: 80%
 ```
 
-2. Plug the network cable in, on the switch port the Pi was on.
-3. Wait 60 seconds. There is nothing to watch for: the Pi writes its new
-   bootloader from the card and stops. Whatever the green light does, go on to
-   step 5 after the 60 seconds.
+2. Plug the network cable in, on the switch port the Pi was on. (Holding
+   tweezers or a wire on the pads instead of solder: put them on both pads
+   first and keep them there; plug the cable in with your other hand.)
+3. Wait 60 seconds by a clock. There is nothing to watch for: the Pi writes
+   its new bootloader from the card and stops. Whatever the green light does,
+   go on to step 5 when the 60 seconds are over.
 
 ### Step 5: cable out, card out, bridge off, cable in
 
 ```{image} bootloader-eeprom/cable-out.svg
-:alt: A Raspberry Pi 5 from above with its network cable pulled out of the Ethernet socket
+:alt: A Raspberry Pi 5, top side up, with its network cable pulled out of the Ethernet socket
 :width: 80%
 ```
 
 1. Pull the network cable.
-2. Take the card out.
-3. Take the bridge off (wick the solder away, or let go of the wire).
+2. Pull the card out of its slot.
 
 ```{figure} bootloader-eeprom/pi5-flash-wp-clear.jpg
 :alt: Close-up of TP14 and TP1 as two separate pads again
 :width: 100%
 
-Photo: Suyash Dwivedi, [Wikimedia Commons](https://commons.wikimedia.org/wiki/File:Raspberry_Pi5_8GB_Bottom_View_(1).jpg), [CC BY-SA 4.0](https://creativecommons.org/licenses/by-sa/4.0/); cropped and annotated by fpgas.online, this version under the same licence.
+Photo: Suyash Dwivedi, [Wikimedia Commons](https://commons.wikimedia.org/wiki/File:Raspberry_Pi5_8GB_Bottom_View_(1).jpg), [CC BY-SA 4.0](https://creativecommons.org/licenses/by-sa/4.0/); annotated, same licence.
 ```
 
+3. Take the bridge off: wick the solder away (or let go of the wire or
+   tweezers). The two pads must be separate again, as in the picture.
 4. Put the Pi back where it was.
 
 ```{image} bootloader-eeprom/cable-in.svg
-:alt: A Raspberry Pi 5 from above with its network cable going into the Ethernet socket
+:alt: A Raspberry Pi 5, top side up, with its network cable going into the Ethernet socket
 :width: 80%
 ```
 
@@ -210,12 +250,19 @@ its flash again while it starts; do not pull the cable during that time.
 
 ### Step 6: read it back
 
-```{include} bootloader-eeprom-read-state.inc
-```
+Do the three reads again and find your result here:
 
 ```{image} bootloader-eeprom/outcomes.svg
-:alt: What step 6 can read and what to do: all three as wanted, done; the old date, nothing was written, go back to step 2; the new date but SR1 0x0, power the Pi off and on and read again; no answer after five minutes, go back to step 2 with a checked card
+:alt: What step 6 can read and what to do: all three as wanted, done; the old date, nothing was written, go back to step 2; the new date but another boot order, make the card again; the new date and boot order but SR1 0x0, power the Pi off and on and read again; no answer after five minutes, go back to step 2 with a checked card
 :width: 100%
+```
+
+```{image} bootloader-eeprom/check-card-after.svg
+:alt: Three reads: the bootloader date should be 2026/09/25, the boot order BOOT_ORDER=0xf2, and the flash lock SR1 0xbc
+:width: 100%
+```
+
+```{include} bootloader-eeprom-read-state.inc
 ```
 
 ## Compute Module 4, Compute Module 5 and the Compute Blade
@@ -228,7 +275,8 @@ whether your blade needs anything. The two blades we read do not.
 
 ### Does this blade need anything?
 
-Log in to the blade and run these two. They change nothing and need no root.
+Log in to the blade the way you normally do and run these two. They change
+nothing and need no root.
 
 ```console
 $ vcgencmd bootloader_version
@@ -245,23 +293,23 @@ BOOT_UART=1
 BOOT_ORDER=0xf2461
 ```
 
-That is what a PS1 blade (a Compute Module 5 Lite) printed while running from
-the network.
+That is what one blade of ours (a Compute Module 5 Lite) printed while it was
+running from the network.
 
-```{image} bootloader-eeprom/boot-order.svg
-:alt: BOOT_ORDER is read from its last digit: 0xf2 is network only; 0xf12 and 0xf2461 also boot local media
+```{image} bootloader-eeprom/boot-order-blade.svg
+:alt: 0xf2461 read from its last digit: SD card, NVMe, USB, then the network, then round again
 :width: 100%
 ```
 
 :::{important}
 **What to do**
 
-- Your blade starts from the network and its `BOOT_ORDER` has a `2` in it (as
+- Your blade starts from the network, and its `BOOT_ORDER` has a `2` in it (as
   `0xf2461` has): **do nothing.** Its bootloader is fine as it is.
 - Your blade does not start from the network, or its `BOOT_ORDER` has no `2`
-  in it: **do not try to change it from this page.** Send the two outputs
-  above to whoever looks after the site, by opening an issue at
-  [fpgas-online/fpgas.online-docs](https://github.com/fpgas-online/fpgas.online-docs/issues).
+  in it: **do not try to change it from this page.** Open an issue at
+  [fpgas-online/fpgas.online-docs](https://github.com/fpgas-online/fpgas.online-docs/issues)
+  with the two outputs above.
 :::
 
 A date in the first line that is older or newer than the one above is not a
@@ -270,18 +318,18 @@ reason to act, and neither is "UPDATE AVAILABLE" from `rpi-eeprom-update`.
 ### Why there are no steps: what a blade would need
 
 ```{image} bootloader-eeprom/blade-dev.svg
-:alt: Outline of a Dev model Compute Blade with the USB Type-C port, the USB switch, the nRPIBOOT button and the DIP switches marked
+:alt: Outline of a Dev model Compute Blade with the USB Type-C port (1), the USB switch (2), the nRPIBOOT button (3) and the DIP switches marked
 :width: 100%
 ```
 
 A Compute Module's bootloader is written over USB from another computer, and
-that needs the three parts numbered in the drawing. The blade's maker says
-only the Dev model has them. A failed write on a Compute Module can be repaired
-only the same way, which is why a blade that works is left alone.
+that needs the three parts numbered 1, 2 and 3 in the drawing. The blade's
+maker says only the Dev model has them. A failed write on a Compute Module can
+be repaired only the same way, which is why a blade that works is left alone.
 
 ```{image} bootloader-eeprom/blade-dip.svg
 :alt: The three DIP switches of a Dev model Compute Blade: 1 write protection (left disabled, right enabled), 2 Wi-Fi, 3 Bluetooth
-:width: 100%
+:width: 85%
 ```
 
 The Dev model also has the switch that holds the bootloader's write protection.
@@ -295,8 +343,8 @@ You do not need this part to do the job.
 - **Upgrade of a locked Pi 5, steps 2 to 6:** once, on one fleet Pi 5, on 3 Oct
   2026. How the card used that day was made was not recorded.
 - **Step 1:** the commands up to the four files were run on a PC on 5 Oct 2026
-  (raspberrypi/rpi-eeprom at commit `a72213d`); the outputs shown are from
-  that run. Formatting a card and booting a Pi from a card made this way:
+  (raspberrypi/rpi-eeprom at commit `a72213d`, fetched with `git clone --depth 1`
+  on the day that commit was its newest); the outputs shown are from that run. Formatting a card and booting a Pi from a card made this way:
   **not yet run by us.**
 - **The check:** the outputs are from fleet Pi 5s on 4 Oct 2026 (four boards
   for the status registers). The read script printed exactly as shown has
@@ -337,6 +385,15 @@ NET_INSTALL_AT_POWER_ON=1
 with the package installed in the root, not with what the fleet wants. The
 second PS1 blade read on 5 Oct 2026 (pi20) printed `2025/11/05 17:37:18` and
 the same settings as the blade shown above (pi16).
+
+### The lock, bit by bit
+
+```{image} bootloader-eeprom/sr1-bits.svg
+:alt: Status register 1 bit by bit: 0xbc is SRP, TB, BP2, BP1 and BP0 set (locked); 0x00 (printed as 0x0) is not locked
+:width: 100%
+```
+
+The script prints `0x00` as `0x0`.
 
 ### Why the flash is locked
 
