@@ -34,8 +34,8 @@ Two NFS roots, because the site runs two generations of hardware:
   read-only with overlayroot.
 - **trixie**: `/srv/nfs/rpi/trixie/{boot,root}` — the Compute Blades. Read as
   arm64 with kernel 6.12.75+rpt-rpi-v8 on 2026-09-20; pi16 read as a 32-bit
-  (armhf) userspace on kernel 6.18.50+rpt-rpi-v8 on 2026-10-05, and the other
-  blades have not been read since.
+  (armhf) userspace on kernel 6.18.50+rpt-rpi-v8 on 2026-10-05. Which kernel
+  and userspace the other three blades run now has not been read.
 
 :::{warning}
 Both roots are read-only NFS exports with a tmpfs overlay, so anything staged
@@ -116,7 +116,8 @@ All four were up when last probed together (2026-09-20), and the table is that
 probe. On 2026-10-05 pi16 was read again; what differed is under [pi16 on 5
 October 2026](#pi16-on-5-october-2026). The same day the visitor SSH ports of
 pi14 and pi18 did not answer, so nothing was read from them; why is not known.
-pi20 was not tried that day.
+Of pi20 only its boot configuration was read that day ([Where a blade's boot
+configuration is](#where-a-blades-boot-configuration-is)).
 
 ```{rst-class} nowrap
 ```
@@ -158,8 +159,8 @@ openFPGALoader 0.13.1, which has `--read-dna`, when probed. PCIe is through the 
 all four netbooted the trixie NFS root (arm64 then) with overlayroot, with `console=tty1` and
 `serial-getty@ttyAMA0` inactive, so the [kernel console
 crash](../boards/acorn/wiring.md#kernel-console-on-the-fpga-uart) could not
-happen. That no longer holds on pi16 (below), and pi14, pi18 and pi20 have not
-been read since.
+happen. That no longer holds on pi16 or pi20 (their boot configuration, read on
+2026-10-05, is below), and pi14 and pi18 have not been read since.
 
 #### pi16 on 5 October 2026
 
@@ -197,7 +198,9 @@ holds GPIO14 whether or not a console or a getty uses the port. For JTAG the
 header's serial port itself has to be off at boot (`enable_uart=0`, and no
 `console=serial0` word), and in that boot the tests of the P2 serial pair
 cannot run. **Not yet run by us on this hardware.** The same will apply to any
-blade on this kernel: pi20's JTAG answered under kernel 6.12.75.
+blade on this kernel: pi20's JTAG answered on 2026-09-20, under kernel 6.12.75.
+Which kernel pi20 runs now has not been read; its boot settings are the same
+as pi16's (below).
 
 #### Where a blade's boot configuration is
 
@@ -208,14 +211,14 @@ same line with `console=serial0,115200`; `/boot/firmware/config.txt` has
 `enable_uart=1` under `[all]` and no overlay for the UART. Both blades have the
 same settings.
 
-So the settings to change for JTAG (`enable_uart`, and the `console=serial0`
-word) are in the `config.txt` and `cmdline.txt` that the blades netboot from, on
-the site's gateway: by this page's account under `/srv/nfs/rpi/trixie/boot`.
-**Not read by us:** the directory the firmware fetches the two files from at
-boot, whether `/boot/firmware` on a blade is that directory or a copy, and
-whether one copy serves all four blades. Whoever runs the gateway makes the
-change; it then applies to every blade that boots from that tree, and takes
-effect at the blade's next boot.
+The settings to change for JTAG (`enable_uart`, and the `console=serial0` word)
+are in those two files, but where their master copy is was not read. The likely
+place is the site's gateway, by this page's account under
+`/srv/nfs/rpi/trixie/boot`. **Not read by us:** the directory the firmware
+fetches the two files from at boot, whether `/boot/firmware` on a blade is that
+directory or a copy, and whether one copy serves all four blades. Whoever runs
+the gateway makes the change. If one copy serves all four blades, it applies to
+all of them; it takes effect at a blade's next boot.
 
 #### What each blade still needs
 
@@ -228,7 +231,7 @@ converted a card on one yet: **not yet run by us on this hardware**.
 | pi14 | fitted, factory image: to be converted | did not answer: reseat or refit on the Extension Port | not known: build to the UART header, 470 Ω in the J2 wire, J5 and H5 cut back | read its kernel command line and serial getty again (last read 2026-09-20) |
 | pi16 | fitted, factory image: to be converted | not known (see above): check, reseat or refit on the Extension Port | not known: build to the UART header, 470 Ω in the J2 wire, J5 and H5 cut back | take the kernel console and the getty off `/dev/ttyAMA0` (needed in any case); for JTAG, the serial port off at boot, as above |
 | pi18 | none: fit one | fit on the Extension Port | fit on the UART header, 470 Ω in the J2 wire, J5 and H5 cut back | read its kernel command line and serial getty again (last read 2026-09-20) |
-| pi20 | fitted, vendor sample image in flash: to be converted | answers: leave | move the serial pair from Extension Port pins 9 and 10 to the UART header, and add the 470 Ω resistor in the J2 wire | read its kernel, kernel command line and serial getty again (last read 2026-09-20) |
+| pi20 | fitted, vendor sample image in flash: to be converted | answers: leave | move the serial pair from Extension Port pins 9 and 10 to the UART header, and add the 470 Ω resistor in the J2 wire | boot configuration read 2026-10-05 (the same as pi16's: console and serial port on the FPGA UART); read its kernel again |
 
 The parts are in the wiring page's [Bill of
 Materials](../boards/acorn/wiring.md#bill-of-materials). Once a blade is wired,

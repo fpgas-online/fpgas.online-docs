@@ -78,7 +78,8 @@ with a meter on a bare card.
 Cut one Pico-EZmate cable (plug at each end) in half to get the P1 and P2
 cables, and strip about 3 mm from each wire. **All six wires are black**, so
 there is no colour to go by: count positions from pin 1, and buzz each wire
-through before crimping.
+through before crimping and again once it is in its housing ([Building the
+cables](#building-the-cables)).
 
 ## Raspberry Pi 5
 
@@ -377,15 +378,22 @@ This is the order the wiring tables imply. **It is written from the design, not
 from a bench**: the cables in service were built by hand before this section
 existed, and the Compute Blade cable (with its resistor) has not been built by
 us at all. Where it says nothing about a tool or a part number, none is
-recorded.
+recorded; the tools the steps need are listed with the parts, under [Bill of
+Materials](#bill-of-materials).
+
+**Nothing here is connected to a host until step 8 has passed.** Work with the
+card out of its slot and unpowered: neither plug goes into a powered card, and
+no housing touches a host, before both VCC wires are cut back and insulated
+(step 3).
 
 1. **Cut** one Pico-EZmate cable (a plug at each end) in half. One half is the
    P1 cable and the other the P2 cable; they are the same until the housings go
    on.
-2. **Find pin 1** on each half. Nothing on the plug is numbered and all six
-   wires are black: pin 1 is the wire that lands nearest the M.2 edge connector
-   when the plug is seated in the card ([Board connectors](#board-connectors)).
-   The two halves of one cable have pin 1 on opposite sides. Mark wire 1.
+2. **Find pin 1** on each half. All six wires are black and the plug may not be
+   numbered: pin 1 is the wire that lands nearest the M.2 edge connector when
+   the plug is seated in the (unpowered) card ([Board
+   connectors](#board-connectors)). Check each half on its own; do not assume
+   the two halves match. Mark wire 1.
 3. **Cut back wire 6 (VCC)** on both halves, short, and cover its end with heat
    shrink. On a Compute Blade do the same to wires 4 and 5 (J5, H5) of the P2
    half.
@@ -412,10 +420,10 @@ recorded.
    Pico-EZmate plug to its cavity, and check that no two neighbours are joined,
    before the cable goes near a host.
 
-Step 8 is the one that matters. The two faults found in cables at Welland were
-both of the kind it catches (read by `fpgas-verify` on 2026-10-04): on one
-cable both pairs of P2 were in each other's cavities with every wire
-conducting, and on another one wire was open. A cable that passes the meter and
+Step 8 is the one that matters. The two cable faults read at Welland on
+2026-10-04 were both of the kind it catches: on acorn-olive both pairs of P2
+were crossed with every wire conducting, and on acorn-sycamore P2 wire 4 (J5)
+was open. A cable that passes the meter and
 is still wrong is named, wire by wire, by [the
 check](../../verify/fpgas-verify.md#checking-an-acorns-wiring).
 
@@ -477,12 +485,13 @@ The steps are the same on both carriers; the commands are not. What differs:
 
 **On a Compute Blade the JTAG steps and the serial step cannot share a boot**
 under kernel 6.18 ([JTAG on a blade](#jtag-on-a-blade)): Steps 2, 4 and 5 load
-over JTAG and need the header's serial port off; the serial part of Step 3 needs
-it on, with a design already running that was loaded from flash. What has been
+over JTAG and need the header's serial port off; a test of the serial pair
+(`fpgas-verify`'s `p2-uart` and `p2-serial`) needs it on, with a design already
+running that was loaded from flash. What has been
 run on a blade is the detach, load, rescan and re-probe of Steps 2 and 5, on
 pi20 (a CM5, kernel 6.12.75, its P2 pair on the Extension Port). Everything else
 in the blade blocks below is **not yet run by us on this hardware**. The J5 and
-H5 parts of Steps 3 and 4 do not apply on a blade.
+H5 part of Step 4 does not apply on a blade.
 
 Every blade block uses the card's address from `BDF`; set it once per shell:
 
@@ -505,7 +514,8 @@ SoC that `fpgas-verify` checks). `fpgas-online-acorn-bitstreams` puts it in
 `/usr/share/fpgas-online/acorn-pcie/images/`, for each variant (`cle-215p`,
 `cle-215`, `cle-101`) as `acorn-<variant>-sqrl_acorn.bit` for a JTAG load,
 beside the two flash images. Steps 2 and 5 load that file; put its name in
-`SOC` once per shell. The PS1 cards are CLE-101:
+`SOC` once per shell. The PS1 cards are CLE-101; for another card put its
+variant in place of `cle-101`, here and in the two release file names below:
 
 ```console
 $ SOC=/usr/share/fpgas-online/acorn-pcie/images/acorn-cle-101-sqrl_acorn.bit
@@ -612,8 +622,8 @@ fleet). The symptom is openFPGALoader printing `Open file … FAIL` in under
 
 The loopback design (`pmod-loopback`) returns on K2 the inverse of what it sees
 on J2, and nothing else: GPIO14 → J2 → inverted → K2 → GPIO15. It does not touch
-J5 or H5; those two wires are tested by `fpgas-verify` (`p2-gpio`) on a card
-that runs the fpgas.online design.
+J5 or H5; on a Raspberry Pi 5 those two wires are tested by `fpgas-verify`
+(`p2-gpio`) on a card that runs the fpgas.online design.
 
 On a **Raspberry Pi 5**:
 
@@ -625,12 +635,18 @@ $ echo 1 | sudo tee /sys/bus/pci/devices/0001:01:00.0/remove
 $ openFPGALoader --cable libgpiod --pins 10:9:11:8 $LOOPBACK
 # The loopback inverts each bit, so what comes back is not what was sent
 $ stty -F /dev/ttyAMA0 115200 raw -echo
-$ cat /dev/ttyAMA0 | od -An -tx1 &
-$ echo "test" > /dev/ttyAMA0
-$ kill %1
+$ (sleep 1; echo test > /dev/ttyAMA0) &
+$ timeout 3 cat /dev/ttyAMA0 | od -An -tx1
 ```
 
-On a **Compute Blade** under kernel 6.18 this step cannot be done by hand: the
+Some bytes arriving means J2 and K2 both carry; they are not the bytes sent,
+and because the design holds the line inverted while idle the UART may report
+framing errors or a break as well. No bytes at all means K2 or GPIO15 is not
+connected. These commands are written from the design's source: not yet run by
+us in this form.
+
+On a **Compute Blade** under kernel 6.18 this step cannot be done by hand in one
+boot: the
 loopback design has to be loaded over JTAG, which needs the header's serial
 port off, and the test itself needs the serial port on ([JTAG on a
 blade](#jtag-on-a-blade)). The serial pair of a blade is checked by
@@ -666,7 +682,7 @@ until a power cycle and can crash the host.
 Like every JTAG load on a blade it needs a boot with the header's serial port
 off ([JTAG on a blade](#jtag-on-a-blade)). The load and the command that makes
 GPIO14 an input again are **one command line**, so that nothing is typed
-between them:
+between them, and the pins are put back even if the load fails:
 
 ```console
 $ echo 1 | sudo tee /sys/bus/pci/devices/$BDF/remove   # detach first, as in Step 2
