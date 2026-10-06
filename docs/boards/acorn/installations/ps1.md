@@ -23,14 +23,14 @@ it is converted. Until then a row says where the card was last read.
 | Acorn CLE-101, device DNA `0x0028e5c45e304854` | pi20 at ps1 (2026-10-05) | CM5 Lite Rev 1.0 8 GB | a vendor XDMA sample image, `10ee:7011` | `0001:01` | 2026-09-20 (kernel 6.12.75): answered, IDCODE `0x3631093`. 2026-10-05 (kernel 6.18.50, serial port on): not tried, expected not to run | on the Extension Port: K2 to GPIO15, J2 to GPIO14, no resistor; J5 and H5 not wired |
 | none: the M.2 slot is empty | pi18 at ps1 (2026-09-20) | CM4 Rev 1.1 4 GB | | | | |
 
-pi20 is the only blade whose JTAG has answered (on 2026-09-20), so it is the
+pi20 at ps1 is the only blade whose JTAG has answered (on 2026-09-20), so it is the
 only one with a device DNA: `0x0028e5c45e304854`, an XC7A100T. The fpgas.online
 Acorn design ran on it from SRAM that day (Gen2 x1, the same ident and DNA over
 PCIe and over the UART bridge); by that probe its flash holds the vendor XDMA
 sample image, and on 2026-10-05 the card enumerated as `10ee:7011`, the ID of
-that sample design. "P1 unmated" on pi14 and pi16 is
-read off TCK: the Acorn pulls TCK up, and on pi20 the Pi's pull-down cannot move
-it, while on pi14 and pi16 it floats exactly as on pi18, which has no card.
+that sample design. "P1 unmated" on pi14 at ps1 and pi16 at ps1 is
+read off TCK: the Acorn pulls TCK up, and on pi20 at ps1 the Pi's pull-down cannot move
+it, while on pi14 at ps1 and pi16 at ps1 it floats exactly as on pi18 at ps1, which has no card.
 Reseating P1 is the fix.
 
 These boards are often called LiteFury. Their factory PCI ID identifies them as
@@ -40,13 +40,13 @@ Acorn](../index.md).
 **No blade is wired to the [Compute Blade
 wiring](../building/compute-blade/index.md) yet.** That wiring puts P1 on
 the Extension Port and P2 on the 4-pin UART header, with a 470 Ω resistor in the
-J2 wire. pi20, the one blade whose wiring has been read, has its P2 serial pair
+J2 wire. pi20 at ps1, the one blade whose wiring has been read, has its P2 serial pair
 on Extension Port pins 9 and 10 instead, sharing pin 9 (GPIO14) directly with
 TMS and with no resistor, so a design that drives J2 costs JTAG until a PoE
 cycle ([why](../wiring.md#the-shared-line-and-the-470-ω-resistor)),
-and its J5 and H5 are not wired. How pi14's and pi16's P2 cables are wired is
-not known: pi14's P1 did not answer on 2026-09-20 and pi16's JTAG cannot run
-today ([pi16 on 5 October 2026](ps1-reads.md#pi16-at-ps1-on-5-october-2026)), so nothing can be
+and its J5 and H5 are not wired. How pi14 at ps1's and pi16 at ps1's P2 cables are wired is
+not known: pi14 at ps1's P1 did not answer on 2026-09-20 and pi16 at ps1's JTAG cannot run
+today ([pi16 at ps1 on 5 October 2026](ps1-reads.md#pi16-at-ps1-on-5-october-2026)), so nothing can be
 loaded to read them.
 
 ## What each blade still needs
@@ -57,15 +57,15 @@ converted a card on one yet: **not yet run by us on this hardware**.
 
 | Blade | Card | P1 (JTAG) cable | P2 (serial) cable | Host |
 |-------|------|-----------------|-------------------|------|
-| pi14 | fitted, factory image: to be converted | did not answer: reseat or refit on the Extension Port | not known: build to the UART header, 470 Ω in the J2 wire, J5 and H5 cut back | read its kernel command line and serial getty again (last read 2026-09-20) |
-| pi16 | fitted, factory image: to be converted | not known (see above): check, reseat or refit on the Extension Port | not known: build to the UART header, 470 Ω in the J2 wire, J5 and H5 cut back | take the kernel console and the getty off `/dev/ttyAMA0` (needed in any case); for JTAG, the serial port off at boot, as above |
-| pi18 | none: fit one | fit on the Extension Port | fit on the UART header, 470 Ω in the J2 wire, J5 and H5 cut back | read its kernel command line and serial getty again (last read 2026-09-20) |
-| pi20 | fitted, vendor sample image in flash: to be converted | answered on 2026-09-20: leave the cable. JTAG is expected not to run as the blade boots now (not tried) | move the serial pair from Extension Port pins 9 and 10 to the UART header, and add the 470 Ω resistor in the J2 wire | as pi16 (read 2026-10-05: the same kernel and serial-port settings): take the kernel console and the getty off `/dev/ttyAMA0`; for JTAG, the serial port off at boot |
+| pi14 at ps1 | fitted, factory image: to be converted | did not answer: reseat or refit on the Extension Port | not known: build to the UART header, 470 Ω in the J2 wire, J5 and H5 cut back | read its kernel command line and serial getty again (last read 2026-09-20) |
+| pi16 at ps1 | fitted, factory image: to be converted | not known (see above): check, reseat or refit on the Extension Port | not known: build to the UART header, 470 Ω in the J2 wire, J5 and H5 cut back | take the kernel console and the getty off `/dev/ttyAMA0` (needed in any case); for JTAG, the serial port off at boot, as above |
+| pi18 at ps1 | none: fit one | fit on the Extension Port | fit on the UART header, 470 Ω in the J2 wire, J5 and H5 cut back | read its kernel command line and serial getty again (last read 2026-09-20) |
+| pi20 at ps1 | fitted, vendor sample image in flash: to be converted | answered on 2026-09-20: leave the cable. JTAG is expected not to run as the blade boots now (not tried) | move the serial pair from Extension Port pins 9 and 10 to the UART header, and add the 470 Ω resistor in the J2 wire | as pi16 at ps1 (read 2026-10-05: the same kernel and serial-port settings): take the kernel console and the getty off `/dev/ttyAMA0`; for JTAG, the serial port off at boot |
 
 The parts are on [Compute Blade cables: parts and tools](../building/compute-blade/bom.md). Once
 a blade is wired, [check it](../building/compute-blade/verifying-1.md).
 
-pi20's serial pair is direct on GPIO14 and GPIO15 without the resistor. From the
+pi20 at ps1's serial pair is direct on GPIO14 and GPIO15 without the resistor. From the
 check's code, not from a run on a blade: `fpgas-verify`'s `p2-serial` test never
 has both ends driving a wire at once (the Pi's pins are inputs while the FPGA
 drives, and the FPGA's are inputs while the Pi drives), so it does not rely on
@@ -78,7 +78,7 @@ surprise removal. Detach the endpoint first, using the host's own bus from the
 `PCIe Bus` column above:
 
 ```console
-$ BDF=0001:01:00.0           # pi16, pi20; 0000:01:00.0 on the CM4 blade pi14
+$ BDF=0001:01:00.0           # pi16 at ps1, pi20 at ps1; 0000:01:00.0 on the CM4 blade pi14 at ps1
 $ echo 1 | sudo tee /sys/bus/pci/devices/$BDF/remove
 ```
 
@@ -112,9 +112,9 @@ $ sudo fpgas-verify --label --out labels.pdf
 - **No labels for pi14 at ps1 and pi18 at ps1.** Their visitor ssh ports did not
   answer on 5 October 2026, so nothing was read from them that day.
 
-The blades have no page under `https://ps1.fpgas.online/fpgas/`: pi14, pi16,
-pi18 and pi20 all return 404 there (checked 2026-09-03 and again 2026-10-06).
+The blades have no page under `https://ps1.fpgas.online/fpgas/`: pi14 at ps1, pi16 at ps1,
+pi18 at ps1 and pi20 at ps1 all return 404 there (checked 2026-09-03 and again 2026-10-06).
 
 Source: live probes (`lspci -nn`, `openFPGALoader --detect` and `--read-dna`,
-pull-up/pull-down on each P2 and JTAG line, the pin-ID check on pi20); MACs and
+pull-up/pull-down on each P2 and JTAG line, the pin-ID check on pi20 at ps1); MACs and
 switch ports cross-checked against infra `host_vars/ps1.fpgas.online.yml`.

@@ -5,13 +5,13 @@ Compute Blade there, by whom it could be read, and when.** Nothing on this page
 is a step to carry out.
 
 On all four blades the JTAG pins are `--pins 2:3:4:14` (it has only answered on
-pi20) and the FPGA UART is `/dev/ttyAMA0` at GPIO14/15. All four ran Debian's
+pi20 at ps1) and the FPGA UART is `/dev/ttyAMA0` at GPIO14/15. All four ran Debian's
 openFPGALoader 0.13.1, which has `--read-dna`, when probed. PCIe is through the blade's M.2 slot. On 2026-09-20
 all four netbooted the trixie NFS root (arm64 then) with overlayroot, with `console=tty1` and
 `serial-getty@ttyAMA0` inactive, so the [kernel console
 crash](../wiring.md#kernel-console-on-the-fpga-uart) could not
-happen. That no longer holds on pi16 or pi20 (their boot configuration, read on
-2026-10-05, is below), and pi14 and pi18 have not been read since.
+happen. That no longer holds on pi16 at ps1 or pi20 at ps1 (their boot configuration, read on
+2026-10-05, is below), and pi14 at ps1 and pi18 at ps1 have not been read since.
 
 ## pi16 at ps1 on 5 October 2026
 
@@ -19,7 +19,7 @@ Read over SSH as the visitor. Nothing was written to the host's storage or to
 the Acorn; a report file in `/run` was made and removed, and GPIO2 and GPIO4,
 left as outputs by a hand-run `openFPGALoader --detect`, were put back.
 
-| | Read on pi16, 2026-10-05 |
+| | Read on pi16 at ps1, 2026-10-05 |
 |---|---|
 | Module | Compute Module 5 Lite Rev 1.0, 8 GB, MAC `2c:cf:67:fb:91:e5` |
 | System | Raspbian 13 (trixie), 32-bit userspace on kernel `6.18.50+rpt-rpi-v8`; Debian's openFPGALoader 0.13.1 |
@@ -37,7 +37,7 @@ Two things follow from the serial port being on:
   then stops on a libgpiod assertion instead of saying so. Tracked in
   [test-designs issue
   #127](https://github.com/fpgas-online/fpgas.online-test-designs/issues/127).
-  So whether pi16's P1 cable is mated cannot be told from a scan today; the
+  So whether pi16 at ps1's P1 cable is mated cannot be told from a scan today; the
   "P1 unmated" in the table is the pull-up reading of 2026-09-20.
 - **The kernel console is on the FPGA's UART**, which the [wiring
   page](../wiring.md#kernel-console-on-the-fpga-uart) warns
@@ -49,34 +49,34 @@ holds GPIO14 whether or not a console or a getty uses the port. For JTAG the
 header's serial port itself has to be off at boot (`enable_uart=0`, and no
 `console=serial0` word), and in that boot the tests of the P2 serial pair
 cannot run. **Not yet run by us on this hardware.** The same applies to any
-blade on this kernel with the serial port on, pi20 included (next section).
+blade on this kernel with the serial port on, pi20 at ps1 included (next section).
 
 ## pi20 at ps1 on 5 October 2026
 
 Read over SSH as the visitor, without sudo; nothing was installed, copied or
 changed.
 
-| | Read on pi20, 2026-10-05 |
+| | Read on pi20 at ps1, 2026-10-05 |
 |---|---|
 | Module | Compute Module 5 Lite Rev 1.0, 8 GB, MAC `2c:cf:67:fd:1e:be` |
 | System | Raspbian 13 (trixie), 32-bit userspace on kernel `6.18.50+rpt-rpi-v8`; Debian's openFPGALoader 0.13.1 |
-| Serial port | `enable_uart=1`, `console=ttyAMA0,115200` on the kernel command line, and `serial-getty@ttyAMA0` active: the same boot settings as pi16 |
+| Serial port | `enable_uart=1`, `console=ttyAMA0,115200` on the kernel command line, and `serial-getty@ttyAMA0` active: the same boot settings as pi16 at ps1 |
 | Card | `10ee:7011` at `0001:01:00.0`: the ID of Xilinx's XDMA sample design (`fpgas-verify` would report it as unconverted); not SQRL's factory image and not the fpgas.online design. Which image it is beyond that ID was not read |
 | `fpgas-verify` | not installed, so it has not run here |
 
-pi20's JTAG answered on 2026-09-20 under kernel 6.12.75. On 2026-10-05 it ran
-the same kernel as pi16 with the same serial-port settings, so its JTAG is
+pi20 at ps1's JTAG answered on 2026-09-20 under kernel 6.12.75. On 2026-10-05 it ran
+the same kernel as pi16 at ps1 with the same serial-port settings, so its JTAG is
 **expected not to run** for the same reason (the serial driver holds GPIO14).
-**Not tried:** no JTAG command was run on pi20 that day.
+**Not tried:** no JTAG command was run on pi20 at ps1 that day.
 
 ## Where a blade's boot configuration is
 
-Read on pi16 and pi20 themselves on 2026-10-05, not on the gateway: on both,
+Read on pi16 at ps1 and pi20 at ps1 themselves on 2026-10-05, not on the gateway: on both,
 the kernel command line has `nfsroot=10.21.0.1:/srv/nfs/rpi/trixie/root` and
 `console=ttyAMA0,115200`, and `/boot/firmware/config.txt` has `enable_uart=1`
-under `[all]` and no overlay for the UART. On pi16 `/boot/firmware/cmdline.txt`
+under `[all]` and no overlay for the UART. On pi16 at ps1 `/boot/firmware/cmdline.txt`
 holds the same line with `console=serial0,115200`; that file was not read on
-pi20.
+pi20 at ps1.
 
 The settings to change for JTAG (`enable_uart` in `config.txt`, and the
 `console=serial0` word in `cmdline.txt`) are in those two files, but where their
