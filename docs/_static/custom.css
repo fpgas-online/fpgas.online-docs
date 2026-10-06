@@ -19,8 +19,9 @@ article[role=main] table.docutils.nowrap th {
    empty on both sides. Here the page takes the whole window: the navigation
    keeps its own width at the left edge and the content fills what is left
    (Tim, 6 October 2026: "page should take up 100% of horizontal space").
-   Below 63em the theme turns the navigation into a drawer and already gives
-   the content the full width, so these rules start there. */
+   Below 63em the theme turns the navigation into a drawer; it gives the
+   content the full width only below 48em, so the band between has a rule of
+   its own after this one. */
 @media (min-width: 63em) {
   .sidebar-drawer {
     flex: 0 0 15em;
@@ -38,6 +39,15 @@ article[role=main] table.docutils.nowrap th {
     margin-left: 0;
     margin-right: 0;
     padding: 0 2em;
+  }
+}
+
+/* From 48em to 63em the theme still centres a 46em column; below 48em it
+   already sets exactly this. */
+@media (max-width: 63em) {
+  .content {
+    width: 100%;
+    overflow-x: auto;
   }
 }
 
