@@ -72,6 +72,22 @@ class RewriteLinks(unittest.TestCase):
         ):
             self.assertEqual(s.rewrite_links(same, "docs/verify.md", "docs/verify/fpgas-verify.md", "main"), same)
 
+    def test_a_copied_files_links_to_this_site_are_written_from_the_source_root(self):
+        text = (
+            "[a](https://docs.fpgas.online/en/latest/verify/fpgas-verify.html#common-failures) "
+            "[b](https://docs.fpgas.online/en/latest/boards/acorn/pcie-programming.html) "
+            "[c](https://docs.fpgas.online/en/latest/no/such/page.html#x) "
+            "[d](https://github.com/fpgas-online/fpgas.online-test-designs/issues/127)\n"
+            "```\n[e](https://docs.fpgas.online/en/latest/index.html)\n```\n"
+            "https://docs.fpgas.online/en/latest/verify/fpgas-verify.html#common-failures as bare text")
+        self.assertEqual(
+            s.own_links(text),
+            "[a](/verify/fpgas-verify.md#common-failures) [b](/boards/acorn/pcie-programming.md) "
+            "[c](https://docs.fpgas.online/en/latest/no/such/page.html#x) "
+            "[d](https://github.com/fpgas-online/fpgas.online-test-designs/issues/127)\n"
+            "```\n[e](https://docs.fpgas.online/en/latest/index.html)\n```\n"
+            "https://docs.fpgas.online/en/latest/verify/fpgas-verify.html#common-failures as bare text")
+
     def test_link_forms_it_cannot_rewrite_stop_the_sync(self):
         for text in ("[x]: other.md", "![shot](shot.png)", "[x](<other file.md>)", '[x](other.md "title")',
                      '<a href="other.md">x</a>', '<img src="shot.png">'):

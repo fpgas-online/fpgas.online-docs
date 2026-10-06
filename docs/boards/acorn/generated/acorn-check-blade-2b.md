@@ -2,11 +2,11 @@
 
 ## Every other message about an Acorn
 
-The check's own words, from the tool's list of [common failures](https://docs.fpgas.online/en/latest/verify/fpgas-verify.html#common-failures), which has the other boards' too. A wire of the cables is behind the `jtag` and `p2-…` lines only; for those, the page "verifying 2" goes from the line to the wire.
+The check's own words, from the tool's list of [common failures](/verify/fpgas-verify.md#common-failures), which has the other boards' too. A wire of the cables is behind the `jtag` and `p2-…` lines only; for those, the page "verifying 2" goes from the line to the wire.
 
 | It says | Meaning, and what to do |
 |---|---|
-| `fail`: `unconverted: …` | an Acorn on SQRL's factory image (or the XDMA sample): convert it ([converting a card](https://docs.fpgas.online/en/latest/boards/acorn/pcie-programming.html)) |
+| `fail`: `unconverted: …` | an Acorn on SQRL's factory image (or the XDMA sample): convert it ([converting a card](/boards/acorn/pcie-programming.md)) |
 | `fail`: `… is not a design we built` | a Xilinx PCIe design the Acorn check does not know; its flash is not read |
 | `fail`: `running the golden image` | the Acorn's operational slot did not boot; it fell back to golden |
 | `fail`: `link is x2, expected x1` | the Acorn's PCIe link is not the setup's (`expected.toml`) |
