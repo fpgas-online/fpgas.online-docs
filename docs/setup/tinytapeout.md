@@ -8,7 +8,7 @@ WebSerial. The bytes come from `fpgas-tt`, a daemon on that board's Raspberry Pi
 which owns the demo board's USB serial port and fans it out to every viewer at
 once. This page covers the software: the daemon, the board catalogue the daemon
 and the site share, the demo bitstreams, and the Commander fork. The hardware is
-on [Tiny Tapeout FPGA demo board](../boards/tt-fpga.md) and
+on [Tiny Tapeout FPGA demo board](../boards/tt-fpga/index.md) and
 [Tiny Tapeout ASIC demo boards](../boards/tt-asic.md); the Django side of the
 site is [The web application](webapp.md).
 
@@ -57,7 +57,7 @@ that creates it ships in the same package and is described under
 [Serial consoles](pi.md#serial-consoles). What the daemon holding that port open
 means for anything else that wants it — and how to take it back, and why to give
 it straight back — is under
-[Serial port ownership](../boards/tt-fpga.md#serial-port-ownership) and
+[Serial port ownership](#serial-port-ownership) below and
 [Connection to the Pi](../boards/tt-asic.md#connection-to-the-pi).
 
 One object owns that port. `WS /serial` is the bridge: every connected client
@@ -86,7 +86,40 @@ decomposes it into `(switch, port)`, and looks itself up in
 is not in the catalogue leaves it a plain `asic` bridge. There are no per-Pi
 configuration files and no boot-time fetches.
 
+### Serial port ownership
+
+**USB device:** `/dev/ttyACM0` (VID:PID `2e8a:0005` — MicroPython Board in FS
+mode), with a udev symlink **`/dev/ttboard`** that the Pi daemon opens.
+
+**The serial port has a permanent owner.** Every TT host runs the
+[`fpgas-tt`](https://github.com/fpgas-online/fpgas.online-tt) daemon
+(`fpgas-online-tt` 0.0.post52, reports version 0.1.0), which holds
+`/dev/ttboard` open at 115200 baud and fans it out as a WebSocket on port 8765
+(`WS /serial`, `GET /health`, reachable only from the gateway thanks to the
+per-port VLANs). Verified 2026-09-03: `fuser /dev/ttyACM0` shows the daemon's
+python3 process on every TT host then at welland. Consequences for the test tooling:
+
+- `mpremote` and the
+  [bitstream programming script](https://github.com/fpgas-online/fpgas.online-test-designs/blob/main/designs/_host/tt_fpga_program.py)
+  cannot open `/dev/ttyACM0` while the daemon runs. Stop it first
+  (`sudo systemctl stop fpgas-tt`) and start it again afterwards, or drive the
+  board through the daemon's `/serial` socket.
+- The bitstream-loading and design-listing features now live in the daemon
+  (`/designs`, `/bitstream`, demos via the `fpgas-online-tt-demos` package),
+  which is what the public site uses.
+- The boot check (`fpgas-verify`) stops `fpgas-tt.service` for its tests and starts it again itself:
+  [what each board's check tests](../verify/fpgas-verify.md#arty-netv2-fomu-and-tt-fpga).
+
 ### FPGA-board routes
+
+:::{note}
+**The rule: an FPGA on a demo board is loaded by streaming only**, and no code of ours may write, replace or
+delete a file on a Tiny Tapeout demo board. The routes below are described as this page recorded them in
+September 2026, when the daemon kept bitstreams under `/bitstreams` on the board. The daemon's README on its
+`main` branch (read on 6 October 2026) says that has changed: "Nothing writes to the demo board's filesystem.
+Every design is a file on the Pi". The table below has not yet been brought up to that README:
+[fpgas.online-tt](https://github.com/fpgas-online/fpgas.online-tt/blob/main/README.md) is the record.
+:::
 
 On a `kind: fpga` board four more routes manage bitstreams over the board's raw
 MicroPython REPL, each run through the bridge like any other client:

@@ -312,34 +312,11 @@ session; catalogue = `tt_boards` in infra `host_vars/fpgas.online.yml`.
 
 ### Tiny Tapeout FPGA demo boards
 
-Probed 2026-09-03. Four boards on S3300 ports 33–36, on RPi 4 hosts with PMOD
-HATs. These carry an **iCE40UP5K FPGA** (FabricFox breakout) that emulates Tiny
-Tapeout designs, on a TT demo board **v3 (RP2350B)** running TT SDK **3.1.0**
-(reflashed 2026-08-23). They are **not** ASIC boards. Public as `fpga-1` …
-`fpga-4` on tinytapeout.fpgas.online since 2026-08-24, where users can run
-bundled demos or upload their own bitstream.
-
-```{rst-class} nowrap
-```
-
-| Host       | Slug   | Switch Port | IP         | RPi MAC           | RPi Model (rev)              | USB VID:PID | RP2350 Serial    | Old name |
-| ---------- | ------ | ----------- | ---------- | ----------------- | ---------------------------- | ----------- | ---------------- | -------- |
-| [pi-sw2-p33](https://welland.fpgas.online/fpgas/pi-sw2-p33.html) | [fpga-1](https://tinytapeout.fpgas.online/board/fpga-1/) | sw2 p33 | 10.21.2.33 | e4:5f:01:97:0e:77 | RPi 4 2 GB Rev 1.5 (b03115) | 2e8a:0005 | 4df39a7a6856f86f | pi27 |
-| [pi-sw2-p34](https://welland.fpgas.online/fpgas/pi-sw2-p34.html) | [fpga-2](https://tinytapeout.fpgas.online/board/fpga-2/) | sw2 p34 | 10.21.2.34 | e4:5f:01:97:27:f2 | RPi 4 2 GB Rev 1.5 (b03115) | 2e8a:0005 | fd1a167bd863a198 | pi29 |
-| [pi-sw2-p35](https://welland.fpgas.online/fpgas/pi-sw2-p35.html) | [fpga-3](https://tinytapeout.fpgas.online/board/fpga-3/) | sw2 p35 | 10.21.2.35 | e4:5f:01:97:0c:e3 | RPi 4 2 GB Rev 1.5 (b03115) | 2e8a:0005 | 8c46329b33590ecb | pi31 |
-| [pi-sw2-p36](https://welland.fpgas.online/fpgas/pi-sw2-p36.html) | [fpga-4](https://tinytapeout.fpgas.online/board/fpga-4/) | sw2 p36 | 10.21.2.36 | e4:5f:01:8e:02:27 | RPi 4 8 GB Rev 1.5 (d03115) | 2e8a:0005 | a2961e5cac65b25f | pi33 |
-
-Each RPi connects to its board over USB-C, has a Digilent Pmod HAT for
-GPIO-level control of the TT I/O pins, and an ov5647 camera publishing a live
-feed. Like the ASIC boards they appear as "MicroPython Board in FS mode" with
-the `/dev/ttboard` symlink, and the `fpgas-tt` daemon owns the port. Each
-board's `status.json` (for example
-`https://tinytapeout.fpgas.online/board/fpga-1/status.json`) reports the daemon's
-`/health` plus `reachable`, and is the quickest liveness check. Each board
-carries its own custom bitstreams, and tweed holds a backup of them. See
-[Tiny Tapeout FPGA demo board](../boards/tt-fpga.md) for the firmware.
-
-Source: live probe 2026-09-03 (`lsusb`, `/dev/serial/by-id`, daemon `/health`).
+Tiny Tapeout demo boards (version 3, RP2350) carrying the FabricFox iCE40UP5K FPGA breakout, each on a
+Raspberry Pi 4 with a Pmod HAT and a camera, public on
+[tinytapeout.fpgas.online](https://tinytapeout.fpgas.online). Which boards exist, what was last read from
+each and what each still needs: [Tiny Tapeout FPGA boards at
+welland](../boards/tt-fpga/installations/welland.md).
 
 ## Disconnected hosts
 

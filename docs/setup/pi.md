@@ -366,7 +366,7 @@ RP2040/RP2350 CDC port gets a stable `/dev/ttboard` symlink from a udev rule in
 `fpgas-tt` holds that port open permanently and fans it out over WebSocket, so
 `mpremote` and the programming scripts cannot open it while the daemon runs —
 the full consequences are under
-[Serial port ownership](../boards/tt-fpga.md#serial-port-ownership).
+[Serial port ownership](tinytapeout.md#serial-port-ownership).
 
 **The 40-pin header UART.** When the FPGA is going to drive this, the login
 console has to be out of the way first, and `stop` alone is not enough because

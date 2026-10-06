@@ -12,7 +12,7 @@ arty-a7
 acorn/index
 netv2
 fomu-evt
-tt-fpga
+tt-fpga/index
 tt-asic
 pmod/index
 pin-id
@@ -31,7 +31,7 @@ page disagrees, the site page is the measured source and wins.
 | [Sqrl Acorn CLE-215+](https://github.com/enjoy-digital/litex/wiki/Use-LiteX-on-the-Acorn-CLE-215) | [SQRL Acorn](acorn/index.md), [wiring on a Raspberry Pi 5](acorn/wiring/rpi-5.md), [installing the images](acorn/designs/install-images.md) | ×6 | — | Xilinx XC7A200T | DDR3, PCIe, SPI&nbsp;Flash, GPIO&nbsp;JTAG+UART |
 | [LiteFury](https://github.com/RHSResearchLLC/NiteFury-and-LiteFury) / Acorn CLE-101 | [SQRL Acorn](acorn/index.md), [wiring on a Compute Blade](acorn/wiring/compute-blade.md), [installing the images](acorn/designs/install-images.md) | — | ×3&nbsp;(+×1) | Xilinx XC7A100T | DDR3, PCIe, SPI&nbsp;Flash, GPIO&nbsp;JTAG+UART |
 | [Fomu EVT](https://www.crowdsupply.com/sutajio-kosagi/fomu) | [Fomu EVT](fomu-evt.md), [wiring to the Pi](fomu-evt.md#wiring-to-the-raspberry-pi) | ×2 | — | Lattice iCE40UP5K | USB&nbsp;1.1, SPI&nbsp;Flash, PMOD, I2C |
-| [TT FPGA Demo Board](https://tinytapeout.com/guides/fpga-breakout/) | [TT FPGA demo board](tt-fpga.md), [pin mapping](tt-fpga.md#pin-mapping), [live board page](https://tinytapeout.fpgas.online/board/fpga-1/) | ×4 | —&nbsp;(+×4) | Lattice iCE40UP5K | PMOD, USB&nbsp;(RP2350), SPI&nbsp;Flash |
+| [TT FPGA Demo Board](https://tinytapeout.com/guides/fpga-breakout/) | [TT FPGA demo board](tt-fpga/index.md), [wiring to the Pi](tt-fpga/wiring/cables.md), [live board page](https://tinytapeout.fpgas.online/board/fpga-1/) | ×4 | —&nbsp;(+×4) | Lattice iCE40UP5K | PMOD, USB&nbsp;(RP2350) |
 | [ButterStick](https://github.com/butterstick-fpga) | [ButterStick](butterstick.md) | —&nbsp;(+×4) | — | Lattice ECP5UM5G-85F | DDR3, GbE, USB&nbsp;2.0, SYZYGY |
 | [ULX3S](https://radiona.org/ulx3s/) | [ULX3S](ulx3s.md) | —&nbsp;(+×4) | — | Lattice ECP5 (various) | SDRAM, USB, WiFi, PMOD |
 | [TT02](https://tinytapeout.com/chips/tt02/) | [TT ASIC boards](tt-asic.md), [connection to the Pi](tt-asic.md#connection-to-the-pi) | —&nbsp;(+×1) | —&nbsp;(+×1) | SKY130 ASIC | PMOD, USB&nbsp;(RP2040) |
@@ -123,7 +123,7 @@ board is on the [site pages](../sites/index.md).
 | SQRL Acorn CLE-215+ and LiteFury CLE-101 | GPIO bit-bang JTAG (P1); GPIO UART (P2) on `/dev/ttyAMA0`; PCIe through the M.2 HAT on a Pi 5, or the carrier's own M.2 slot on a Compute Blade | [SQRL Acorn](acorn/index.md) |
 | Fomu EVT | Native USB (ValentyUSB), programmed over DFU with a USB analyzer inline; the board also sits on the GPIO header, so the test UART is the Pi's own GPIO UART at 115200 on `/dev/serial0` (iCE40 pins 13/21 to GPIO14/15) plus one confirmed GPIO loopback pair | [Fomu EVT](fomu-evt.md) |
 | Tiny Tapeout ASIC | USB to the RP2040 as `/dev/ttboard`; PMOD HAT | [Tiny Tapeout ASIC](tt-asic.md) |
-| Tiny Tapeout FPGA demo | USB-C to the RP2350 as `/dev/ttboard`; PMOD HAT | [Tiny Tapeout FPGA](tt-fpga.md) |
+| Tiny Tapeout FPGA demo | USB-C to the RP2350 as `/dev/ttboard`; PMOD HAT | [Tiny Tapeout FPGA](tt-fpga/index.md) |
 
 The Digilent PMOD HAT is fitted on the Arty A7, Tiny Tapeout ASIC and Tiny
 Tapeout FPGA hosts, breaking Pi GPIOs out to three standard 12-pin PMOD ports

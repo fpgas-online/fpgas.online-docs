@@ -7,7 +7,7 @@ datasheets. Several board pages defer their open wiring questions to this
 method, including the Arty A7's
 [PMOD cable routing](arty-a7.md#pmod-cable-routing-hat--arty), the Acorn's
 [P2 wiring check](acorn/designs/pin-id.md),
-and the TT FPGA's [pin mapping](tt-fpga.md#pin-mapping).
+and the TT FPGA's [pin mapping](tt-fpga/designs/pmod-pin-id.md).
 
 ## How It Works
 
@@ -288,7 +288,7 @@ scans, and the 4 that garbled in one scan were confirmed via the other.
 :::{note}
 A loopback test cannot arbitrate bit order — driving and reading use the same
 permutation, so any consistent swap between the two still passes — while
-pin-id can, as recorded on the [TT FPGA pin mapping](tt-fpga.md#pin-mapping)
+pin-id can, as recorded on the [TT FPGA pin-ID test](tt-fpga/designs/pmod-pin-id.md#what-it-has-measured)
 page.
 :::
 

@@ -161,25 +161,15 @@ Source: `/etc/dnsmasq.d/pibs.conf` on val2 and the 2026-08-31 switch dump, via
 
 ### Pending
 
-Probed live 2026-09-03; the PS1 rows were still TBD at that probe. Four Tiny
-Tapeout FPGA demo boards are allocated to PS1 and not yet installed. The source
-inventory carries four identical rows for them — host, switch port, IP, RPi MAC
-and RP2350 serial are all TBD, and there is no board page yet:
-
-```{rst-class} nowrap
-```
-
-| Site | Board | Count | Host | Switch Port | IP | RPi MAC | RP2350 Serial | Board page |
-|---|---|---|---|---|---|---|---|---|
-| PS1 | Tiny Tapeout FPGA demo | ×4 | TBD | TBD | TBD | TBD | TBD | — |
+No Tiny Tapeout FPGA demo board is installed at ps1; boards are allocated and not yet installed (probed
+live 2026-09-03). What is recorded about them: [Tiny Tapeout FPGA boards at
+ps1](../boards/tt-fpga/installations/ps1.md).
 
 Seven Tiny Tapeout ASIC boards are pending as well (one each for TT02-TT09
 except TT08), and pi18's M.2 slot is still waiting for an Acorn. See
-[Tiny Tapeout FPGA demo board](../boards/tt-fpga.md) and
 [Tiny Tapeout ASIC boards](../boards/tt-asic.md).
 
-Source: the deployment table in `tt-fpga.md` (probed live 2026-09-03) and the
-board summary in `site-ps1.md`.
+Source: the board summary in `site-ps1.md`.
 
 ## PoE switch
 

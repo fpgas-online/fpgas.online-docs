@@ -174,8 +174,10 @@ Board: [TT Audio Pmod](https://github.com/MichaelBell/tt-audio-pmod) — compati
 
 :::{note}
 These tables are derived from the Tiny Tapeout specification. The mapping
-measured on the Welland FPGA demo boards is on the
-[Tiny Tapeout FPGA demo board](../tt-fpga.md#pin-mapping) page; the two agree.
+measured on the Welland FPGA demo boards (FPGA pin to Raspberry Pi GPIO) is on the
+[Tiny Tapeout FPGA wiring pages](../tt-fpga/wiring/cables.md). The RP2350 GPIO numbers given there are these
+same ones, from this specification; apart from the pins our loader and serial bridge use they are not verified
+by us ([sources](../tt-fpga/wiring/sources.md)).
 :::
 
 ## RP2350 GPIO Mapping (Demo Board v3, TT09+)
