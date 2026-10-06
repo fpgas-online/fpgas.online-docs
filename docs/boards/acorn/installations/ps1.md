@@ -8,6 +8,16 @@ its date, is on [Acorns at ps1: what was read on each blade](ps1-reads.md).
 
 ## The cards
 
+**Which blade in the hand is which name: we hold no record of it.** Nothing we have says which slot or
+position pi14, pi16, pi18 or pi20 at ps1 is in. What ties a name to a blade is its Ethernet MAC address: the
+ps1 gateway's DHCP reservations give each name its MAC, and a blade reports its own (`ip link` on the blade;
+the eth line of its label). The two MACs we have read are under [Labels](#labels).
+
+**A blade whose ssh port does not answer cannot be checked from this guide.** The visitor ports of pi14 at
+ps1 and pi18 at ps1 did not answer on 5 October 2026; why is not known (off, not booted, or the forward
+missing). Until such a blade answers, its cables can be made, bench-checked and fitted, and nothing can be
+run on it.
+
 Four Compute Blades; three carry an Acorn. A card is named by its label once it
 has one: an Acorn's label carries its device DNA and its flash ID, and the
 flash ID is read through the fpgas.online design, so a card gets its label when
@@ -91,8 +101,18 @@ converted a card on one yet: **not yet run by us on this hardware**.
 **The Host column is Carl's to do, on the gateway, not on a blade.** The two files it means, `config.txt` and
 `cmdline.txt`, are in one directory on the ps1 gateway, `/srv/nfs/rpi/trixie/boot/`, which every netbooted
 host at ps1 boots from (read on the ps1 gateway, 6 October 2026): a change there reaches all of them at their
-next boot. In order: the host's console and serial port first, then the cables, then the endpoint detached,
-then a load over JTAG.
+next boot.
+
+**The order of work.** The cables come first: making them, checking them on the bench and fitting them needs
+nothing from the gateway. The Host column comes after, and only when you want JTAG to run on a blade, which is
+what converting a card needs: it is a change for every netbooted host at ps1, so it is yours to decide and to
+time. Then, for a load over JTAG: the endpoint detached first (the warning above), then the load.
+
+What the Host column's change is, as far as it is written: the two lines are in the paragraph that begins "JTAG and the serial pair share
+GPIO14" on [verifying 3](../building/compute-blade/verifying-3.md) (`enable_uart=0` in
+`config.txt`; `console=serial0,115200` out of `cmdline.txt`). **Not yet tried by us on a blade.** Taking the
+login prompt (the serial getty) off that port as well has **no written steps yet**; whether it is still
+needed once `enable_uart=0` is set has not been tried either.
 
 **pi20 at ps1's present P2 wiring is not the guide's.** How its cable is made was not recorded, only where
 its serial pair lands (Extension Port pins 9 and 10). The way to the guide's wiring that needs no knowledge of

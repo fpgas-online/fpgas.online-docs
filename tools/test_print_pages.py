@@ -692,6 +692,10 @@ class Document(unittest.TestCase):
         self.assertIn("commit 0123456789 ·", text)
         self.assertNotIn("0123456789a", text.split("</style>")[0])
 
+    def test_the_foot_counts_the_appended_sheets_that_carry_no_foot(self):
+        self.assertIn('counter(pages) "";', self.make())
+        self.assertIn('counter(pages) " + 2 unnumbered";', self.make(appended=2))
+
     def test_link_lists_are_printed_unless_asked_not_to(self):
         self.assertIn("lists=True", self.make())
         text = self.make(link_lists=False)
@@ -1037,6 +1041,7 @@ class Printing(unittest.TestCase):
         label = self.dir / "labels.pdf"
         label.write_bytes(b"%PDF label")
         self.pages = "Pages:          2\nPage    1 size: 792 x 612 pts\nPage    2 size: 612.5 x 791 pts\n"
+        self.assertEqual(p.appended_sheets([label, label], "Letter"), 4)
         self.main("--append", str(label))
         self.assertEqual((self.dir / "x.pdf").read_bytes(), b"%PDF united")
 
@@ -1052,7 +1057,7 @@ CHROME = p.CHROME
 class Css(unittest.TestCase):
     def test_the_stylesheet_takes_each_paper_size(self):
         for paper, size in p.PAPERS.items():
-            css = p.CSS % {"paper": size, "foot": "x"}
+            css = p.CSS % {"paper": size, "foot": "x", "after": ""}
             self.assertIn(f"size: {size} portrait", css)
             self.assertIn(f"size: {size} landscape", css)
 
