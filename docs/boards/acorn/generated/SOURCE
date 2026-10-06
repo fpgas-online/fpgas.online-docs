@@ -1,5 +1,5 @@
 These files are copied from https://github.com/fpgas-online/fpgas.online-test-designs
 by tools/sync_test_designs.py. Do not edit them here: change them in test-designs.
 
-ref: main
-commit: f459750cd6475411d0cc1677976c23b63bb7a9da
+ref: tt-fpga-wiring
+commit: 4be2a0509e711c43331f31c0be85b983c78cc44d
