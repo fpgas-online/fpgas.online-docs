@@ -20,8 +20,8 @@ out — not on the site:
   `--pins 2:3:4:14`. P2's serial pair goes to the 4-pin UART header, and J5 and
   H5 are not connected. The UART header's TX pin is the same GPIO14 as TMS, so
   the J2 wire has a 470 Ω resistor in it so that JTAG should win (designed so,
-  not yet measured). No PS1 blade is
-  wired this way yet; how each one is wired now is on [Acorns at
+  not yet measured). Whether a ps1 blade is wired this way,
+  and how each one is wired, is on [Acorns at
   ps1](../installations/ps1.md#the-cards).
 
 On both carriers the serial pair lands on the same GPIOs — K2 (FPGA TX) on
@@ -41,17 +41,18 @@ P1 is wired to GPIOs on the Pi's header; openFPGALoader bit-bangs JTAG through
 libgpiod (about 16 s for a full XC7A200T bitstream). The load goes to SRAM only
 and is lost at power-off, which is what makes it safe to experiment with.
 
+On a **Raspberry Pi 5** (these three commands are for that carrier only):
+
 ```console
 $ echo 1 | sudo tee /sys/bus/pci/devices/0001:01:00.0/remove   # detach the endpoint first
 $ sudo ln -sfn /dev/gpiochip15 /dev/gpiochip0                  # Pi 5 only: libgpiod opens gpiochip0
 $ openFPGALoader --cable libgpiod --pins 10:9:11:8 <bitstream.bit>
 ```
 
-These are for the Raspberry Pi 5 carrier. On a Compute Blade the JTAG pins are
+**On a Compute Blade do not make this `gpiochip0` link and do not use these commands.** There the JTAG pins are
 `2:3:4:14` (P1 lands on GPIO2, 3, 4 and 14: the I²C pair, GPIO4 and the UART TX
-line), and the PCIe bus address differs per blade; see [Compute
-Blade](../wiring/compute-blade.md) and the [PS1 Compute
-blades](../installations/ps1.md#the-cards) inventory.
+line), and the PCIe bus address differs per blade; see [JTAG on a
+blade](../wiring/compute-blade-jtag.md#jtag-on-a-blade) and [Acorns at ps1](../installations/ps1.md#the-cards).
 
 :::{warning}
 Detach the PCIe endpoint before loading a bitstream. Reconfiguring the FPGA
@@ -112,5 +113,5 @@ the Acorn packages](../packages.md#installing-the-acorn-packages).
 ## Where they are
 
 CLE-215+ cards at Welland on Raspberry Pi 5 hosts: [Acorns at welland](../installations/welland.md). CLE-101 /
-LiteFury cards at PS1 on Compute Blades: [Acorns at ps1](../installations/ps1.md). Those pages carry the
+LiteFury cards at ps1 on Compute Blades: [Acorns at ps1](../installations/ps1.md). Those pages carry the
 per-card tables.

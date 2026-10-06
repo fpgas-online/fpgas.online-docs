@@ -8,6 +8,10 @@ Blade](../wiring/compute-blade.md).
 
 ## Key specifications
 
+The table describes the CLE-215+. The CLE-215 has the same FPGA in speed grade -2. A CLE-101 or a LiteFury
+has an XC7A100T (speed grade -2) and 512 MB of DDR3, and a NiteFury an XC7A200T with 512 MB: [Acorn
+variants](variants.md#compatible-boards).
+
 | Parameter        | Value                            |
 | ---------------- | -------------------------------- |
 | FPGA             | Xilinx Artix-7 XC7A200T-FBG484-3 |

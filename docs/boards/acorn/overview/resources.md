@@ -5,11 +5,9 @@ documents, our own repositories, and where the generated wiring comes from.**
 
 ## Where the wiring comes from
 
-The wiring sheets, pin tables and the building guide's pages are generated in
-[fpgas.online-test-designs](https://github.com/fpgas-online/fpgas.online-test-designs/tree/main/docs/wiring/acorn)
-from a single table, `wiring.toml`, and copied here by
-`tools/sync_test_designs.py`. To change the wiring, change that table, not these
-pages.
+The wiring has one source: the table `wiring.toml` in
+[fpgas.online-test-designs](https://github.com/fpgas-online/fpgas.online-test-designs/tree/main/docs/wiring/acorn).
+The wiring sheets, the pin tables and the building guide's pages are generated from it.
 
 ## LiteX support
 
