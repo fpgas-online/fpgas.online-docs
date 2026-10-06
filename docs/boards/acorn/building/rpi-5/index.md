@@ -20,4 +20,5 @@ bench-check
 fitting
 verifying-1
 verifying-2
+verifying-2b
 ```

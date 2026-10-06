@@ -2,4 +2,4 @@ These files are copied from https://github.com/fpgas-online/fpgas.online-test-de
 by tools/sync_test_designs.py. Do not edit them here: change them in test-designs.
 
 ref: acorn-check-pages
-commit: 12d570123b5edd123e24dcf33e700cab7e620baa
+commit: c8e3338c25cc1953df06c0806fcc3487f04ba8a6
