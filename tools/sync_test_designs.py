@@ -58,6 +58,8 @@ FILES = {
             "acorn-blade-bom.md",
             "acorn-cables-blade.md",
             "acorn-cables-pi5.md",
+            "acorn-card-underside.svg",
+            "acorn-card-underside.png",
             "acorn-cable-cut.png",
             "acorn-cable-p1-flag.png",
             "acorn-cable-p1-ground-check.png",

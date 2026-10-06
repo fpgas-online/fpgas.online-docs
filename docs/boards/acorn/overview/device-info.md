@@ -6,6 +6,12 @@ the cards of the family is on [Acorn variants](variants.md); the two connectors 
 are on the wiring pages, [on a Raspberry Pi 5](../wiring/rpi-5.md) and [on a Compute
 Blade](../wiring/compute-blade.md).
 
+## The card
+
+![The connector end of the card from the underside, in a photograph of a LiteFury (the same PCB as the Acorn): the two 6-pin sockets P1 and P2 with pin 1 of each marked, and the half-round plated mounting pad at the card's end](../generated/acorn-card-underside.png)
+
+The photograph shows the connector end of the underside, which is the end the two cables plug into.
+
 ## Key specifications
 
 The table describes the CLE-215+. The CLE-215 has the same FPGA in speed grade -2. A CLE-101 or a LiteFury
