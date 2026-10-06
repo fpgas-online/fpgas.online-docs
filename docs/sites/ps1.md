@@ -262,7 +262,7 @@ built and deployed is in [The web application](../setup/webapp.md).
 
 The hosts here are checked the same way as any machine outside the fleet:
 install the Acorn packages on the host and run `fpgas-verify`. See
-[Installing the Acorn packages](../boards/acorn/index.md#installing-the-acorn-packages)
+[Installing the Acorn packages](../boards/acorn/packages.md#installing-the-acorn-packages)
 and [Checking a board: fpgas-verify](../verify/fpgas-verify.md), which covers
 running it, reading the result, updating the record and debugging a failure.
 

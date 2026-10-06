@@ -119,7 +119,7 @@ PAGES = {
 # (source document, its "## " heading): the fragment written here, and the page here that includes it
 SECTIONS = {
     ("docs/hardware/acorn.md", "Installing the Acorn Packages"):
-        ("docs/boards/generated/install-acorn.md", "docs/boards/acorn/index.md"),
+        ("docs/boards/generated/install-acorn.md", "docs/boards/acorn/packages.md"),
     ("docs/hardware/arty-a7.md", "Installing the Arty Packages"):
         ("docs/boards/generated/install-arty-a7.md", "docs/boards/arty-a7.md"),
     ("docs/hardware/netv2.md", "Installing the NeTV2 Packages"):

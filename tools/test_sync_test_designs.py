@@ -24,7 +24,7 @@ class RewriteLinks(unittest.TestCase):
 
     def test_link_to_a_board_install_section_goes_to_the_board_page_here(self):
         self.assertEqual(self.page("[a](hardware/acorn.md#installing-the-acorn-packages)"),
-                         "[a](../boards/acorn/index.md#installing-the-acorn-packages)")
+                         "[a](../boards/acorn/packages.md#installing-the-acorn-packages)")
 
     def test_other_heading_of_a_board_document_goes_to_github(self):
         self.assertEqual(self.page("[a](hardware/acorn.md#clock)"), f"[a]({GH}/blob/main/docs/hardware/acorn.md#clock)")
