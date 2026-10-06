@@ -83,8 +83,6 @@ cables](#building-the-cables)).
 
 ## Raspberry Pi 5
 
-A Pi 4 or Pi 3B has the same 40-pin header and takes the same cable.
-
 [![Acorn to Raspberry Pi 5 wiring sheet](generated/acorn-wiring-pi5.png)](generated/acorn-wiring-pi5.svg)
 
 ### P2: serial pair and spare GPIOs
@@ -98,11 +96,11 @@ P2 goes to a 2×3 Dupont housing on header pins 5-10. The cavity over pin 9
 The serial pair is a **null-modem crossover**: the FPGA's transmitter (K2) lands
 on the Pi's receiver (GPIO15 / RXD0) and the FPGA's receiver (J2) on the Pi's
 transmitter (GPIO14 / TXD0). This is the Raspberry Pi header convention that
-`/dev/ttyAMA0` uses on every Pi generation, and the one the NeTV2 boards use
+`/dev/ttyAMA0` uses, and the one the NeTV2 boards use
 ([NeTV2 primary UART](../netv2.md#primary-uart-via-rpi-gpio)). How firmly the
 host holds to it:
 
-- **BCM2711 / BCM2837 hosts (Pi 3, Pi 4, CM4):** the PL011 mux is fixed —
+- **BCM2711 hosts (a CM4 on a Compute Blade):** the PL011 mux is fixed —
   GPIO14 can only be a UART transmitter and GPIO15 only a receiver — so the
   crossover is the one wiring that works.
 - **RP1 hosts (Pi 5, CM5):** the hardware UART0 is only offered as GPIO14 =
@@ -118,8 +116,8 @@ host holds to it:
 | Pre-test  | `systemctl stop serial-getty@ttyAMA0` (inactive on the Welland fleet; active on pi16 at PS1 on 2026-10-05) |
 
 **A Pi 5 needs an explicit overlay for this UART.** `bcm2712-rpi-5-b.dtb` ships
-the RP1 header UART (`serial0`) disabled, and `dtoverlay=disable-bt`, which frees
-the header UART on a Pi 0-4, only touches Bluetooth on a Pi 5. Without
+the RP1 header UART (`serial0`) disabled, and `dtoverlay=disable-bt` only touches
+Bluetooth on a Pi 5. Without
 `[pi5] dtoverlay=uart0-pi5` in `config.txt` there is no `/dev/ttyAMA0`. (A CM5 on a Compute Blade is different: pi16 had
 `/dev/ttyAMA0` with `enable_uart=1` and no `uart0-pi5`, read 2026-10-05.)
 Enabling it also makes `console=serial0` resolve to `ttyAMA0`, which would put
@@ -146,9 +144,8 @@ P1 goes to a 2×4 Dupont housing on header pins 19-26. The cavities over pins 20
 ```{include} generated/acorn-pi5-p1.md
 ```
 
-JTAG uses the Pi's SPI0 pins. On a Pi 0-4 unload the SPI modules first
-(`rmmod spidev spi_bcm2835`); on a Pi 5 `pinctrl` shows GPIO8-11 unclaimed even
-with the modules loaded, so it is not needed there.
+JTAG uses the Pi's SPI0 pins. On a Pi 5 `pinctrl` shows GPIO8-11 unclaimed even
+with the SPI modules loaded, so they do not have to be unloaded.
 
 **On a Pi 5 the 40-pin header is `/dev/gpiochip15`.** The Welland NFS root ships
 `openfpgaloader-rp1pio` (openFPGALoader 1.1.1, from
@@ -741,7 +738,7 @@ issue #3](https://github.com/fpgas-online/fpgas.online-test-designs/issues/3).
 | Problem | Likely cause | Fix |
 |---------|--------------|-----|
 | Acorn not on PCIe | M.2 not seated, FPC cable loose | Reseat the M.2 card, check the FPC |
-| JTAG programming fails | SPI modules loaded (Pi 0-4 only), wrong pins | `rmmod spidev spi_bcm2835` on a Pi 0-4; check the pin order |
+| JTAG programming fails | wrong pins | check the pin order |
 | `gpiod_line_request_set_values_subset: Assertion 'request' failed` on a Compute Blade | The serial driver holds GPIO14 (`enable_uart=1`; `dmesg`: `pin gpio14 already requested by 1f00030000.serial`) | JTAG needs the header's serial port off at boot ([JTAG on a blade](#jtag-on-a-blade)); not yet run by us on this hardware |
 | `JTAG init failed with: Unable to open gpio chip` (Pi 5) | The `libgpiod` cable opens `/dev/gpiochip0`; the header is `gpiochip15` | `ln -sfn /dev/gpiochip15 /dev/gpiochip0` |
 | `--detect` says `found 0 devices` but PCIe enumerates | P1 (JTAG) cable unmated or miswired | Check TCK for the Acorn's pull-up; reseat P1 |
