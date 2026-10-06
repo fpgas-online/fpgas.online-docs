@@ -301,7 +301,7 @@ port's TX pin. With `enable_uart=1` the kernel's serial driver holds GPIO14
 whether or not a console or a getty uses the port, and kernel 6.18 does not hand
 a held pin to openFPGALoader, which then stops with `gpiod_line_request_set_values_subset:
 Assertion 'request' failed` (read on pi16, a CM5, on 2026-10-05: [pi16 on 5
-October 2026](../../sites/ps1.md#pi16-on-5-october-2026)). The serial port off
+October 2026](installations/ps1-reads.md#pi16-at-ps1-on-5-october-2026)). The serial port off
 means `enable_uart=0`, no `dtoverlay=uart0…` or `dtparam=uart0` line, and no
 `console=serial0` word on the kernel command line, which is expected to free
 GPIO14;
@@ -604,7 +604,7 @@ port off, and the test itself needs the serial port on ([JTAG on a
 blade](#jtag-on-a-blade)). The serial pair of a blade is checked by
 `fpgas-verify` (`p2-uart`, `p2-serial`) once the card runs the fpgas.online
 design from its flash; no PS1 blade card has that yet (see [What each blade
-still needs](../../sites/ps1.md#what-each-blade-still-needs)).
+still needs](installations/ps1.md#what-each-blade-still-needs)).
 
 ### Step 4: pin ID
 
@@ -715,7 +715,7 @@ SoC, pin-ID, the GPIO loopback — reboots or crashes the host. A fleet host
 is meant to boot with `console=tty1` (Compute Blades) or `console=ttyAMA10` (Pi 5s); check
 this on any new host, and on a host that has been reinstalled: pi16 at PS1 had
 its console on the FPGA UART when read on 2026-10-05 ([pi16 on 5 October
-2026](../../sites/ps1.md#pi16-on-5-october-2026)).
+2026](installations/ps1-reads.md#pi16-at-ps1-on-5-october-2026)).
 :::
 
 The FPGA drives K2 at its own baud rate (1200 for pin-ID, 115200 for the UART

@@ -112,188 +112,31 @@ provenance unknown.
 
 ### Compute blades
 
-All four were up when last probed together (2026-09-20), and the table is that
-probe. On 2026-10-05 pi16 and pi20 were read again; what differed is under [pi16
-on 5 October 2026](#pi16-on-5-october-2026) and [pi20 on 5 October
-2026](#pi20-on-5-october-2026). The same day the visitor SSH ports of pi14 and
-pi18 did not answer, so nothing was read from them; why is not known.
+Four [Compute Blades](https://computeblade.com/), each with a Raspberry Pi
+Compute Module, netbooted from the trixie root. Three carry a SQRL Acorn in the
+M.2 slot. Which card is where, its state and what each blade still needs:
+[Acorns at ps1](../boards/acorn/installations/ps1.md). What was read on each
+blade, with its date: [Acorns at ps1: what was read on each
+blade](../boards/acorn/installations/ps1-reads.md).
 
 ```{rst-class} nowrap
 ```
 
-| Host | Switch Port | IP          | RPi MAC           | RPi Model             | Board (PCIe ID)             | FPGA DNA           | PCIe Bus | JTAG (P1)                | P2 cable | Status on 2026-09-20 |
-|------|------|-------------|-------------------|-----------------------|-----------------------------|--------------------|----------|--------------------------|----------|--------|
-| pi14 | e14  | 10.21.0.114 | 2c:cf:67:37:d4:bd | CM4 Rev 1.1 4 GB      | Acorn CLE-101 `1e24:0101`   | not read           | 0000:01  | no response (P1 unmated) | untested | Online |
-| pi16 | e16  | 10.21.0.116 | 2c:cf:67:fb:91:e5 | CM5 Lite Rev 1.0 8 GB | Acorn CLE-101 `1e24:0101`   | not read           | 0001:01  | 2026-09-20: no response, TCK floating. 2026-10-05: cannot run (serial driver holds GPIO14) | untested | Online |
-| pi18 | e18  | 10.21.0.118 | 2c:cf:67:37:d5:08 | CM4 Rev 1.1 4 GB      | none: M.2 slot empty        | —                  | —        | n/a                      | n/a      | Online |
-| pi20 | e20  | 10.21.0.120 | 2c:cf:67:fd:1e:be | CM5 Lite Rev 1.0 8 GB | vendor XDMA image `10ee:7011` | 0x0028e5c45e304854 | 0001:01  | 2026-09-20 (kernel 6.12.75): OK, IDCODE `0x3631093`. 2026-10-05 (kernel 6.18.50, serial port on): not tried, expected not to run | on the Extension Port: K2 → GPIO15, J2 → GPIO14, no resistor; J5 and H5 not wired | Online |
+| Host | Switch Port | IP          | RPi MAC           | RPi Model             | M.2 slot | Online on 2026-09-20 |
+|------|------|-------------|-------------------|-----------------------|----------|--------|
+| pi14 | e14  | 10.21.0.114 | 2c:cf:67:37:d4:bd | CM4 Rev 1.1 4 GB      | Acorn CLE-101 | yes |
+| pi16 | e16  | 10.21.0.116 | 2c:cf:67:fb:91:e5 | CM5 Lite Rev 1.0 8 GB | Acorn CLE-101 | yes |
+| pi18 | e18  | 10.21.0.118 | 2c:cf:67:37:d5:08 | CM4 Rev 1.1 4 GB      | empty | yes |
+| pi20 | e20  | 10.21.0.120 | 2c:cf:67:fd:1e:be | CM5 Lite Rev 1.0 8 GB | Acorn CLE-101 | yes |
 
-pi20 is the only blade whose JTAG has answered (on 2026-09-20), so it is the
-only one with a device DNA: `0x0028e5c45e304854`, an XC7A100T. The fpgas.online
-Acorn design ran on it from SRAM that day (Gen2 x1, the same ident and DNA over
-PCIe and over the UART bridge); by that probe its flash holds the vendor XDMA
-sample image, and on 2026-10-05 the card enumerated as `10ee:7011`, the ID of
-that sample design. "P1 unmated" on pi14 and pi16 is
-read off TCK: the Acorn pulls TCK up, and on pi20 the Pi's pull-down cannot move
-it, while on pi14 and pi16 it floats exactly as on pi18, which has no card.
-Reseating P1 is the fix.
-
-These boards are often called LiteFury. Their factory PCI ID identifies them as
-SQRL Acorn CLE-101: the same PCB family, XC7A100T with 512 MB of DDR3. See [SQRL
-Acorn](../boards/acorn/index.md).
-
-**No blade is wired to the [Compute Blade
-wiring](../boards/acorn/wiring.md#compute-blade) yet.** That wiring puts P1 on
-the Extension Port and P2 on the 4-pin UART header, with a 470 Ω resistor in the
-J2 wire. pi20, the one blade whose wiring has been read, has its P2 serial pair
-on Extension Port pins 9 and 10 instead, sharing pin 9 (GPIO14) directly with
-TMS and with no resistor, so a design that drives J2 costs JTAG until a PoE
-cycle ([why](../boards/acorn/wiring.md#the-shared-line-and-the-470-ω-resistor)),
-and its J5 and H5 are not wired. How pi14's and pi16's P2 cables are wired is
-not known: pi14's P1 did not answer on 2026-09-20 and pi16's JTAG cannot run
-today ([pi16 on 5 October 2026](#pi16-on-5-october-2026)), so nothing can be
-loaded to read them.
-
-On all four blades the JTAG pins are `--pins 2:3:4:14` (it has only answered on
-pi20) and the FPGA UART is `/dev/ttyAMA0` at GPIO14/15. All four ran Debian's
-openFPGALoader 0.13.1, which has `--read-dna`, when probed. PCIe is through the blade's M.2 slot. On 2026-09-20
-all four netbooted the trixie NFS root (arm64 then) with overlayroot, with `console=tty1` and
-`serial-getty@ttyAMA0` inactive, so the [kernel console
-crash](../boards/acorn/wiring.md#kernel-console-on-the-fpga-uart) could not
-happen. That no longer holds on pi16 or pi20 (their boot configuration, read on
-2026-10-05, is below), and pi14 and pi18 have not been read since.
-
-#### pi16 on 5 October 2026
-
-Read over SSH as the visitor. Nothing was written to the host's storage or to
-the Acorn; a report file in `/run` was made and removed, and GPIO2 and GPIO4,
-left as outputs by a hand-run `openFPGALoader --detect`, were put back.
-
-| | Read on pi16, 2026-10-05 |
-|---|---|
-| Module | Compute Module 5 Lite Rev 1.0, 8 GB, MAC `2c:cf:67:fb:91:e5` |
-| System | Raspbian 13 (trixie), 32-bit userspace on kernel `6.18.50+rpt-rpi-v8`; Debian's openFPGALoader 0.13.1 |
-| Serial port | `enable_uart=1`, `console=serial0,115200`, and a serial getty active on `/dev/ttyAMA0` |
-| Card | `1e24:0101` at `0001:01:00.0`: SQRL's factory image, not converted |
-| `fpgas-verify` 0.0.post1100 | `pcie-link` (5.0 GT/s, x1) and `rp1-pio` pass; `jtag` cannot run; the tests that need the fpgas.online design are not run on a factory image, and `p2-gpio` is not run because J5 and H5 are not wired on a blade |
-
-Two things follow from the serial port being on:
-
-- **JTAG cannot run.** TMS is GPIO14, which is also the serial port's TX pin.
-  The kernel's serial driver holds it (`pin gpio14 already requested by
-  1f00030000.serial; cannot claim`), this kernel does not lend a held pin, and
-  the serial driver has no `unbind` file and is the kernel console, so it
-  cannot be detached from the running system. openFPGALoader 0.13.1
-  then stops on a libgpiod assertion instead of saying so. Tracked in
-  [test-designs issue
-  #127](https://github.com/fpgas-online/fpgas.online-test-designs/issues/127).
-  So whether pi16's P1 cable is mated cannot be told from a scan today; the
-  "P1 unmated" in the table is the pull-up reading of 2026-09-20.
-- **The kernel console is on the FPGA's UART**, which the [wiring
-  page](../boards/acorn/wiring.md#kernel-console-on-the-fpga-uart) warns
-  against: a design that drives serial TX can reboot or crash the host. It must
-  be moved (`console=tty1`, no serial getty) before such a design is loaded.
-
-Moving the console does not free JTAG. With `enable_uart=1` the serial driver
-holds GPIO14 whether or not a console or a getty uses the port. For JTAG the
-header's serial port itself has to be off at boot (`enable_uart=0`, and no
-`console=serial0` word), and in that boot the tests of the P2 serial pair
-cannot run. **Not yet run by us on this hardware.** The same applies to any
-blade on this kernel with the serial port on, pi20 included (next section).
-
-#### pi20 on 5 October 2026
-
-Read over SSH as the visitor, without sudo; nothing was installed, copied or
-changed.
-
-| | Read on pi20, 2026-10-05 |
-|---|---|
-| Module | Compute Module 5 Lite Rev 1.0, 8 GB, MAC `2c:cf:67:fd:1e:be` |
-| System | Raspbian 13 (trixie), 32-bit userspace on kernel `6.18.50+rpt-rpi-v8`; Debian's openFPGALoader 0.13.1 |
-| Serial port | `enable_uart=1`, `console=ttyAMA0,115200` on the kernel command line, and `serial-getty@ttyAMA0` active: the same boot settings as pi16 |
-| Card | `10ee:7011` at `0001:01:00.0`: the ID of Xilinx's XDMA sample design (`fpgas-verify` would report it as unconverted); not SQRL's factory image and not the fpgas.online design. Which image it is beyond that ID was not read |
-| `fpgas-verify` | not installed, so it has not run here |
-
-pi20's JTAG answered on 2026-09-20 under kernel 6.12.75. On 2026-10-05 it ran
-the same kernel as pi16 with the same serial-port settings, so its JTAG is
-**expected not to run** for the same reason (the serial driver holds GPIO14).
-**Not tried:** no JTAG command was run on pi20 that day.
-
-#### Where a blade's boot configuration is
-
-Read on pi16 and pi20 themselves on 2026-10-05, not on the gateway: on both,
-the kernel command line has `nfsroot=10.21.0.1:/srv/nfs/rpi/trixie/root` and
-`console=ttyAMA0,115200`, and `/boot/firmware/config.txt` has `enable_uart=1`
-under `[all]` and no overlay for the UART. On pi16 `/boot/firmware/cmdline.txt`
-holds the same line with `console=serial0,115200`; that file was not read on
-pi20.
-
-The settings to change for JTAG (`enable_uart` in `config.txt`, and the
-`console=serial0` word in `cmdline.txt`) are in those two files, but where their
-master copy is was not read. The likely place is the site's gateway, by this
-page's account under `/srv/nfs/rpi/trixie/boot`: the bootloader's boot order on
-both blades ends with the network (`BOOT_ORDER=0xf2461`) and the label read saw
-no storage device on either module, which makes a network boot likely. **Not
-read by us:** the directory the firmware fetches the two files from at boot,
-whether `/boot/firmware` on a blade is that directory or a copy, and whether one
-copy serves all four blades. Whoever runs
-the gateway makes the change. If one copy serves all four blades, it applies to
-all of them; it takes effect at a blade's next boot.
-
-#### What each blade still needs
-
-To reach the [Compute Blade wiring](../boards/acorn/wiring.md#compute-blade),
-from what the table above records. None of us has wired a blade this way or
-converted a card on one yet: **not yet run by us on this hardware**.
-
-| Blade | Card | P1 (JTAG) cable | P2 (serial) cable | Host |
-|-------|------|-----------------|-------------------|------|
-| pi14 | fitted, factory image: to be converted | did not answer: reseat or refit on the Extension Port | not known: build to the UART header, 470 Ω in the J2 wire, J5 and H5 cut back | read its kernel command line and serial getty again (last read 2026-09-20) |
-| pi16 | fitted, factory image: to be converted | not known (see above): check, reseat or refit on the Extension Port | not known: build to the UART header, 470 Ω in the J2 wire, J5 and H5 cut back | take the kernel console and the getty off `/dev/ttyAMA0` (needed in any case); for JTAG, the serial port off at boot, as above |
-| pi18 | none: fit one | fit on the Extension Port | fit on the UART header, 470 Ω in the J2 wire, J5 and H5 cut back | read its kernel command line and serial getty again (last read 2026-09-20) |
-| pi20 | fitted, vendor sample image in flash: to be converted | answered on 2026-09-20: leave the cable. JTAG is expected not to run as the blade boots now (not tried) | move the serial pair from Extension Port pins 9 and 10 to the UART header, and add the 470 Ω resistor in the J2 wire | as pi16 (read 2026-10-05: the same kernel and serial-port settings): take the kernel console and the getty off `/dev/ttyAMA0`; for JTAG, the serial port off at boot |
-
-The parts are in the wiring page's [Bill of
-Materials](../boards/acorn/wiring.md#bill-of-materials). Once a blade is wired,
-[check it with fpgas-verify](#checking-a-board-here).
-
-pi20's serial pair is direct on GPIO14 and GPIO15 without the resistor. From the
-check's code, not from a run on a blade: `fpgas-verify`'s `p2-serial` test never
-has both ends driving a wire at once (the Pi's pins are inputs while the FPGA
-drives, and the FPGA's are inputs while the Pi drives), so it does not rely on
-the resistor, and the fpgas.online design treats J2 as an input. What the
-missing resistor does not survive is a design that drives J2, such as pin-ID.
+On 2026-10-05 pi16 and pi20 were read again; the same day the visitor SSH ports
+of pi14 and pi18 did not answer, so nothing was read from them; why is not
+known.
 
 The `RPi Model` column matters: a CM4 and a CM5 are not interchangeable, and
 what differs — the serial mux, and how many UARTs there are — is under [Compute
 Module 4 versus Compute Module
 5](../setup/pi.md#compute-module-4-versus-compute-module-5).
-
-:::{warning}
-Reconfiguring the FPGA over JTAG while its PCIe endpoint is enumerated is a
-surprise removal. Detach the endpoint first, using the host's own bus from the
-`PCIe Bus` column above:
-
-```console
-$ BDF=0001:01:00.0           # pi16, pi20; 0000:01:00.0 on the CM4 blade pi14
-$ echo 1 | sudo tee /sys/bus/pci/devices/$BDF/remove
-```
-
-Restore it by rebooting, or as described under [Bring the endpoint back after a
-JTAG load](../boards/acorn/pcie-programming.md#bring-the-endpoint-back-after-a-jtag-load)
-(on a blade a LiteX design needs a root-complex re-probe, not just a rescan).
-`--detect` and the other read-only queries are safe without this; **loading a
-bitstream is not**.
-:::
-
-:::{note}
-The blades have no page under `https://ps1.fpgas.online/fpgas/`: pi14, pi16,
-pi18 and pi20 all return 404 (checked 2026-09-03).
-:::
-
-Source: live probes (`lspci -nn`, `openFPGALoader --detect` and `--read-dna`,
-pull-up/pull-down on each P2 and JTAG line, the pin-ID check on pi20); MACs and
-switch ports cross-checked against infra `host_vars/ps1.fpgas.online.yml`.
 
 ### Other hosts
 
@@ -449,10 +292,10 @@ Logging in here:
   2026-10-05: the serial driver
   holds GPIO14 (TMS), so its P1 state is unknown, not known to be unmated; and
   its kernel console is on the FPGA's UART. See [pi16 on 5 October
-  2026](#pi16-on-5-october-2026).
+  2026](../boards/acorn/installations/ps1-reads.md#pi16-at-ps1-on-5-october-2026).
 - **pi20's JTAG is expected not to run either** as it was booted on 2026-10-05
   (the same kernel and serial-port settings as pi16); not tried. See [pi20 on 5
-  October 2026](#pi20-on-5-october-2026).
+  October 2026](../boards/acorn/installations/ps1-reads.md#pi20-at-ps1-on-5-october-2026).
 - **pi2** (Arty A7): recorded Offline. Port e2 shows link up and PoE delivering
   in the 2026-08-31 switch dump, so "offline" is the host, not the link. pi2 is
   also the only host with an Apple A1277 USB Ethernet adapter rather than an

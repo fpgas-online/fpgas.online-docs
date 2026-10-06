@@ -255,3 +255,14 @@ The two cables between an Acorn and its host: parts, one page for each connector
 building/compute-blade/index
 building/rpi-5/index
 ```
+
+## Installations
+
+Where the cards are, by site: which card is on which host, its state, what it still needs, and its labels.
+
+```{toctree}
+:maxdepth: 1
+
+installations/ps1
+installations/ps1-reads
+```
