@@ -13,3 +13,52 @@ article[role=main] table.docutils.nowrap td,
 article[role=main] table.docutils.nowrap th {
   white-space: nowrap;
 }
+
+/* -- Full width ------------------------------------------------------------
+   The theme centres a 46em text column and leaves the rest of the window
+   empty on both sides. Here the page takes the whole window: the navigation
+   keeps its own width at the left edge and the content fills what is left
+   (Tim, 6 October 2026: "page should take up 100% of horizontal space").
+   Below 63em the theme turns the navigation into a drawer and already gives
+   the content the full width, so these rules start there. */
+@media (min-width: 63em) {
+  .sidebar-drawer {
+    flex: 0 0 15em;
+    width: 15em;
+    justify-content: flex-start;
+  }
+  /* without this a wide table widens the whole page instead of scrolling in its own box */
+  .main {
+    min-width: 0;
+  }
+  .content {
+    flex: 1 1 0;
+    width: auto;
+    min-width: 0;
+    margin-left: 0;
+    margin-right: 0;
+    padding: 0 2em;
+  }
+}
+
+/* -- Tables ----------------------------------------------------------------
+   A cell's code (a command, an address, a pin list, a device DNA) is one
+   thing to read or copy: it does not break in the middle. A table that is
+   then wider than the page scrolls sideways in its own box (the rule at the
+   top of this file) instead of crushing its columns. */
+article[role=main] table.docutils td code,
+article[role=main] table.docutils th code {
+  white-space: nowrap;
+}
+article[role=main] table.docutils th {
+  white-space: nowrap;
+}
+
+/* -- Pictures --------------------------------------------------------------
+   A drawing is made for a light sheet: dark lines and words. One that has no
+   background of its own would lose them on the dark theme, so every picture
+   in a page stands on a light panel in both themes. A picture that brings
+   its own paper colour is unchanged by this. */
+article[role=main] img {
+  background-color: #faf9f5;
+}
