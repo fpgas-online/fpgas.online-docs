@@ -47,6 +47,7 @@ The two cables between an Acorn and its host: parts, one page for each connector
 
 ```{toctree}
 :maxdepth: 2
+:titlesonly:
 
 building/rpi-5/index
 building/compute-blade/index
@@ -83,6 +84,6 @@ installations/ps1
 installations/ps1-reads
 ```
 
-## Installing the Acorn Packages
-
-Moved to [Acorn packages and the boot check](packages.md#installing-the-acorn-packages).
+(installing-the-acorn-packages)=
+*Installing the Acorn packages* used to be a part of this page: it is now [Acorn packages and the boot
+check](packages.md#installing-the-acorn-packages).
