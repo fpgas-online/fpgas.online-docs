@@ -16,7 +16,7 @@ sudo apt install fpgas-online-acorn
 | `fpgas-online-acorn-bitstreams` | pinned release date + commit (e.g. `20260923+ge48a750c8303`) | `/usr/share/fpgas-online/acorn-pcie/images/`: `manifest.json`, and for each of `cle-215p` / `cle-101` the golden (`0x000000`) and operational (`0x400000`) flash images, the operational `.bit`, and the CSR maps |
 | `fpgas-online-verify` | `X.Y.postN` | `fpgas-verify` and its unit |
 
-The tools package depends on one exact bitstreams version. Which release that is comes from [`packaging/acorn-pcie/release.toml`](https://github.com/fpgas-online/fpgas.online-test-designs/blob/acorn-check-pages/packaging/acorn-pcie/release.toml), and a new release reaches hosts only when a reviewed PR moves that pin. Every package is built, and its install rules are checked in clean Debian bookworm and trixie, by [`collect-bitstreams.yml`](https://github.com/fpgas-online/fpgas.online-test-designs/blob/acorn-check-pages/.github/workflows/collect-bitstreams.yml).
+The tools package depends on one exact bitstreams version. Which release that is comes from [`packaging/acorn-pcie/release.toml`](https://github.com/fpgas-online/fpgas.online-test-designs/blob/main/packaging/acorn-pcie/release.toml), and a new release reaches hosts only when a reviewed PR moves that pin. Every package is built, and its install rules are checked in clean Debian bookworm and trixie, by [`collect-bitstreams.yml`](https://github.com/fpgas-online/fpgas.online-test-designs/blob/main/.github/workflows/collect-bitstreams.yml).
 
 At boot the check finds the Acorn on PCI (Xilinx `10ee` or SQRL `1e24`), works out which setup the host is
 from its device-tree model, and runs these tests ([verify.md](../../verify/fpgas-verify.md#what-each-boards-check-tests) has the
@@ -25,12 +25,12 @@ the others:
 
 | Test | Checks |
 |---|---|
-| `pcie-link` | the link is 5.0 GT/s x1 ([`expected.toml`](https://github.com/fpgas-online/fpgas.online-test-designs/blob/acorn-check-pages/docs/wiring/acorn/expected.toml)) |
+| `pcie-link` | the link is 5.0 GT/s x1 ([`expected.toml`](https://github.com/fpgas-online/fpgas.online-test-designs/blob/main/docs/wiring/acorn/expected.toml)) |
 | `pcie-bar0` | over BAR0: the operational build of the installed release runs, the flash identifies itself, the device DNA reads, and the XADC temperature and voltages are in range |
 | `rp1-pio` | Pi 5 / CM5 only: `/dev/pio0` opens, for openfpgaloader-rp1pio; when it does not, the `rp1_fw` / `rp1_pio` modules and the kernel's reason are reported (`failed to contact RP1 firmware` on bootloader 2024/11/05) |
 | `jtag` | over P1: the whole IDCODE, decoded into `idcode_version`, `idcode_part_number`, `idcode_manufacturer_id`, `idcode_manufacturer` and `idcode_device`, must be the variant's part in any silicon version ([verify.md: the IDCODE](../../verify/fpgas-verify.md#the-jtag-idcode)); and the device DNA, which must be BAR0's (this proves TDI) |
 | `flash` | both 4 MiB slots hold the release's images |
-| `ddr` | the BIOS console read out, then the DRAM BIST over the whole DRAM, two passes: no errors, and write and read at least 1100 MB/s ([`expected.toml`](https://github.com/fpgas-online/fpgas.online-test-designs/blob/acorn-check-pages/docs/wiring/acorn/expected.toml)); p48 measures 1327 / 1350 MB/s |
+| `ddr` | the BIOS console read out, then the DRAM BIST over the whole DRAM, two passes: no errors, and write and read at least 1100 MB/s ([`expected.toml`](https://github.com/fpgas-online/fpgas.online-test-designs/blob/main/docs/wiring/acorn/expected.toml)); p48 measures 1327 / 1350 MB/s |
 | `p2-uart` | the UARTBone bridge on P2 at 1200 and 921600 baud: identifier, DNA and XADC, as over BAR0 |
 | `p2-serial` | both setups: J2 and K2 borrowed with `p2_serial` and tested both ways, the switch's own timeout, and the UARTBone answering again |
 | `scratch` | the `ctrl` scratch register written and read back over BAR0 and over P2 |
@@ -70,7 +70,7 @@ from an old fpgas.online build by its XDMA class code and BAR2) is named, and fa
 other PCIe FPGA whose design the check does not recognise is `fail` too. A Pi with no Acorn is `missing`:
 fatal, since the host was set up for one.
 
-**When a check fails**, `sudo apt install fpgas-online-acorn-debug`. It brings openFPGALoader for loading the `.bit` over GPIO JTAG ([below](https://github.com/fpgas-online/fpgas.online-test-designs/blob/acorn-check-pages/docs/hardware/acorn.md#via-gpio-jtag-openfpgaloader--what-the-fleet-uses)), which is how a board still on SQRL's factory image is converted, and `python3-serial` for `fpgas-acorn-flash --uart`:
+**When a check fails**, `sudo apt install fpgas-online-acorn-debug`. It brings openFPGALoader for loading the `.bit` over GPIO JTAG ([below](https://github.com/fpgas-online/fpgas.online-test-designs/blob/main/docs/hardware/acorn.md#via-gpio-jtag-openfpgaloader--what-the-fleet-uses)), which is how a board still on SQRL's factory image is converted, and `python3-serial` for `fpgas-acorn-flash --uart`:
 
 ```bash
 sudo fpgas-acorn-debug detect       # the Acorn-family endpoints on PCI
