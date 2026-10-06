@@ -1,8 +1,11 @@
 # Acorns at ps1: what was read on each blade
 
 **You want the record behind [Acorns at ps1](ps1.md): what was read on each
-Compute Blade there, by whom it could be read, and when.** Nothing on this page
-is a step to carry out.
+Compute Blade there, by whom it could be read, and when.** This page is a
+record: where it says what has to change on a host, the doing is on [Acorns at
+ps1](ps1.md). The reads of 2026-09-20, when all four blades were probed
+together, are the dated entries in that page's first table; no fuller record
+of that day is kept here.
 
 On all four blades the JTAG pins are `--pins 2:3:4:14` (it has only answered on
 pi20 at ps1) and the FPGA UART is `/dev/ttyAMA0` at GPIO14/15. All four ran Debian's
@@ -79,13 +82,11 @@ holds the same line with `console=serial0,115200`; that file was not read on
 pi20 at ps1.
 
 The settings to change for JTAG (`enable_uart` in `config.txt`, and the
-`console=serial0` word in `cmdline.txt`) are in those two files, but where their
-master copy is was not read. The likely place is the site's gateway, by this
-page's account under `/srv/nfs/rpi/trixie/boot`: the bootloader's boot order on
+`console=serial0` word in `cmdline.txt`) are in those two files, and their
+master copy is on the site's gateway: `/srv/nfs/rpi/trixie/boot/`. The
+gateway's TFTP root has one entry for each host's serial number, and every one
+of them points at that one directory (read on the ps1 gateway, 6 October 2026).
+So one copy serves every netbooted host at ps1, a change applies to all of
+them, and it takes effect at a host's next boot. The bootloader's boot order on
 both blades ends with the network (`BOOT_ORDER=0xf2461`) and the label read saw
-no storage device on either module, which makes a network boot likely. **Not
-read by us:** the directory the firmware fetches the two files from at boot,
-whether `/boot/firmware` on a blade is that directory or a copy, and whether one
-copy serves all four blades. Whoever runs
-the gateway makes the change. If one copy serves all four blades, it applies to
-all of them; it takes effect at a blade's next boot.
+no storage device on either module.
