@@ -53,6 +53,18 @@ class RewriteLinks(unittest.TestCase):
             self.page("[x](../../elsewhere.md)")
 
 
+    def test_a_link_to_a_page_of_this_site_becomes_a_link_inside_the_site(self):
+        out = s.rewrite_links(
+            "[a](https://docs.fpgas.online/en/latest/boards/acorn/wiring.html#assembly) "
+            "[b](https://docs.fpgas.online/en/latest/index.html) "
+            "[c](https://docs.fpgas.online/en/latest/no/such/page.html) "
+            "[d](https://docs.fpgas.online/en/latest/)",
+            "docs/verify.md", "docs/verify/fpgas-verify.md", "main")
+        self.assertEqual(
+            out,
+            "[a](../boards/acorn/wiring.md#assembly) [b](../index.md) "
+            "[c](https://docs.fpgas.online/en/latest/no/such/page.html) [d](https://docs.fpgas.online/en/latest/)")
+
     def test_link_forms_it_cannot_rewrite_stop_the_sync(self):
         for text in ("[x]: other.md", "![shot](shot.png)", "[x](<other file.md>)", '[x](other.md "title")',
                      '<a href="other.md">x</a>', '<img src="shot.png">'):

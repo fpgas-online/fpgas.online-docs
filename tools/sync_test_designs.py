@@ -108,6 +108,8 @@ FILES = {
     ),
 }
 SOURCE = "SOURCE"
+# Where this site is published: a link to it from a pulled page is turned into a link inside the site.
+PUBLISHED = "https://docs.fpgas.online/en/latest/"
 
 # source document in test-designs: the page it becomes here (relative to the repository root)
 PAGES = {
@@ -187,6 +189,15 @@ def rewrite_links(text, src, at, ref, own_fragments=None):
 
     def one(match):
         target = match.group(1)
+        if target.startswith(PUBLISHED):
+            # A link to a page of this site, written in test-designs by its published address: here it is a link
+            # inside the site, which the build checks. (By its address it would be checked against what is
+            # published, and a page added in the same change is not published yet.)
+            page, _, fragment = target[len(PUBLISHED) :].partition("#")
+            here = "docs/" + page.removesuffix(".html") + ".md"
+            if page.endswith(".html") and (DOCS / here).exists():
+                return posixpath.relpath(here, posixpath.dirname(at)) + (f"#{fragment}" if fragment else "")
+            return target
         if re.match(r"[a-zA-Z][a-zA-Z0-9+.-]*:", target):
             return target
         path, _, fragment = target.partition("#")

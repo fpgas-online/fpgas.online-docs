@@ -1,5 +1,5 @@
 These files are copied from https://github.com/fpgas-online/fpgas.online-test-designs
 by tools/sync_test_designs.py. Do not edit them here: change them in test-designs.
 
-ref: acorn-check-pages
-commit: c8e3338c25cc1953df06c0806fcc3487f04ba8a6
+ref: main
+commit: 04ad052cd96b289fc369ff9b7a49d0dbde99d7c9
