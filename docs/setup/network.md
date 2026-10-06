@@ -231,7 +231,7 @@ the spec. The OID and the working command are on the PS1 page under
 There is no remote power control other than PoE. Cutting power on the switch
 port is the reset, and it is also the only way to recover a wedged board — at
 Welland a hung Pi 5 shows up as
-[drawing about 0.4 W instead of about 8 W](../sites/welland.md#sqrl-acorn-cle-215).
+[drawing about 0.4 W instead of about 8 W](../boards/acorn/installations/welland.md#reads-of-september-2026).
 
 The scripted path ships in `fpgas.online-poe` and runs **on the gateway**, which
 is where the SNMP credentials live and the only host with a route to the switch:
@@ -357,7 +357,7 @@ would lose the file too. Fix both and converge each gateway.
 
 Expect the board to be gone for a while. A Compute Blade at PS1 takes about
 [60 seconds](../sites/ps1.md#power-control) to come back; a Pi 5 at Welland
-takes [more than 90](../sites/welland.md#sqrl-acorn-cle-215) — it is netbooting
+takes [more than 90](../boards/acorn/installations/welland.md#reads-of-september-2026) — it is netbooting
 a kernel and an NFS root over the network, not resuming from disk. Roughly two
 minutes from power-on to SSH is the figure the automation uses.
 

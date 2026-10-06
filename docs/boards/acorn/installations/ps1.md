@@ -43,7 +43,7 @@ the Extension Port and P2 on the 4-pin UART header, with a 470 Ω resistor in th
 J2 wire. pi20 at ps1, the one blade whose wiring has been read, has its P2 serial pair
 on Extension Port pins 9 and 10 instead, sharing pin 9 (GPIO14) directly with
 TMS and with no resistor, so a design that drives J2 costs JTAG until a PoE
-cycle ([why](../wiring.md#the-shared-line-and-the-470-ω-resistor)),
+cycle ([why](../wiring/compute-blade-host.md#the-shared-line-and-the-470-ω-resistor)),
 and its J5 and H5 are not wired. How pi14 at ps1's and pi16 at ps1's P2 cables are wired is
 not known: pi14 at ps1's P1 did not answer on 2026-09-20 and pi16 at ps1's JTAG cannot run
 today ([pi16 at ps1 on 5 October 2026](ps1-reads.md#pi16-at-ps1-on-5-october-2026)), so nothing can be
@@ -83,7 +83,7 @@ $ echo 1 | sudo tee /sys/bus/pci/devices/$BDF/remove
 ```
 
 Restore it by rebooting, or as described under [Bring the endpoint back after a
-JTAG load](../pcie-programming.md#bring-the-endpoint-back-after-a-jtag-load)
+JTAG load](../designs/pcie.md#bring-the-endpoint-back-after-a-jtag-load)
 (on a blade a LiteX design needs a root-complex re-probe, not just a rescan).
 `--detect` and the other read-only queries are safe without this; **loading a
 bitstream is not**.
