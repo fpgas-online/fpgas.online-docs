@@ -1,7 +1,7 @@
 # .github/workflows/sync-test-designs.yml
 #
 # Every day, copy what these docs take from fpgas.online-test-designs (tools/sync_test_designs.py: the Acorn
-# wiring sheets and pin tables, the fpgas-verify pages, and each board's install section) and open a pull
+# and Tiny Tapeout FPGA wiring pictures and pin tables, the fpgas-verify pages, and each board's install section) and open a pull
 # request if any changed. The docs build itself
 # never reaches out to another repository.
 #
@@ -48,7 +48,7 @@ jobs:
       - name: Changed?
         id: diff
         run: |
-          git add -A docs/boards/acorn/generated docs/boards/generated docs/verify
+          git add -A docs/boards/acorn/generated docs/boards/tt-fpga/generated docs/boards/generated docs/verify
           if git diff --cached --quiet; then echo "changed=false" >> "$GITHUB_OUTPUT"; else echo "changed=true" >> "$GITHUB_OUTPUT"; fi
 
       # A pull request opened with GITHUB_TOKEN does not trigger the Docs workflow, so build here, with the same
@@ -70,6 +70,7 @@ jobs:
           delete-branch: true
           add-paths: |
             docs/boards/acorn/generated
+            docs/boards/tt-fpga/generated
             docs/boards/generated
             docs/verify
           commit-message: "Sync the pages and tables taken from fpgas.online-test-designs"

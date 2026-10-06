@@ -43,6 +43,7 @@ exclude_patterns = [
     # Tables copied from fpgas.online-test-designs by tools/sync_test_designs.py. They are pulled into
     # pages with {include}, not built as pages of their own.
     "boards/acorn/generated/*.md",
+    "boards/tt-fpga/generated/*.md",
     "boards/generated/*.md",
 ]
 

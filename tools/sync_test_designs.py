@@ -11,7 +11,7 @@ change.
 
 Three kinds of thing are taken (the tables below):
 
-FILES     copied byte for byte (the Acorn wiring sheets and pin tables).
+FILES     copied byte for byte (the Acorn and Tiny Tapeout FPGA wiring pictures, pin tables and pages).
 PAGES     whole Markdown documents, published as pages here.
 SECTIONS  one "## heading" section of a Markdown document, written as a fragment that a page here
           includes (each board's "Installing the ... Packages").
@@ -108,6 +108,22 @@ FILES = {
             "acorn-check-pi5-wires.png",
         ],
     ),
+    "docs/boards/tt-fpga/generated": (
+        "docs/wiring/tt-fpga/generated",
+        [
+            "tt-fpga-cables.md",
+            "tt-fpga-pins-ui-uo.md",
+            "tt-fpga-pins-uio-uart.md",
+            "tt-fpga-pins-other.md",
+            "tt-fpga-sources.md",
+            "tt-fpga-pmod-cables.svg",
+            "tt-fpga-pmod-cables.png",
+            "tt-fpga-pmod-cables-ui-uo.svg",
+            "tt-fpga-pmod-cables-ui-uo.png",
+            "tt-fpga-pmod-cables-uo.svg",
+            "tt-fpga-pmod-cables-uo.png",
+        ],
+    ),
 }
 SOURCE = "SOURCE"
 # Where this site is published: a link to it from a pulled page is turned into a link inside the site.
@@ -131,7 +147,7 @@ SECTIONS = {
     ("docs/hardware/fomu-evt.md", "Installing the Fomu Packages"):
         ("docs/boards/generated/install-fomu-evt.md", "docs/boards/fomu-evt.md"),
     ("docs/hardware/tt-fpga.md", "Installing the TT FPGA Packages"):
-        ("docs/boards/generated/install-tt-fpga.md", "docs/boards/tt-fpga.md"),
+        ("docs/boards/generated/install-tt-fpga.md", "docs/boards/tt-fpga/building/verifying-1.md"),
 }
 
 # Source documents that are not taken whole but have a page here on the same subject. A link to one of
@@ -140,6 +156,7 @@ SECTIONS = {
 ALSO_HERE = {
     "docs/hardware/acorn-pcie-programming.md": "docs/boards/acorn/pcie-programming.md",
     "docs/hardware/acorn-pinmap.md": "docs/boards/acorn/wiring.md",
+    "docs/hardware/tt-fpga-pin-mapping.md": "docs/boards/tt-fpga/wiring/cables.md",
 }
 
 # Directories this tool owns outright: everything in them is listed above, or is removed.
