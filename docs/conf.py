@@ -96,3 +96,30 @@ html_css_files = ["custom.css"]
 intersphinx_mapping = {
     "python": ("https://docs.python.org/3", None),
 }
+
+# -- link check -------------------------------------------------------------
+# GitHub builds a document's heading anchors in the browser, so the link check
+# cannot see them and reports every `blob/main/x.md#heading` as broken. The
+# page itself is still checked. tools/check_links.py then fails the build for a
+# broken link into our own repositories and sites.
+linkcheck_anchors_ignore_for_url = [r"https://github\.com/.*"]
+
+# -- todo boxes on the contributing page --------------------------------------
+# {todolist} copies every {todo} box into docs/contributing.md and re-resolves
+# its cross-references from there. But sphinx.ext.todo stores the box nodes
+# themselves, not copies, and Sphinx keeps the read documents in memory when it
+# writes. So a page written before contributing.md (everything under boards/)
+# has already resolved its boxes' links relative to itself, and the copy on the
+# contributing page inherits links such as "pin-id.html" or a bare "#anchor".
+# Storing a copy leaves the page's own document alone and the list's copy
+# unresolved, so its links are resolved from contributing.md.
+
+
+def _copy_todos_for_the_list(app, doctree):
+    todos = app.env.get_domain("todo").todos
+    docname = app.env.docname
+    todos[docname] = [todo.deepcopy() for todo in todos.get(docname, [])]
+
+
+def setup(app):
+    app.connect("doctree-read", _copy_todos_for_the_list)

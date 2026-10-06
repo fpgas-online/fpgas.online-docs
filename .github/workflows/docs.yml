@@ -34,10 +34,14 @@ jobs:
         run: sphinx-build -b html -W --keep-going docs docs/_build/html
 
       - name: Check for broken links
-        # Informational: external links go down for reasons unrelated to this
-        # repository, so a failure here should not block a merge.
+        # Other people's sites go down for reasons unrelated to this
+        # repository, so the check itself does not block a merge; the next
+        # step fails for the links that are ours.
         continue-on-error: true
         run: sphinx-build -b linkcheck docs docs/_build/linkcheck
+
+      - name: No broken link into our own repositories and sites
+        run: python tools/check_links.py docs/_build/linkcheck/output.json
 
       - uses: actions/upload-artifact@v4
         with:

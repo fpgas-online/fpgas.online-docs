@@ -246,7 +246,7 @@ unplugged and waiting to go back in; its columns are its last measurement.
 
 | RPi MAC | Now | RPi Model (rev) | FPGA Device DNA | In flash | JTAG | P2 (K2/J2/J5/H5) | Camera | Last checked |
 | ------- | --- | --------------- | --------------- | -------- | ---- | ---------------- | ------ | ------------ |
-| 88:a2:9e:45:85:77 | [pi-sw2-p48](https://welland.fpgas.online/fpgas/pi48.html) | RPi 5 Rev 1.1 2 GB (b04171) | `0x0054b48664b04854` | **fpgas.online golden + operational** (`10ee:7021`, subsystem `1e24:021f`), cold boot proven ([how](../boards/acorn/pcie-programming.md#installing-the-fpgasonline-images)) | OK | OK, all four | **out of focus, not aimed at the board** | 2026-09-21 |
+| 88:a2:9e:45:85:77 | [pi-sw2-p48](https://welland.fpgas.online/fpgas/pi-sw2-p48.html) | RPi 5 Rev 1.1 2 GB (b04171) | `0x0054b48664b04854` | **fpgas.online golden + operational** (`10ee:7021`, subsystem `1e24:021f`), cold boot proven ([how](../boards/acorn/pcie-programming.md#installing-the-fpgasonline-images)) | OK | OK, all four | **out of focus, not aimed at the board** | 2026-09-21 |
 | 88:a2:9e:45:dd:be | unplugged | RPi 5 Rev 1.1 2 GB (b04171) | not read | SQRL factory firmware (`1e24:021f`) | OK | serial pair OK; **J5 wire open** | ov5647 | 2026-09-03 |
 | 98:fe:54:13:e0:75 | unplugged | RPi 5 Rev 1.1 1 GB (a04171) | not read | SQRL factory firmware (`1e24:021f`) | **empty chain** | untestable | ov5647 | 2026-09-03 |
 | 98:fe:54:13:e0:f5 | unplugged | RPi 5 Rev 1.1 1 GB (a04171) | not read | `10ee:7011`, most likely the vendor XDMA sample image | **empty chain** | untestable | ov5647 | 2026-09-03 |
@@ -362,10 +362,10 @@ bundled demos or upload their own bitstream.
 
 | Host       | Slug   | Switch Port | IP         | RPi MAC           | RPi Model (rev)              | USB VID:PID | RP2350 Serial    | Old name |
 | ---------- | ------ | ----------- | ---------- | ----------------- | ---------------------------- | ----------- | ---------------- | -------- |
-| [pi-sw2-p33](https://welland.fpgas.online/fpgas/pi33.html) | [fpga-1](https://tinytapeout.fpgas.online/board/fpga-1/) | sw2 p33 | 10.21.2.33 | e4:5f:01:97:0e:77 | RPi 4 2 GB Rev 1.5 (b03115) | 2e8a:0005 | 4df39a7a6856f86f | pi27 |
-| [pi-sw2-p34](https://welland.fpgas.online/fpgas/pi34.html) | [fpga-2](https://tinytapeout.fpgas.online/board/fpga-2/) | sw2 p34 | 10.21.2.34 | e4:5f:01:97:27:f2 | RPi 4 2 GB Rev 1.5 (b03115) | 2e8a:0005 | fd1a167bd863a198 | pi29 |
-| [pi-sw2-p35](https://welland.fpgas.online/fpgas/pi35.html) | [fpga-3](https://tinytapeout.fpgas.online/board/fpga-3/) | sw2 p35 | 10.21.2.35 | e4:5f:01:97:0c:e3 | RPi 4 2 GB Rev 1.5 (b03115) | 2e8a:0005 | 8c46329b33590ecb | pi31 |
-| [pi-sw2-p36](https://welland.fpgas.online/fpgas/pi36.html) | [fpga-4](https://tinytapeout.fpgas.online/board/fpga-4/) | sw2 p36 | 10.21.2.36 | e4:5f:01:8e:02:27 | RPi 4 8 GB Rev 1.5 (d03115) | 2e8a:0005 | a2961e5cac65b25f | pi33 |
+| [pi-sw2-p33](https://welland.fpgas.online/fpgas/pi-sw2-p33.html) | [fpga-1](https://tinytapeout.fpgas.online/board/fpga-1/) | sw2 p33 | 10.21.2.33 | e4:5f:01:97:0e:77 | RPi 4 2 GB Rev 1.5 (b03115) | 2e8a:0005 | 4df39a7a6856f86f | pi27 |
+| [pi-sw2-p34](https://welland.fpgas.online/fpgas/pi-sw2-p34.html) | [fpga-2](https://tinytapeout.fpgas.online/board/fpga-2/) | sw2 p34 | 10.21.2.34 | e4:5f:01:97:27:f2 | RPi 4 2 GB Rev 1.5 (b03115) | 2e8a:0005 | fd1a167bd863a198 | pi29 |
+| [pi-sw2-p35](https://welland.fpgas.online/fpgas/pi-sw2-p35.html) | [fpga-3](https://tinytapeout.fpgas.online/board/fpga-3/) | sw2 p35 | 10.21.2.35 | e4:5f:01:97:0c:e3 | RPi 4 2 GB Rev 1.5 (b03115) | 2e8a:0005 | 8c46329b33590ecb | pi31 |
+| [pi-sw2-p36](https://welland.fpgas.online/fpgas/pi-sw2-p36.html) | [fpga-4](https://tinytapeout.fpgas.online/board/fpga-4/) | sw2 p36 | 10.21.2.36 | e4:5f:01:8e:02:27 | RPi 4 8 GB Rev 1.5 (d03115) | 2e8a:0005 | a2961e5cac65b25f | pi33 |
 
 Each RPi connects to its board over USB-C, has a Digilent Pmod HAT for
 GPIO-level control of the TT I/O pins, and an ov5647 camera publishing a live
