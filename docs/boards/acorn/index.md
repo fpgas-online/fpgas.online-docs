@@ -244,3 +244,14 @@ How the Acorn is wired to its host, and how to put a bitstream in flash:
 wiring
 pcie-programming
 ```
+
+## Installations
+
+Where the cards are, by site: which card is on which host, its state, what it still needs, and its labels.
+
+```{toctree}
+:maxdepth: 1
+
+installations/ps1
+installations/ps1-reads
+```
