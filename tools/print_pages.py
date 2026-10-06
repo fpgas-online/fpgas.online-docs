@@ -107,7 +107,10 @@ CSS = """
 }
 @page wide { size: %(paper)s landscape; margin: 10mm 10mm 14mm 10mm; }
 html { font: 10pt/1.4 "DejaVu Sans", "Liberation Sans", Arial, sans-serif; color: #000; }
-body { margin: 0; }
+/* Chrome cuts whatever touches the right edge of the printable area: a full-width
+   box (a warning, a command block) lost its right border there. So nothing is as
+   wide as that area. */
+body { margin: 0 1pt 0 0; }
 .cover { break-after: page; padding-top: 30mm; }
 .cover small { color: #444; }
 .cover .admonition { margin-top: 8mm; }
@@ -139,7 +142,7 @@ sup.ref { font-size: 6.5pt; line-height: 0; color: #333; }
 .inflow { margin: 0 0 3.5mm; break-inside: avoid; }
 .inflow figcaption { font-style: italic; }
 table.short { break-inside: avoid; }
-table { border-collapse: collapse; width: calc(100%% - 1pt); margin: 0 0 3.5mm; font-size: 8.8pt; }
+table { border-collapse: collapse; width: 100%%; margin: 0 0 3.5mm; font-size: 8.8pt; }
 /* A table that ran over a sheet's end loses its own bottom margin; its wrapper keeps the gap. */
 .table-wrapper { margin: 0 0 3.5mm; }
 .table-wrapper table { margin: 0; }
@@ -150,6 +153,8 @@ th { background: #ddd; }
    A cell may break a word; a heading may not, so no column is narrower than
    the words of its heading. */
 td { overflow-wrap: anywhere; }
+/* ...but a short code span in a cell (whole_codes) stays in one piece. */
+td code.whole { white-space: nowrap; overflow-wrap: normal; }
 thead { display: table-header-group; }
 tr { break-inside: avoid; }
 .admonition { border: 1.2pt solid #000; padding: 2mm 3mm; margin: 0 0 3.5mm; break-inside: avoid; }
@@ -522,8 +527,26 @@ def short_tables(body: Tag) -> None:
             table["class"] = [*table.get("class", []), "short"]
 
 
-def chapter(number: int, spec: str, commit: str, fetched: str) -> tuple[str, str]:
-    """The title and the printable HTML of one page, as chapter number of the PDF."""
+WHOLE_CODE = 24  # a code span in a table cell up to this long, with no space in it, is one thing to read
+
+
+def whole_codes(body: Tag) -> None:
+    """Keep a short code span in a table cell on one line: an address, an ID, a pin list.
+
+    A cell may break a word so that no table is wider than its sheet (the stylesheet says why); a short code
+    span broken in two ("0000:" / "01") is harder to read than a slightly wider column. A long one, or one
+    with spaces, still breaks."""
+    for code in body.select("td code"):
+        words = code.get_text()
+        if len(words) <= WHOLE_CODE and not any(c.isspace() for c in words):
+            code["class"] = [*code.get("class", []), "whole"]
+
+
+def chapter(number: int, spec: str, commit: str, fetched: str, link_lists: bool = True) -> tuple[str, str]:
+    """The title and the printable HTML of one page, as chapter number of the PDF.
+
+    link_lists: number each link and list the addresses at the chapter's end. Without it a link is printed
+    as its words alone, for a reader who has the paper and nothing to follow an address with."""
     path, wanted = parse_spec(spec)
     url = page_url(path)
     page, _ = fetch(url)
@@ -533,9 +556,10 @@ def chapter(number: int, spec: str, commit: str, fetched: str) -> tuple[str, str
         keep_sections(body, wanted, url)
     absolute_links(body, url)
     sheets = inline_images(body, url, soup, number)
-    links = link_notes(body, url, soup)
+    links = link_notes(body, url, soup) if link_lists else None
     long_blocks(body)
     short_tables(body)
+    whole_codes(body)
     step_pictures(body, soup)
     heading = body.find("h1")
     title = heading.get_text(strip=True) if heading else path
@@ -606,7 +630,7 @@ def css_string(text: str) -> str:
 
 
 def document(title: str, paper: str, specs: list[str], cover_notes: str | None = None,
-             last_sheet: str | None = None) -> str:
+             last_sheet: str | None = None, link_lists: bool = True) -> str:
     """The joined page, with a place on the cover for each chapter's sheet number.
 
     cover_notes and last_sheet are the text of a notes file, or None when not
@@ -618,7 +642,7 @@ def document(title: str, paper: str, specs: list[str], cover_notes: str | None =
             note_boxes(text)
     commit = built_commit()
     fetched = datetime.date.today().isoformat()
-    chapters = [chapter(number, spec, commit, fetched) for number, spec in enumerate(specs, 1)]
+    chapters = [chapter(number, spec, commit, fetched, link_lists) for number, spec in enumerate(specs, 1)]
     foot = css_string(f"{title} · docs.fpgas.online · commit {commit[:10]} · {fetched}")
     css = CSS % {"paper": PAPERS[paper], "foot": foot}
     contents = "".join(
@@ -825,6 +849,9 @@ def main() -> int:
     parser.add_argument("--last-sheet", type=Path, metavar="FILE",
                         help="a box on a sheet of its own after the pages, in the same form "
                         "(several boxes may be separated by a line of dashes)")
+    parser.add_argument("--no-link-lists", action="store_true",
+                        help="do not number the links or list their addresses at each chapter's end: for a "
+                        "reader who has the paper only")
     parser.add_argument("pages", nargs="+", metavar="PAGE", help='e.g. "boards/acorn/wiring#raspberry-pi-5"')
     args = parser.parse_args()
     if args.output.suffix.lower() != ".pdf":
@@ -849,7 +876,7 @@ def main() -> int:
     try:
         printed.unlink(missing_ok=True)
         united.unlink(missing_ok=True)
-        page = document(args.title, args.paper, args.pages, cover_notes, last_sheet)
+        page = document(args.title, args.paper, args.pages, cover_notes, last_sheet, not args.no_link_lists)
         places = set(re.findall(SHEET_PLACE_RE, page))
         joined.write_text(without_sheets(page), encoding="utf-8")
         print_pdf(joined, printed)

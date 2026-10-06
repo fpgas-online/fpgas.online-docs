@@ -552,6 +552,16 @@ class Chapter(unittest.TestCase):
         with FakeFetch({URL: (PAGE.encode(), "text/html")}):
             return p.chapter(number, spec, "0123456789abcdef", "2026-10-05")
 
+    def test_without_link_lists_no_link_is_numbered_and_no_address_list_is_printed(self):
+        with FakeFetch({URL: (PAGE.encode(), "text/html")}):
+            _, with_lists = p.chapter(3, "boards/acorn/wiring#raspberry-pi-5", "0123456789abcdef", "2026-10-05")
+            _, without = p.chapter(3, "boards/acorn/wiring#raspberry-pi-5", "0123456789abcdef", "2026-10-05",
+                                   link_lists=False)
+        self.assertIn("Links in this chapter", with_lists)  # the page under test has links to list
+        self.assertNotIn("Links in this chapter", without)
+        self.assertNotIn('class="ref"', without)
+        self.assertNotIn('class="links"', without)
+
     def test_the_source_line_starts_with_the_chapter_number(self):
         title, text = self.make()
         self.assertEqual(title, "Acorn wiring")
@@ -561,6 +571,26 @@ class Chapter(unittest.TestCase):
     def test_the_number_is_the_one_given(self):
         _, text = self.make(number=12, spec="boards/acorn/wiring")
         self.assertIn(f"Chapter 12 · Source: {URL} ·", text)
+
+
+class RightEdge(unittest.TestCase):
+    def test_nothing_is_as_wide_as_the_printable_area(self):
+        # Chrome cuts the right border of a box that reaches the area's edge (seen on warning boxes and command
+        # blocks, 6 October 2026); the one allowance is on body, so boxes, blocks and tables all get it.
+        self.assertIn("body { margin: 0 1pt 0 0; }", p.CSS)
+        self.assertNotIn("calc(100%% - 1pt)", p.CSS)
+
+
+class WholeCodes(unittest.TestCase):
+    def test_a_short_code_span_in_a_cell_is_kept_whole_and_a_long_or_spaced_one_is_not(self):
+        body = p.BeautifulSoup(
+            "<table><tr><td><code>0000:01</code> <code>0x0028e5c45e304854</code> "
+            "<code>sudo fpgas-verify --no-publish</code> <code>" + "a" * 25 + "</code></td></tr></table>"
+            "<p><code>0000:01</code></p>", "html.parser")
+        p.whole_codes(body)
+        marked = [c.get_text() for c in body.select("code.whole")]
+        self.assertEqual(marked, ["0000:01", "0x0028e5c45e304854"])
+        self.assertIn("td code.whole { white-space: nowrap;", p.CSS)
 
 
 class Notes(unittest.TestCase):
@@ -624,7 +654,8 @@ class Notes(unittest.TestCase):
 class Document(unittest.TestCase):
     def make(self, title="Wiring", paper="A4", **notes):
         real = p.chapter
-        p.chapter = lambda number, spec, commit, fetched: (f"Chapter {spec}", f"<div>{spec} {commit[:10]}</div>")
+        p.chapter = lambda number, spec, commit, fetched, link_lists: (
+            f"Chapter {spec}", f"<div>{spec} {commit[:10]} lists={link_lists}</div>")
         try:
             with FakeFetch({p.ADDONS: (b'{"builds": {"current": {"commit": "0123456789abcdef"}}}', "application/json")}):
                 return p.document(title, paper, ["boards/acorn/wiring#a,b", "sites/ps1"], **notes)
@@ -638,6 +669,12 @@ class Document(unittest.TestCase):
         self.assertIn("(sites/ps1)", text)
         self.assertIn("commit 0123456789 ·", text)
         self.assertNotIn("0123456789a", text.split("</style>")[0])
+
+    def test_link_lists_are_printed_unless_asked_not_to(self):
+        self.assertIn("lists=True", self.make())
+        text = self.make(link_lists=False)
+        self.assertIn("lists=False", text)
+        self.assertNotIn("lists=True", text)
 
     def test_cover_notes_and_last_sheet_appear(self):
         text = self.make(cover_notes="Cover head\nitem one", last_sheet="Last head\nitem two")
