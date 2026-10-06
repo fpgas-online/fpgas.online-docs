@@ -15,7 +15,7 @@ it is converted. Until then a row says where the card was last read.
 
 **Converting a card** means loading the fpgas.online design into it over JTAG and writing that design to the
 card's flash, once; after that the card runs it from every power-on. The steps are [written for a Raspberry Pi
-5](../pcie-programming.md#installing-the-fpgasonline-images) and have **not yet been run by us on a Compute
+5](../designs/install-images.md) and have **not yet been run by us on a Compute
 Blade**: on a blade they wait for JTAG (the Host column below).
 
 ```{rst-class} nowrap
