@@ -52,11 +52,13 @@ The designs loaded into the card, one page for each: what it is, how to load it 
 ```{toctree}
 :maxdepth: 1
 
-packages
 designs/litex-soc
+designs/ddr-memory
+designs/pcie
+designs/wishbone-bridge
+packages
 designs/install-images
 designs/recovery
-designs/pcie
 designs/jtag
 designs/uart-gpio-loopback
 designs/pin-id
