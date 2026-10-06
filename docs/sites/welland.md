@@ -1,9 +1,9 @@
 # Welland
 
 The private test lab in South Australia, published as
-[welland.fpgas.online](https://welland.fpgas.online). Raspberry Pi 5 hosts, each
-with a SQRL Acorn board on an M.2 HAT (older notes say mPCIe HAT), plus a camera
-pointed at the board; alongside them Arty A7, NeTV2, Fomu and Tiny Tapeout hosts
+[welland.fpgas.online](https://welland.fpgas.online). Raspberry Pi 5 hosts
+carrying SQRL Acorn boards on M.2 HATs (older notes say mPCIe HAT), with a camera
+pointed at each board; alongside them Arty A7, NeTV2, Fomu and Tiny Tapeout hosts
 on their own Pis.
 
 ## Network
@@ -28,7 +28,7 @@ Internet ─── eth-uplink ──│  Debian 13 (trixie)                │
   │ +PMOD HAT │  │ (GPIO     │  │ +Acorn    │  │ demo board│  │ Demo Board│
   │ +USB Eth  │  │  JTAG)    │  │  CLE-215+ │  │ +PMOD HAT │  │ +PMOD HAT │
   └───────────┘  └───────────┘  └───────────┘  └───────────┘  └───────────┘
-   (sw2 p38 +…)   (sw1 ×5)      (sw2 ×6)       (sw2 p3–p8)     (sw2 p33–36)
+   (sw2 p38 +…)   (sw1 ×5)      (sw2)          (sw2 p3–p8)     (sw2 p33–36)
                                             + Fomu EVT on sw1 p17
 ```
 
@@ -49,7 +49,9 @@ and a hostname are in [Network and power](../setup/network.md); the gateway is
 10.21.0.1. Moving a Pi to another port renames and re-addresses it. The old flat
 `piNN` / `10.21.0.1NN` names are retired; the "Old name" columns below map them.
 On the S3300, Tim's rule is **port N carries Tiny Tapeout N** (ports 1–10), the
-TT FPGA emulation boards sit on 33–36, and the Acorn Pi 5s on 29 and 43–48.
+TT FPGA emulation boards sit on 33–36. The Acorn Pi 5s have no ports of their own: an Acorn is identified
+by its label, and where it is plugged in is what the check last reported ([Acorns at
+welland](../boards/acorn/installations/welland.md)).
 
 Source: the `switches:` block and the `tt_boards` catalogue in
 `ansible/inventory/host_vars/fpgas.online.yml` (fpgas.online-infra), the
