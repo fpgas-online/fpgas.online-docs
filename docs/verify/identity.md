@@ -11,7 +11,7 @@ fpgas-verify describes each board it finds as one flat set of fields. The same f
 
 The field names are [rpi-hwid](https://github.com/mithro/rpi-hwid)'s `FpgaBoard` fields, spelled the same, a
 Tiny Tapeout board's `TinyTapeoutBoard` fields, and some fields only fpgas-verify has. The code is
-[`identity.py`](https://github.com/fpgas-online/fpgas.online-test-designs/blob/acorn-check-pages/verify/src/fpgas_online_verify/identity.py).
+[`identity.py`](https://github.com/fpgas-online/fpgas.online-test-designs/blob/main/verify/src/fpgas_online_verify/identity.py).
 
 ## Rules
 
@@ -159,7 +159,7 @@ The identity document holds the fields of every board found:
 `source` is always `live`. A run inside `fpgas-verify --label` prints the outer run's document byte for byte,
 so it says `live` too.
 
-[`tests/data/identity-v1-acorn-p48.json`](https://github.com/fpgas-online/fpgas.online-test-designs/blob/acorn-check-pages/tests/data/identity-v1-acorn-p48.json) is an example: the
+[`tests/data/identity-v1-acorn-p48.json`](https://github.com/fpgas-online/fpgas.online-test-designs/blob/main/tests/data/identity-v1-acorn-p48.json) is an example: the
 Acorn on pi-sw2-p48. rpi-hwid keeps a byte-identical copy and tests its reader on it. It is exactly what
 that board printed, which did not include `flash_sfdp`.
 

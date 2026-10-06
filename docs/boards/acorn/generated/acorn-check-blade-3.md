@@ -14,7 +14,7 @@ What has been run on a Compute Blade, and what has not, as of 5 October 2026:
 | `jtag` with the serial port off | **not yet run by us on this hardware** |
 | `jtag` under kernel 6.12, serial port on | recorded as working on one ps1 blade (`--pins 2:3:4:14`), before these packages existed; not run with them |
 | The `p2-uart` and `p2-serial` tests | **not yet run by us on this hardware**: they need a converted card |
-| Converting a card on a Compute Blade | **not yet run by us on this hardware**; the [written steps](https://docs.fpgas.online/en/latest/boards/acorn/pcie-programming.html) are for the Pi 5 setup |
+| Converting a card on a Compute Blade | **not yet run by us on this hardware**; the [written steps](/boards/acorn/pcie-programming.md) are for the Pi 5 setup |
 | A Compute Blade that passes the whole check | **not yet seen** |
 | The `p2-serial` test on a blade whose J2 wire has no 470 Ω resistor (pi20 at ps1 as wired on 5 October 2026: the pair on Extension Port pins 9 and 10) | **not yet run by us on this hardware**. From the code: while it runs to its end or raises an error, the test never has both ends of a wire driving at once (the Pi's pins are made inputs before the FPGA drives, and the FPGA's outputs are switched off before the Pi drives), so it does not rely on the resistor. What the resistor guards against is a design that drives J2 while JTAG or the serial port drives GPIO14; the fpgas.online design leaves J2 an input except while the host has switched J2/K2 to GPIO mode and enabled J2's output, which is what this test does, with the Pi's GPIO14 an input at that moment |
 

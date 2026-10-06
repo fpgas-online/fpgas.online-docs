@@ -45,7 +45,7 @@ sudo fpgas-acorn-verify --no-publish
 
 There is one result, **pass** or **fail**, and only a pass exits 0. The summary on the terminal lists every test in the order it ran with its result; for a check that did not pass it ends with `RESULT:`, a `failed:` line for each failed test, a `not run:` line for the tests that did not run and why, and `What to do:`.
 
-A pass, on an Acorn on a Raspberry Pi 5 at welland (pi-sw2-p47, 2 October 2026):
+A pass, on the Acorn and Raspberry Pi 5 seen at welland's sw2 p47 on 2 October 2026 (on 6 October 2026 that port had acorn-holly, device DNA `0x00200c8664b04854`, on the Pi 5 2 GB `285df3f84af242d0`). The run names the host by its port, `pi-sw2-p47`:
 
 ```text
 $ sudo fpgas-verify --no-publish
@@ -84,4 +84,4 @@ fpgas-verify: pass (mode auto, auto: USB/PCI IDs)
 
 So on a card that has not been converted yet, `pcie-link` and `jtag` are the wiring tests; the P2 wires can
 only be tested once the card runs the fpgas.online design
-([converting a card](https://docs.fpgas.online/en/latest/boards/acorn/pcie-programming.html)).
+([converting a card](/boards/acorn/pcie-programming.md)).
