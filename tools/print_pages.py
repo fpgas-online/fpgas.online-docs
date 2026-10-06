@@ -72,6 +72,11 @@ ADDONS = (
 # The site answers 403 to urllib's own user agent.
 HEADERS = {"User-Agent": "Mozilla/5.0 (X11; Linux x86_64) fpgas.online-docs print_pages"}
 CHROME = "google-chrome-stable"
+# A code span in a table cell up to WHOLE_CODE characters, with no space in it, is printed on one line,
+# as long as the longest such spans of its row's cells come to WHOLE_ROW characters or fewer. Both guard the
+# sheet's width: at the code size about 96 characters fill an A4 sheet's printable width.
+WHOLE_CODE = 24
+WHOLE_ROW = 48
 PAPERS = {"A4": "A4", "Letter": "letter"}
 # Sheet sizes in points (width, height, portrait), for checking appended PDFs.
 PAPER_POINTS = {"A4": (595.28, 841.89), "Letter": (612.0, 792.0)}
@@ -155,6 +160,8 @@ th { background: #ddd; }
 td { overflow-wrap: anywhere; }
 /* ...but a short code span in a cell (whole_codes) stays in one piece. */
 td code.whole { white-space: nowrap; overflow-wrap: normal; }
+/* A heading's code span does not break either (code breaks anywhere by default). */
+th code { overflow-wrap: normal; }
 thead { display: table-header-group; }
 tr { break-inside: avoid; }
 .admonition { border: 1.2pt solid #000; padding: 2mm 3mm; margin: 0 0 3.5mm; break-inside: avoid; }
@@ -527,18 +534,23 @@ def short_tables(body: Tag) -> None:
             table["class"] = [*table.get("class", []), "short"]
 
 
-WHOLE_CODE = 24  # a code span in a table cell up to this long, with no space in it, is one thing to read
-
-
 def whole_codes(body: Tag) -> None:
-    """Keep a short code span in a table cell on one line: an address, an ID, a pin list.
+    """Keep a short code span in a table cell on one line: an address, an ID.
 
     A cell may break a word so that no table is wider than its sheet (the stylesheet says why); a short code
     span broken in two ("0000:" / "01") is harder to read than a slightly wider column. A long one, or one
-    with spaces, still breaks."""
-    for code in body.select("td code"):
-        words = code.get_text()
-        if len(words) <= WHOLE_CODE and not any(c.isspace() for c in words):
+    with spaces, still breaks. So does every one in a row whose spans together would take most of a sheet's
+    width: keeping those whole is what would push the table past the edge."""
+    for row in body.select("tr"):
+        cells = []
+        for cell in row.find_all("td", recursive=False):
+            codes = [code for code in cell.find_all("code")
+                     if len(code.get_text()) <= WHOLE_CODE and not any(c.isspace() for c in code.get_text())]
+            if codes:
+                cells.append(codes)
+        if sum(max(len(code.get_text()) for code in codes) for codes in cells) > WHOLE_ROW:
+            continue
+        for code in (code for codes in cells for code in codes):
             code["class"] = [*code.get("class", []), "whole"]
 
 

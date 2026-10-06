@@ -593,6 +593,28 @@ class WholeCodes(unittest.TestCase):
         self.assertIn("td code.whole { white-space: nowrap;", p.CSS)
 
 
+class WholeCodesLimits(unittest.TestCase):
+    def marked(self, html):
+        body = p.BeautifulSoup(html, "html.parser")
+        p.whole_codes(body)
+        return [c.get_text() for c in body.select("code.whole")]
+
+    def test_the_length_limit_is_inclusive(self):
+        at, over = "a" * p.WHOLE_CODE, "a" * (p.WHOLE_CODE + 1)
+        self.assertEqual(self.marked(f"<table><tr><td><code>{at}</code></td><td><code>{over}</code></td></tr></table>"),
+                         [at])
+
+    def test_a_row_whose_spans_would_fill_the_sheet_keeps_none_whole_and_other_rows_are_not_affected(self):
+        long = "b" * p.WHOLE_CODE
+        wide = "".join(f"<td><code>{long}</code></td>" for _ in range(p.WHOLE_ROW // p.WHOLE_CODE + 1))
+        fits = "".join(f"<td><code>{long}</code> <code>0000:01</code></td>" for _ in range(p.WHOLE_ROW // p.WHOLE_CODE))
+        self.assertEqual(self.marked(f"<table><tr>{wide}</tr><tr>{fits}</tr></table>"),
+                         [long, "0000:01"] * (p.WHOLE_ROW // p.WHOLE_CODE))
+
+    def test_a_heading_code_span_does_not_break(self):
+        self.assertIn("th code { overflow-wrap: normal; }", p.CSS)
+
+
 class Notes(unittest.TestCase):
     def test_an_empty_file_stops_the_run(self):
         with self.assertRaises(SystemExit):
