@@ -1,10 +1,25 @@
 # Acorn: installing and updating the fpgas.online images
 
-**You have an Acorn on a Raspberry Pi 5, its JTAG answers, and you want to put the fpgas.online golden and
-operational images in its flash (converting a card from SQRL's factory image or the vendor sample), or
-update the operational image later.** What the two images are is on [the fpgas.online LiteX
+**You have an Acorn on a Raspberry Pi 5, its JTAG answers, and you want to see how a card was converted to
+the fpgas.online golden and operational images, and how the operational image is updated.** This page is
+the dated record of one card's install (acorn-willow, last checked 2026-09-21) with what each step gave,
+and the update commands. It is not yet a procedure with every command: the commands for the SRAM loads and
+the ICAP warm boots of that record are not on this page. What the two images are is on [the fpgas.online LiteX
 SoC](litex-soc.md); what to do when an image is bad is on [Recovery and safety
 rules](recovery.md).
+
+## The tool and the files
+
+`spi_flash.py` is the flash tool's source file. The `fpgas-online-acorn-tools` package installs it as
+`/usr/bin/fpgas-acorn-flash` ([Installing the Acorn packages](../packages.md#installing-the-acorn-packages)),
+so on a host with the packages `sudo fpgas-acorn-flash id` is `sudo python3 spi_flash.py id`. The images are
+installed by `fpgas-online-acorn-bitstreams` in `/usr/share/fpgas-online/acorn-pcie/images/`, where
+`manifest.json` lists them. For a CLE-215+ the operational image (`sqrl_acorn_operational.bin` below) is
+`acorn-cle-215p-sqrl_acorn_operational.bin` there. By the release tool's naming (from the design's source,
+`publish_release.py`; not read by us on a host) the golden image (`sqrl_acorn_fallback.bin` below) is
+`acorn-cle-215p-golden-sqrl_acorn_fallback.bin`. For a CLE-101 put `cle-101` in place of `cle-215p`.
+
+`<bdf>` on this page is the card's PCIe address: `0001:01:00.0` on a Raspberry Pi 5 with the M.2 HAT.
 
 ## Installing the fpgas.online images
 
@@ -21,7 +36,15 @@ then named pi-sw2-p48, last checked 2026-09-21.
 :::{danger}
 Only on a board whose JTAG answers `--detect`. If writing the golden slot goes
 wrong, JTAG is the only way back. Check the card's row on [Acorns at welland](../installations/welland.md#the-cards) or [Acorns at
-ps1](../installations/ps1.md#the-cards) first.
+ps1](../installations/ps1.md#the-cards) first, and prove it on the card itself (read-only, safe on a live
+endpoint):
+
+```console
+# Pi 5: the libgpiod cable opens gpiochip0; the 40-pin header is gpiochip15
+$ sudo ln -sfn /dev/gpiochip15 /dev/gpiochip0
+$ openFPGALoader --cable libgpiod --pins 10:9:11:8 --detect
+# Expected on a CLE-215+: idcode 0x3636093 (XC7A200T). "found 0 devices": stop here.
+```
 :::
 
 | Step | acorn-willow |
@@ -57,6 +80,9 @@ host's switch port, which takes a Pi 5 more than 90 s to come back.
 
 ## Updating the operational image
 
+**Test a new image with a JTAG SRAM load first**, before writing it to flash: detach the endpoint, load the
+`.bit`, bring PCIe back, check it, and only then write the `.bin`.
+
 With the fpgas.online Acorn design running from flash:
 
 ```console
@@ -65,11 +91,14 @@ $ sudo python3 spi_flash.py write  sqrl_acorn_operational.bin 0x400000 --idcode 
 ```
 
 then warm-boot to 0x400000 over ICAP, or PoE-cycle the port, and bring PCIe
-back with `echo 1 | sudo tee /sys/bus/pci/rescan`. Test a new image with a JTAG SRAM load first ([safety
-rule 3](recovery.md#safety-rules)).
+back with `echo 1 | sudo tee /sys/bus/pci/rescan`. 
 
-With `litepcie_util` (the `litepcie` kernel module loaded; not yet run on fleet
-hardware), the equivalent is:
+:::{warning}
+**`litepcie_util` checks nothing before it writes.** `spi_flash.py` checks the image against the slot and
+refuses address 0x0 without `--i-know-this-writes-golden`; `litepcie_util` does neither.
+:::
+
+With `litepcie_util` (the `litepcie` kernel module loaded; not yet run on fleet hardware), the equivalent is:
 
 ```console
 $ litepcie_util flash_write operational.bin 0x400000

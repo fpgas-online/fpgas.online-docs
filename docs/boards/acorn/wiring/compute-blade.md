@@ -3,7 +3,7 @@
 **You have an Acorn in a Compute Blade with a CM4 or CM5 and want to know which wire of the card's two
 connectors goes to which pin of the blade's Extension Port and UART header.** What follows from the line
 the two cables share, and what the blade must have set for JTAG and for the serial pair, is on [the
-blade's pins, shared line, JTAG and settings](compute-blade-host.md). An Acorn on a Raspberry Pi 5 is
+blade's pins, shared line and settings](compute-blade-host.md) and [JTAG on a Compute Blade](compute-blade-jtag.md). An Acorn on a Raspberry Pi 5 is
 wired differently and has [its own page](rpi-5.md). To build and fit the cables, follow the
 [Compute Blade building guide](../building/compute-blade/index.md).
 
@@ -44,6 +44,10 @@ GPIOs](compute-blade-host.md#the-blades-connectors-and-their-gpios).
 
 ```{include} ../generated/acorn-blade-p2.md
 ```
+
+**The J2 wire carries a 470 Ω resistor**, soldered into the wire near its housing end. Why: [the shared line
+and the 470 Ω resistor](compute-blade-host.md#the-shared-line-and-the-470-ω-resistor). Fitting it: [UART
+connector 1](../building/compute-blade/uart-connector-1.md) of the building guide.
 
 Cut the J5 and H5 wires back and insulate them like VCC: the blade's five GPIOs
 are JTAG's four plus the serial pair's second line, so none is left for them.

@@ -8,6 +8,12 @@ a Compute Blade's own M.2 slot, with JTAG and UART carried on adapted
 Pico-EZmate cables to the host's GPIO header (a Pi 5) or to a Compute Blade's
 Extension Port (P1) and 4-pin UART header (P2).
 
+**An Acorn on a Raspberry Pi 5:** start at [Acorn wiring on a Raspberry Pi 5](wiring/rpi-5.md), then the
+[Raspberry Pi 5 building guide](building/rpi-5/index.md).
+
+**An Acorn on a Compute Blade:** start at [Acorn wiring on a Compute Blade](wiring/compute-blade.md), then the
+[Compute Blade building guide](building/compute-blade/index.md).
+
 ## Overview
 
 What the card is, its variants, what works on fpgas.online today, and the documents behind these pages:
@@ -23,7 +29,7 @@ overview/resources
 
 ## Wiring Overview
 
-Which wire goes where between the card and its host, and what the host must have set for those wires. Two pages for each carrier:
+Which wire goes where between the card and its host, and what the host must have set for those wires. Two pages for a Raspberry Pi 5, three for a Compute Blade:
 
 ```{toctree}
 :maxdepth: 1
@@ -32,6 +38,7 @@ wiring/rpi-5
 wiring/rpi-5-host
 wiring/compute-blade
 wiring/compute-blade-host
+wiring/compute-blade-jtag
 ```
 
 ## Building Guide

@@ -18,7 +18,7 @@ whole tree is on [SQRL Acorn and LiteFury](index.md).
 (p2-serial-pair-on-the-uart-header)=
 (housings)=
 (jtag-on-a-blade)=
-**On a Compute Blade** (the wiring sheet, pin numbering, P1, P2, housings, the shared line and the 470 Ω resistor, JTAG on a blade): [Acorn wiring on a Compute Blade](wiring/compute-blade.md) and [the blade's pins, shared line, JTAG and settings](wiring/compute-blade-host.md).
+**On a Compute Blade** (the wiring sheet, pin numbering, P1, P2, housings, the shared line and the 470 Ω resistor, JTAG on a blade): [Acorn wiring on a Compute Blade](wiring/compute-blade.md) and [the blade's pins, shared line and settings](wiring/compute-blade-host.md) and [JTAG on a Compute Blade](wiring/compute-blade-jtag.md).
 
 (board-connectors)=
 **The card's two connectors, P1 and P2**: on both wiring pages, [Raspberry Pi 5](wiring/rpi-5.md#board-connectors) and [Compute Blade](wiring/compute-blade.md#board-connectors).

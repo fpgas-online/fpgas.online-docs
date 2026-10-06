@@ -2,9 +2,7 @@
 
 **You have an Acorn that runs the fpgas.online design, on a Raspberry Pi 5 or in a Compute Blade, and want
 to know what tests its DDR3 memory, what a pass means, and what has been measured.** The memory itself and
-its pins are on [Acorn device info](../overview/device-info.md#ddr3-sdram). The design's own document in
-fpgas.online-test-designs is pulled into this page at the next step; until then this page holds only what
-is listed here, each with its source.
+its pins are on [Acorn device info](../overview/device-info.md#ddr3-sdram). Each fact here is given with its source.
 
 ## What it is
 
@@ -32,6 +30,9 @@ From the check's expected figures
 the minimum is 1100 MB/s for writing and for reading, on both the CLE-215+ and the CLE-101. Both run one
 16-bit DDR3 at 400 MHz (DDR3-800), so the peak is 1600 MB/s.
 
+The test reads and writes only the DRAM. The check never writes the card's flash and never reconfigures
+the FPGA (from [Installing the Acorn packages](../packages.md#installing-the-acorn-packages)).
+
 To run the test alone, the same command on either carrier (`--test` is in the check's document; on a Compute
 Blade it is **not yet run by us on this hardware**):
 
@@ -43,9 +44,11 @@ $ sudo fpgas-acorn-verify --test ddr
 
 - **1327 MB/s write and 1350 MB/s read**, by the DRAM BIST, on a CLE-215+ on a Raspberry Pi 5 then named
   pi-sw2-p48, on 2026-10-01 (from `expected.toml`).
-- **The BIOS's own memory test**: DDR3 1 GiB at 800 MT/s, read leveling clean on both modules, `Memtest OK`,
+- **A different test, the LiteX BIOS's own memory test at start-up**: DDR3 1 GiB at 800 MT/s, read leveling clean on both modules, `Memtest OK`,
   35.1 MiB/s write, 46.8 MiB/s read, on acorn-willow, last checked 2026-09-21 (step 10 of [its
   install](install-images.md#installing-the-fpgasonline-images)).
 - **The `ddr` test passed** on acorn-holly, acorn-willow, acorn-sycamore and acorn-olive in the boot check of
   6 October 2026 ([Acorns at welland](../installations/welland.md#the-cards)).
 - The CLE-101 has not been measured yet (from `expected.toml`).
+
+More: the design's own document is in fpgas.online-test-designs: [`designs/acorn-pcie`](https://github.com/fpgas-online/fpgas.online-test-designs/tree/main/designs/acorn-pcie) and [`docs/tests/ddr-memory.md`](https://github.com/fpgas-online/fpgas.online-test-designs/blob/main/docs/tests/ddr-memory.md).

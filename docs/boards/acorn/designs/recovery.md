@@ -29,9 +29,20 @@ way back at all. `spi_flash.py` refuses 0x0 without
 
 ## Recovery
 
+**We hold no dated record of the bad-golden recovery having been run.** The only related record is
+acorn-willow's install, last checked 2026-09-21: its steps 1 and 6 load the operational and the golden
+`.bit` into SRAM over JTAG, and its step 7 writes the golden slot through the SRAM-loaded golden design
+([the record](install-images.md#installing-the-fpgasonline-images)).
+
+`golden.bit` below is the golden build's `.bit`. The packages carry only the operational `.bit`; the golden
+one comes from the golden build (`acorn_pcie_soc.py --variant <v> --golden --build`, [a Vivado
+build](litex-soc.md#images)). By the release tool's naming (from the design's source, `publish_release.py`;
+not fetched by us for this page) it is `acorn-cle-215p-golden-sqrl_acorn.bit` in the design's release for a
+CLE-215+.
+
 The commands are for a Raspberry Pi 5. On a Compute Blade the recovery is **not yet run by us on this
 hardware**; there the JTAG pins are `--pins 2:3:4:14` and the card's address differs per blade ([JTAG on a
-blade](../wiring/compute-blade-host.md#jtag-on-a-blade)).
+blade](../wiring/compute-blade-jtag.md#jtag-on-a-blade)).
 
 ### Bad operational image: automatic
 
@@ -49,6 +60,12 @@ Files staged under `/home/pi` do not survive a reboot: the Pi root is a
 read-only NFS export with a tmpfs overlay (`overlayroot=tmpfs`), so a bitstream
 that loaded a minute ago fails with `Open file … FAIL` after a reboot. Copy it
 again before each attempt.
+:::
+
+:::{warning}
+Between steps 1 and 3 the board **must not lose power**. The SRAM-loaded design
+is volatile: if power goes before step 3 completes, the flash still holds the
+corrupt golden image, and you start again from step 1.
 :::
 
 0. **Prove JTAG answers before touching anything.** `--detect` is read-only and
@@ -98,12 +115,6 @@ again before each attempt.
 4. **PoE-cycle** the host's switch port. The golden image boots from flash,
    chain-loads the operational one, and PCIe comes up without any JTAG load:
    `lspci -nn -s 0001:01:00.0` shows `10ee:7021` again.
-
-:::{warning}
-Between steps 1 and 3 the board **must not lose power**. The SRAM-loaded design
-is volatile: if power goes before step 3 completes, the flash still holds the
-corrupt golden image, and you start again from step 1.
-:::
 
 ### Summary
 

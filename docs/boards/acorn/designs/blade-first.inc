@@ -1,5 +1,5 @@
 **On a Compute Blade the JTAG steps and the serial step cannot share a boot**
-under kernel 6.18 ([JTAG on a blade](../wiring/compute-blade-host.md#jtag-on-a-blade)): the JTAG, pin-ID and PCIe-design loads
+under kernel 6.18 ([JTAG on a blade](../wiring/compute-blade-jtag.md#jtag-on-a-blade)): the JTAG, pin-ID and PCIe-design loads
 go over JTAG and need the header's serial port off; a test of the serial pair
 (`fpgas-verify`'s `p2-uart` and `p2-serial`) needs it on, with a design already
 running that was loaded from flash. What has been

@@ -7,7 +7,7 @@ header UART is enabled: `uart0-pi5` on a Pi 5, `enable_uart=1` on a blade, as on
 pi16 at ps1), loading any design that drives serial TX — the UART
 SoC, pin-ID, the GPIO loopback — reboots or crashes the host. A fleet host
 is meant to boot with `console=tty1` (Compute Blades) or `console=ttyAMA10` (Pi 5s); check
-this on any new host, and on a host that has been reinstalled: pi16 at PS1 had
+this on any new host, and on a host that has been reinstalled: pi16 at ps1 had
 its console on the FPGA UART when read on 2026-10-05 ([pi16 at ps1 on 5 October
 2026](../installations/ps1-reads.md#pi16-at-ps1-on-5-october-2026)).
 :::

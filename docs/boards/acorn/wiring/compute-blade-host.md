@@ -1,8 +1,9 @@
-# Acorn on a Compute Blade: the blade's pins, the shared line, JTAG and settings
+# Acorn on a Compute Blade: the blade's pins, the shared line and settings
 
 **You have an Acorn wired to a Compute Blade with a CM4 or CM5 and want to know what each pin of the
-blade's two headers is, what follows from JTAG and the serial pair sharing one line, how JTAG is run on a
-blade, and what the blade must have set for the serial pair and the kernel console.** Which wire goes where is on [Acorn wiring on a Compute
+blade's two headers is, what follows from JTAG and the serial pair sharing one line, and what the blade must
+have set for the serial pair and the kernel console.** How JTAG is run on a blade is on [JTAG on a Compute
+Blade](compute-blade-jtag.md). Which wire goes where is on [Acorn wiring on a Compute
 Blade](compute-blade.md).
 
 ## The blade's connectors and their GPIOs
@@ -57,7 +58,7 @@ How firmly the host holds to it:
 |-----------|-------|
 | Device    | `/dev/ttyAMA0` |
 | Baud rate | 115200 |
-| Pre-test  | `systemctl stop serial-getty@ttyAMA0` (active on pi16 at PS1 on 2026-10-05) |
+| Pre-test  | `systemctl stop serial-getty@ttyAMA0` (active on pi16 at ps1 on 2026-10-05) |
 
 A CM5 on a Compute Blade needs no `uart0-pi5` overlay: pi16 at ps1 had `/dev/ttyAMA0` with `enable_uart=1` and no
 `uart0-pi5`, read 2026-10-05.
@@ -84,7 +85,7 @@ resistor: GPIO15 is not a JTAG pin on this carrier.
 The serial port and JTAG cannot both have GPIO14 in one boot of a host on
 kernel 6.18: with the header's serial port on (`enable_uart=1`) the kernel's
 serial driver holds GPIO14 and JTAG cannot run, and with it off there is no
-`/dev/ttyAMA0` for the serial pair (see [JTAG on a blade](#jtag-on-a-blade)).
+`/dev/ttyAMA0` for the serial pair (see [JTAG on a blade](compute-blade-jtag.md#jtag-on-a-blade)).
 Under kernel 6.12.75 pi20 at ps1 ran JTAG and then used `/dev/ttyAMA0` in the same
 boot.
 
@@ -105,66 +106,9 @@ design drives every P2 ball, so it does this every time. The way back is a PoE
 cycle of the blade's switch port, which restores everything in about 60 s: the
 flash bitstream reloads and `--detect`, the DNA read and the PCIe endpoint all
 come back. See [PoE power control](../../../setup/network.md#poe-power-control) and,
-for the PS1 blades, [Power control](../../../sites/ps1.md#power-control). Which
+for the ps1 blades, [Power control](../../../sites/ps1.md#power-control). Which
 blades have the resistor is on [Acorns at ps1](../installations/ps1.md#the-cards).
 :::
-
-## JTAG on a blade
-
-```{include} blade-jtag-serial-off.inc
-```
-
-```{include} blade-detach.inc
-```
-
-```console
-# Compute Blade JTAG pin order: TDI(GPIO2):TDO(GPIO3):TCK(GPIO4):TMS(GPIO14)
-$ openFPGALoader --cable libgpiod --pins 2:3:4:14 --detect
-$ openFPGALoader --cable libgpiod --pins 2:3:4:14 <bitstream.bit>
-```
-
-Which file `<bitstream.bit>` is, and where it comes from, is under [The design
-these steps load](../designs/jtag.md#the-design-these-steps-load).
-
-The `libgpiod` cable opens `/dev/gpiochip0`. On pi16 at ps1 and pi20 at ps1 (CM5s, kernel
-6.18.50, 2026-10-05) `gpiodetect` listed the header's chip, `pinctrl-rp1`, as
-`gpiochip0` already, so no link was needed; do not copy the Pi 5's
-`gpiochip15` link. On any other blade run `gpiodetect` first: the header's chip
-is the one labelled `pinctrl-rp1` on a CM5 and `pinctrl-bcm2711` on a CM4 (not
-read by us on a CM4).
-
-openFPGALoader 0.13.1 left GPIO2 and GPIO4 as **outputs** driving low when it
-exited on pi16 at ps1 (2026-10-05); it drives TMS on GPIO14 too, so treat that as left
-an output as well (not observed: the run on pi16 at ps1 stopped before it had GPIO14).
-Put them back before anything else uses the lines. On pi16 at ps1 `pinctrl set 2,4 no
-pu` restored GPIO2 and GPIO4 to what they were before.
-
-```console
-$ pinctrl set 2,4 no pu      # JTAG pins back to unconfigured with a pull-up
-```
-
-Give GPIO14 and GPIO15 back to the serial port only when the loaded design
-treats J2 as an input (the fpgas.online Acorn design does; pin-ID does not: see
-the warning under [P2](#the-serial-port)). The UART function is
-a different alternate on each module, so run only the line for yours;
-`pinctrl funcs 14,15` lists them. This applies only to a boot in which the
-serial port is on (kernel 6.12.75, as on pi20 at ps1). In a kernel 6.18 boot with the
-serial port off there is no `/dev/ttyAMA0` and nothing to give back.
-
-On a **CM4** (BCM2711):
-
-```console
-$ pinctrl set 14,15 a0       # GPIO14 = TXD0, GPIO15 = RXD0
-```
-
-On a **CM5** (RP1):
-
-```console
-$ pinctrl set 14,15 a4       # GPIO14 = TXD0, GPIO15 = RXD0
-```
-
-The PS1 blades run openFPGALoader 0.13.1, which has `--read-dna`, `--read-xadc` and `--read-register`, all
-read-only.
 
 ```{include} kernel-console.inc
 ```
@@ -173,5 +117,4 @@ read-only.
 
 | Problem | Likely cause | Fix |
 |---------|--------------|-----|
-| UART dead after JTAG on a Compute Blade | openFPGALoader left GPIO14 a plain output | Only in a boot with the serial port on (kernel 6.12), and only once the loaded design treats J2 as an input: on a CM4 `pinctrl set 14,15 a0`; on a CM5 `pinctrl set 14,15 a4` (one or the other), then open `/dev/ttyAMA0`. Never with pin-ID loaded |
 | Pi reboots when a serial design loads | Kernel console on the FPGA UART; SysRq | Console to `ttyAMA10` (Pi 5) / `tty1` (blade), `kernel.sysrq=0` |

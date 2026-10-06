@@ -16,6 +16,22 @@ J5 or H5; on a Raspberry Pi 5 those two wires are tested by `fpgas-verify`
 ```{include} release-designs.inc
 ```
 
+Set `LOOPBACK` to the file you downloaded or built. `<variant>` is `cle-215p`, `cle-215` or `cle-101`; for a
+CLE-215+ and the release's file:
+
+```console
+$ LOOPBACK=pmod-loopback_acorn-cle-215p_vivado-vivado_sqrl_acorn.bit
+```
+
+## Before loading: the console and the getty must be off the FPGA's serial port
+
+The loopback design drives serial TX. Check the host's kernel command line (`cat /proc/cmdline`) against
+this before the load:
+
+```{include} ../wiring/kernel-console.inc
+:heading-offset: 1
+```
+
 ## On a Raspberry Pi 5
 
 ```console
@@ -44,12 +60,18 @@ Under kernel 6.18 this check cannot be done by hand in one
 boot: the
 loopback design has to be loaded over JTAG, which needs the header's serial
 port off, and the test itself needs the serial port on ([JTAG on a
-blade](../wiring/compute-blade-host.md#jtag-on-a-blade)). The serial pair of a blade is checked by
+blade](../wiring/compute-blade-jtag.md#jtag-on-a-blade)). The serial pair of a blade is checked by
 `fpgas-verify` (`p2-uart`, `p2-serial`) once the card runs the fpgas.online
-design from its flash; no PS1 blade card has that yet (see [What each blade
+design from its flash; whether a ps1 blade card has that is on its installations page (see [What each blade
 still needs](../installations/ps1.md#what-each-blade-still-needs)).
 
 ## If it goes wrong
+
+The last row sends you to the pin-ID design. Before loading that one:
+
+```{include} ../wiring/gpio-contention.inc
+```
+
 
 | Problem | Likely cause | Fix |
 |---------|--------------|-----|

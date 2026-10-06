@@ -29,7 +29,7 @@ reconfigure the device and are safe on a live endpoint.
 
 ## On a Raspberry Pi 5
 
-Every Welland Pi 5 host uses `0001:01:00.0`.
+On a Raspberry Pi 5 with the M.2 HAT the card is at `0001:01:00.0` (so on every welland Pi 5 read on 2026-09-03).
 
 ### Is the card on the bus?
 
@@ -85,7 +85,7 @@ If the Acorn doesn't appear, check the M.2 seating, and `dmesg | grep -i pci`.
 
 ### Detach the endpoint
 
-At PS1 the address differs per blade, so read it from the `PCIe` column in [Acorns at
+At ps1 the address differs per blade, so read it from the `PCIe` column in [Acorns at
 ps1](../installations/ps1.md#the-cards).
 
 ```{include} ../wiring/blade-detach.inc
@@ -126,7 +126,7 @@ Measured on pi20 at ps1 (CM5 on a Compute Blade, kernel 6.12.75):
 | Vendor XDMA image (reloaded from flash with `openFPGALoader --reset`) | re-links at 5 GT/s x1 and enumerates | works |
 | LiteX `acorn-pcie` SoC | nothing: the core's LTSSM sits at `0x2d`, and a root-port retrain or secondary-bus reset changes nothing | **links at 5 GT/s x1, enumerates as `10ee:7021`** |
 
-Measured on a Raspberry Pi 5 with an M.2 HAT (kernel 6.12.96; the host was then named pi-sw2-p48):
+Measured on a Raspberry Pi 5 with an M.2 HAT (kernel 6.12.96; the host was then named pi-sw2-p48; our record of this measurement carries no date):
 
 | Design loaded over JTAG | `echo 1 > /sys/bus/pci/rescan` | Root-complex re-probe |
 |---|---|---|

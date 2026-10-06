@@ -1,7 +1,14 @@
 # Acorn test: pin ID
 
-**You have an Acorn wired to a Raspberry Pi 5 or to a Compute Blade and want to read off by hand, with the
-pin-ID design, which FPGA ball each P2 wire is connected to.** On a card that runs the fpgas.online design
+**You have an Acorn wired to a Raspberry Pi 5 or to a Compute Blade and want to know how the pin-ID design
+is loaded and what it is meant to show: each P2 ball sending its own name, so that a wire's far end can be
+read off.** What this page does not give today:
+
+- **No released file that works.** The pin-ID build for the Acorn in the release named below configures but
+  never toggles a pin; the design has to be built from `main`.
+- **No reader known to work on a Compute Blade** under kernel 6.18.
+- **No commands for the passive check** at the end of this page: it is described, not written out.
+ On a card that runs the fpgas.online design
 the boot check names a wrong wire without this design: [on a Raspberry Pi
 5](../building/rpi-5/verifying-1.md), [on a Compute Blade](../building/compute-blade/verifying-1.md).
 
@@ -38,8 +45,7 @@ $ openFPGALoader --cable libgpiod --pins 10:9:11:8 $PINID
 Not yet run by us on a blade wired as on [Acorn wiring on a Compute Blade](../wiring/compute-blade.md).
 
 :::{warning}
-**Not on a blade whose J2 wire has no 470 Ω resistor**, which is pi20 at ps1 as it is
-wired today ([Acorns at ps1](../installations/ps1.md#the-cards)). The moment
+**Not on a blade whose J2 wire has no 470 Ω resistor**, which is how pi20 at ps1 is recorded on [Acorns at ps1](../installations/ps1.md#the-cards). The moment
 the load finishes, the pin-ID design drives J2, and J2 is on GPIO14, which
 openFPGALoader has just left an output. With the resistor that is about 7 mA
 for a moment; without it, it is two outputs shorted together, which costs JTAG

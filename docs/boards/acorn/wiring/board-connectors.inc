@@ -18,7 +18,7 @@ wiki](https://github.com/enjoy-digital/litex/wiki/Use-LiteX-on-the-Acorn-CLE-215
 and the silkscreen of RHS Research's 14-pin JTAG adapter (GND, TCK, TDO, TMS,
 TDI, VCC). The wiki legend names K2 and J2 from the host's side ("UART RX
 (K2)"): K2 is the FPGA's transmitter. The JTAG order is confirmed in service by
-pi20 at PS1, whose cable was built from that legend; it has not been checked
+pi20 at ps1, whose cable was built from that legend; it has not been checked
 with a meter on a bare card.
 
 Cut one Pico-EZmate cable (plug at each end) in half to get the P1 and P2
