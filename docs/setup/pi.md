@@ -86,8 +86,9 @@ no user's `PATH`, which made the chroot-built and CI-built roots disagree.
 On the Welland Pi 5s neither openFPGALoader cable works out of the box. The
 `libgpiod` cable opens `/dev/gpiochip0`, but the header is `gpiochip15`, so it
 needs the link described under [P1: JTAG](../boards/acorn/wiring/rpi-5-host.md#jtag-from-the-pi).
-The `rp1pio` cable needs `/dev/pio0`, which these hosts do not have (`rp1-pio:
-failed to contact RP1 firmware`). `--read-dna`, `--read-xadc` and
+The `rp1pio` cable needs `/dev/pio0`, which these hosts did not have when read in September 2026 (`rp1-pio:
+failed to contact RP1 firmware`). On 2 October 2026 `/dev/pio0` was present, and the check's `rp1-pio` test passed, on the Acorn and
+Raspberry Pi 5 seen at welland's sw2 p47 that day. `--read-dna`, `--read-xadc` and
 `--read-register` are all there.
 :::
 

@@ -53,8 +53,10 @@ open gpio chip`, so link the chip first (devtmpfs, so the link goes at reboot):
 $ sudo ln -sfn /dev/gpiochip15 /dev/gpiochip0
 ```
 
-Its `rp1pio` cable (RP1 PIO-driven JTAG) needs `/dev/pio0`, which these hosts do
-not have (`rp1-pio: failed to contact RP1 firmware`), so use `libgpiod`. The
+Its `rp1pio` cable (RP1 PIO-driven JTAG) needs `/dev/pio0`. The Welland Pi 5s did not have it when read in
+September 2026 (`rp1-pio: failed to contact RP1 firmware`). On 2 October 2026 it was present, and the check's `rp1-pio` test passed, on the Acorn and
+Raspberry Pi 5 seen at welland's sw2 p47 that day.
+The `libgpiod` cable does not need it, and is the one these pages use. The
 build has `--read-dna`, `--read-xadc` and `--read-register`, all read-only.
 
 `--detect` is read-only and safe against a live PCIe endpoint. Loading a
