@@ -1,0 +1,25 @@
+# Compute Blade cables: overview
+
+**You have an Acorn and a Compute Blade, and want to build the two cables between them, fit them and check them.** An Acorn on a Raspberry Pi 5 has [its own guide](../rpi-5/index.md); nothing there is for a Compute Blade.
+
+```{include} ../../generated/acorn-build-blade-overview.md
+:relative-images:
+```
+
+## The pages of this guide
+
+```{toctree}
+:maxdepth: 1
+
+bom
+jtag-connector-1
+jtag-connector-2
+uart-connector-1
+uart-connector-2
+bench-check
+fitting
+verifying-1
+verifying-2
+verifying-2b
+verifying-3
+```

@@ -234,13 +234,24 @@ $ python3 -m litex_boards.targets.sqrl_acorn --build
 - OpenOCD flashing: [NiteFury/Acorn flashing guide](https://github.com/Gbps/nitefury-openocd-flashing-guide)
 - Running Linux: [Acorn CLE-215+ blog post](https://spoolqueue.com/new-design/fpga/migen/litex/2020/08/11/acorn-cle-215.html)
 
-## Wiring and programming guides
+## Wiring, checking and programming guides
 
-How the Acorn is wired to its host, and how to put a bitstream in flash:
+How the Acorn is wired to its host, how to check that wiring on each carrier, and how to put a bitstream in flash:
 
 ```{toctree}
 :maxdepth: 1
 
 wiring
 pcie-programming
+```
+
+## Building guide
+
+The two cables between an Acorn and its host: parts, one page for each connector, fitting, and checking the result. One guide for each carrier:
+
+```{toctree}
+:maxdepth: 2
+
+building/compute-blade/index
+building/rpi-5/index
 ```

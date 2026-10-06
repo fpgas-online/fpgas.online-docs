@@ -81,10 +81,35 @@ FILES = {
             "acorn-cable-pi5-fit.png",
             "acorn-cable-blade-shell-check.png",
             "acorn-cable-pi5-shell-check.png",
+            "acorn-build-blade-bench.md",
+            "acorn-build-blade-fit.md",
+            "acorn-build-blade-jtag-1.md",
+            "acorn-build-blade-jtag-2.md",
+            "acorn-build-blade-overview.md",
+            "acorn-build-blade-uart-1.md",
+            "acorn-build-blade-uart-2.md",
+            "acorn-build-pi5-bench.md",
+            "acorn-build-pi5-fit.md",
+            "acorn-build-pi5-jtag-1.md",
+            "acorn-build-pi5-jtag-2.md",
+            "acorn-build-pi5-overview.md",
+            "acorn-build-pi5-uart-1.md",
+            "acorn-build-pi5-uart-2.md",
+            "acorn-check-blade-1.md",
+            "acorn-check-blade-2.md",
+            "acorn-check-blade-2b.md",
+            "acorn-check-blade-3.md",
+            "acorn-check-blade-wires.png",
+            "acorn-check-pi5-1.md",
+            "acorn-check-pi5-2.md",
+            "acorn-check-pi5-2b.md",
+            "acorn-check-pi5-wires.png",
         ],
     ),
 }
 SOURCE = "SOURCE"
+# Where this site is published: a link to it from a pulled page is turned into a link inside the site.
+PUBLISHED = "https://docs.fpgas.online/en/latest/"
 
 # source document in test-designs: the page it becomes here (relative to the repository root)
 PAGES = {
@@ -149,6 +174,30 @@ def link_targets():
     return targets
 
 
+OWN_LINK = re.compile(r"(?<=\]\()" + re.escape(PUBLISHED) + r"([^)\s#?]+)\.html(#[^)\s]*)?(?=\))")
+
+
+def own_links(text):
+    """A copied Markdown file's links to pages of this site, as links inside the site.
+
+    Such a file is included by pages at any depth, so the link is written from the source root
+    (`/verify/fpgas-verify.md#heading`), which MyST resolves wherever the including page is. The build then
+    checks the page and the heading; by its published address the link check would test it against what is
+    published, where a heading's address is not the one MyST knows it by and a new page is not there yet.
+    A link to a page that is not in this repository is left as it is. Fenced code is left alone."""
+
+    def one(match):
+        page, fragment = match.group(1), match.group(2) or ""
+        return f"/{page}.md{fragment}" if (DOCS / "docs" / f"{page}.md").exists() else match.group(0)
+
+    out, fenced = [], False
+    for line in text.split("\n"):
+        if FENCE.match(line.lstrip()):
+            fenced = not fenced
+        out.append(line if fenced else OWN_LINK.sub(one, line))
+    return "\n".join(out)
+
+
 def rewrite_links(text, src, at, ref, own_fragments=None):
     """Rewrite the relative links of the Markdown document src so they work from the page `at` here.
 
@@ -164,6 +213,15 @@ def rewrite_links(text, src, at, ref, own_fragments=None):
 
     def one(match):
         target = match.group(1)
+        if target.startswith(PUBLISHED):
+            # A link to a page of this site, written in test-designs by its published address: here it is a link
+            # inside the site, which the build checks. (By its address it would be checked against what is
+            # published, and a page added in the same change is not published yet.)
+            page, _, fragment = target[len(PUBLISHED) :].partition("#")
+            here = "docs/" + page.removesuffix(".html") + ".md"
+            if page.endswith(".html") and (DOCS / here).exists():
+                return posixpath.relpath(here, posixpath.dirname(at)) + (f"#{fragment}" if fragment else "")
+            return target
         if re.match(r"[a-zA-Z][a-zA-Z0-9+.-]*:", target):
             return target
         path, _, fragment = target.partition("#")
@@ -275,7 +333,8 @@ def main(argv=None):
     for dest, (src, names) in FILES.items():
         for name in names:
             try:
-                wanted[DOCS / dest / name] = fetch(commit, f"{src}/{name}")
+                data = fetch(commit, f"{src}/{name}")
+                wanted[DOCS / dest / name] = own_links(data.decode("utf-8")).encode("utf-8") if name.endswith(".md") else data
             except Missing as e:
                 missing.append(str(e))
     texts = {}
