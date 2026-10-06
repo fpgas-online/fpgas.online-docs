@@ -1,4 +1,4 @@
-From any machine with `ssh`, as the visitor. The port is `1NN22`, where `NN` is the number in the blade's name: `11422` for pi14 at ps1, `11622` for pi16, `11822` for pi18, `12022` for pi20.
+From any machine with `ssh`, as the visitor. The port is `1NN22`, where `NN` is the number in the blade's name: `11422` for pi14 at ps1, `11622` for pi16 at ps1, `11822` for pi18 at ps1, `12022` for pi20 at ps1.
 
 ```console
 $ ssh -p 11622 pi@ps1.fpgas.online

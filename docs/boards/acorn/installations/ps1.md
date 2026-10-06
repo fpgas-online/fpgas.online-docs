@@ -94,6 +94,13 @@ host at ps1 boots from (read on the ps1 gateway, 6 October 2026): a change there
 next boot. In order: the host's console and serial port first, then the cables, then the endpoint detached,
 then a load over JTAG.
 
+**pi20 at ps1's present P2 wiring is not the guide's.** How its cable is made was not recorded, only where
+its serial pair lands (Extension Port pins 9 and 10). The way to the guide's wiring that needs no knowledge of
+the old cable: build a new P2 cable by the guide ([UART connector
+1](../building/compute-blade/uart-connector-1.md) and 2), take the old P2 cable off the card and the blade, and
+fit the new one on the UART header. Whether the P1 cable's housing then matches the guide's has to be looked
+at against [JTAG connector 2](../building/compute-blade/jtag-connector-2.md): **not yet done by us.**
+
 The parts are on [Compute Blade cables: parts and tools](../building/compute-blade/bom.md). Once
 a blade is wired, [check it](../building/compute-blade/verifying-1.md).
 
@@ -115,7 +122,9 @@ $ sudo fpgas-verify --label --out labels.pdf
 ```
 
 - **The Compute Module labels of pi16 at ps1 and pi20 at ps1** exist, from reads
-  of 5 October 2026: {download}`on plain US Letter paper, at true size with a
+  of 5 October 2026. A label names no host: the one with eth MAC
+  `2c:cf:67:fb:91:e5` is pi16 at ps1's, the one with `2c:cf:67:fd:1e:be` is pi20
+  at ps1's. They are {download}`on plain US Letter paper, at true size with a
   line to cut along <labels/ps1-compute-modules-letter-plain.pdf>`, and
   {download}`laid out for Avery 5163 / 8163 stickers
   <labels/ps1-compute-modules-avery-5163.pdf>`. Print at 100 %, no scaling. The
