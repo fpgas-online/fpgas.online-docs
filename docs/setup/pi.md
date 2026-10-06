@@ -85,9 +85,8 @@ no user's `PATH`, which made the chroot-built and CI-built roots disagree.
 :::{note}
 On the Welland Pi 5s neither openFPGALoader cable works out of the box. The
 `libgpiod` cable opens `/dev/gpiochip0`, but the header is `gpiochip15`, so it
-needs the link described under [P1: JTAG](../boards/acorn/wiring.md#p1-jtag).
-The `rp1pio` cable needs `/dev/pio0`, which these hosts do not have (`rp1-pio:
-failed to contact RP1 firmware`). `--read-dna`, `--read-xadc` and
+needs the link described under [P1: JTAG](../boards/acorn/wiring/rpi-5-host.md#jtag-from-the-pi).
+The `rp1pio` cable needs `/dev/pio0`, which the check's `rp1-pio` test opens. `rp1-pio` passed on the Pi 5 then at sw2 p47 on 2 October 2026 (on 6 October 2026 that port had acorn-holly, device DNA `0x00200c8664b04854`, on the Pi 5 2 GB `285df3f84af242d0`) and on all four welland Pi 5s that carry an Acorn on 6 October 2026 (bootloader 2026/09/25 on the two read that day); on 3 October 2026 it was recorded failing on the two Pi 5s then at sw2 p47 and p48 with bootloader 2024/11/05. Whether the bootloader decides it is not confirmed: [test-designs issue #151](https://github.com/fpgas-online/fpgas.online-test-designs/issues/151). `--read-dna`, `--read-xadc` and
 `--read-register` are all there.
 :::
 
@@ -229,7 +228,7 @@ dtoverlay=dwc2,dr_mode=peripheral
   UART, leaving `ttyAMA0` unclaimed. The rest of both command lines is on
   [the kernel command line](netboot.md#the-kernel-command-line); the Compute
   Blades hit the SysRq failure for real, recorded under [kernel console
-  SysRq](../boards/acorn/wiring.md#kernel-console-on-the-fpga-uart).
+  SysRq](../boards/acorn/wiring/rpi-5-host.md#kernel-console-on-the-fpga-uart).
 
 `dtoverlay=dwc2,dr_mode=peripheral`
 : Pi 4 and Pi 5 only. Their USB-C port is a dwc2 OTG controller the firmware
@@ -410,7 +409,7 @@ A design that drives the serial TX line while the kernel console is on the same
 UART is not merely noisy: on a Compute Blade at PS1 a 1200-baud FPGA
 transmitting into a 115200-baud console produced garbage the kernel parsed as
 SysRq commands and eventually hit `reboot`. See [kernel console
-SysRq](../boards/acorn/wiring.md#kernel-console-on-the-fpga-uart)
+SysRq](../boards/acorn/wiring/rpi-5-host.md#kernel-console-on-the-fpga-uart)
 for the root cause and the fix, and the `[pi5]` console pinning above for how it
 is avoided on the Pi 5 hosts.
 :::

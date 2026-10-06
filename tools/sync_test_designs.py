@@ -58,6 +58,8 @@ FILES = {
             "acorn-blade-bom.md",
             "acorn-cables-blade.md",
             "acorn-cables-pi5.md",
+            "acorn-card-underside.svg",
+            "acorn-card-underside.png",
             "acorn-cable-cut.png",
             "acorn-cable-p1-flag.png",
             "acorn-cable-p1-ground-check.png",
@@ -121,7 +123,7 @@ PAGES = {
 # (source document, its "## " heading): the fragment written here, and the page here that includes it
 SECTIONS = {
     ("docs/hardware/acorn.md", "Installing the Acorn Packages"):
-        ("docs/boards/generated/install-acorn.md", "docs/boards/acorn/index.md"),
+        ("docs/boards/generated/install-acorn.md", "docs/boards/acorn/packages.md"),
     ("docs/hardware/arty-a7.md", "Installing the Arty Packages"):
         ("docs/boards/generated/install-arty-a7.md", "docs/boards/arty-a7.md"),
     ("docs/hardware/netv2.md", "Installing the NeTV2 Packages"):

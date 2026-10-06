@@ -25,7 +25,7 @@ root reject an armoured file used directly as a `signed-by` keyring
 
 To check a board from its Raspberry Pi, add the repository as above and install
 the package for the board, which brings `fpgas-verify` with it:
-[Acorn](boards/acorn/index.md#installing-the-acorn-packages),
+[Acorn](boards/acorn/packages.md#installing-the-acorn-packages),
 [Arty](boards/arty-a7.md#installing-the-arty-packages),
 [NeTV2](boards/netv2.md#installing-the-netv2-packages),
 [Fomu](boards/fomu-evt.md#installing-the-fomu-packages),

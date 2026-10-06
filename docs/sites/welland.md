@@ -1,9 +1,9 @@
 # Welland
 
 The private test lab in South Australia, published as
-[welland.fpgas.online](https://welland.fpgas.online). Raspberry Pi 5 hosts, each
-with a SQRL Acorn board on an M.2 HAT (older notes say mPCIe HAT), plus a camera
-pointed at the board; alongside them Arty A7, NeTV2, Fomu and Tiny Tapeout hosts
+[welland.fpgas.online](https://welland.fpgas.online). Raspberry Pi 5 hosts
+carrying SQRL Acorn boards on M.2 HATs (older notes say mPCIe HAT), with a camera
+pointed at each board; alongside them Arty A7, NeTV2, Fomu and Tiny Tapeout hosts
 on their own Pis.
 
 ## Network
@@ -28,7 +28,7 @@ Internet ─── eth-uplink ──│  Debian 13 (trixie)                │
   │ +PMOD HAT │  │ (GPIO     │  │ +Acorn    │  │ demo board│  │ Demo Board│
   │ +USB Eth  │  │  JTAG)    │  │  CLE-215+ │  │ +PMOD HAT │  │ +PMOD HAT │
   └───────────┘  └───────────┘  └───────────┘  └───────────┘  └───────────┘
-   (sw2 p38 +…)   (sw1 ×5)      (sw2 ×6)       (sw2 p3–p8)     (sw2 p33–36)
+   (sw2 p38 +…)   (sw1 ×5)      (sw2)          (sw2 p3–p8)     (sw2 p33–36)
                                             + Fomu EVT on sw1 p17
 ```
 
@@ -49,7 +49,9 @@ and a hostname are in [Network and power](../setup/network.md); the gateway is
 10.21.0.1. Moving a Pi to another port renames and re-addresses it. The old flat
 `piNN` / `10.21.0.1NN` names are retired; the "Old name" columns below map them.
 On the S3300, Tim's rule is **port N carries Tiny Tapeout N** (ports 1–10), the
-TT FPGA emulation boards sit on 33–36, and the Acorn Pi 5s on 29 and 43–48.
+TT FPGA emulation boards sit on 33–36. The Acorn Pi 5s have no ports of their own: an Acorn is identified
+by its label, and where it is plugged in is what the check last reported ([Acorns at
+welland](../boards/acorn/installations/welland.md)).
 
 Source: the `switches:` block and the `tt_boards` catalogue in
 `ansible/inventory/host_vars/fpgas.online.yml` (fpgas.online-infra), the
@@ -232,49 +234,9 @@ from the 2026-03-17 survey.
 
 ### SQRL Acorn CLE-215+
 
-Six boards, each on a Raspberry Pi 5 with an M.2 HAT: the [Raspberry Pi
-5](../boards/acorn/wiring.md#raspberry-pi-5) wiring, with JTAG on its own GPIOs
-(`--pins 10:9:11:8`) and both spare balls wired.
-
-All six were unplugged and are being put back one at a time, and not into the
-ports they had before. A hostname follows the switch port (`pi-sw2-p<port>`),
-so each board is listed by its RPi MAC. A board without a switch port is
-unplugged and waiting to go back in; its columns are its last measurement.
-
-```{rst-class} nowrap
-```
-
-| RPi MAC | Now | RPi Model (rev) | FPGA Device DNA | In flash | JTAG | P2 (K2/J2/J5/H5) | Camera | Last checked |
-| ------- | --- | --------------- | --------------- | -------- | ---- | ---------------- | ------ | ------------ |
-| 88:a2:9e:45:85:77 | [pi-sw2-p48](https://welland.fpgas.online/fpgas/pi-sw2-p48.html) | RPi 5 Rev 1.1 2 GB (b04171) | `0x0054b48664b04854` | **fpgas.online golden + operational** (`10ee:7021`, subsystem `1e24:021f`), cold boot proven ([how](../boards/acorn/pcie-programming.md#installing-the-fpgasonline-images)) | OK | OK, all four | **out of focus, not aimed at the board** | 2026-09-21 |
-| 88:a2:9e:45:dd:be | unplugged | RPi 5 Rev 1.1 2 GB (b04171) | not read | SQRL factory firmware (`1e24:021f`) | OK | serial pair OK; **J5 wire open** | ov5647 | 2026-09-03 |
-| 98:fe:54:13:e0:75 | unplugged | RPi 5 Rev 1.1 1 GB (a04171) | not read | SQRL factory firmware (`1e24:021f`) | **empty chain** | untestable | ov5647 | 2026-09-03 |
-| 98:fe:54:13:e0:f5 | unplugged | RPi 5 Rev 1.1 1 GB (a04171) | not read | `10ee:7011`, most likely the vendor XDMA sample image | **empty chain** | untestable | ov5647 | 2026-09-03 |
-| 98:fe:54:13:f5:75 | unplugged | RPi 5 Rev 1.1 1 GB (a04171) | not read | SQRL factory firmware (`1e24:021f`) | OK | **reversed** (K2↔J2 and J5↔H5) | ov5647 | 2026-09-03 |
-| 88:a2:9e:45:c6:87 | unplugged | RPi 5 Rev 1.1 2 GB (b04171) | not read | SQRL factory firmware (`1e24:021f`) | OK | OK, all four | ov5647 | 2026-09-03 |
-
-The SQRL factory firmware is a mining design, not LiteX, so `litepcie_util`
-cannot talk to a board that boots it; `10ee:7011` is the vendor's XDMA sample
-image, also not LiteX. See [PCIe programming](../boards/acorn/pcie-programming.md).
-The JTAG and P2 columns come from the [pin-ID
-check](../boards/acorn/wiring.md#step-4-pin-id): GPIO15 decoded through
-`/dev/ttyAMA0`, the other three lines from `gpiomon` edge timestamps.
-
-All six run the shared bookworm NFS root (`overlayroot=tmpfs`), with
-`/dev/ttyAMA0` enabled by `[pi5] dtoverlay=uart0-pi5`, the kernel console on
-`ttyAMA10` and `serial-getty@ttyAMA0` inactive. The root carries
-`openfpgaloader-rp1pio` and `openocd-rp1pio` 0.0.post76 (openFPGALoader 1.1.1,
-OpenOCD 0.12). openFPGALoader's `libgpiod` cable works once `/dev/gpiochip0` is
-linked to `gpiochip15` ([how](../boards/acorn/wiring.md#p1-jtag)); its `rp1pio`
-cable needs `/dev/pio0`, which these hosts do not have (`rp1-pio: failed to
-contact RP1 firmware`, bootloader `3c4fc886`). OpenOCD with `adapter driver
-linuxgpiod` on `gpiochip15` works too, and loads the 2.3 MB fpgas.online SoC
-bitstream in 24 s. A wedged Pi 5 draws about 0.4 W on PoE instead of about 8 W
-and needs a PoE cycle, taking more than 90 s to come back.
-
-Source: live probes (`/proc/device-tree/model`, `lspci -nn`, `/proc/cmdline`,
-`openFPGALoader --detect`, the pin-ID check), the NFS root's package list on
-tweed, and pi-sw2-p48's install record.
+Acorn CLE-215+ cards, each on a Raspberry Pi 5 with an M.2 HAT. Which card is on which Pi, its state, what
+it still needs and what was read from it: [Acorns at
+welland](../boards/acorn/installations/welland.md).
 
 ### Fomu EVT
 
@@ -396,17 +358,8 @@ Source: `pibs.conf` on tweed.
 
 ## Known faults
 
-- **Acorn 98:fe:54:13:e0:75 and 98:fe:54:13:e0:f5**: `openFPGALoader --detect`
-  finds an empty JTAG chain although PCIe enumerates. The P1 cable needs a
-  physical check; until then nothing can be loaded on them.
-- **Acorn 98:fe:54:13:f5:75**: the P2 cable is reversed (K2↔J2 and J5↔H5).
-  Transpose both pairs; turning the 2×3 housing round does not fix it, because
-  that maps pin 5↔10 and 7↔8.
-- **Acorn 88:a2:9e:45:dd:be**: the J5 (spare GPIO) conductor is open. The serial
-  pair is fine.
-- **All Acorn hosts**: openFPGALoader's `rp1pio` cable cannot run (no
-  `/dev/pio0`), and its `libgpiod` cable needs the `gpiochip15 → gpiochip0`
-  link on a Pi 5. See [P1: JTAG](../boards/acorn/wiring.md#p1-jtag).
+- **Acorns**: the cards' cable faults and what each still needs are on [Acorns at
+  welland](../boards/acorn/installations/welland.md#the-cards).
 - **pi-sw2-p3** (tt03p5): the web Commander does not support demo-board
   firmware 1.2.x yet, so that board is camera-only. It needs the upstream
   `legacy` branch port —

@@ -6,7 +6,7 @@
 """Render published pages of docs.fpgas.online to one PDF for printing.
 
     uv run tools/print_pages.py --paper A4 --title "Wiring an Acorn" \\
-        --output acorn.pdf boards/acorn/wiring sites/ps1
+        --output acorn.pdf boards/acorn/wiring/rpi-5 sites/ps1
 
 Each PAGE is a path under the published site, without ".html". The pages are
 fetched from the live site, so the PDF holds what is published and nothing
@@ -14,7 +14,7 @@ else: to change the text, change the page and publish it.
 
 A page may be cut down to some of its sections, named by their anchors:
 
-    boards/acorn/wiring#bill-of-materials,raspberry-pi-5
+    boards/acorn/wiring/rpi-5#p2-serial-pair-and-spare-gpios,p1-jtag
 
 keeps the page's title, the text before its first section, and those sections
 (with everything inside them), in the page's own order. A section kept only
@@ -864,7 +864,7 @@ def main() -> int:
     parser.add_argument("--no-link-lists", action="store_true",
                         help="do not number the links or list their addresses at each chapter's end: for a "
                         "reader who has the paper only")
-    parser.add_argument("pages", nargs="+", metavar="PAGE", help='e.g. "boards/acorn/wiring#raspberry-pi-5"')
+    parser.add_argument("pages", nargs="+", metavar="PAGE", help='e.g. "boards/acorn/wiring/rpi-5#p1-jtag"')
     args = parser.parse_args()
     if args.output.suffix.lower() != ".pdf":
         parser.error(f"--output {args.output} must end in .pdf")

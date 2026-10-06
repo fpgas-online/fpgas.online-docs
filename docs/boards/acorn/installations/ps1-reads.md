@@ -12,7 +12,7 @@ pi20 at ps1) and the FPGA UART is `/dev/ttyAMA0` at GPIO14/15. All four ran Debi
 openFPGALoader 0.13.1, which has `--read-dna`, when probed. PCIe is through the blade's M.2 slot. On 2026-09-20
 all four netbooted the trixie NFS root (arm64 then) with overlayroot, with `console=tty1` and
 `serial-getty@ttyAMA0` inactive, so the [kernel console
-crash](../wiring.md#kernel-console-on-the-fpga-uart) could not
+crash](../wiring/compute-blade-host.md#kernel-console-on-the-fpga-uart) could not
 happen. That no longer holds on pi16 at ps1 or pi20 at ps1 (their boot configuration, read on
 2026-10-05, is below), and pi14 at ps1 and pi18 at ps1 have not been read since.
 
@@ -43,7 +43,7 @@ Two things follow from the serial port being on:
   So whether pi16 at ps1's P1 cable is mated cannot be told from a scan today; the
   "P1 unmated" in the table is the pull-up reading of 2026-09-20.
 - **The kernel console is on the FPGA's UART**, which the [wiring
-  page](../wiring.md#kernel-console-on-the-fpga-uart) warns
+  page](../wiring/compute-blade-host.md#kernel-console-on-the-fpga-uart) warns
   against: a design that drives serial TX can reboot or crash the host. It must
   be moved (`console=tty1`, no serial getty) before such a design is loaded.
 
