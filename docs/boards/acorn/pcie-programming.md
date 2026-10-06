@@ -282,8 +282,6 @@ again before each attempt.
    # Detach anything enumerated. With a corrupt golden image nothing is, so this
    # reports "No such file or directory": carry on.
    $ echo 1 | sudo tee /sys/bus/pci/devices/0001:01:00.0/remove
-   # Pi 0-4 only; harmless on a Pi 5
-   $ sudo rmmod spidev spi_bcm2835
    # Pi 5: the libgpiod cable opens gpiochip0; the 40-pin header is gpiochip15
    $ sudo ln -sfn /dev/gpiochip15 /dev/gpiochip0
    $ openFPGALoader --cable libgpiod --pins 10:9:11:8 golden.bit
