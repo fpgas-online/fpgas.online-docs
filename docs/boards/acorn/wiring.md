@@ -380,8 +380,8 @@ The meter checks in these steps are the ones that matter. The two cable faults
 read at Welland on 2026-10-04 were both of the kind they catch: on acorn-olive
 both pairs of P2 were crossed with every wire conducting, and on acorn-sycamore
 P2 wire 4 (J5) was open. A cable that passes the meter and is still wrong is
-named, wire by wire, by [the
-check](../../verify/fpgas-verify.md#checking-an-acorns-wiring).
+named, wire by wire, by the check: [on a Compute Blade](building/compute-blade/verifying-1.md), [on a Raspberry Pi
+5](building/rpi-5/verifying-1.md).
 
 ### Cables for a Compute Blade
 
@@ -484,8 +484,9 @@ pin-ID has to be built from `main`. Download or build the file, copy it to the
 host, and put its name in `LOOPBACK` or `PINID`.
 
 Steps 3 and 4 are the check by hand. To check the wiring of a card that runs
-the fpgas.online design, `fpgas-acorn-verify` needs none of these files: see
-[Checking an Acorn's wiring](../../verify/fpgas-verify.md#checking-an-acorns-wiring).
+the fpgas.online design, `fpgas-acorn-verify` needs none of these files:
+[verifying on a Compute Blade](building/compute-blade/verifying-1.md), [verifying on a Raspberry Pi
+5](building/rpi-5/verifying-1.md).
 
 ### Step 1: PCIe
 

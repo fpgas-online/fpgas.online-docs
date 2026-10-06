@@ -266,11 +266,15 @@ install the Acorn packages on the host and run `fpgas-verify`. See
 and [Checking a board: fpgas-verify](../verify/fpgas-verify.md), which covers
 running it, reading the result, updating the record and debugging a failure.
 
-For an Acorn on a Compute Blade, [Checking an Acorn's
-wiring](../verify/fpgas-verify.md#checking-an-acorns-wiring) goes from a fresh
-boot to which wire a failing line points at, and [On a Compute
-Blade](../verify/fpgas-verify.md#on-a-compute-blade) says what has and has not
-been run on a blade.
+For an Acorn on a Compute Blade, [Compute Blade cables:
+verifying](../boards/acorn/building/compute-blade/verifying-1.md) goes from logging in after a
+fresh boot to which wire a failing line points at, and says what has and has
+not been run on a blade.
+
+Logging in here:
+
+```{include} ps1-login.inc
+```
 
 ## Known faults
 
