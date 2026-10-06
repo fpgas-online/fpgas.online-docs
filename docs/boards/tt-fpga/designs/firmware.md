@@ -1,0 +1,93 @@
+# Tiny Tapeout FPGA board: firmware and known workarounds
+
+**You look after a Tiny Tapeout FPGA demo board (version 3, RP2350) on a Raspberry Pi and want to know which
+firmware its microcontroller runs, and the workarounds our scripts carry for it.**
+
+```{include} ../generated/tt-fpga-pins-other.md
+:start-after: "### Loading the FPGA: its configuration pins"
+:end-before: "The FPGA breakout has no SPI flash"
+```
+
+That covers `main.py` and the firmware too: the firmware on a board is installed by whoever looks after the
+board, and the check writes nothing to it.
+
+## Board firmware
+
+**2026-08-23:** the boards then at welland were reflashed to TT SDK **3.1.0** (the
+shipped `ttdbv3` build stalled at boot). With 3.1.0 the SDK's `tt` object comes
+up as `Shuttle FPGA` and the Commander connects.
+
+The boot check's `sdk` test expects an FPGA board to run SDK 3.1.x on an RP2350, and reads whether the
+board's `main.py` is still that release's own: [the `sdk` test](../../../verify/fpgas-verify.md#the-sdk-test),
+[TT FPGA identity](../../../verify/fpgas-verify.md#tt-fpga-identity).
+
+## RP2350 considerations
+
+- The boards run TT SDK 3.1.0 since 2026-08-23 (the shipped build hung in
+  `DemoBoard()`); the public site depends on the SDK booting, so do **not**
+  replace `main.py` with a no-op on deployed boards (see
+  [DemoBoard() hang on boot](#demoboard-hang-on-boot)).
+- The `fpgas-tt` daemon owns `/dev/ttboard` (→ `/dev/ttyACM0`) on every deployed
+  host; stop it before using `mpremote` directly, and start it again afterwards (see
+  [Serial port ownership](../../../setup/tinytapeout.md#serial-port-ownership)).
+- If the RP2350 is unresponsive, USB power cycle via `uhubctl` or PoE reset can
+  recover it.
+
+## Known Workarounds
+
+### GPIOMap firmware mismatch
+
+Observed on the firmware the boards shipped with: it loaded `GPIOMapTT04` instead of `GPIOMapTTDBv3`, but
+the TTDBv3 hardware uses different GPIO assignments, so `pin_indices()`
+returned wrong pin numbers. **Workaround:** all host scripts hardcode the
+correct GPIO pins (SPI: SCK=6, MOSI=3, SS=5, CRESET=1; UART: TX=GPIO20,
+RX=GPIO37). Not re-checked since the 2026-08-23 reflash to SDK 3.1.0; the
+hardcoded pins are correct either way. The pin numbers on the [wiring pages](../wiring/pins-other.md) are
+the TTDBv3 values, not the ones that firmware reported.
+
+### DemoBoard() hang on boot
+
+The stock RP2350 (RP2040 on version 2 boards) `main.py` calls `DemoBoard()` which
+probes I2C and can
+hang permanently, making the board unrecoverable without a physical reset.
+The shipped `ttdbv3` firmware did exactly this on each board then at welland; SDK 3.1.0
+boots cleanly and each of them reported `board present` on 2026-09-03.
+
+:::{warning}
+**Nothing replaces `main.py`.** Until October 2026 the
+[UART test wrapper](https://github.com/fpgas-online/fpgas.online-test-designs/blob/main/designs/_host/tt_test_wrapper.py)
+overwrote it with a no-op after every load, as a workaround for this hang. The public site (and the
+`fpgas-tt` daemon's design list) depends on the SDK booting into
+`DemoBoard()`, so a no-op `main.py` takes the board off
+tinytapeout.fpgas.online until the SDK files are restored, and the boot check could not identify such a
+board ([test-designs issue #117](https://github.com/fpgas-online/fpgas.online-test-designs/issues/117)).
+The wrapper no longer touches it. The boot check reads `main.py` and reports a board whose file is not the
+SDK's own as an `error`; putting the SDK's own file back on such a board is a deliberate act by whoever looks
+after the board, not something the tooling does (source: [the board's page in
+fpgas.online-test-designs](https://github.com/fpgas-online/fpgas.online-test-designs/blob/main/docs/hardware/tt-fpga.md#the-sdks-mainpy)).
+:::
+
+If a board does hang, a power cycle of its Pi (a PoE cycle of its switch port) resets it; the RP2's
+mass-storage bootloader path stalls on
+Pi 3B+ hosts, so reflashing from a Pi 3B+ needs the PICOBOOT path rather than
+MSC (on 3 September 2026 no TT FPGA host at welland was a Pi 3B+; each was a Pi 4).
+
+### RP2350 PWM first-call bug
+
+The first `PWM()` call on GPIO16 produces a stuck-HIGH output instead of
+oscillation. The source text calls this an RP2040 bug, but the
+[programming script](https://github.com/fpgas-online/fpgas.online-test-designs/blob/main/designs/_host/tt_fpga_program.py) that carries the
+workaround labels it "Workaround for RP2350 PWM bug", and every deployed board
+is an RP2350B. **Workaround:** deinit and recreate the PWM object:
+
+```python
+clk = PWM(Pin(16))
+clk.deinit()
+utime.sleep_ms(1)
+clk = PWM(Pin(16))  # Second call oscillates correctly
+```
+
+### SPI kernel module conflict
+
+```{include} spi-modules.inc
+```
