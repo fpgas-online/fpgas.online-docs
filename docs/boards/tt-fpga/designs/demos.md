@@ -5,9 +5,7 @@
 FPGA and how each gets there: the bundled demos, a visitor's upload, and the design the boot check leaves
 running.**
 
-```{include} ../generated/tt-fpga-pins-other.md
-:start-after: "### Loading the FPGA: its configuration pins"
-:end-before: "The FPGA breakout has no SPI flash"
+```{include} ../streaming-rule.inc
 ```
 
 ## The demos and visitors' uploads
@@ -25,7 +23,7 @@ demos via the `fpgas-online-tt-demos` package), which is what the public site us
   the iCE40"
   ([fpgas.online-tt](https://github.com/fpgas-online/fpgas.online-tt/blob/main/README.md)).
   `fpgas-online-tt` 0.0.post71, which does this, is in the root deployed at welland on 6 October 2026 (our
-  deploy record of 6 October 2026).
+  deploy record of that day); which version each Tiny Tapeout Pi runs now is not verified by us.
 - **History, no longer done: boards from before October 2026 still hold old copies.** The same README:
   until then the daemon copied every demo and every upload to the board's `/bitstreams` and loaded from
   there; boards from that time still hold those files, and the daemon neither reads nor removes them. Today
@@ -35,9 +33,20 @@ demos via the `fpgas-online-tt-demos` package), which is what the public site us
 
 At every boot the check ends by streaming one more design, `tt-display`, so that the board's seven-segment
 display moves and the board looks alive on its camera: one segment runs round the ring, the middle segment
-changes at each lap, the dot blinks once a second. It lasts until the board's own SDK next starts, which
-happens when a visitor's Commander connects or a design is run from the site. The whole account: [What the
-TT FPGA is left running](../../../verify/fpgas-verify.md#what-the-tt-fpga-is-left-running).
+changes at each lap, the dot blinks once a second. The whole account: [What the TT FPGA is left
+running](../../../verify/fpgas-verify.md#what-the-tt-fpga-is-left-running), another page, not in this set.
+
+A visitor's Commander or a Run from the site starts the board's SDK, which replaces that design with its own
+start state (`tt_um_factory_test`). The daemon then keeps the display of a board nobody is using moving
+(the daemon's README on `main`, `fpgas-online-tt` 0.0.post71, read on 7 October 2026):
+
+- When no serial client is connected and no client, Run or upload has happened for 60 seconds, the daemon
+  asks the board once what it has loaded; if that is the SDK's start state (the factory test, or no design
+  enabled), it streams the boot check's display design again. Nothing is written to the board.
+- A visitor's own design is left as it is, and nothing is typed at the board while a client is connected.
+- A board whose SDK is not running is left alone: that is how the boot check leaves it, with the moving
+  design already running.
+- The daemon's `/health` reports what it last did in `idle_display` (`state`).
 
 ## Is the board there?
 

@@ -31,9 +31,11 @@ The TT FPGA demo board consists of two PCBs:
 Source for the clock oscillator: the pin-mapping page of fpgas.online-test-designs ("iCE40UP5K + clock
 oscillator (no SPI flash)"); not verified by us on a board.
 
-The microcontroller programs the iCE40 over SPI and provides its 50 MHz clock (started by our loader and
-our serial bridge: `tt_fpga_program.py`, `tt_test_wrapper.py`; ~66 MHz in the table below is the
-specification's maximum, not what the board runs at). When it is loaded with the
+The microcontroller programs the iCE40 over SPI and provides its clock: 50 MHz when our loader (with
+`--gpio-release`) or our serial bridge starts it (`tt_fpga_program.py`, `tt_test_wrapper.py`); a design run
+from the public site gets its SDK project's clock, and the boot check's display design runs from the FPGA's
+own oscillator ([functionality](functionality.md#tinytapeout-io-interface)). ~66 MHz in the table below is
+the specification's maximum. When it is loaded with the
 loader's `--gpio-release` it then releases its GPIO pins to high impedance so the Raspberry
 Pi can talk to the FPGA directly through the PMOD HAT — the controller and the
 PMOD headers share the same physical traces. Without that flag it leaves them as they were:
@@ -52,7 +54,7 @@ PMOD headers share the same physical traces. Without that flag it leaves them as
 | Display | 7-segment LED display |
 | DIP switches | Configuration switches |
 | PMOD headers | 3x standard PMOD (following Digilent spec): input, bidirectional, output |
-| Max clock | ~66 MHz (the specification's maximum; the board's clock is 50 MHz, below) |
+| Max clock | ~66 MHz (the specification's maximum) |
 | I/O voltage | 3.3V |
 
 Source: [TinyTapeout PCB Specs](https://tinytapeout.com/specs/pcb/),
@@ -95,13 +97,11 @@ checked there on 4 October 2026 by the fpgas.online-test-designs repository; not
 So there is no SPI flash ID test for this board
 ([test-designs issue #52](https://github.com/fpgas-online/fpgas.online-test-designs/issues/52)).
 
-Until 6 October 2026 this board's page said the breakout "also has SPI flash (CS_N=pin 16, CLK=pin 15,
-MOSI=pin 14, MISO=pin 17) for persistent bitstream storage, used by the SPI Flash ID test". Those four pins are
-the iCE40's configuration pins, which go only to the demo board's microcontroller: [the pins that load the
-FPGA](../wiring/pins-other.md#loading-the-fpga-its-configuration-pins). The results of 2 October 2026 on
-[Checking a board: fpgas-verify](../../../verify/fpgas-verify.md#current-results) still show `spiflash=fail`
-on the boards read that day: the test that was then removed, failing on a board with no flash to answer, not a
-fault of those boards. How a design is loaded: [functionality](functionality.md#programming).
+The four iCE40 pins an earlier page called flash pins are its configuration pins, which go only to the
+demo board's microcontroller: [the pins that load the
+FPGA](../wiring/pins-other.md#loading-the-fpga-its-configuration-pins). What the old page said, and the
+`spiflash` fails of 2 October 2026: [firmware, history](../designs/firmware.md#history). How a design is
+loaded: [functionality](functionality.md#programming).
 
 ## PMOD Headers
 
@@ -125,7 +125,7 @@ Source: [TinyTapeout PCB Specs](https://tinytapeout.com/specs/pcb/)
 The RP2350 (RP2040 on version 2 boards) generates a 50 MHz clock via PWM on GPIO16
 (`RP_PROJCLK`) — GPIO16 is the version 3 pin. The
 iCE40UP5K's internal PLL divides this down to a 12 MHz system clock for
-LiteX SoC designs (see the
+LiteX SoC designs (from the design files, not measured by us) (see the
 [clock and reset generator](https://github.com/fpgas-online/fpgas.online-test-designs/blob/main/designs/_shared/tt_fpga_crg.py)).
 The FPGA pin the clock arrives on: [the clock, the reset and the
 LED](../wiring/pins-other.md#the-clock-the-reset-and-the-led).

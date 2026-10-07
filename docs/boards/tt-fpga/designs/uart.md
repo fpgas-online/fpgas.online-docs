@@ -18,7 +18,7 @@ Which pins, headers and GPIOs the two signals are on: [the serial port
 ### Access via the RP2350 USB bridge (recommended)
 
 The RP2350 connects to the same FPGA pins via GPIO20/GPIO37 and can bridge UART
-data to the USB CDC serial port (`/dev/ttyACM0`). This is the recommended
+data to the board's USB serial port (`/dev/ttboard`, or its `/dev/serial/by-id/` name). This is the recommended
 approach since:
 
 - RPi GPIO11 (to the FPGA's RX, `ui_in[3]`) and GPIO4 (from the FPGA's TX, `uo_out[4]`) are **not a
@@ -30,9 +30,10 @@ approach since:
 - The RP2350 has hardware UART peripherals that can be configured for these
   pins.
 
-- **Device:** `/dev/ttyACM0` (via RP2350 USB CDC).
+- **Device:** the board's USB serial port, via the RP2350's USB CDC (the check passes the port it found the
+  board on; `/dev/ttyACM0` at welland on 3 September 2026).
 - **Baud rate:** 115200.
-- **Test args:** `--port /dev/ttyACM0 --board tt --skip-banner`.
+- **Test args:** `--port <the board's port> --board tt --skip-banner`.
 - **Requires:** the RP2350's UART1 bridged on GPIO20/37 (`tt_test_wrapper.py`:
   `UART(1, 115200, tx=Pin(20), rx=Pin(37))`).
 
@@ -46,23 +47,19 @@ The RPi would have to transmit on GPIO11 (to `ui_in[3]`) and receive on GPIO4 (f
 (TX/RX), so it has its TX, not its RX, on GPIO4, and no UART uses GPIO11 for TX, so no hardware UART fits
 (source: the pin-mapping page of
 [fpgas.online-test-designs](https://github.com/fpgas-online/fpgas.online-test-designs/blob/main/docs/hardware/tt-fpga-pin-mapping.md);
-not verified by us against the BCM2711's documentation). An earlier version of this page named GPIO5/11, and
-then GPIO17/19 (GPIO17 is RTS0 and GPIO19 is PCM_FS), as the pair; both came from pin tables that the
-measured cabling has replaced. Without
+not verified by us against the BCM2711's documentation). Without
 hardware UART support, these pins cannot reliably serve as a serial port at
 115200 baud. Nobody has used these two signals as a serial port from the Raspberry Pi's own GPIOs.
 
 ## In the boot check
 
 This is the `uart` test of the boot check, which loads the design through the microcontroller and runs the
-host test through the UART bridge on `/dev/ttyACM0`: [verifying 1](../building/verifying-1.md). It passed on
+host test through the UART bridge on the board's USB serial port: [verifying 1](../building/verifying-1.md). It passed on
 2 October 2026 on the three boards then seen at welland: [the boards at welland](../installations/welland.md).
 
 ## By hand
 
-```{include} ../generated/tt-fpga-pins-other.md
-:start-after: "### Loading the FPGA: its configuration pins"
-:end-before: "The FPGA breakout has no SPI flash"
+```{include} ../streaming-rule.inc
 ```
 
 ```{include} ../serial-port.inc
@@ -78,11 +75,7 @@ $ sudo fpgas-tt-fpga-debug test uart                 # load one test's design an
 $ sudo fpgas-tt-fpga-debug --variant tt-fpga test uart
 ```
 
-```{include} wrappers.inc
-```
-
 For this test the wrapper is `tt_test_wrapper.py`: it programs the FPGA, bridges its serial port and runs
 the test in one invocation. It no longer replaces the board's `main.py` when it finishes: [firmware](firmware.md#demoboard-hang-on-boot).
 
-Running the test from a workstation instead, with the older runner: [from a
-workstation](from-a-workstation.md).
+The older runner, `verify_hardware.py`, run from a workstation, is described for operators on [Verifying a deployment](../../../setup/verification.md#tt-fpga-programming), another page, not in this set; its host table names hosts that no longer exist. The three wrappers: [the pin-ID test](pmod-pin-id.md#by-hand).

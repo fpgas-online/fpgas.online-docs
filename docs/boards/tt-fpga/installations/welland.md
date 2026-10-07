@@ -37,17 +37,20 @@ gateway: [Gateway: tweed](../../../sites/welland.md#gateway-tweed).
 | `8c46329b33590ecb` | `2e8a:0005` | sw2 p35 ([its host's page then](https://welland.fpgas.online/fpgas/pi-sw2-p35.html)) | [fpga-3](https://tinytapeout.fpgas.online/board/fpga-3/) |
 | `a2961e5cac65b25f` | `2e8a:0005` | sw2 p36 ([its host's page then](https://welland.fpgas.online/fpgas/pi-sw2-p36.html)) | [fpga-4](https://tinytapeout.fpgas.online/board/fpga-4/) |
 
-The Raspberry Pi each was on that day, by its model and MAC (no Pi serial number is recorded):
+The Raspberry Pi each was on, on 3 September 2026 by its model and MAC, and on 5 October 2026 by its serial number (no serial was read in September; `fd1a167bd863a198`'s Pi was not powered in October):
 
 ```{rst-class} nowrap
 ```
 
-| Board | On, 3 September 2026 | The Pi's MAC | The host's name before 2026-08-23 |
-|---|---|---|---|
-| `4df39a7a6856f86f` | RPi 4 2 GB Rev 1.5 (b03115) | `e4:5f:01:97:0e:77` | pi27 |
-| `fd1a167bd863a198` | RPi 4 2 GB Rev 1.5 (b03115) | `e4:5f:01:97:27:f2` | pi29 |
-| `8c46329b33590ecb` | RPi 4 2 GB Rev 1.5 (b03115) | `e4:5f:01:97:0c:e3` | pi31 |
-| `a2961e5cac65b25f` | RPi 4 8 GB Rev 1.5 (d03115) | `e4:5f:01:8e:02:27` | pi33 |
+| Board | On, 3 September 2026 | The Pi's MAC | On, 5 October 2026: the Pi's serial | The host's name before 2026-08-23 |
+|---|---|---|---|---|
+| `4df39a7a6856f86f` | RPi 4 2 GB Rev 1.5 (b03115) | `e4:5f:01:97:0e:77` | `1000000085948b10` | pi27 |
+| `fd1a167bd863a198` | RPi 4 2 GB Rev 1.5 (b03115) | `e4:5f:01:97:27:f2` | not read | pi29 |
+| `8c46329b33590ecb` | RPi 4 2 GB Rev 1.5 (b03115) | `e4:5f:01:97:0c:e3` | `100000007a4f3afc` | pi31 |
+| `a2961e5cac65b25f` | RPi 4 8 GB Rev 1.5 (d03115) | `e4:5f:01:8e:02:27` | `1000000062c15d4f` | pi33 |
+
+The serials of 5 October 2026 were read with the public site's `status.json` for the same boards at 15:09
+(read on 5 October 2026).
 
 Each RPi connects to its board over USB-C, has a Digilent Pmod HAT for
 GPIO-level control of the TT I/O pins, and an ov5647 camera publishing a live
@@ -72,18 +75,26 @@ board as on 3 September 2026 is not recorded.
   results of that day](../../../verify/fpgas-verify.md#current-results).
 - **4 October 2026.** The boot check's `pin-id`, on the boards seen at sw2 p33, p35 and p36; the host at
   sw2 p34 was not powered. It read the same cabling as on 29 September: [sources](../wiring/sources.md).
+- **5 October 2026, 17:33.** The whole boot check on the Pi `1000000085948b10`, which carried
+  `4df39a7a6856f86f`: **pass**, `pin-id` pass and `uart` pass, bitstreams 0.0.post1119, microcontroller
+  RP2350, demo board `TTDBv3 [3.2]`, SDK 3.1.0, chip `fpga` (its `fpga-verified` report, read on 5 October
+  2026). That build's `pin-id` judged 18 of the 24 wires (below).
 
 About the fails of 2 October 2026: the `spiflash` test was for a flash this board does not have and has since
 been removed ([no SPI flash](../overview/device-info.md#no-spi-flash)). Why `pin-id` failed that day is not
 recorded here; the pin-mapping page of that time had JA and JC the other way round from the measured cabling
-([test-designs issue #58](https://github.com/fpgas-online/fpgas.online-test-designs/issues/58)). No result of
-a later whole check is recorded on these pages.
+([test-designs issue #58](https://github.com/fpgas-online/fpgas.online-test-designs/issues/58)).
+
+```{include} ../pin-id-coverage.inc
+```
 
 ## What each still needs
 
-- **Each of them:** its label (none recorded); a whole boot check recorded since the fixes above; the answer
-  about its Pmod cables and their 3.3 V pins (asked on 6 October 2026): [which cable goes
-  where](../wiring/cables.md).
+- **Each of them:** its label (none recorded); the answer about its Pmod cables and their 3.3 V pins
+  (asked on 6 October 2026): [the open
+  question](../building/index.md#the-open-question-which-cable-and-its-33-v-pins).
+- **`8c46329b33590ecb` and `a2961e5cac65b25f`:** a whole boot check recorded on these pages (only
+  `4df39a7a6856f86f`'s of 5 October 2026 is).
 - **The board seen at sw2 p34 on 3 September 2026 (`fd1a167bd863a198`):** to be read. Its host was not
   powered on 29 September, 2 October or 4 October 2026; why is not recorded.
 

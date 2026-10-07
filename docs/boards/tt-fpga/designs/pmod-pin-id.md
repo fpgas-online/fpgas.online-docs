@@ -15,8 +15,11 @@ The pin ID test and how to read its output are described on
 
 This is the `pin-id` test of the boot check, and the check runs it without any of the steps below: [verifying
 1](../building/verifying-1.md). It passes when each Pmod HAT GPIO receives the FPGA pin the expected cabling
-puts there (`ui_in` on HAT JA, `uio` on JB, `uo_out` on JC): all 24 signal wires of the three ribbons. From a
-failure to the cable: [verifying 2](../building/verifying-2.md).
+puts there (`ui_in` on HAT JA, `uio` on JB, `uo_out` on JC). From a failure to the cable: [verifying
+2](../building/verifying-2.md).
+
+```{include} ../pin-id-coverage.inc
+```
 
 ## What it has measured
 
@@ -28,16 +31,11 @@ and the loopback test's pin lists were changed to it
 ([test-designs issue #19](https://github.com/fpgas-online/fpgas.online-test-designs/issues/19),
 [issue #58](https://github.com/fpgas-online/fpgas.online-test-designs/issues/58)).
 
-What it has not measured: the six wires on the three GPIOs that JA and JB share (`ui_in[1]` to `ui_in[3]`,
-`uio[1]` to `uio[3]`). The design now sends on those in turns so that each can be read
-([issue #142](https://github.com/fpgas-online/fpgas.online-test-designs/issues/142)); no result of that is
-recorded on the wiring pages yet.
+What it has not measured: the six wires on the shared GPIOs (above).
 
 ## By hand
 
-```{include} ../generated/tt-fpga-pins-other.md
-:start-after: "### Loading the FPGA: its configuration pins"
-:end-before: "The FPGA breakout has no SPI flash"
+```{include} ../streaming-rule.inc
 ```
 
 ```{include} run-the-pmod-test.inc
@@ -51,5 +49,4 @@ $ sudo fpgas-tt-fpga-debug --variant tt-fpga test pin-id
 ```
 
 For this test the wrapper is `tt_pmod_wrapper.py`: it programs the FPGA, releases the RP2350's GPIOs to
-high-Z and hands off to the test on the Raspberry Pi's GPIOs. Running the test from a workstation instead,
-with the older runner: [from a workstation](from-a-workstation.md).
+high-Z and hands off to the test on the Raspberry Pi's GPIOs. The older runner, `verify_hardware.py`, run from a workstation, is described for operators on [Verifying a deployment](../../../setup/verification.md#tt-fpga-programming), another page, not in this set; its host table names hosts that no longer exist.

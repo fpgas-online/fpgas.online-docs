@@ -7,3 +7,14 @@ kernel modules before running PMOD tests.
 # Nothing else on the Pi may be using SPI0 -- this takes the bus away from it.
 $ sudo rmmod spidev spi_bcm2835
 ```
+
+**The way back**, when the test is done (not run by us on this board), or reboot the Pi:
+
+```console
+$ sudo modprobe spi_bcm2835
+$ sudo modprobe spidev
+```
+
+**What the check does.** Its pin-ID test unloads the two modules itself, reads the scanned pins'
+alternate functions with `pinctrl` first and puts them back afterwards, and does not load the modules again:
+its code has no `modprobe` (`identify_pmod_pins.py` in fpgas.online-test-designs, read on 7 October 2026).

@@ -15,9 +15,7 @@ Before running anything against a board that is on the public site, read
 [Serial port ownership](../../setup/tinytapeout.md#serial-port-ownership): a daemon holds the port open
 and the board is on a public web site while you work.
 
-```{include} generated/tt-fpga-pins-other.md
-:start-after: "### Loading the FPGA: its configuration pins"
-:end-before: "The FPGA breakout has no SPI flash"
+```{include} streaming-rule.inc
 ```
 
 ## Overview
@@ -27,6 +25,7 @@ pages:
 
 ```{toctree}
 :maxdepth: 1
+:caption: Overview
 
 Device info: what is on the board <overview/device-info>
 Variants: demo board version 3 against 2, the FPGA against a chip <overview/variants>
@@ -43,6 +42,7 @@ group, and where each fact comes from:
 
 ```{toctree}
 :maxdepth: 1
+:caption: Wiring Overview
 
 Which cable goes where <wiring/cables>
 ui_in and uo_out, wire by wire <wiring/pins-ui-uo>
@@ -58,6 +58,7 @@ Putting a demo board on a Raspberry Pi with a Pmod HAT: parts, fitting, and chec
 ```{toctree}
 :maxdepth: 2
 :titlesonly:
+:caption: Building Guide
 
 Building overview <building/index>
 ```
@@ -70,11 +71,11 @@ own firmware. Running the whole check, which loads the pin-ID and UART designs i
 
 ```{toctree}
 :maxdepth: 1
+:caption: Test Designs
 
 Pmod pin ID <designs/pmod-pin-id>
 Pmod loopback <designs/pmod-loopback>
 UART <designs/uart>
-Running the tests from a workstation <designs/from-a-workstation>
 What the public site loads <designs/demos>
 Firmware and known workarounds <designs/firmware>
 ```
@@ -86,6 +87,7 @@ still needs:
 
 ```{toctree}
 :maxdepth: 1
+:caption: Installations
 
 At welland <installations/welland>
 At ps1 <installations/ps1>

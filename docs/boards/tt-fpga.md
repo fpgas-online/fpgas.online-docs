@@ -53,7 +53,7 @@ This page has been split, by task. Each part of it is now on the page named here
 (test-infrastructure)=
 (available-tests)=
 (test-execution)=
-**Test infrastructure**: one page for each test: [Pmod pin ID](tt-fpga/designs/pmod-pin-id.md), [Pmod loopback](tt-fpga/designs/pmod-loopback.md), [UART](tt-fpga/designs/uart.md); the breakout has [no SPI flash](tt-fpga/overview/device-info.md#no-spi-flash), so no SPI flash ID test. Running them from a workstation: [from a workstation](tt-fpga/designs/from-a-workstation.md). What the public site loads: [demos](tt-fpga/designs/demos.md).
+**Test infrastructure**: one page for each test: [Pmod pin ID](tt-fpga/designs/pmod-pin-id.md), [Pmod loopback](tt-fpga/designs/pmod-loopback.md), [UART](tt-fpga/designs/uart.md); the breakout has [no SPI flash](tt-fpga/overview/device-info.md#no-spi-flash), so no SPI flash ID test. Running them from a workstation with `verify_hardware.py`: [Verifying a deployment](../setup/verification.md#running-the-hardware-tests). What the public site loads: [demos](tt-fpga/designs/demos.md).
 
 (pin-mapping)=
 (ui_in)=

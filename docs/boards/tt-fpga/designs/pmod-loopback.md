@@ -38,9 +38,7 @@ The 5 unaffected uio bits (uio[0], uio[4:7]) on JB pins 1 and 7-10 use unique RP
 
 ## Running it
 
-```{include} ../generated/tt-fpga-pins-other.md
-:start-after: "### Loading the FPGA: its configuration pins"
-:end-before: "The FPGA breakout has no SPI flash"
+```{include} ../streaming-rule.inc
 ```
 
 ```{include} run-the-pmod-test.inc
@@ -50,11 +48,7 @@ The 5 unaffected uio bits (uio[0], uio[4:7]) on JB pins 1 and 7-10 use unique RP
 $ sudo fpgas-tt-fpga-debug --variant tt-fpga test pmod
 ```
 
-```{include} wrappers.inc
-```
-
-For this test the wrapper is `tt_pmod_wrapper.py`. Running the test from a workstation instead, with the older
-runner: [from a workstation](from-a-workstation.md).
+The wrapper for this test is `tt_pmod_wrapper.py` (the three wrappers: [the pin-ID test](pmod-pin-id.md#by-hand)). The older runner, `verify_hardware.py`, run from a workstation, is described for operators on [Verifying a deployment](../../../setup/verification.md#tt-fpga-programming), another page, not in this set; its host table names hosts that no longer exist.
 
 ## What has been measured
 
