@@ -37,6 +37,10 @@ connector 1, step 3, continued: find wire 1 of the P1 cable"). After printing, e
 pictures are found in the PDF, and the run stops if any picture is on another sheet than its step's words,
 other than on a sheet the tool began with such a line. A step's pictures include a repeated picture with
 its own lead-in line ("The P1 cavity picture again ...") between it and the next numbered step or heading.
+No short part of a chapter takes a sheet to itself when it can share one: a chapter's opening (title, lead,
+"What you need") goes with its first step when the step's pictures fit after it at no less than the smallest
+size, and a short closing section ("If a terminal is in the wrong cavity", "Next") goes on the sheet of the
+last step's last picture. Every chapter still starts a sheet of its own.
 --append puts existing PDFs (label sheets) after the printed pages unchanged
 and not renumbered; every page of them must already be on the chosen paper,
 either way up, or the run stops.
@@ -158,7 +162,7 @@ WIDE_SHEET_RE = r'<figure class="wide" data-wide="([0-9a-f]+)">'
 LINKS_WITH_HEADING = 4
 HEADINGS = ("h1", "h2", "h3", "h4", "h5", "h6")
 # The blocks an end-of-block mark goes into, to the last of what they hold.
-INTO = ("ul", "ol", "li", "div", "table", "thead", "tbody", "tr", "td", "th", "blockquote", "dl", "dd", "dt")
+INTO = ("section", "ul", "ol", "li", "div", "table", "thead", "tbody", "tr", "td", "th", "blockquote", "dl", "dd", "dt")
 
 CSS = """
 @page {
@@ -955,6 +959,69 @@ def step_names(words: Tag, name: str) -> tuple[str, str]:
     return label, f"{label}, continued from the sheet before"
 
 
+def block_mm(block: Tag, width: float) -> float:
+    """How tall any block of a chapter prints: a heading, a section (all it holds), a picture at its natural
+    size, or words (words_mm)."""
+    if block.name in HEADING_SIZES:
+        return heading_mm(block, width)
+    if block.name == "section":
+        return sum(block_mm(part, width) for part in block.find_all(recursive=False))
+    if "picture" in block.get("class", []):
+        natural, _, below = picture_mm(block, width)
+        return natural + below
+    return words_mm(block, width)
+
+
+def opening_mm(step: Tag, body: Tag, width: float) -> float | None:
+    """How tall everything before a chapter's first step prints (its title, lead, "What you need", the
+    headings over the step), with the chapter's source line; None when the step is not the chapter's first,
+    or a picture or a step comes before it."""
+    if step.find_previous("div", class_="step") is not None:
+        return None
+    total, node = SOURCE_MM, step
+    while node is not body and node.parent is not None:
+        for before in node.find_previous_siblings():
+            if before.find(class_="picture") is not None or "picture" in before.get("class", []):
+                return None
+            total += block_mm(before, width)
+        node = node.parent
+    return total
+
+
+def words_after(last: Tag, width: float) -> float:
+    """How tall the words print that follow a step's last picture, up to the next step, picture, heading or
+    section, or the end of the step's section."""
+    total = 0.0
+    for part in last.find_next_siblings():
+        if part.name in ("section", *HEADINGS) or part.find(class_="picture") is not None \
+                or "picture" in part.get("class", []) or "step" in part.get("class", []):
+            break
+        total += words_mm(part, width)
+    return total
+
+
+# What may end a chapter after a step's last picture and be kept on its sheet: words and headings, the
+# sections that hold only them, and note boxes.
+ENDING = ("p", "ul", "ol", "section", "div", *HEADINGS)
+
+
+def chapter_ending(last: Tag, body: Tag) -> list[Tag]:
+    """Everything after a step's last picture to the end of the chapter, when it is only words, headings and
+    note boxes (a short closing section, "If a terminal is in the wrong cavity", "Next"); else none."""
+    ending, node = [], last
+    while node is not body and node.parent is not None:
+        ending.extend(node.find_next_siblings())
+        node = node.parent
+    for part in ending:
+        for block in (part, *part.find_all(True)):
+            if block.name in ("img", "pre", "table", "figure") or "picture" in block.get("class", []) \
+                    or "step" in block.get("class", []):
+                return []
+        if part.name not in ENDING or part.name == "div" and "admonition" not in part.get("class", []):
+            return []
+    return ending
+
+
 def tail_after(last: Tag) -> list[Tag]:
     """The paragraphs and lists after a step's last picture that end its section, or none if anything else
     (a heading, a table, another picture) comes before the section ends."""
@@ -991,21 +1058,45 @@ def fit_steps(body: Tag, soup: BeautifulSoup, paper: str, name: str) -> None:
         # One entry for each sheet the step takes: the room its pictures have there, and the pictures.
         first_room = room - lead_mm(step, body, width) - words
         placed = place_pictures(pictures, first_room, width, False)
+        # A chapter's opening (title, lead, "What you need") goes with its first step when the step's pictures
+        # fit after it, shrunk if need be, as many as on a sheet of their own: alone, it would fill a third of
+        # a sheet and leave the rest blank.
+        # The words after the step, up to what comes next (a step, a picture, a heading), must fit there too:
+        # pushed over, their last lines would stand alone on the next sheet.
+        opening = opening_mm(step, body, width)
+        if opening:
+            opening += words_after(pictures[-1] if len(pictures) > 1 else step, width)
+        # Only a step that does not fit after the opening as it is: one whose pictures, at their own size, fit
+        # in the whole of the sheet after it (the estimate errs tall, and keeps STEP_SPARE_MM) is printed there
+        # by the browser without help, and no picture is shrunk for it.
+        natural = sum(size[0] + size[2] for size in (picture_mm(picture, width) for picture in pictures[:len(placed)]))
+        needed = opening and opening + words + natural > height
+        with_opening = place_pictures(pictures, room - opening - words, width, False) if needed else []
+        if placed and len(with_opening) == len(placed) and with_opening != placed:
+            first_room, placed = room - opening - words, with_opening
+            step["data-opening"] = "1"  # check_steps: its words must be on the chapter's first sheet
+            say(f"{label}: kept on the sheet of the chapter's opening")
         sheets = [(first_room, pictures[:len(placed)], placed)]
         rest = pictures[len(placed):]
         while rest:
             placed = place_pictures(rest, room - CONTINUED_MM, width, True)
             sheets.append((room - CONTINUED_MM, rest[:len(placed)], placed))
             rest = rest[len(placed):]
-        tail = tail_after(pictures[-1] if len(pictures) > 1 else step)  # the first picture is inside the step
-        if tail:
+        anchor = pictures[-1] if len(pictures) > 1 else step  # the first picture is inside the step
+        # What ends the chapter after the step, or else its section, goes on the sheet of its last picture.
+        # The first of the two that fits is kept: a chapter ending too tall to keep still leaves the
+        # paragraphs that end the step's own section.
+        tail = []
+        for candidate in (chapter_ending(anchor, body), tail_after(anchor)):
+            if not candidate:
+                continue
             last_room, last_pictures, _ = sheets[-1]
-            tail_mm = sum(words_mm(part, width) for part in tail)
+            tail_mm = sum(block_mm(part, width) for part in candidate)
             placed = place_pictures(last_pictures, last_room - tail_mm, width, False) if tail_mm <= TAIL_MAX_MM else []
             if len(placed) == len(last_pictures):
                 sheets[-1] = (last_room, last_pictures, placed)
-            else:
-                tail = []
+                tail = candidate
+                break
         last = step
         for number, (_, group, placed) in enumerate(sheets):
             if number:
@@ -1033,7 +1124,9 @@ def fit_steps(body: Tag, soup: BeautifulSoup, paper: str, name: str) -> None:
             for part in tail:
                 kept.append(part.extract())
             last.append(kept)
-            say(f"{label}: the {len(tail)} paragraph(s) ending its section kept on the sheet of its last picture")
+            say(f"{label}: the {len(tail)} block(s) after it, to the end of its "
+                f"{'chapter' if any(part.name in ('section', *HEADINGS) for part in tail) else 'section'}, "
+                "kept on the sheet of its last picture")
 
 
 def mark_steps(body: Tag, soup: BeautifulSoup, number: int, title: str) -> None:
@@ -1128,6 +1221,12 @@ def check_steps(sheets: list[str], page: str) -> list[str]:
         chapter = div["data-step"].split("-")[0]
         name = f"chapter {chapter}, {step.get('data-label')}"
         words = sheet_of(mark_in(step, "W"))
+        if div is step and step.get("data-opening"):
+            start = [number for number, text in enumerate(sheets, 1)
+                     if re.search(rf"(?m)^\s*Chapter {chapter} · ", text)]
+            if start != [words]:
+                problems.append(f"{name}: kept with the chapter's opening, but its words are on sheet {words} and "
+                                f"the chapter starts on sheet(s) {start}")
         if div is step:
             where, home = "its words are", words
         else:
@@ -1138,7 +1237,7 @@ def check_steps(sheets: list[str], page: str) -> list[str]:
             if not said.startswith(f"{step.get('data-label')}, continued"):
                 problems.append(f"{name}: the continued line \u201c{said}\u201d does not name the step")
             if not visible(sheets[home - 1]).startswith(said):
-                problems.append(f"{name}: the continued line \u201c{said}\u201d does not start sheet {home}")
+                problems.append(f"{name}: the continued line \u201c{said}\u201d is not whole at the top of sheet {home}")
             if home <= words:
                 problems.append(f"{name}: its continued line is on sheet {home}, not after its words on sheet {words}")
         pictures = [part for part in div.find_all(recursive=False) if "picture" in part.get("class", [])]

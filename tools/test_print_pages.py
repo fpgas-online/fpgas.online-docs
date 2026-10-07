@@ -626,7 +626,7 @@ class FitSteps(unittest.TestCase):
         self.assertIsNone(article.select_one(".continued"))
 
     def test_a_second_picture_comes_into_the_step_when_the_whole_fits(self):
-        article = self.fit("<p>5. Fill.</p>" + picture(1560, 600) + picture(1560, 600) + "<h2>Next</h2><p>after</p>")
+        article = self.fit("<p>5. Fill.</p>" + picture(1560, 600) + picture(1560, 600) + "<h2>Next</h2><table><tr><td>x</td></tr></table>")
         step = article.select_one("div.step")
         self.assertEqual(len(step.find_all("img")), 2)
         self.assertEqual(step.find_next_sibling().get_text(), "Next")
@@ -638,7 +638,7 @@ class FitSteps(unittest.TestCase):
         self.assertAlmostEqual(self.height(first), 2 * self.height(second), delta=0.2)
 
     def test_a_second_picture_that_does_not_fit_goes_on_the_next_sheet_under_the_step_number(self):
-        article = self.fit("<p>5. Fill.</p>" + picture(1560, 2116) + picture(1560, 2116) + "<h2>Next</h2>")
+        article = self.fit("<p>5. Fill.</p>" + picture(1560, 2116) + picture(1560, 2116) + "<h2>Next</h2><table><tr><td>x</td></tr></table>")
         step, continued = article.select("div.step")
         self.assertEqual(continued["class"], ["step", "continued"])
         self.assertEqual(continued.find_previous_sibling(), step)
@@ -702,7 +702,7 @@ class FitSteps(unittest.TestCase):
         self.assertLessEqual(self.height(image) + p.PICTURE_BELOW_MM + p.CONTINUED_MM + words_mm,
                              height - p.STEP_SPARE_MM + 0.06)  # the style rounds to 0.1 mm
         self.assertGreaterEqual(self.height(image), p.PICTURE_MIN_SCALE * width * 2144 / 1560)
-        self.assertTrue(any("3 paragraph(s) ending its section kept" in line for line in self.said))
+        self.assertTrue(any("the 3 block(s) after it, to the end of its section, kept" in line for line in self.said))
 
     def test_a_step_that_fits_keeps_its_ending_paragraphs_inside_it(self):
         article = self.fit("<section><p>1. Cut.</p>" + picture(1560, 1118) + "<p>Done.</p></section>")
@@ -711,7 +711,7 @@ class FitSteps(unittest.TestCase):
         self.assertNotIn("style", step.find("img").attrs)
 
     def test_paragraphs_followed_by_anything_else_in_the_section_are_left_where_they_are(self):
-        for after in ("<h2>Next</h2>", "<table><tr><td>x</td></tr></table>", picture(1560, 600)):
+        for after in ("<h2>Next</h2><table><tr><td>x</td></tr></table>", "<table><tr><td>x</td></tr></table>", picture(1560, 600)):
             article = self.fit("<section><p>1. Cut.</p>" + picture(1560, 1118) + "<p>Done.</p>" + after + "</section>")
             self.assertIsNone(article.select_one("div.step-tail"), after)
 
@@ -725,15 +725,116 @@ class FitSteps(unittest.TestCase):
         article = self.fit(f"<section><p>3. {words(2000)}</p>" + picture(1560, 1560) + ending + "</section>")
         self.assertIsNone(article.select_one("div.step-tail"))
 
+    OPENING = ("<section><h1>Compute Blade cables: fitting</h1><p>Your two cables have passed the bench check.</p>"
+               "<p>Not yet run by us on this hardware.</p><section><h2>What you need</h2><p>Both cables.</p></section>"
+               "<section><h2>Steps</h2>")
+
+    def test_a_chapters_opening_goes_with_its_first_step_shrinking_its_picture(self):
+        # Issue #104: the bench check and fitting chapters printed their opening alone on a sheet.
+        article = self.fit(self.OPENING + "<p>1. Fit the plugs.</p>" + picture(1560, 1800) + "</section></section>")
+        image = article.find("img")
+        width, height = p.TEXT_MM["Letter"]
+        step = article.select_one("div.step")
+        opening = p.opening_mm(step, article, width)
+        self.assertGreater(opening, p.SOURCE_MM + 30)
+        self.assertLessEqual(opening + p.words_mm(step.p, width) + self.height(image) + p.PICTURE_BELOW_MM,
+                             height - p.STEP_SPARE_MM + 0.06)
+        self.assertGreaterEqual(self.height(image), p.PICTURE_MIN_SCALE * width * 1800 / 1560)
+        self.assertIn("print_pages: Fitting, step 1: kept on the sheet of the chapter's opening", self.said)
+
+    def test_a_step_that_fits_after_its_opening_as_it_is_is_not_shrunk_for_it(self):
+        # Review of #106: the overview's picture, which fitted after its opening at full size on main, was shrunk
+        # from 104 mm to 71 mm because the estimate, with its spare, came out 1 mm short.
+        width, height = p.TEXT_MM["Letter"]
+        html_text = self.OPENING + "<p>1. Fit the plugs.</p>" + picture(1560, 1240) + "</section></section>"
+        article = self.fit(html_text)
+        step = article.select_one("div.step")
+        natural, _, below = p.picture_mm(step.find(class_="picture"), width)
+        total = p.opening_mm(step, article, width) + p.words_mm(step.p, width) + natural + below
+        self.assertGreater(total, height - p.STEP_SPARE_MM)  # short of the estimate's room...
+        self.assertLessEqual(total, height)  # ...but within the sheet
+        self.assertNotIn("style", article.find("img").attrs)
+        self.assertFalse(any("kept on the sheet of the chapter's opening" in line for line in self.said))
+        self.assertIsNone(step.get("data-opening"))
+
+    def test_an_opening_too_tall_to_share_a_sheet_with_the_step_is_left_alone(self):
+        tall = self.OPENING.replace("<p>Both cables.</p>", f"<p>{words(3000)}</p>")
+        article = self.fit(tall + "<p>1. Fit the plugs.</p>" + picture(1560, 1800) + "</section></section>")
+        self.assertNotIn("print_pages: Fitting, step 1: kept on the sheet of the chapter's opening", self.said)
+        self.assertNotIn("style", article.find("img").attrs)  # printed at its size, on a sheet after the opening
+
+    def test_an_opening_is_not_kept_with_its_step_when_the_words_after_the_step_would_be_pushed_over(self):
+        # JTAG connector 1 in the published booklet: kept with its opening, step 1 pushed the last two lines of
+        # step 2 (words only) onto a sheet of their own.
+        after = f"<p>2. Check that each half reaches. {words(1200)}</p>"
+        article = self.fit(self.OPENING + "<p>1. Fit the plugs.</p>" + picture(1560, 1800) + after
+                           + "<p>3. Find wire 1.</p>" + picture(1560, 1800) + "</section></section>")
+        self.assertNotIn("print_pages: Fitting, step 1: kept on the sheet of the chapter's opening", self.said)
+        width = p.TEXT_MM["Letter"][0]
+        self.assertAlmostEqual(p.words_after(article.select_one("div.step"), width),
+                               p.words_mm(p.BeautifulSoup(after, "html.parser").p, width))
+
+    def test_only_the_first_step_of_a_chapter_goes_with_its_opening(self):
+        article = self.fit(self.OPENING + "<p>1. Cut.</p>" + picture(1560, 300) + "<p>2. Fit the plugs.</p>"
+                           + picture(1560, 2116) + "</section></section>")
+        second = article.select("div.step")[1]
+        self.assertIsNone(p.opening_mm(second, article, p.TEXT_MM["Letter"][0]))
+        self.assertFalse(any("step 2: kept on the sheet" in line for line in self.said))
+
+    def test_a_short_section_ending_the_chapter_goes_on_the_sheet_of_the_last_picture(self):
+        # Issue #104: "If a terminal is in the wrong cavity", three lines, printed alone on a sheet.
+        article = self.fit("<section><h1>JTAG connector 2</h1><section><h2>Steps</h2><p>4. Check each wire.</p>"
+                           + picture(1560, 2116) + "</section><section><h2>If a terminal is in the wrong cavity</h2>"
+                           "<p>A Dupont housing holds each terminal by a small plastic tab.</p></section></section>")
+        step = article.select("div.step")[-1]
+        tail = step.find("div", class_="step-tail", recursive=False)
+        self.assertEqual(tail.section.h2.get_text(), "If a terminal is in the wrong cavity")
+        self.assertIsNone(article.find("section", recursive=False).find("section", recursive=False).find_next_sibling())
+        self.assertTrue(any("to the end of its chapter, kept on the sheet of its last picture" in line
+                            for line in self.said))
+
+    def section_then_ending(self, step_words, ending_paragraphs):
+        ending = "<section><h2>Background</h2>" + "".join(f"<p>{words(n)}</p>" for n in ending_paragraphs) + "</section>"
+        return self.fit("<section><h1>T</h1><p>0. Earlier.</p>" + picture(1560, 300) + "<section><h2>Steps</h2>"
+                        f"<p>1. Cut. {words(step_words)}</p>" + picture(1560, 2116)
+                        + "<p>Done: the last words of this section.</p></section>" + ending + "</section>")
+
+    def test_a_chapter_ending_too_tall_to_keep_still_leaves_the_sections_own_last_words_kept(self):
+        # Review of #106: the overview's "Nothing in this guide cuts a wire to length" lost its T mark when
+        # the words-only chapter ending after it was 383 mm.
+        article = self.section_then_ending(0, [500] * 8)
+        tail = article.select_one("div.step-tail")
+        self.assertEqual([part.get_text() for part in tail.find_all(recursive=False)],
+                         ["Done: the last words of this section."])
+        self.assertIsNotNone(article.find("h2", string="Background"))
+        self.assertIsNone(article.find("h2", string="Background").find_parent("div", class_="step-tail"))
+
+    def test_a_chapter_ending_that_does_not_fit_beside_the_picture_still_leaves_the_sections_own_last_words(self):
+        width = p.TEXT_MM["Letter"][0]
+        ending = p.BeautifulSoup("<section><h2>Background</h2>" + f"<p>{words(150)}</p>" * 3 + "</section>",
+                                 "html.parser").section
+        self.assertLessEqual(p.block_mm(ending, width), p.TAIL_MAX_MM)  # short enough, but no room for it
+        article = self.section_then_ending(1100, [150] * 3)
+        tail = article.select_one("div.step-tail")
+        self.assertEqual([part.get_text() for part in tail.find_all(recursive=False)],
+                         ["Done: the last words of this section."])
+
+    def test_a_chapter_ending_with_a_picture_listing_or_table_after_the_step_is_not_kept_with_it(self):
+        for later in (picture(1560, 300), "<pre>make</pre>", "<table><tr><td>x</td></tr></table>"):
+            article = self.fit("<section><section><p>4. Check.</p>" + picture(1560, 1118) + "</section>"
+                               "<section><h2>More</h2><p>Words.</p>" + later + "</section></section>")
+            self.assertIsNone(article.select_one("div.step-tail"), later)
+
     def test_more_pictures_than_one_sheet_holds_go_on_as_many_sheets_as_they_need(self):
         article = self.fit("<p>4. Look.</p>" + picture(1560, 2116) * 3)
         self.assertEqual(len(article.select("div.continued")), 2)
         self.assertEqual(len(article.select("img")), 3)
 
     def test_a_heading_before_the_step_goes_to_its_sheet_and_takes_room(self):
-        plain = self.fit(f"<p>x</p><p>3. {words(1500)}</p>" + picture(1560, 1560))
-        headed = self.fit(f"<p>x</p><h2>Steps</h2><p>3. {words(1500)}</p>" + picture(1560, 1560))
-        self.assertLess(self.height(headed.find("img")), self.height(plain.find("img")))
+        earlier = "<p>2. Earlier.</p>" + picture(1560, 300)  # not the chapter's first step, which has its opening
+        plain = self.fit(earlier + f"<p>x</p><p>3. {words(1500)}</p>" + picture(1560, 1560))
+        headed = self.fit(earlier + f"<p>x</p><h2>Steps</h2><p>3. {words(1500)}</p>" + picture(1560, 1560))
+        self.assertLess(self.height(headed.find_all("img")[-1]), self.height(plain.find_all("img")[-1]))
 
     def test_a4_has_more_room_than_letter(self):
         html_text = f"<p>3. {words(1500)}</p>" + picture(1560, 1560)
@@ -849,7 +950,8 @@ def marked(html_text, number=3, title="Compute Blade cables: fitting"):
     return article
 
 
-TWO_SHEETS = "<p>1. Fit the cables.</p>" + picture(1560, 2116) + picture(1560, 2116) + "<h2>Next</h2>"
+TWO_SHEETS = ("<p>1. Fit the cables.</p>" + picture(1560, 2116) + picture(1560, 2116)
+              + "<h2>Next</h2><table><tr><td>x</td></tr></table>")
 
 
 def again(first=900, second=1000):
@@ -997,6 +1099,14 @@ class MarkSteps(unittest.TestCase):
         self.assertEqual(marks[1].parent.name, "li")
         self.assertEqual(marks[1].parent.get_text(), "c" + marks[1].get_text())
 
+    def test_a_section_kept_at_the_end_of_a_chapter_is_marked_at_its_end(self):
+        article = marked("<section><section><p>4. Check.</p>" + picture(1560, 1118) + "</section>"
+                         "<section><h2>If a terminal is in the wrong cavity</h2><p>A tab.</p><p>Lift it.</p>"
+                         "</section></section>")
+        tail = article.select_one("div.step-tail")
+        self.assertEqual([span.get_text() for span in tail.select("span.step-mark")], ["PPSTEP-T-3-1-0-1-Z"])
+        self.assertEqual(tail.find_all("p")[-1].contents[-1].get_text(), "PPSTEP-T-3-1-0-1-Z")
+
     def test_a_mark_is_hidden_and_takes_no_room(self):
         self.assertIn(".step-mark { display: inline-block; width: 0; overflow: visible; font-size: 0.1pt;", p.CSS)
         self.assertIn("color: #fff; white-space: nowrap; }", p.CSS)
@@ -1011,7 +1121,7 @@ class CheckSteps(unittest.TestCase):
     def sheets(self, article, where, count):
         """The text of count sheets with each mark on the sheet where gives it (1 if not given), and each
         continued line first on its sheet after its mark."""
-        texts = [""] * count
+        texts = ["Chapter 3 · Source: https://x/a\n"] + [""] * (count - 1)  # the chapter starts on sheet 1
         for span in article.select("span.step-mark"):
             mark = span.get_text()
             text = span.parent.get_text() if mark.startswith("PPSTEP-K") else mark
@@ -1052,7 +1162,7 @@ class CheckSteps(unittest.TestCase):
         texts[1] = "the end of a paragraph\n" + texts[1]
         problems = p.check_steps(texts, str(article))
         self.assertEqual(len(problems), 1)
-        self.assertIn("does not start sheet 2", problems[0])
+        self.assertIn("is not whole at the top of sheet 2", problems[0])
 
     def test_a_continued_line_on_the_sheet_of_its_words_fails(self):
         article = marked(TWO_SHEETS)
@@ -1112,6 +1222,16 @@ class CheckSteps(unittest.TestCase):
         self.assertEqual(len(article.select("div.step")), 1)
         where = {"PPSTEP-P-3-1-0-2-Z": 2, "PPSTEP-L-3-1-0-2-1-Z": 2, "PPSTEP-L-3-1-0-2-2-Z": 2}
         self.assertEqual(len(p.check_steps(self.sheets(article, where, 2), str(article))), 1)
+
+    def test_a_first_step_kept_with_the_opening_but_printed_after_it_is_reported(self):
+        article = marked(FitSteps.OPENING + "<p>1. Fit the plugs.</p>" + picture(1560, 1800) + "</section></section>")
+        step = article.select_one("div.step")
+        self.assertEqual(step.get("data-opening"), "1")
+        self.assertEqual(p.check_steps(self.sheets(article, {}, 1), str(article)), [])
+        where = {"PPSTEP-W-3-1-Z": 2, "PPSTEP-P-3-1-0-1-Z": 2}
+        self.assertEqual(p.check_steps(self.sheets(article, where, 2), str(article)),
+                         ["chapter 3, Compute Blade cables: fitting, step 1: kept with the chapter's opening, but its "
+                          "words are on sheet 2 and the chapter starts on sheet(s) [1]"])
 
     def test_a_mark_not_found_or_found_twice_cannot_be_checked(self):
         article = marked("<p>2. Cut.</p>" + picture(1560, 1118))
