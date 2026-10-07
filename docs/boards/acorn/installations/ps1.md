@@ -29,6 +29,18 @@ On a blade that is running, `ip link` prints its MAC (the `link/ether` line of `
 the serial number off a blade in the hand, without running it (a sticker on the module or on the blade), is
 **not verified by us**.
 
+**Telling the blades apart on the bench.** What the records say each one has, to look for (none of these has
+been checked by eye by us):
+
+- pi18 at ps1: no card seen in its M.2 slot (no PCIe device on 7 October 2026).
+- pi20 at ps1: a cable already on the Extension Port, with its serial pair on pins 9 and 10.
+- pi14 at ps1 and pi18 at ps1 carry a Compute Module 4; pi16 at ps1 and pi20 at ps1 a Compute Module 5
+  Lite. Which marking on the module tells the two apart is not recorded by us.
+
+A way that does not depend on looking, **not yet tried by us**: with every other blade running, unplug one
+blade's PoE cable; the name whose visitor port then stops answering (`ssh -p 1NN22 ...`, above) is that
+blade. Plug it back in; it boots again in about two minutes.
+
 All four answered on their visitor ports on 7 October 2026 (pi14 at ps1 and pi18 at ps1 had not on
 5 October). **If a blade's ssh port does not answer**, nothing can be run on it from this guide; first find out
 whether it is powered and its network link is up (its lights; the gateway's view of it): **not yet checked by
@@ -55,20 +67,8 @@ Blade**: on a blade they wait for JTAG (the Host column below).
 | Acorn CLE-101, device DNA `0x0028e5c45e304854` | pi20 at ps1 (2026-10-05) | CM5 Lite Rev 1.0 8 GB | a vendor XDMA sample image, `10ee:7011` | `0001:01` | 2026-09-20 (kernel 6.12.75): answered, IDCODE `0x3631093`. 2026-10-05 (kernel 6.18.50, serial port on): not tried, expected not to run | on the Extension Port: K2 to GPIO15, J2 to GPIO14, no resistor; J5 and H5 not wired |
 | none seen: no PCIe device (2026-10-07; the slot is empty, or a card has no link: `lspci` cannot tell) | pi18 at ps1 (2026-10-07) | CM4 Rev 1.1 4 GB | | | | |
 
-pi20 at ps1 is the only blade whose JTAG has answered (on 2026-09-20), so it is the
-only one with a device DNA: `0x0028e5c45e304854`, an XC7A100T. The fpgas.online
-Acorn design ran on it from SRAM that day (Gen2 x1, the same ident and DNA over
-PCIe and over the UART bridge); by that probe its flash holds the vendor XDMA
-sample image, and on 2026-10-05 the card enumerated as `10ee:7011`, the ID of
-that sample design. "P1 unmated" on pi14 at ps1 and pi16 at ps1 is
-read off TCK: the Acorn pulls TCK up, and on pi20 at ps1 the Pi's pull-down cannot move
-it, while on pi14 at ps1 and pi16 at ps1 it floats exactly as on pi18 at ps1, which has no card.
-Reseating P1 is the first thing to try. (On pi16 at ps1 JTAG will still not run while the serial port holds
-GPIO14: the table below.)
-
-These boards are often called LiteFury. Their factory PCI ID identifies them as
-SQRL Acorn CLE-101: the same PCB family, XC7A100T with 512 MB of DDR3. See [SQRL
-Acorn](../index.md).
+How each card was read, and what "P1 unmated" rests on, is on [Acorns at ps1: what was read on each
+blade](ps1-reads.md#the-cards-as-read).
 
 **No blade is wired to the [Compute Blade
 wiring](../building/compute-blade/index.md) yet.** That wiring puts P1 on
@@ -83,6 +83,12 @@ today ([pi16 at ps1 on 5 October 2026](ps1-reads.md#pi16-at-ps1-on-5-october-202
 loaded to read them.
 
 ## What each blade still needs
+
+**What to build.** Four P2 cables, one for each blade, by the guide (pi20 at ps1's present P2 wiring is not
+the guide's: below). P1: pi20 at ps1's cable answered on 2026-09-20, so leave it. On pi14 at ps1 and pi16
+at ps1 a P1 cable is fitted but TCK reads as if it were not mated: reseat it first; if it still does not
+answer, or its wiring cannot be read against the guide, build a new P1 cable by the guide for it. pi18 at
+ps1 needs a card and both cables; which card goes there is not recorded by us.
 
 **Before anything is fitted, refitted or reseated: power the blade off (unplug its PoE cable, and a USB-C cable if
 one is plugged in).** And before any design is loaded over JTAG:

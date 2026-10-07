@@ -19,6 +19,23 @@ happen. That no longer holds on pi16 at ps1 or pi20 at ps1 (their boot configura
 serial port's TXD0 and RXD0 and `enable_uart=1` (one shared boot directory). GPIO2, 3 and 4 read as inputs
 with pull-ups on the two CM4 blades and with no pull on the two CM5 blades.
 
+## The cards as read
+
+pi20 at ps1 is the only blade whose JTAG has answered (on 2026-09-20), so it is the
+only one with a device DNA: `0x0028e5c45e304854`, an XC7A100T. The fpgas.online
+Acorn design ran on it from SRAM that day (Gen2 x1, the same ident and DNA over
+PCIe and over the UART bridge); by that probe its flash holds the vendor XDMA
+sample image, and on 2026-10-05 the card enumerated as `10ee:7011`, the ID of
+that sample design. "P1 unmated" on pi14 at ps1 and pi16 at ps1 is
+read off TCK: the Acorn pulls TCK up, and on pi20 at ps1 the Pi's pull-down cannot move
+it, while on pi14 at ps1 and pi16 at ps1 it floats exactly as on pi18 at ps1, which has no card.
+Reseating P1 is the first thing to try. (On pi16 at ps1 JTAG will still not run while the serial port holds
+GPIO14: the table below.)
+
+These boards are often called LiteFury. Their factory PCI ID identifies them as
+SQRL Acorn CLE-101: the same PCB family, XC7A100T with 512 MB of DDR3. See [SQRL
+Acorn](../index.md).
+
 ## pi16 at ps1 on 5 October 2026
 
 Read over SSH as the visitor. Nothing was written to the host's storage or to

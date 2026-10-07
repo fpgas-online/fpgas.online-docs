@@ -18,10 +18,12 @@ and need nothing.
 Log in to the blade the way you normally do and run these two. They change
 nothing and need no root.
 
-**On a Compute Module 4 blade, run them as written, with `timeout 10`.** On the CM4 blades at ps1 on
-7 October 2026, `vcgencmd` hung in the firmware and never returned (it could not be stopped; a reboot clears
-it). Why is not known. If one prints nothing within 10 seconds, the answer is not known for that blade:
-do not reboot it for this.
+**At ps1, do not run them on the two Compute Module 4 blades (pi14 at ps1 and pi18 at ps1).** There, on
+7 October 2026, `vcgencmd` hung in the firmware and never returned; it could not be stopped, and only a
+reboot clears it. Why is not known, and whether `timeout` would bring the prompt back from such a hang has
+not been tried. So for those two blades the answer to this page's question is **not known**; nothing
+else in this booklet needs it. On a Compute Module 5 blade run them as written, with `timeout 10` in front
+as a guard.
 
 ```console
 $ timeout 10 vcgencmd bootloader_version
