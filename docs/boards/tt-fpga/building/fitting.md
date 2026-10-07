@@ -14,7 +14,9 @@ The other steps say what is recorded and what is not.
 ## 2. The Pmod HAT on the Raspberry Pi
 
 **Not yet written, and no picture yet.** The record says only that the HAT goes on the Raspberry Pi's 40-pin
-header. What the HAT is and which GPIO each of its pins is: [Raspberry Pi PMOD HAT](../../pmod/rpi-hat.md).
+header. Which Raspberry Pi GPIO each pin of the HAT's three ports is, and what each port's pins are for, is on
+[Raspberry Pi PMOD HAT](../../pmod/rpi-hat.md), another page, not in this set; it has no fitting steps
+either. Every wire this board uses is on the wiring pages of this set.
 
 ## 3. The three Pmod cables and the USB-C cable
 
@@ -30,11 +32,30 @@ connected, is not recorded (the list "The cables" below): nothing here tells you
 With the USB-C cable in and the demo board running its firmware, the Raspberry Pi sees the board's
 microcontroller as a USB serial device:
 
-**USB device:** `/dev/ttyACM0` (VID:PID `2e8a:0005` — MicroPython Board in FS
-mode), with a udev symlink **`/dev/ttboard`** that the Pi daemon opens (the symlink comes with the
-`fpgas-online-tt` package: [Serial consoles](../../../setup/pi.md#serial-consoles)).
+**USB device:** `/dev/ttyACM0`, with a udev symlink **`/dev/ttboard`** that the Pi daemon opens (the
+symlink comes with the `fpgas-online-tt` package: [Serial consoles](../../../setup/pi.md#serial-consoles),
+another page, not in this set).
 
-## 4. The camera
+```{include} ../usb-ids.inc
+```
+
+## 4. Power on, and the first check
+
+Plug the demo board's USB-C cable into the Raspberry Pi, then power the Raspberry Pi. When it is up, log in
+and look for the demo board's serial port:
+
+```console
+$ ls /dev/serial/by-id/
+$ ls /dev/ttyACM*
+```
+
+What to expect, from the records (the boards at welland, 3 September 2026, and [Tiny Tapeout ASIC demo
+boards](../../tt-asic.md#connection-to-the-pi)): `/dev/ttyACM0`, and in `/dev/serial/by-id/` a name of the
+form `usb-MicroPython_Board_in_FS_mode_<serial>-if00`, where `<serial>` is the microcontroller's USB serial
+number. `/dev/ttboard` appears only on a Pi with the `fpgas-online-tt` package. What a board in its boot
+loader shows here is not recorded (the check reports it as `2e8a:0003`).
+
+## 5. The camera
 
 **Not yet written, and no picture yet.** The record says only that each host has an ov5647 camera publishing
 a live feed of the board. How it is mounted, cabled and aimed is not recorded. The software that publishes the

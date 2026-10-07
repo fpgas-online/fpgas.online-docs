@@ -25,19 +25,19 @@ failures](../../../verify/fpgas-verify.md#common-failures)):
 > many of the cabling's signal wires the test covers: all 24 on a TT FPGA board.
 
 The summary keeps only a failed test's last 8 output lines. To see the whole table, run the test on its own
-with its output live. The record gives the command for the `uart` test:
-
-```console
-$ sudo fpgas-tt-fpga-debug test uart                 # load one test's design and run its test
-```
-
-For `pin-id` the test's name takes the place of `uart`. That form is not written down anywhere as run by us
-on this board. The check's documentation adds that `fpgas-tt-fpga-debug program` and `test` do not ask the
-board what it is, so they need `--variant tt-fpga` said out loud: [Which Tiny Tapeout board it
-is](../../../verify/fpgas-verify.md#which-tiny-tapeout-board-it-is).
+with its output live. `fpgas-tt-fpga-debug program` and `test` do not ask the board what it is, so they need
+`--variant tt-fpga` said out loud ([Which Tiny Tapeout board it
+is](../../../verify/fpgas-verify.md#which-tiny-tapeout-board-it-is), another page, not in this set).
 
 ```{include} ../serial-port.inc
 ```
+
+```console
+$ sudo fpgas-tt-fpga-debug --variant tt-fpga test pin-id
+```
+
+The record gives this form for the `uart` test (`sudo fpgas-tt-fpga-debug --variant tt-fpga test uart`);
+with `pin-id` it is not run by us.
 
 ## From a wire in the table to the cable
 
@@ -65,13 +65,19 @@ What is recorded about kinds of fault:
 
 ## Other failing lines on this board
 
-These are not cabling faults. Each is explained under [Common
-failures](../../../verify/fpgas-verify.md#common-failures):
+These are not cabling faults. What each means, in one line here; the whole explanation is under "Common
+failures" on [Checking a board: fpgas-verify](../../../verify/fpgas-verify.md#common-failures), another page,
+not in this set:
 
-- `error`: `the board did not say which Tiny Tapeout board it is, so no test was run and nothing was loaded`
-- `fail`: `a Raspberry Pi RP2 is on USB but is not running the Tiny Tapeout firmware`
-- `error`: `… is not installed` (`mpremote`)
-- `fail`: `sdk fail: …`
+- `error`: `the board did not say which Tiny Tapeout board it is, so no test was run and nothing was loaded`:
+  the demo board could not be asked what it is; the rest of the line says why (rpi-hwid not installed, its
+  `main.py` changed, its SDK did not start). rpi-hwid: [verifying 1, step 3](verifying-1.md).
+- `fail`: `a Raspberry Pi RP2 is on USB but is not running the Tiny Tapeout firmware`: the microcontroller
+  is in its USB boot loader. Power-cycle the board.
+- `error`: `… is not installed` (`mpremote`): install it ([verifying 1, step 3](verifying-1.md); on
+  bookworm from backports).
+- `fail`: `sdk fail: …`: the Tiny Tapeout SDK on the board is not a release known to work with what the
+  board carries. The firmware is installed by whoever looks after the board; the check writes nothing to it.
 
 ## The loopback test
 

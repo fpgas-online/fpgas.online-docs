@@ -13,6 +13,12 @@ for this build. The list below is the parts the records name, each with what is 
 | Digilent Pmod HAT Adapter | its ports and GPIOs: [Raspberry Pi PMOD HAT](../../pmod/rpi-hat.md) | part number and supplier |
 | Pmod cables, 12-pin (2x6), one for each of the three headers | they join pin 1 to pin 1; the sockets on both boards are female (from the makers' documents, not checked by us): [which cable goes where](../wiring/cables.md) | **what cable is fitted on our boards, and whether its pins 6 and 12 (3.3 V) are connected: asked on 6 October 2026, not yet answered.** No cable is named here until it is |
 | USB-C cable | from the demo board's USB-C socket to a USB port of the Raspberry Pi | length; which USB port |
+
+**Only at welland.** These belong to how the fleet runs the boards, not to the board: a Pi of your own needs
+neither the camera nor PoE.
+
+| Part | What is recorded | What is not recorded |
+|---|---|---|
 | ov5647 camera | each host has one, publishing a live feed of the board: [Camera](../../../setup/pi.md#camera) | its mount, its cable and how it is aimed |
 | Power and network for the Raspberry Pi | the Pis are powered and networked through PoE switches | what takes the power off the Ethernet cable on a Pi whose 40-pin header carries a Pmod HAT |
 
