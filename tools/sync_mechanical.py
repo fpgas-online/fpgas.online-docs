@@ -24,10 +24,14 @@ DRAWINGS = [
     ("raspberry_pi_camera/output/docs", {"over-acorn-cle-215-plus-views": ("svg", "png"),
                                         "over-acorn-cle-215-plus-sheet": ("svg", "png")}),
     ("tinytapeout/mounting_plate/output/docs", {"tt-generic-mounting-plate-views": ("svg", "png"),
-                                               "tt-generic-mounting-plate-sheet": ("png",)}),
+                                               "tt-generic-mounting-plate-sheet": ("png",),
+                                               "tt-generic-mounting-plate-fitting-guide-views-a": ("svg", "png"),
+                                               "tt-generic-mounting-plate-fitting-guide-views-b": ("svg", "png"),
+                                               "tt-generic-mounting-plate-fitting-guide-sheet": ("png",)}),
 ]
 # Whole drawings copied as they are (vector, for zooming), where a sheet has no SVG picture.
-DOCUMENTS = ["tinytapeout/mounting_plate/output/tt-generic-mounting-plate.pdf"]
+DOCUMENTS = ["tinytapeout/mounting_plate/output/tt-generic-mounting-plate.pdf",
+             "tinytapeout/mounting_plate/output/tt-generic-mounting-plate-fitting-guide.pdf"]
 COMMIT = re.compile(r"^commit: ([0-9a-f]{40})$", re.M)
 
 
