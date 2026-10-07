@@ -63,20 +63,19 @@ article[role=main] table.docutils th code {
 article[role=main] table.docutils th {
   white-space: nowrap;
 }
-/* ...except a long code span with spaces in it, a message rather than a name
-   (docs/_ext/table_code.py marks it long-code). Kept on one line, a failing
-   line on "verifying 2" took the whole width and crushed the column beside it
-   to a word per line. It wraps at its spaces only: Sphinx puts each of its
+/* ...except the code in a message column: what a check prints, under a
+   header such as "The failing line" (docs/_ext/table_code.py marks it
+   message-code; no other code is marked). Kept on one line, a failing line
+   on "verifying 2" took the whole width and crushed the column beside it to
+   a word per line. It wraps at its spaces only: Sphinx puts each of its
    words in a span.pre, which does not break, not even at a hyphen (Furo,
-   unlike Sphinx's basic theme, would let it). A table marked nowrap keeps it
-   on one line all the same. */
-article[role=main] table.docutils:not(.nowrap) td code.long-code {
+   unlike Sphinx's basic theme, would let it). */
+article[role=main] table.docutils:not(.nowrap) td code.message-code {
   white-space: normal;
 }
-article[role=main] table.docutils td code.long-code span.pre {
+article[role=main] table.docutils td code.message-code span.pre {
   white-space: nowrap;
 }
-
 /* -- Pictures --------------------------------------------------------------
    No panel behind pictures. Every drawing brings its own paper and comes in
    two: the light one (class only-light) and a dark twin on the dark theme's

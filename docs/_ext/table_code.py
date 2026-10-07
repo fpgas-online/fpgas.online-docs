@@ -1,31 +1,62 @@
 # SPDX-License-Identifier: Apache-2.0
-"""Marks a long code span in a table cell, one that is a sentence rather than a name, with the class
-`long-code`, so that the stylesheet (docs/_static/custom.css, "Tables") lets it wrap at its spaces.
+"""Lets the code in a table's message column wrap at its spaces: a column whose header is one of
+MESSAGE_HEADERS holds what a check prints (a failure message, a log line), and every code span in its cells
+with a space in it gets the class `message-code` (docs/_static/custom.css, "Tables").
 
-Every other code span in a cell (an address, a DNA, a pin list, a short command) is kept on one line there. A
-failing line on "verifying 2" is a whole message in code, up to a hundred characters and more, and kept on
-one line it took the whole width of the page and crushed the column beside it to a word per line."""
+Every other code span in a table (a command, an address, a DNA, a pin list, a label) is kept on one line, so
+wrapping is opt-in by column, never guessed from the code. A failing line on "verifying 2" is a whole message
+in code, up to a hundred characters and more, and kept on one line it took the whole width of the page and
+crushed the column beside it to a word per line.
+
+The headers are matched exactly. tools/test_table_code.py checks that each is still a header on the site, so
+a renamed column fails the tests instead of quietly going back to one line."""
 
 from docutils import nodes
 
-# A code span longer than this, with a space in it, may wrap at its spaces. The same limit as WHOLE_CODE in
-# tools/print_pages.py. At 40, on a phone (390 px) a 39-character failing line ("pcie-link fail: link is x2,
-# expected x1") still took the width and left the column beside it a word wide.
-LONG_CODE = 24
+# A column with one of these headers holds messages that a check prints, and nothing else in code that must
+# stay whole. "The failing line": verifying 2 (generated in fpgas.online-test-designs). "It says": verifying 2b
+# and the common failures page. "What the check does": the Tiny Tapeout check's variants.
+MESSAGE_HEADERS = frozenset({"The failing line", "It says", "What the check does"})
 
 
-def is_long_code(text: str) -> bool:
-    """Whether a code span in a table cell may wrap at its spaces."""
-    return len(text) > LONG_CODE and any(c.isspace() for c in text)
+def message_columns(table: nodes.table) -> set[int]:
+    """The indexes of the table's columns whose header is one of MESSAGE_HEADERS."""
+    head = next(table.findall(nodes.thead), None)
+    if head is None:
+        return set()
+    columns = set()
+    for row in head.findall(nodes.row):
+        for index, entry in enumerate(c for c in row.children if isinstance(c, nodes.entry)):
+            if entry.astext().strip() in MESSAGE_HEADERS:
+                columns.add(index)
+    return columns
 
 
-def _mark_long_code(app, doctree, docname):
-    for entry in doctree.findall(nodes.entry):
-        for literal in entry.findall(nodes.literal):
-            if is_long_code(literal.astext()):
-                literal["classes"].append("long-code")
+def mark_message_code(table: nodes.table) -> None:
+    """Mark each code span with a space in it in the table's message columns as message-code."""
+    if "nowrap" in table["classes"]:
+        return
+    columns = message_columns(table)
+    if not columns:
+        return
+    for entry in table.findall(nodes.entry):
+        if entry.get("morecols") or entry.get("morerows"):
+            # a spanned cell shifts every column after it: the index would name the wrong column
+            raise ValueError(f"a table with a message column has a spanned cell: {entry.astext()[:60]!r}")
+    for body in table.findall(nodes.tbody):
+        for row in body.findall(nodes.row):
+            cells = [c for c in row.children if isinstance(c, nodes.entry)]
+            for index in columns:
+                for literal in cells[index].findall(nodes.literal):
+                    if any(c.isspace() for c in literal.astext()):
+                        literal["classes"].append("message-code")
+
+
+def _mark(app, doctree, docname):
+    for table in doctree.findall(nodes.table):
+        mark_message_code(table)
 
 
 def setup(app):
-    app.connect("doctree-resolved", _mark_long_code)
+    app.connect("doctree-resolved", _mark)
     return {"parallel_read_safe": True, "parallel_write_safe": True}
