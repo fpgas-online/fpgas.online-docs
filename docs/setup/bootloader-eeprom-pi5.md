@@ -266,7 +266,7 @@ again now, while the Pi is off.
    pads, touching nothing else. With a multimeter: `TP14` to `TP1` reads a
    short circuit.
 
-No soldering iron? Skip 2 and 3. In step 4 you hold tweezers (or a short wire)
+No soldering iron? Skip items 2 and 3 of this step. In step 4 you hold tweezers (or a short wire)
 on the two pads instead:
 
 ```{figure} bootloader-eeprom/pi5-flash-wp-tweezers.jpg
@@ -321,7 +321,7 @@ Photo: Suyash Dwivedi, [Wikimedia Commons](https://commons.wikimedia.org/wiki/Fi
    shows the Pi top side up; yours is lying upside down. The Ethernet socket
    is the one beside the two USB blocks.)
 
-   No solder bridge? Do this instead of 2:
+   No solder bridge? Do this instead of item 2:
 
    ```{figure} bootloader-eeprom/pi5-flash-wp-tweezers.jpg
    :alt: The same close-up with the two tips of a pair of tweezers drawn, one on TP14 and one on TP1
@@ -341,7 +341,7 @@ Photo: Suyash Dwivedi, [Wikimedia Commons](https://commons.wikimedia.org/wiki/Fi
 
    - put one tip of the tweezers (or one end of the wire) on each pad;
    - plug the network cable in with your other hand;
-   - keep the tips on both pads until the 60 seconds of item 3 are over.
+   - keep the tips on both pads until the 60 seconds below are over.
 3. Wait 60 seconds by a clock. There is nothing to watch for: the Pi writes
    its new bootloader from the card and stops. Whatever the green light does,
    go on to step 5 when the 60 seconds are over.
@@ -402,7 +402,9 @@ Photo: Suyash Dwivedi, [Wikimedia Commons](https://commons.wikimedia.org/wiki/Fi
 
 :::{warning}
 Leave the Pi alone for two minutes now. It starts from the network and locks
-its flash again while it starts; do not pull the cable during that time.
+its flash again while it starts; do not pull the cable during that time. (The
+two Pis we read after an upgrade on 6 October 2026 were already locked when
+read, 40 and 100 seconds after they started.)
 :::
 
 ### Step 6: read it back
