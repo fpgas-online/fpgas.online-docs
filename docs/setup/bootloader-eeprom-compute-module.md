@@ -18,14 +18,19 @@ and need nothing.
 Log in to the blade the way you normally do and run these two. They change
 nothing and need no root.
 
+**On a Compute Module 4 blade, run them as written, with `timeout 10`.** On the CM4 blades at ps1 on
+7 October 2026, `vcgencmd` hung in the firmware and never returned (it could not be stopped; a reboot clears
+it). Why is not known. If one prints nothing within 10 seconds, the answer is not known for that blade:
+do not reboot it for this.
+
 ```console
-$ vcgencmd bootloader_version
+$ timeout 10 vcgencmd bootloader_version
 2025/12/08 19:29:54
 version 2226a853bb9f5fd80392e3a4a89e457aeca88008 (release)
 timestamp 1765222194
 update-time 1774980226
 capabilities 0x0000007f
-$ vcgencmd bootloader_config
+$ timeout 10 vcgencmd bootloader_config
 [all]
 BOOT_UART=1
 # Default BOOT_ORDER for provisioning
