@@ -11,14 +11,19 @@ signals:
 
 | Signal Group | Width | Direction | Description |
 |-------------|-------|-----------|-------------|
-| `ui_in[7:0]` | 8 bits | Input | User inputs (directly from DIP switches or RP2350) |
+| `ui_in[7:0]` | 8 bits | Input | User inputs (from the Raspberry Pi through the Pmod HAT, the DIP switches or the RP2350) |
 | `uo_out[7:0]` | 8 bits | Output | User outputs (directly to 7-segment display or RP2350) |
 | `uio[7:0]` | 8 bits | Bidirectional | User bidirectional I/O |
 | `ena` | 1 bit | Input | Enable signal |
 | `clk` | 1 bit | Input | Clock (up to ~66 MHz) |
 | `rst_n` | 1 bit | Input | Active-low reset |
 
-Source: [TinyTapeout PCB Specs](https://tinytapeout.com/specs/pcb/)
+Source: [TinyTapeout PCB Specs](https://tinytapeout.com/specs/pcb/); the Raspberry Pi in the `ui_in` row is
+ours ([`ui_in` and `uo_out`](../wiring/pins-ui-uo.md)).
+
+**The clock.** "Up to ~66 MHz" is the specification's maximum (Tiny Tapeout PCB specs; not measured by us on
+a version 3 board). The clock the board actually gets is 50 MHz on the RP2350's GPIO16, started by our loader
+with `--gpio-release` and by the UART test's bridge (`tt_fpga_program.py`, `tt_test_wrapper.py`).
 
 Each group is on its own Pmod header and reaches the Raspberry Pi through the Pmod HAT: `ui_in` on the INPUT
 header to port JA, `uio` on BIDIR to JB, `uo_out` on OUTPUT to JC. Wire by wire:
@@ -82,19 +87,15 @@ The iCE40 is programmed via the RP2350 over USB CDC, not directly from the RPi.
 | -------------- | ----------------------------------------------------- |
 | Interface      | RP2350 PIO SPI → iCE40 SPI configuration port         |
 | USB device     | `/dev/ttyACM0` (MicroPython REPL)                     |
-| USB VID:PID    | `2e8a:0005` or `2e8a:000f` (MicroPython's serial port) |
-| Tool           | `python3 tt_fpga_program.py /dev/ttyACM0 <bitstream>` |
+| USB VID:PID    | below the table |
+| Tool           | `tt_fpga_program.py --gpio-release /dev/ttyACM0 <bitstream>` (by hand, below) |
 | Bitstream type | `.bin` (volatile SRAM load)                           |
 
 The microcontroller pins the loader drives, and the iCE40's configuration pins: [the pins that load the
 FPGA](../wiring/pins-other.md#loading-the-fpga-its-configuration-pins).
 
-The check finds the board's microcontroller on USB as `2e8a:0005` or `2e8a:000f` (MicroPython's serial port;
-source: the check's code, `boards/tt_fpga.py`, and [what each board's check
-tests](../../../verify/fpgas-verify.md#arty-netv2-fomu-and-tt-fpga)). The boards at welland read `2e8a:0005`
-on 3 September 2026 ([the boards at welland](../installations/welland.md)). rpi-hwid, which asks the board
-what it is, looks at `2e8a:0005` only ([Which Tiny Tapeout board it
-is](../../../verify/fpgas-verify.md#which-tiny-tapeout-board-it-is)).
+```{include} ../usb-ids.inc
+```
 
 ### By hand
 

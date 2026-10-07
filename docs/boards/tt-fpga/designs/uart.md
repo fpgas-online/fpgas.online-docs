@@ -22,7 +22,7 @@ data to the USB CDC serial port (`/dev/ttyACM0`). This is the recommended
 approach since:
 
 - RPi GPIO11 (to the FPGA's RX, `ui_in[3]`) and GPIO4 (from the FPGA's TX, `uo_out[4]`) are **not a
-  hardware UART pair** — the BCM2711 has no UART peripheral assignable to them in these directions (below).
+  hardware UART pair** — the BCM2711 (the Raspberry Pi 4's processor) has no UART peripheral assignable to them in these directions (below).
 - The NFS boot image has no device tree overlay files, and the root filesystem
   is read-only.
 - Software bit-bang UART at 115200 baud is unreliable under a non-RT Linux

@@ -24,8 +24,8 @@ demos via the `fpgas-online-tt-demos` package), which is what the public site us
   MicroPython REPL into a buffer in the RP2350's memory and has the SDK's own loader clock that buffer into
   the iCE40"
   ([fpgas.online-tt](https://github.com/fpgas-online/fpgas.online-tt/blob/main/README.md)).
-  `fpgas-online-tt` 0.0.post71, which does this, is in the root deployed at welland on 6 October 2026 (the
-  coordinator's record of that deploy).
+  `fpgas-online-tt` 0.0.post71, which does this, is in the root deployed at welland on 6 October 2026 (our
+  deploy record of 6 October 2026).
 - **History, no longer done: boards from before October 2026 still hold old copies.** The same README:
   until then the daemon copied every demo and every upload to the board's `/bitstreams` and loaded from
   there; boards from that time still hold those files, and the daemon neither reads nor removes them. Today

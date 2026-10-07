@@ -3,7 +3,10 @@
 **You have a Tiny Tapeout FPGA demo board cabled to a Raspberry Pi with a Digilent Pmod HAT, and want to
 follow one of the design's eight inputs or eight outputs from the FPGA pin to the Raspberry Pi's GPIO.**
 
-The RP2350 GPIO numbers on this page follow Tiny Tapeout's specification for the version 3 demo board, as [Tiny Tapeout PMOD layouts](../../pmod/tinytapeout.md#rp2350-gpio-mapping-demo-board-v3-tt09) gives it.
+The demo board's microcontroller is on these same signals; its GPIO numbers for them are on [the loading
+pins, display, clock, reset and LED](pins-other.md#the-same-24-signals-at-the-microcontroller), from Tiny
+Tapeout's specification as [Tiny Tapeout PMOD
+layouts](../../pmod/tinytapeout.md#rp2350-gpio-mapping-demo-board-v3-tt09) gives it.
 
 ## The INPUT and OUTPUT headers
 

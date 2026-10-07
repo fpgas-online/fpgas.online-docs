@@ -31,8 +31,8 @@ side ([the shared GPIOs](../wiring/pins-uio-uart.md)). That conflict has several
   (JB) are not driven during this test, so no conflict occurs.
 - **Bidirectional I/O test**: Cannot independently test uio[1,2,3] because they are shorted to ui_in[1,2,3]
   respectively. If both are driven, the conflicting outputs may cause contention or incorrect readings.
-- **SPI kernel modules**: Must be unloaded (`rmmod spidev spi_bcm2835`) since GPIO7-11 overlap with HAT JA
-  pins 1-4 and JB pins 1-4.
+- **SPI kernel modules**: Must be unloaded (`rmmod spidev spi_bcm2835`): which HAT pins GPIO7-11 are is
+  under "Running it" below.
 
 The 5 unaffected uio bits (uio[0], uio[4:7]) on JB pins 1 and 7-10 use unique RPi GPIOs and work correctly.
 
@@ -59,7 +59,7 @@ runner: [from a workstation](from-a-workstation.md).
 ## What has been measured
 
 An earlier version of this page said all 8 pairs were "empirically confirmed (4-transition verification)" on
-the board then on the host called pi33. That run used pin lists that predated the measured cabling
+the board then on the host then named pi33 (before 23 August 2026). That run used pin lists that predated the measured cabling
 ([test-designs issue #19](https://github.com/fpgas-online/fpgas.online-test-designs/issues/19)), and by the
 paragraph above it confirmed only that the cables were connected. No run with the present pin lists is
 recorded on these pages: not yet run by us on this hardware in its present form.

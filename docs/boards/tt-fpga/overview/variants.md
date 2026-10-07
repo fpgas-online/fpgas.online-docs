@@ -36,13 +36,12 @@ The same demo PCB carries either the FPGA breakout or a fabricated Tiny Tapeout 
 with the breakout carries an **iCE40UP5K FPGA** (FabricFox breakout) that emulates Tiny
 Tapeout designs. It is **not** an ASIC board.
 
-- **On USB the two look the same.** The check finds either board's microcontroller as `2e8a:0005` or
-  `2e8a:000f` (MicroPython's serial port; source: the check's code, `boards/tt_fpga.py`, and [what each
-  board's check tests](../../../verify/fpgas-verify.md#arty-netv2-fomu-and-tt-fpga)); an FPGA board's RP2350
-  and a chip board's RP2040 both read `2e8a:0005` ([Which Tiny Tapeout board it
-  is](../../../verify/fpgas-verify.md#which-tiny-tapeout-board-it-is)), as the boards at welland did on
-  3 September 2026. So the boot check asks the board itself, and loads a design only into a board that said it carries the FPGA:
+- **On USB the two look the same:** an FPGA board's RP2350 and a chip board's RP2040 both read
+  `2e8a:0005`. So the boot check asks the board itself, and loads a design only into a board that said it carries the FPGA:
   [Which Tiny Tapeout board it is](../../../verify/fpgas-verify.md#which-tiny-tapeout-board-it-is).
+```{include} ../usb-ids.inc
+```
+
 - **A board with a chip**: its shuttles, its firmware and how it is connected are on
   [Tiny Tapeout ASIC demo boards](../../tt-asic.md). No Pmod wiring has been measured for those boards; the
   wiring pages here apply to a version 3 chip board only if its cabling is identical.

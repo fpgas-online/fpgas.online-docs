@@ -31,7 +31,9 @@ The TT FPGA demo board consists of two PCBs:
 Source for the clock oscillator: the pin-mapping page of fpgas.online-test-designs ("iCE40UP5K + clock
 oscillator (no SPI flash)"); not verified by us on a board.
 
-The microcontroller programs the iCE40 over SPI and provides its 50 MHz clock. When it is loaded with the
+The microcontroller programs the iCE40 over SPI and provides its 50 MHz clock (started by our loader and
+our serial bridge: `tt_fpga_program.py`, `tt_test_wrapper.py`; ~66 MHz in the table below is the
+specification's maximum, not what the board runs at). When it is loaded with the
 loader's `--gpio-release` it then releases its GPIO pins to high impedance so the Raspberry
 Pi can talk to the FPGA directly through the PMOD HAT — the controller and the
 PMOD headers share the same physical traces. Without that flag it leaves them as they were:
@@ -50,7 +52,7 @@ PMOD headers share the same physical traces. Without that flag it leaves them as
 | Display | 7-segment LED display |
 | DIP switches | Configuration switches |
 | PMOD headers | 3x standard PMOD (following Digilent spec): input, bidirectional, output |
-| Max clock | ~66 MHz |
+| Max clock | ~66 MHz (the specification's maximum; the board's clock is 50 MHz, below) |
 | I/O voltage | 3.3V |
 
 Source: [TinyTapeout PCB Specs](https://tinytapeout.com/specs/pcb/),
@@ -59,14 +61,11 @@ header rows as corrected in
 [fpgas.online-test-designs](https://github.com/fpgas-online/fpgas.online-test-designs/pull/153). Not verified
 by us against a board.
 
-:::{todo}
-The RP2040-specific facts inherited from the version 2 specification have not been
-re-verified on a version 3 board: the ~66 MHz maximum clock in the table above, and
-the PWM first-call bug the source calls an RP2040 bug while the deployed
-workaround calls it an RP2350 bug (see [RP2350 PWM first-call
-bug](../designs/firmware.md#rp2350-pwm-first-call-bug)). Measure both on a TTDBv3 in the fleet and
-record the date.
-:::
+**Not settled (7 October 2026):** the RP2040-specific facts inherited from the version 2 specification have
+not been re-verified on a version 3 board: the ~66 MHz maximum clock in the table above, and the PWM
+first-call bug the source calls an RP2040 bug while the deployed workaround calls it an RP2350 bug (see
+[RP2350 PWM first-call bug](../designs/firmware.md#rp2350-pwm-first-call-bug)). Nobody has measured either on
+a version 3 board yet.
 
 ## FPGA device
 
@@ -82,12 +81,10 @@ record the date.
 Source: the
 [TT FPGA LiteX platform definition](https://github.com/fpgas-online/fpgas.online-test-designs/blob/main/designs/_shared/tt_fpga_platform.py)
 
-:::{todo}
-The two sources disagree on how the iCE40UP5K's block RAM is divided. The table
-under Key Specifications says 15 × 8 Kbit EBR blocks; the table above
-says 30 EBR blocks. The totals agree (120 Kbit ≈ 15 KB), so one of the
-block counts is wrong. Check against the Lattice datasheet and fix the loser.
-:::
+**Not settled (7 October 2026):** the two sources disagree on how the iCE40UP5K's block RAM is divided. The
+table under Key Specifications says 15 × 8 Kbit EBR blocks; the table above says 30 EBR blocks. The totals
+agree (120 Kbit ≈ 15 KB), so one of the block counts is wrong; nobody has checked it against Lattice's
+datasheet yet.
 
 ## No SPI flash
 
