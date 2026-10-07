@@ -63,7 +63,7 @@ logs in as `pi` with the password. Only the gateway is key-only.
 The image carries no `authorized_keys`. The gateway writes them into the root
 from the complete list, and only when the list changes. A change replaces the
 files, and the running boards cannot see replaced files in their NFS root (see
-[Updating a running fleet](netboot.md#updating-a-running-fleet)). The change
+[Updating a running fleet](netboot-update-root.md)). The change
 therefore also bumps the NFS root generation, and every board reboots itself
 within its stagger slot. **Adding or removing a key on the Pis reboots the
 whole fleet.** So does changing the `pi` password.

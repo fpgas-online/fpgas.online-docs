@@ -9,7 +9,7 @@ hostname-to-`/etc/hosts` unit, the `timesyncd` drop-in and the `ifupdown` masks
 phases run in CI, through Ansible's chroot connection. The gateway pulls the
 finished image, and `fixpi` applies only the site layer on top: the `pi`
 password, the `authorized_keys` and the host keys. See
-[The provisioning container](netboot.md#the-provisioning-container) and
+[The provisioning container](netboot-update-root.md#how-the-root-is-built) and
 [Accounts and logins](access.md). A running
 Pi only adds a tmpfs upper layer over the result, which is discarded on the next
 power cycle.
@@ -214,7 +214,7 @@ dtoverlay=dwc2,dr_mode=peripheral
 `dtoverlay=disable-wifi`, `dtoverlay=disable-bt`
 : The onboard radios off, on both Pi 4 and Pi 5 — the per-generation overlay
   remapping is under
-  [How the root is built](netboot.md#how-the-root-is-built).
+  [How the root is built](netboot-update-root.md#how-the-root-is-built).
 
 `dtoverlay=uart0-pi5` and the `[pi5]` console
 : `disable-bt` frees the 40-pin header UART as a side effect on Pi 0–4 only —
@@ -260,7 +260,7 @@ before anything else could start. It also writes `pistat_host` into
 name from. The `fpgas-hostname-hosts.service` unit and the `timesyncd` drop-in
 that pins the Pi's clock at the gateway are `fixpi`'s too, from `netboot.yml`,
 and are described under
-[How the root is built](netboot.md#how-the-root-is-built).
+[How the root is built](netboot-update-root.md#how-the-root-is-built).
 
 ## Model differences
 
@@ -322,7 +322,7 @@ USB topology
   USB there is, so putting it in peripheral mode would cost the board every
   downstream USB port, which on a 3B+ includes the Ethernet; that is why `dwc2,dr_mode=peripheral` above is applied on Pi 4 and Pi 5
   only, and why a 3B+ has one fewer way to watch a boot — [When a Pi does not
-  boot](netboot.md#when-a-pi-does-not-boot).
+  boot](netboot-not-booting.md).
 
 ## Camera
 
@@ -402,7 +402,7 @@ getty. Nothing waits for a host — the gadget enumerates only when one is
 plugged in, and boot proceeds identically either way; a board with no USB
 device controller never even loads the gadget stack. It is one of four ways the
 roles provide to watch a boot, listed under
-[When a Pi does not boot](netboot.md#when-a-pi-does-not-boot).
+[When a Pi does not boot](netboot-not-booting.md).
 
 :::{warning}
 A design that drives the serial TX line while the kernel console is on the same

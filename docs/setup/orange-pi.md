@@ -84,7 +84,7 @@ $ uv run ansible-playbook -i ansible/inventory ansible/site.yml \
   image build only). On the gateway, `fixpi/tasks/sunxi.yml` (tag `sunxi`, run
   only where `sunxi_boards` is defined) publishes the kernel, the initrd and the
   DTBs to TFTP, and writes the U-Boot PXE file. See
-  [the provisioning container](netboot.md#the-provisioning-container).
+  [the provisioning container](netboot-update-root.md#how-the-root-is-built).
 - The run goes through site.yml's "Update the Pi NFS root" play. If it changes
   the root, it bumps the NFS root generation and the whole fleet reboots.
 

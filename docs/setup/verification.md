@@ -128,7 +128,7 @@ After all of the above:
 
 1. **Netboot.** Confirm the Pi boots over TFTP and NFS from the gateway. If it
    does not, work through
-   [When a Pi does not boot](netboot.md#when-a-pi-does-not-boot).
+   [When a Pi does not boot](netboot-not-booting.md).
 2. **SSH access.** Confirm the double hop through the gateway reaches it.
 
    ```console

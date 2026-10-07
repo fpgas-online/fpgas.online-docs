@@ -24,9 +24,7 @@ read there.
 (when-a-pi-does-not-boot)=
 - [When a Pi does not boot](netboot-not-booting.md).
 
-(eeprom-write-protect)=
-- The bootloader EEPROM lock that `config.txt` sets: [on a Raspberry Pi 5](bootloader-eeprom-pi5.md), [on a
-  Compute Module](bootloader-eeprom-compute-module.md), [what was measured](bootloader-eeprom.md).
+- [EEPROM write protect](#eeprom-write-protect): the lock the served `config.txt` sets.
 
 ```{toctree}
 :hidden:
@@ -121,3 +119,39 @@ answers `Stale file handle` (`ESTALE`). That broke `dpkg-query`, and, since `aut
 replaced files, key-based SSH, on every board at once (measured on `pi-sw2-p33` at welland on 2026-09-24;
 `roles/nfsroot_generation/README.md`). A Pi has to reboot to use a new root: [Updating the NFS
 root](netboot-update-root.md) is how that happens.
+
+## EEPROM write protect
+
+The fleet Pis netboot from a read-only NFS root with a tmpfs overlay: everything
+a user changes is reverted on reboot, and root access is deliberately available.
+The bootloader EEPROM — the SPI flash holding the second-stage bootloader and its
+config, `BOOT_ORDER`, `NET_INSTALL_*` and so on — is the **one piece of per-board
+state that does not live in the NFS root and therefore does not revert**. Without
+protection, a user with root can run `rpi-eeprom-update`, `rpi-eeprom-config` or
+`flashrom` and leave a persistent change to how the board boots. It is the only
+persistent-tampering surface on an otherwise ephemeral device, so it is locked.
+
+The `fixpi` role (`tasks/tweeks.yml`) adds `eeprom_write_protect=1` to the served `config.txt`. That
+tells the bootloader to configure the SPI flash **Write Status Register** to
+protect the entire device. Because `config.txt` comes from the read-only TFTP
+root, it is re-applied on every boot.
+
+From the official `config.txt` documentation:
+
+> This option must be used in conjunction with the EEPROM `/WP` pin which
+> controls updates to the EEPROM `Write Status Register`. Pulling `/WP` low
+> (CM4 `EEPROM_nWP` or on a Raspberry Pi 4 `TP5`) does NOT write-protect the
+> EEPROM unless the `Write Status Register` has also been configured.
+>
+> [...]
+>
+> On Raspberry Pi 5 `/WP` is pulled low by default and consequently
+> write-protect is enabled as soon as the `Write Status Register` is configured.
+> To clear write-protect pull `/WP` high by connecting `TP14` and `TP1`.
+
+Values: `1` = protect entire EEPROM, `0` = clear protection, `-1` = do nothing
+(default).
+
+What each model's lock does, how to check it and how to upgrade a locked board are on the bootloader EEPROM
+pages: [a Raspberry Pi 5](bootloader-eeprom-pi5.md), [a Compute Module](bootloader-eeprom-compute-module.md),
+and [what was measured](bootloader-eeprom.md).

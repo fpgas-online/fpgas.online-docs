@@ -44,7 +44,7 @@ The inventory used to have a fourth entry that was not a machine: an `onpi`
 group holding a host named `pi`, reached as the `piroot` user on the gateway,
 whose login shell `chroot`ed into the NFS root. It is gone. The Pi root is now
 built in CI and pulled by the gateway (see
-[The provisioning container](netboot.md#the-provisioning-container)), and the
+[The provisioning container](netboot-update-root.md#how-the-root-is-built)), and the
 `operators` role deletes the `piroot` account, its sudoers rule and its
 `chroot-shell` wrapper. The accounts that remain are listed in
 [Accounts and logins](access.md).
@@ -73,7 +73,7 @@ One line per service, with the role that installs it.
   LAN time source their clocks never leave the `fake-hwclock` date.
 - **The image pipeline** (`img`) downloads and extracts the Raspberry Pi OS
   image into the NFS root, and (`fixpi`) writes the boot configuration, users
-  and command line into it — [How the root is built](netboot.md#how-the-root-is-built).
+  and command line into it — [How the root is built](netboot-update-root.md#how-the-root-is-built).
 
 **Network** — also the `nbp` play:
 
@@ -380,7 +380,7 @@ bear on the gateway coming back correctly. As a checklist for the next one:
   A regenerated initramfs beside a two-year-old `kernel8.img` gives
   nondeterministic Pi boots — sometimes fine, sometimes a panic loop. Sync the
   whole firmware payload; see
-  [How the root is built](netboot.md#how-the-root-is-built).
+  [How the root is built](netboot-update-root.md#how-the-root-is-built).
 - **Run `refresh-known-hosts.yml` after the reinstall and before the next
   `site.yml`.** A reinstalled host has new keys, and the pinned old ones make it
   unreachable to automation — see
