@@ -199,6 +199,10 @@ class Tables(unittest.TestCase):
         text = '<a id="common-failures"></a>\n- x\n```\n<a id="kept"></a>\n```'
         self.assertEqual(s.anchors_to_targets(text), '(common-failures)=\n- x\n```\n<a id="kept"></a>\n```')
 
+    def test_an_id_with_an_underscore_is_an_anchor_too(self):
+        # GitHub keeps "_" in a heading's slug, as in "who-owns-authorized_keys-and-why"
+        self.assertEqual(s.anchors_to_targets('<a id="owns-authorized_keys"></a>'), "(owns-authorized_keys)=")
+
     def test_an_id_in_shared_stays_the_raw_anchor(self):
         text = '<a id="sources"></a>\n<a id="own"></a>'
         self.assertEqual(s.anchors_to_targets(text, {"sources"}), '<a id="sources"></a>\n(own)=')

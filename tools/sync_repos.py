@@ -586,7 +586,16 @@ INFRA = Repo(
         "docs/orange-pi/hub-host.md": "docs/setup/orange-pi/hub-host.md",
         "docs/orange-pi/design.md": "docs/setup/orange-pi/design.md",
         "docs/access.md": Page("docs/setup/access.md", **_SHARED),
+        "docs/access/tweed.md": "docs/setup/access/tweed.md",
+        "docs/access/pi-root.md": "docs/setup/access/pi-root.md",
+        "docs/access/logging-in.md": "docs/setup/access/logging-in.md",
+        "docs/access/people.md": "docs/setup/access/people.md",
+        "docs/access/keys.md": "docs/setup/access/keys.md",
+        "docs/access/verifying.md": "docs/setup/access/verifying.md",
         "docs/upstream-gateway.md": Page("docs/setup/upstream-gateway.md", **_SHARED),
+        "docs/upstream-gateway/ipv4.md": "docs/setup/upstream-gateway/ipv4.md",
+        "docs/upstream-gateway/ipv6-dns.md": "docs/setup/upstream-gateway/ipv6-dns.md",
+        "docs/upstream-gateway/outbound.md": "docs/setup/upstream-gateway/outbound.md",
     },
     # in each landing page's order of its pages
     TOCTREES={
@@ -617,6 +626,19 @@ INFRA = Repo(
             ("Models and serial consoles", "pi/models"),
             ("Camera", "pi/camera"),
             ("Sources", "pi/sources"),
+        ],
+        "docs/setup/access.md": [
+            ("tweed", "access/tweed"),
+            ("The Pi NFS root", "access/pi-root"),
+            ("Logging in", "access/logging-in"),
+            ("Adding or removing a person", "access/people"),
+            ("Where the keys come from", "access/keys"),
+            ("Verifying access", "access/verifying"),
+        ],
+        "docs/setup/upstream-gateway.md": [
+            ("The uplink and inbound IPv4", "upstream-gateway/ipv4"),
+            ("IPv6 and DNS", "upstream-gateway/ipv6-dns"),
+            ("Outbound, from the gateway", "upstream-gateway/outbound"),
         ],
         "docs/setup/orange-pi.md": [
             ("Reading and recovering", "orange-pi/recover"),
@@ -667,7 +689,7 @@ UNSUPPORTED = {
     # an <a id="..."></a> anchor carries no link, so it passes: it keeps an old heading's id on a landing page
     "a raw HTML link or image": re.compile(r"<(a\s[^>]*\bhref|img\s)", re.I),
 }
-ANCHOR = re.compile(r'^<a id="([a-z0-9-]+)"></a>$')
+ANCHOR = re.compile(r'^<a id="([a-z0-9_-]+)"></a>$')  # a GitHub heading slug keeps "_"
 ALERT = re.compile(r"^(\s*)>\s*\[!([A-Za-z]+)\]\s*$")
 ANY_ALERT = re.compile(r"^\s*>\s*\[!\w+\]")
 KINDS = ("note", "tip", "important", "warning", "caution")

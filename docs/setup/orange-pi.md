@@ -12,7 +12,7 @@ Orange Pis carry no FPGA.
 (reading-a-console)=
 - [Reading a console, checking and recovering a board](orange-pi/recover.md).
 
-(verifying)=
+<a id="verifying"></a>
 - [Checking a board](orange-pi/recover.md#check-a-board).
 
 (recovery)=
