@@ -14,10 +14,18 @@ A link of ours that timed out fails too: the check could not show that it
 works. So does a link check that judged nothing (an empty output.json is what
 a check that died leaves behind).
 
-Not ours to fail on, although on our sites: a board's live page
-(`https://welland.fpgas.online/fpgas/pi-sw2-p34.html`), which answers 404
-whenever that board is not up; and any link the check could not judge because
-the server limited the rate of requests (429).
+Every page on our sites counts, a board's page too. A page named for a port or
+a host (`https://welland.fpgas.online/fpgas/pi-sw2-p34.html`) is there only
+while a board there passes its check this boot, so it comes and goes as boards
+are moved and checked; a link to one is wrong as soon as the board moves, as
+fpgas.online-docs issue #105 found. The documentation links the page of the
+board or its Pi instead, which stays whether the board is up or not
+(`https://welland.fpgas.online/fleet/<the Pi's serial>/`,
+`https://tinytapeout.fpgas.online/board/<slug>/`), and a link to a page that
+comes and goes fails here whenever its page is gone.
+
+Not ours to fail on, although on our sites: a link the check could not judge
+because the server limited the rate of requests (429).
 """
 
 import json
@@ -26,8 +34,6 @@ import sys
 from pathlib import Path
 
 OURS = re.compile(r"^https?://(github\.com/(fpgas-online|mithro)(/|$)|([a-z0-9-]+\.)*fpgas\.online([:/?#]|$))", re.I)
-# https://welland.fpgas.online/fpgas/pi-sw2-p34.html, https://tinytapeout.fpgas.online/board/fpga-2/
-LIVE_BOARD_PAGE = re.compile(r"^https?://[a-z0-9-]+\.fpgas\.online/(fpgas/pi[a-z0-9-]*\.html|board/[a-z0-9-]+/?)$", re.I)
 RATE_LIMITED = re.compile(r"^429\b")  # the info starts with the status: "429 Client Error: ..."
 
 
@@ -46,7 +52,7 @@ def broken(lines):
             continue
         where = f"{entry['filename']}:{entry['lineno']}: {entry['uri']} ({entry['info']})"
         uri = entry["uri"]
-        fails = OURS.match(uri) and not LIVE_BOARD_PAGE.match(uri) and not RATE_LIMITED.search(entry["info"])
+        fails = OURS.match(uri) and not RATE_LIMITED.search(entry["info"])
         if entry["status"] == "timeout" and not fails:
             continue  # somebody else's slow site: not even a warning
         (ours if fails else others).append(where)

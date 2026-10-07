@@ -34,20 +34,29 @@ class Broken(unittest.TestCase):
             self.assertEqual(c.broken([line(uri)])[0], [], uri)
             self.assertEqual(len(c.broken([line(uri)])[1]), 1, uri)
 
-    def test_a_board_that_is_down_does_not_fail_the_documentation(self):
+    def test_a_board_page_that_is_gone_fails_like_any_other_page_of_ours(self):
+        # docs/boards/acorn/installations/welland.md linked the first of these after its board had moved
+        # (fpgas.online-docs issue #105): a page named for a port or a host is gone whenever no board passes
+        # its check there, and the documentation is wrong until it links the board's own page
         for uri in (
-            "https://welland.fpgas.online/fpgas/pi-sw2-p34.html",
+            "https://welland.fpgas.online/fpgas/pi-sw2-p48.html",
             "https://ps1.fpgas.online/fpgas/pi3.html",
             "https://tinytapeout.fpgas.online/board/fpga-2/",
-        ):
-            self.assertEqual(c.broken([line(uri)])[0], [], uri)
-        # the list of boards, and a file beside the board pages, are not a board's page
-        for uri in (
+            "https://welland.fpgas.online/fleet/0cd35697db04a4ab/",
             "https://welland.fpgas.online/fpgas/",
-            "https://welland.fpgas.online/fpgas/static/site.css",
-            "https://tinytapeout.fpgas.online/board/fpga-2/other/page.html",
         ):
-            self.assertEqual(len(c.broken([line(uri)])[0]), 1, uri)
+            ours, others = c.broken([line(uri)])
+            self.assertEqual((len(ours), others), (1, []), uri)
+
+    def test_a_server_error_or_a_refused_connection_on_our_sites_fails(self):
+        for info in (
+            "500 Server Error: Internal Server Error for url: https://welland.fpgas.online/fpgas/",
+            "502 Server Error: Bad Gateway for url: https://welland.fpgas.online/fleet/",
+            "HTTPSConnectionPool(host='welland.fpgas.online', port=443): Max retries exceeded with url: /fpgas/ "
+            "(Caused by NewConnectionError('Failed to establish a new connection: [Errno 111] Connection refused'))",
+        ):
+            ours, others = c.broken([line("https://welland.fpgas.online/fpgas/", info=info)])
+            self.assertEqual((len(ours), others), (1, []), info)
 
     def test_a_rate_limited_request_proves_nothing(self):
         info = "429 Client Error: Too Many Requests for url: https://github.com/fpgas-online/x"
