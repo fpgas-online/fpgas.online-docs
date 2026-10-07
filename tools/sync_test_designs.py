@@ -147,8 +147,50 @@ PUBLISHED = "https://docs.fpgas.online/en/latest/"
 # source document in test-designs: the page it becomes here (relative to the repository root)
 PAGES = {
     "docs/verify.md": "docs/verify/fpgas-verify.md",
+    "docs/verify/installing.md": "docs/verify/installing.md",
+    "docs/verify/running.md": "docs/verify/running.md",
+    "docs/verify/identity-and-labels.md": "docs/verify/identity-and-labels.md",
+    "docs/verify/reading-the-result.md": "docs/verify/reading-the-result.md",
+    "docs/verify/more-results.md": "docs/verify/more-results.md",
+    "docs/verify/help.md": "docs/verify/help.md",
+    "docs/verify/tests.md": "docs/verify/tests.md",
+    "docs/verify/tt-fpga.md": "docs/verify/tt-fpga.md",
+    "docs/verify/acorn.md": "docs/verify/acorn.md",
+    "docs/verify/acorn-power-cycle.md": "docs/verify/acorn-power-cycle.md",
+    "docs/verify/idcode-and-dna.md": "docs/verify/idcode-and-dna.md",
+    "docs/verify/not-done-yet.md": "docs/verify/not-done-yet.md",
+    "docs/verify/acorn-wiring.md": "docs/verify/acorn-wiring.md",
+    "docs/verify/common-failures.md": "docs/verify/common-failures.md",
+    "docs/verify/report-and-state.md": "docs/verify/report-and-state.md",
+    "docs/verify/fleet.md": "docs/verify/fleet.md",
+    "docs/verify/current-results.md": "docs/verify/current-results.md",
     "docs/identity.md": "docs/verify/identity.md",
     "docs/verify-goals.md": "docs/verify/goals.md",
+}
+
+# A page here that is the landing page of several pulled pages: the hidden toctree appended to it, as
+# (navigation title, document relative to it). On GitHub the landing page lists them itself; Sphinx needs
+# them in a toctree to place them in the sidebar under it.
+TOCTREES = {
+    "docs/verify/fpgas-verify.md": [
+        ("Installing", "installing"),
+        ("Running it", "running"),
+        ("Identity and labels", "identity-and-labels"),
+        ("Reading the result", "reading-the-result"),
+        ("Reading the result: more", "more-results"),
+        ("--help", "help"),
+        ("What each check tests", "tests"),
+        ("TT FPGA", "tt-fpga"),
+        ("Acorn", "acorn"),
+        ("Acorn: power-cycle check", "acorn-power-cycle"),
+        ("JTAG IDCODE and DNA", "idcode-and-dna"),
+        ("Not done yet", "not-done-yet"),
+        ("Checking an Acorn's wiring", "acorn-wiring"),
+        ("Common failures", "common-failures"),
+        ("The report and state", "report-and-state"),
+        ("In fpgas.online", "fleet"),
+        ("Current results", "current-results"),
+    ],
 }
 
 # (source document, its "## " heading): the fragment written here, and the page here that includes it
@@ -186,8 +228,37 @@ UNSUPPORTED = {
     "an image": re.compile(r"!\[[^\]]*\]\("),
     "an angle-bracket link target": re.compile(r"\]\(<"),
     "a link with a title": re.compile(r"\]\([^)\s]+\s+[\"'(]"),
-    "a raw HTML link or image": re.compile(r"<(a|img)\s", re.I),
+    # an <a id="..."></a> anchor carries no link, so it passes: it keeps an old heading's id on a landing page
+    "a raw HTML link or image": re.compile(r"<(a\s[^>]*\bhref|img\s)", re.I),
 }
+
+
+ANCHOR = re.compile(r'^<a id="([a-z0-9-]+)"></a>$')
+
+
+def anchors_to_targets(text):
+    """A line that is only an id anchor, <a id="x"></a>, becomes the MyST target (x)=: on GitHub the anchor
+    keeps an old heading's id on a landing page without showing anything; here the target does the same and
+    lets this site's links to page.md#x resolve, which a raw HTML id does not. Fenced code is left alone."""
+    out, fenced = [], False
+    for line in text.split("\n"):
+        if FENCE.match(line.lstrip()):
+            fenced = not fenced
+        m = None if fenced else ANCHOR.match(line)
+        if not fenced and not m and re.search(r"<a\s", line, re.IGNORECASE):
+            sys.exit(f"sync: a raw <a> that is not a line of its own reading exactly <a id=\"lower-case-id\"></a>: "
+                     f"{line.strip()!r}. Only that form keeps an anchor here; write it so.")
+        out.append(f"({m.group(1)})=" if m else line)
+    return "\n".join(out)
+
+
+def toctree(dest):
+    """The hidden toctree TOCTREES gives the page `dest`, as Markdown to append, or nothing."""
+    entries = TOCTREES.get(dest)
+    if not entries:
+        return ""
+    lines = "".join(f"{title} <{doc}>\n" for title, doc in entries)
+    return f"\n```{{toctree}}\n:hidden:\n\n{lines}```\n"
 
 
 def slug(heading):
@@ -217,11 +288,13 @@ def own_links(text):
     (`/verify/fpgas-verify.md#heading`), which MyST resolves wherever the including page is. The build then
     checks the page and the heading; by its published address the link check would test it against what is
     published, where a heading's address is not the one MyST knows it by and a new page is not there yet.
+    A page this run writes counts as here, though it is not on disk yet (FILES are written before PAGES).
     A link to a page that is not in this repository is left as it is. Fenced code is left alone."""
 
     def one(match):
         page, fragment = match.group(1), match.group(2) or ""
-        return f"/{page}.md{fragment}" if (DOCS / "docs" / f"{page}.md").exists() else match.group(0)
+        here = (DOCS / "docs" / f"{page}.md").exists() or f"docs/{page}.md" in PAGES.values()
+        return f"/{page}.md{fragment}" if here else match.group(0)
 
     out, fenced = [], False
     for line in text.split("\n"):
@@ -378,8 +451,8 @@ def main(argv=None):
             missing.append(str(e))
     for src, dest in PAGES.items():
         if src in texts:
-            body = rewrite_links(texts[src], src, dest, args.ref)
-            wanted[DOCS / dest] = (marker(src, "This page") + body).encode("utf-8")
+            body = anchors_to_targets(rewrite_links(texts[src], src, dest, args.ref))
+            wanted[DOCS / dest] = (marker(src, "This page") + body + toctree(dest)).encode("utf-8")
     for (src, heading), (dest, page) in SECTIONS.items():
         if src in texts:
             try:
