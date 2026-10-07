@@ -94,6 +94,10 @@ class RewriteLinks(unittest.TestCase):
             with self.assertRaises(SystemExit, msg=text):
                 self.page(text)
 
+    def test_an_anchor_with_only_an_id_passes_unchanged(self):
+        text = '<a id="common-failures"></a>\n- [Common failures](verify/common-failures.md)'
+        self.assertIn('<a id="common-failures"></a>', self.page(text))
+
     def test_those_forms_inside_fenced_code_are_left_alone(self):
         text = "```\n[x]: other.md\n![shot](shot.png)\n```"
         self.assertEqual(self.page(text), text)
@@ -121,6 +125,21 @@ class Tables(unittest.TestCase):
     def test_no_destination_is_written_twice(self):
         dests = [*s.PAGES.values(), *(d for d, _ in s.SECTIONS.values())]
         self.assertEqual(len(dests), len(set(dests)))
+
+    def test_an_id_anchor_line_becomes_a_myst_target_outside_fenced_code(self):
+        text = '<a id="common-failures"></a>\n- x\n```\n<a id="kept"></a>\n```'
+        self.assertEqual(s.anchors_to_targets(text), '(common-failures)=\n- x\n```\n<a id="kept"></a>\n```')
+
+    def test_a_landing_page_gets_a_hidden_toctree_of_pages_that_are_pulled(self):
+        for dest, entries in s.TOCTREES.items():
+            self.assertIn(dest, s.PAGES.values())
+            text = s.toctree(dest)
+            self.assertTrue(text.startswith("\n```{toctree}\n:hidden:\n\n"), dest)
+            here = dest.rsplit("/", 1)[0]
+            for title, doc in entries:
+                self.assertIn(f"{title} <{doc}>\n", text)
+                self.assertIn(f"{here}/{doc}.md", s.PAGES.values())
+        self.assertEqual(s.toctree("docs/verify/identity.md"), "")
 
     def test_every_destination_is_in_a_directory_the_tool_owns(self):
         for dest in [*s.PAGES.values(), *(d for d, _ in s.SECTIONS.values())]:
