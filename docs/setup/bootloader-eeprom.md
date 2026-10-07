@@ -32,32 +32,42 @@ You do not need this part to do the job.
 
 ### What has been run
 
-- **Upgrade of a locked Pi 5, steps 2 to 6:** once, on one fleet Pi 5, on 3 Oct
-  2026, and not exactly as written here. How the card used that day was made
-  was not recorded. The Pi sat on the site's EEPROM service port for the
-  write and was moved to a normal port afterwards, where it read locked
-  (`SR1 0xbc`) when next looked at; the lock coming back in the first start
-  after a card write was not watched. That a normal fleet start locks an
-  unlocked flash within that one start was measured on another occasion
-  (`SR1` from `0x00` to `0xbc`).
+- **Upgrade of a locked Pi 5, steps 2 to 6:** on three fleet Pi 5s at
+  Welland, none of them exactly as written here: one on 3 Oct 2026, and the
+  Pis under acorn-olive and acorn-sycamore, written by hand on the bench on 5
+  or 6 Oct 2026 with a recovery card of their own. How those cards were made
+  was not recorded. Both of these Pis had read `2026/05/26` on 4 Oct; both
+  read `2026/09/25` and `BOOT_ORDER=0xf2` after the write.
+- **The lock coming back on a normal port, steps 5 and 6:** seen on both Pis
+  of 6 Oct. Each sat on the site's EEPROM service port after its write and
+  read `SR1 0x0` there (acorn-olive's Pi at 09:17, acorn-sycamore's at 10:21,
+  6 Oct). Each was then moved to a normal port and read `SR1 0xbc` 40 seconds
+  (acorn-olive's, 10:12) and 100 seconds (acorn-sycamore's, 10:58) after a
+  start there began. Neither Pi was watched between its two reads, so whether
+  that was its first start on the normal port is not known. The Pi of 3 Oct
+  read locked when next looked at.
 - **The times in the steps** (60 seconds for the write, two minutes for the
   start, five minutes before calling a Pi gone) are generous round figures of
-  ours, not measurements of the write.
+  ours, not measurements of the write. The two minutes of step 5 cover the
+  40 and 100 seconds above.
 - **Step 1:** the commands up to the four files were run on a PC on 5 Oct 2026
   (raspberrypi/rpi-eeprom at commit `a72213d`, fetched with `git clone --depth 1`
   on the day that commit was its newest); the outputs shown are from that run. Formatting a card and booting a Pi from a card made this way:
   **not yet run by us.**
-- **The check:** the outputs are from fleet Pi 5s on 4 Oct 2026 (four boards
-  for the status registers). The read script printed exactly as shown has
-  **not yet been run in that form**; the same code inside another tool
-  produced the values.
+- **The check:** the outputs shown are what acorn-olive's Pi printed on 6 Oct
+  2026 after its upgrade, line for line (`vcgencmd` at 09:17, the read script
+  at 10:12). The read script is this page's file as published, fed to the Pi
+  over ssh (`sudo python3 - < read_flash_status.py`), on both Pis of 6 Oct.
+  Typing it in with `cat` in the web terminal, the other way the check gives,
+  has not been run by us.
 - **The board page and its web terminal** have no picture on this page yet.
 - **The pictures of the bridge** are drawn on a photo. We have no photo of a
   real bridge, of a card going in, or of the LED during a write.
 - **The LED during the write:** Raspberry Pi's documentation says a steady
-  rapid blink means success and an error pattern means failure. On our one run
-  it blinked 3 long, 3 short, an error pattern, although the write had
-  succeeded. That is why step 4 says to ignore it.
+  rapid blink means success and an error pattern means failure. On the run of
+  3 Oct it blinked 3 long, 3 short, an error pattern, although the write had
+  succeeded (on 5 and 6 Oct the LED was not recorded). That is why step 4
+  says to ignore it.
 - **Three rows of the step 6 chart** ("but BOOT_ORDER is not 0xf2", "but SR1
   0x0" and "no answer"): not seen by us. A Pi that is written but not locked
   can be changed by anyone with root on it, which on a public site is every
@@ -88,9 +98,10 @@ NET_INSTALL_AT_POWER_ON=1
 ```
 
 `sudo rpi-eeprom-update` printed `BOOTLOADER: up to date` on both: it compares
-with the package installed in the root, not with what the fleet wants. The
-second PS1 blade read on 5 Oct 2026 (pi20) printed `2025/11/05 17:37:18` and
-the same settings as the blade shown above (pi16).
+with the package installed in the root, not with what the fleet wants. Of
+the two blades read at ps1 on 5 Oct 2026, pi16 at ps1 printed what the
+[Compute Module page](bootloader-eeprom-compute-module.md) shows; pi20 at ps1
+printed `2025/11/05 17:37:18` and the same settings.
 
 ### The lock, bit by bit
 
@@ -286,7 +297,7 @@ inference from the two documents, not something either states or we have tried.
 
 ### What is not known about the blade
 
-- **Which model the PS1 blades are.** We have not recorded it. The maker's
+- **Which model the blades at ps1 are.** We have not recorded it. The maker's
   pages name a Dev model and a TPM model. On a blade that is not a Dev model
   the maker describes no USB Type-C port, no nRPIBOOT button and no DIP
   switch, so, as far as those pages go, neither the USB route nor the hardware
@@ -299,7 +310,7 @@ inference from the two documents, not something either states or we have tried.
   Raspberry Pi's self-update needs update files in the boot file system it
   booted from ("For network boot make sure that the TFTP `boot` directory can
   be mounted through NFS and that `rpi-eeprom-update` can write to it"), and
-  it "does not update the bootloader atomically". On a netboot root like PS1's,
+  it "does not update the bootloader atomically". On a netboot root like ps1's,
   a read-only export under a tmpfs overlay, a file written on the blade never
   reaches the boot directory the bootloader reads, so we expect it not to
   work there. Not tried by us on any Compute Module.
@@ -402,7 +413,7 @@ brings it to a jumper is a property of that carrier. For the upgrade it must
 
 ## Sources
 
-- Measurements: fpgas.online Welland fleet, 3 and 4 Oct 2026, Pi 5.
+- Measurements: fpgas.online fleet at Welland, 3, 4 and 6 Oct 2026, Pi 5.
 - [Raspberry Pi documentation](https://github.com/raspberrypi/documentation),
   commit `287523e6`: `computers/config_txt/boot.adoc`,
   `computers/raspberry-pi/boot-eeprom.adoc`,
@@ -413,7 +424,7 @@ brings it to a jumper is a property of that carrier. For the upgrade it must
 - [Compute Blade documentation](https://docs.computeblade.com/) (Uptime Lab),
   read 5 Oct 2026: getting-started/image, guides/dip, guides/usb,
   advanced-guides/usbboot.
-- Bootloader reads of two PS1 Compute Blades (Compute Module 5 Lite), 5 Oct
+- Bootloader reads of two Compute Blades at ps1 (Compute Module 5 Lite), 5 Oct
   2026.
 - Figures: `docs/setup/bootloader-eeprom/make_figures.py` in this repository
   draws them. The photographs are crops of "Raspberry Pi5 8GB Bottom View
