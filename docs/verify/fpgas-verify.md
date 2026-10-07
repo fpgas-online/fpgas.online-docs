@@ -8,9 +8,9 @@ board, tests the board and its wiring to the Pi, and gives one result, pass or f
 
 * What the tool must do: [verify-goals.md](goals.md). Where this page and that one disagree,
   verify-goals.md says what the tool should do.
-* The code: [`verify/`](https://github.com/fpgas-online/fpgas.online-test-designs/tree/dark-variants/verify). The design notes:
-  [plans/2026-09-26-fpgas-online-verify-design.md](https://github.com/fpgas-online/fpgas.online-test-designs/blob/dark-variants/docs/plans/2026-09-26-fpgas-online-verify-design.md).
-* `verify_hardware.py` ([verify-hardware.md](https://github.com/fpgas-online/fpgas.online-test-designs/blob/dark-variants/docs/verify-hardware.md)) is a different tool: a developer's script
+* The code: [`verify/`](https://github.com/fpgas-online/fpgas.online-test-designs/tree/main/verify). The design notes:
+  [plans/2026-09-26-fpgas-online-verify-design.md](https://github.com/fpgas-online/fpgas.online-test-designs/blob/main/docs/plans/2026-09-26-fpgas-online-verify-design.md).
+* `verify_hardware.py` ([verify-hardware.md](https://github.com/fpgas-online/fpgas.online-test-designs/blob/main/docs/verify-hardware.md)) is a different tool: a developer's script
   that loads freshly built bitstreams from a workstation over SSH.
 
 This page has two parts:
@@ -67,8 +67,8 @@ Install **one** of these. They conflict, so a host is never set up for two board
   [arty-a7](../boards/arty-a7.md#installing-the-arty-packages), [netv2](../boards/netv2.md#installing-the-netv2-packages),
   [fomu-evt](../boards/fomu-evt.md#installing-the-fomu-packages), [tt-fpga](../boards/tt-fpga.md#installing-the-tt-fpga-packages).
 * CI builds every package and checks its install rules in clean bookworm and trixie
-  ([`collect-bitstreams.yml`](https://github.com/fpgas-online/fpgas.online-test-designs/blob/dark-variants/.github/workflows/collect-bitstreams.yml),
-  [`build_debs.py`](https://github.com/fpgas-online/fpgas.online-test-designs/blob/dark-variants/packaging/debs/build_debs.py), [`install_test.sh`](https://github.com/fpgas-online/fpgas.online-test-designs/blob/dark-variants/packaging/debs/install_test.sh)).
+  ([`collect-bitstreams.yml`](https://github.com/fpgas-online/fpgas.online-test-designs/blob/main/.github/workflows/collect-bitstreams.yml),
+  [`build_debs.py`](https://github.com/fpgas-online/fpgas.online-test-designs/blob/main/packaging/debs/build_debs.py), [`install_test.sh`](https://github.com/fpgas-online/fpgas.online-test-designs/blob/main/packaging/debs/install_test.sh)).
 
 ### Running it
 
@@ -322,8 +322,61 @@ The whole report, for a program to read (JSON): /run/fpgas-online/verify.json
 ******************************************************************************
 ```
 
+**fail, the docs' install steps run on a Compute Blade**: the same blade (pi16 at ps1, a CM5 and an Acorn
+CLE-101 on SQRL's factory image) on 2026-10-07, version 0.0.post1216, installed by the steps of the docs'
+"verifying 1" page as printed. The lines `sudo: unable to resolve host pi16: Name or service not known`, which
+sudo printed first, are left out. From 0.0.post1111 the `jtag` line names what holds the pin.
+
+```text
+$ sudo fpgas-acorn-verify --no-publish
+
+******************************************************************************
+*** FPGA VERIFY: FAIL ******************************************************
+fpgas-verify: fail (mode acorn, configured: acorn)
+  not published: --no-publish
+  acorn cle-101: fail
+    unconverted: runs SQRL's factory image, not the fpgas.online design
+    pcie-link  pass
+    rp1-pio    pass
+    jtag       fail: P1 JTAG could not be probed: GPIO14 (TMS) is held by 1f00030000.serial (uart0): the kernel does not hand out a pin that is held, so the JTAG chain cannot be scanned
+    pcie-bar0  not run: unconverted: runs SQRL's factory image, not the fpgas.online design
+    flash      not run: unconverted: runs SQRL's factory image, not the fpgas.online design
+    ddr        not run: unconverted: runs SQRL's factory image, not the fpgas.online design
+    p2-uart    not run: the board does not run a known build
+    p2-serial  not run: unconverted: runs SQRL's factory image, not the fpgas.online design
+    scratch    not run: unconverted: runs SQRL's factory image, not the fpgas.online design
+    p2-gpio    not run: J5 and H5 are not wired on the Compute Blade setup
+  state recorded (first run) in /var/lib/fpgas-online/verify-state.json
+
+RESULT: FAIL: a board did not pass.
+  acorn cle-101: fail (2 tests passed, 1 failed, 7 not run)
+    fault: unconverted: runs SQRL's factory image, not the fpgas.online design
+    failed: jtag: P1 JTAG could not be probed: GPIO14 (TMS) is held by 1f00030000.serial (uart0): the kernel does not hand out a pin that is held, so the JTAG chain cannot be scanned
+    not run: pcie-bar0, flash, ddr, p2-serial, scratch: unconverted: runs SQRL's factory image, not the fpgas.online design
+    not run: p2-uart: the board does not run a known build
+    not run: p2-gpio: J5 and H5 are not wired on the Compute Blade setup
+What to do:
+  * The Acorn still runs the image it was sold with, not the fpgas.online one,
+    so only its PCIe link and its JTAG could be tested. It has to be converted
+    once (the fpgas.online image loaded over JTAG, then written to its flash
+    with fpgas-acorn-flash):
+    https://github.com/fpgas-online/fpgas.online-test-designs/blob/main/docs/hardware/acorn-pcie-programming.md
+  * The serial port has a pin JTAG needs, so the JTAG test could not run. On a
+    Compute Blade the JTAG TMS wire and the serial port's TX are the same pin
+    (GPIO14): while the serial port is on, JTAG cannot be tested there.
+    Booting with it off (enable_uart in config.txt) should free the pin; that
+    is not yet confirmed on hardware:
+    https://github.com/fpgas-online/fpgas.online-test-designs/issues/127
+  * To look at the acorn board yourself: sudo fpgas-acorn-debug --help (sudo
+    apt install fpgas-online-acorn-debug)
+  * What each message means:
+    https://docs.fpgas.online/en/latest/verify/fpgas-verify.html#common-failures
+The whole report, for a program to read (JSON): /run/fpgas-online/verify.json
+******************************************************************************
+```
+
 **fail, with two faults**: the check run against the tests' fake Acorn
-([`tests/acorn_fakes.py`](https://github.com/fpgas-online/fpgas.online-test-designs/blob/dark-variants/tests/acorn_fakes.py)), with its PCIe link at x2 and a JTAG TDI wire that does not carry:
+([`tests/acorn_fakes.py`](https://github.com/fpgas-online/fpgas.online-test-designs/blob/main/tests/acorn_fakes.py)), with its PCIe link at x2 and a JTAG TDI wire that does not carry:
 
 ```text
 $ sudo fpgas-verify --no-publish
@@ -626,16 +679,16 @@ examples:
 
 Each test checks its bitstream's sha256 against the `-bitstreams` package's manifest (a damaged file is an
 `error`, never loaded), loads it, runs its host script, and passes when the script exits 0
-([`testbench.py`](https://github.com/fpgas-online/fpgas.online-test-designs/blob/dark-variants/verify/src/fpgas_online_verify/testbench.py)).
+([`testbench.py`](https://github.com/fpgas-online/fpgas.online-test-designs/blob/main/verify/src/fpgas_online_verify/testbench.py)).
 
 | Test | Host script | Passes when |
 |---|---|---|
-| `uart` | [`test_uart.py`](https://github.com/fpgas-online/fpgas.online-test-designs/blob/dark-variants/designs/uart/host/test_uart.py) | the LiteX BIOS banner arrives (Arty only) and printable ASCII echoes back |
-| `ddr` | [`test_ddr.py`](https://github.com/fpgas-online/fpgas.online-test-designs/blob/dark-variants/designs/ddr-memory/host/test_ddr.py) | the BIOS reports DRAM calibration and `Memtest OK` |
-| `spiflash` | [`test_spiflash.py`](https://github.com/fpgas-online/fpgas.online-test-designs/blob/dark-variants/designs/spi-flash-id/host/test_spiflash.py) | the design reads the flash's JEDEC ID and prints `SPI_FLASH_TEST: PASS` |
-| `ethernet` | [`test_ethernet.py`](https://github.com/fpgas-online/fpgas.online-test-designs/blob/dark-variants/designs/ethernet-test/host/test_ethernet.py) | the design answers ARP and ping through the Pi's USB Ethernet adapter (192.168.1.100/24 on that adapter only) |
-| `pin-id` | [`identify_pmod_pins.py`](https://github.com/fpgas-online/fpgas.online-test-designs/blob/dark-variants/designs/pmod-pin-id/host/identify_pmod_pins.py) | each Pmod HAT GPIO the test covers receives the FPGA ball name the expected cabling puts there. TT FPGA: all 24 signal wires of the three ribbons, each on its own (the six that share three Pi pins send in turns). Arty: 18 of 24 (not the six on the shared pins). The test's last lines say which |
-| `pmod` | [`test_pmod_loopback.py`](https://github.com/fpgas-online/fpgas.online-test-designs/blob/dark-variants/designs/pmod-loopback/host/test_pmod_loopback.py) | the loopback wiring reads back; `-debug` only |
+| `uart` | [`test_uart.py`](https://github.com/fpgas-online/fpgas.online-test-designs/blob/main/designs/uart/host/test_uart.py) | the LiteX BIOS banner arrives (Arty only) and printable ASCII echoes back |
+| `ddr` | [`test_ddr.py`](https://github.com/fpgas-online/fpgas.online-test-designs/blob/main/designs/ddr-memory/host/test_ddr.py) | the BIOS reports DRAM calibration and `Memtest OK` |
+| `spiflash` | [`test_spiflash.py`](https://github.com/fpgas-online/fpgas.online-test-designs/blob/main/designs/spi-flash-id/host/test_spiflash.py) | the design reads the flash's JEDEC ID and prints `SPI_FLASH_TEST: PASS` |
+| `ethernet` | [`test_ethernet.py`](https://github.com/fpgas-online/fpgas.online-test-designs/blob/main/designs/ethernet-test/host/test_ethernet.py) | the design answers ARP and ping through the Pi's USB Ethernet adapter (192.168.1.100/24 on that adapter only) |
+| `pin-id` | [`identify_pmod_pins.py`](https://github.com/fpgas-online/fpgas.online-test-designs/blob/main/designs/pmod-pin-id/host/identify_pmod_pins.py) | each Pmod HAT GPIO the test covers receives the FPGA ball name the expected cabling puts there. TT FPGA: all 24 signal wires of the three ribbons, each on its own (the six that share three Pi pins send in turns). Arty: 18 of 24 (not the six on the shared pins). The test's last lines say which |
+| `pmod` | [`test_pmod_loopback.py`](https://github.com/fpgas-online/fpgas.online-test-designs/blob/main/designs/pmod-loopback/host/test_pmod_loopback.py) | the loopback wiring reads back; `-debug` only |
 
 | Board | Found by | Loaded with | UART | Boot-check tests, in order | Only in `-debug` | Recorded state |
 |---|---|---|---|---|---|---|
@@ -705,7 +758,7 @@ chosen.
 
 #### What the TT FPGA is left running
 
-The check of an FPGA board ends by streaming one more design, [`tt-display`](https://github.com/fpgas-online/fpgas.online-test-designs/blob/dark-variants/designs/tt-display/README.md),
+The check of an FPGA board ends by streaming one more design, [`tt-display`](https://github.com/fpgas-online/fpgas.online-test-designs/blob/main/designs/tt-display/README.md),
 so that the board's seven-segment display moves and the board looks alive on its camera
 ([#139](https://github.com/fpgas-online/fpgas.online-test-designs/issues/139)): one segment runs round the
 ring, the middle segment changes at each lap, the dot blinks once a second. It is not a test, and nothing
@@ -798,10 +851,10 @@ board there by `usb_serial`.
 
 #### Acorn
 
-The Acorn check ([`suite.py`](https://github.com/fpgas-online/fpgas.online-test-designs/blob/dark-variants/verify/src/fpgas_online_verify/boards/acorn/suite.py),
-[`check.py`](https://github.com/fpgas-online/fpgas.online-test-designs/blob/dark-variants/verify/src/fpgas_online_verify/boards/acorn/check.py),
-[`links.py`](https://github.com/fpgas-online/fpgas.online-test-designs/blob/dark-variants/verify/src/fpgas_online_verify/boards/acorn/links.py),
-[`bist.py`](https://github.com/fpgas-online/fpgas.online-test-designs/blob/dark-variants/verify/src/fpgas_online_verify/boards/acorn/bist.py)) tests the board as it booted from its
+The Acorn check ([`suite.py`](https://github.com/fpgas-online/fpgas.online-test-designs/blob/main/verify/src/fpgas_online_verify/boards/acorn/suite.py),
+[`check.py`](https://github.com/fpgas-online/fpgas.online-test-designs/blob/main/verify/src/fpgas_online_verify/boards/acorn/check.py),
+[`links.py`](https://github.com/fpgas-online/fpgas.online-test-designs/blob/main/verify/src/fpgas_online_verify/boards/acorn/links.py),
+[`bist.py`](https://github.com/fpgas-online/fpgas.online-test-designs/blob/main/verify/src/fpgas_online_verify/boards/acorn/bist.py)) tests the board as it booted from its
 flash:
 
 * It loads nothing, never writes the flash and never reconfigures the FPGA.
@@ -817,7 +870,7 @@ flash:
 |---|---|---|
 | `10ee:7021`, subsystem `1e24:021f` (CLE-215+) or `1e24:0101` (CLE-101) | the fpgas.online Acorn SoC | tested |
 | `1e24:021f` or `1e24:0101` as vendor:device | an Acorn on SQRL's factory image | `fail`, `unconverted: …`; only `pcie-link`, `rp1-pio` and `jtag` run |
-| `10ee:7011` | the vendor XDMA sample (an Acorn or a NeTV2) | `fail`, `unconverted: …` |
+| `10ee:7011` | the vendor XDMA sample (an Acorn or a NeTV2) | `fail`, `unconverted: …`; on a host set up for an Acorn (`fpga-board = acorn`, or `fpgas-acorn-verify`) `pcie-link`, `rp1-pio` and `jtag` run, and `jtag` takes either Acorn FPGA and names the variant from its IDCODE where only one variant has that part (an XC7A100T is a `cle-101`); with `auto` nothing runs, since it may be a NeTV2 |
 | `10ee:0666` | a PCIe Screamer running PCILeech | `fail`: fpgas.online has no test design for this board yet |
 | `10ee:7021`, subsystem `10ee:0007`, class `070001`, with a BAR2 | a stock Xilinx XDMA design (most likely a PicoEVB) | `fail`: fpgas.online has no test design for this board yet |
 | any other Xilinx or SQRL ID | not a design we built | `fail` |
@@ -837,8 +890,8 @@ flash:
 
 | File | Holds | In the repository | Installed |
 |---|---|---|---|
-| `wiring.toml` | each setup's wiring: which Pi GPIO each P1/P2 signal lands on, the JTAG cable and pins, the UART, and which hosts are that setup | [`docs/wiring/acorn/wiring.toml`](https://github.com/fpgas-online/fpgas.online-test-designs/blob/dark-variants/docs/wiring/acorn/wiring.toml) | `/usr/lib/python3/dist-packages/fpgas_online_verify/boards/acorn/data/` |
-| `expected.toml` | the figures the board must meet: PCIe link speed and width per setup, XADC ranges, and the least DRAM write and read bandwidth per variant | [`docs/wiring/acorn/expected.toml`](https://github.com/fpgas-online/fpgas.online-test-designs/blob/dark-variants/docs/wiring/acorn/expected.toml) | the same |
+| `wiring.toml` | each setup's wiring: which Pi GPIO each P1/P2 signal lands on, the JTAG cable and pins, the UART, and which hosts are that setup | [`docs/wiring/acorn/wiring.toml`](https://github.com/fpgas-online/fpgas.online-test-designs/blob/main/docs/wiring/acorn/wiring.toml) | `/usr/lib/python3/dist-packages/fpgas_online_verify/boards/acorn/data/` |
+| `expected.toml` | the figures the board must meet: PCIe link speed and width per setup, XADC ranges, and the least DRAM write and read bandwidth per variant | [`docs/wiring/acorn/expected.toml`](https://github.com/fpgas-online/fpgas.online-test-designs/blob/main/docs/wiring/acorn/expected.toml) | the same |
 
 From a checkout, the check reads them from the repository.
 
@@ -897,8 +950,8 @@ there to catch a card that did not restart with its Pi, not a visitor who sets o
 `fpgas-verify --test power-cycle` runs it alone, when the setting is on; with the setting off it is an error
 that says how to switch it on.
 
-* `ddr` in detail ([`bist.py`](https://github.com/fpgas-online/fpgas.online-test-designs/blob/dark-variants/verify/src/fpgas_online_verify/boards/acorn/bist.py), the same code
-  [`selftest.py`](https://github.com/fpgas-online/fpgas.online-test-designs/blob/dark-variants/designs/acorn-pcie/host/selftest.py) runs):
+* `ddr` in detail ([`bist.py`](https://github.com/fpgas-online/fpgas.online-test-designs/blob/main/verify/src/fpgas_online_verify/boards/acorn/bist.py), the same code
+  [`selftest.py`](https://github.com/fpgas-online/fpgas.online-test-designs/blob/main/designs/acorn-pcie/host/selftest.py) runs):
   1. The BIOS console is read until it has been quiet for 2 s. In the installed release
      (`vivado-bitstreams-acorn-pcie-20261001-ge568a408e7bd`, built from e568a40, which does not have
      [#47](https://github.com/fpgas-online/fpgas.online-test-designs/pull/47)) the BIOS stops while its
@@ -926,7 +979,7 @@ that says how to switch it on.
 #### The JTAG IDCODE
 
 Every board with JTAG has its FPGA's whole 32-bit IDCODE read and decoded
-([`idcode.py`](https://github.com/fpgas-online/fpgas.online-test-designs/blob/dark-variants/verify/src/fpgas_online_verify/idcode.py)):
+([`idcode.py`](https://github.com/fpgas-online/fpgas.online-test-designs/blob/main/verify/src/fpgas_online_verify/idcode.py)):
 
 | Board | Read with | Must be | In the report |
 |---|---|---|---|
@@ -996,7 +1049,7 @@ Its `jtag` test entry:
 #### The device DNA
 
 The Acorn, Arty and NeTV2 have their FPGA's device DNA read: a 57-bit number fused into each chip, different on
-every one ([`dna.py`](https://github.com/fpgas-online/fpgas.online-test-designs/blob/dark-variants/verify/src/fpgas_online_verify/dna.py)).
+every one ([`dna.py`](https://github.com/fpgas-online/fpgas.online-test-designs/blob/main/verify/src/fpgas_online_verify/dna.py)).
 
 | Board | Read with | In the report |
 |---|---|---|
@@ -1056,9 +1109,9 @@ the host, so which tests pass and what a failing one says point at the wire. Tha
 each carrier, from installing after a boot to which wire a failing line means:
 
 * [an Acorn on a Compute Blade](../boards/acorn/building/compute-blade/verifying-1.md)
-  ([source](https://github.com/fpgas-online/fpgas.online-test-designs/blob/dark-variants/docs/wiring/acorn/generated/acorn-check-blade-1.md)), with what has and has not been run on a blade;
+  ([source](https://github.com/fpgas-online/fpgas.online-test-designs/blob/main/docs/wiring/acorn/generated/acorn-check-blade-1.md)), with what has and has not been run on a blade;
 * [an Acorn on a Raspberry Pi 5](../boards/acorn/building/rpi-5/verifying-1.md)
-  ([source](https://github.com/fpgas-online/fpgas.online-test-designs/blob/dark-variants/docs/wiring/acorn/generated/acorn-check-pi5-1.md)).
+  ([source](https://github.com/fpgas-online/fpgas.online-test-designs/blob/main/docs/wiring/acorn/generated/acorn-check-pi5-1.md)).
 
 What the Acorn's check does to the card and the host:
 
@@ -1077,9 +1130,9 @@ What the Acorn's check does to the card and the host:
   flash images, [converting a card](../boards/acorn/pcie-programming.md)). No package installs a pin-id or
   loopback design for the Acorn; the check does not use one.
 
-Both are generated by [`docs/wiring/acorn/check.py`](https://github.com/fpgas-online/fpgas.online-test-designs/blob/dark-variants/docs/wiring/acorn/check.py) from the words in
-[`docs/wiring/acorn/check/`](https://github.com/fpgas-online/fpgas.online-test-designs/tree/dark-variants/docs/wiring/acorn/check), the wiring table
-[`wiring.toml`](https://github.com/fpgas-online/fpgas.online-test-designs/blob/dark-variants/docs/wiring/acorn/wiring.toml), and the Acorn transcripts and rows of this document.
+Both are generated by [`docs/wiring/acorn/check.py`](https://github.com/fpgas-online/fpgas.online-test-designs/blob/main/docs/wiring/acorn/check.py) from the words in
+[`docs/wiring/acorn/check/`](https://github.com/fpgas-online/fpgas.online-test-designs/tree/main/docs/wiring/acorn/check), the wiring table
+[`wiring.toml`](https://github.com/fpgas-online/fpgas.online-test-designs/blob/main/docs/wiring/acorn/wiring.toml), and the Acorn transcripts and rows of this document.
 
 ### Common failures
 
@@ -1180,7 +1233,7 @@ Both are generated by [`docs/wiring/acorn/check.py`](https://github.com/fpgas-on
 The check tells the site what it is doing as it goes. `fleet-event` (from
 [setup-pi](https://github.com/fpgas-online/fpgas.online-setup-pi)) sends each over MQTT to
 `fpgas/<site>/pi/<serial>/event`. The names and details are `EVENTS` in
-[`runner.py`](https://github.com/fpgas-online/fpgas.online-test-designs/blob/dark-variants/verify/src/fpgas_online_verify/runner.py):
+[`runner.py`](https://github.com/fpgas-online/fpgas.online-test-designs/blob/main/verify/src/fpgas_online_verify/runner.py):
 
 | Event | When | Details |
 |---|---|---|
@@ -1202,7 +1255,7 @@ The check tells the site what it is doing as it goes. `fleet-event` (from
 * Nothing is sent without `publish = on` (above). With it, `--test` runs and `--no-publish` still send nothing.
 
 The progress events of an Acorn passing every test, in order, with their details (the check run against the
-tests' fake Acorn, [`tests/acorn_fakes.py`](https://github.com/fpgas-online/fpgas.online-test-designs/blob/dark-variants/tests/acorn_fakes.py); the last 12 are cut):
+tests' fake Acorn, [`tests/acorn_fakes.py`](https://github.com/fpgas-online/fpgas.online-test-designs/blob/main/tests/acorn_fakes.py); the last 12 are cut):
 
 ```text
 fpga-board-found {"board": "acorn", "variant": "cle-215+", "where": "0001:01:00.0"}
@@ -1221,7 +1274,7 @@ They come between `fpga-verifying` and `fpga-verified`.
 
 ### How a deploy picks up new packages
 
-1. A commit lands on `main`. When CI is green, [`collect-bitstreams.yml`](https://github.com/fpgas-online/fpgas.online-test-designs/blob/dark-variants/.github/workflows/collect-bitstreams.yml)
+1. A commit lands on `main`. When CI is green, [`collect-bitstreams.yml`](https://github.com/fpgas-online/fpgas.online-test-designs/blob/main/.github/workflows/collect-bitstreams.yml)
    uploads the packages to that build's own release, `build-<version>` (for example `build-0.0.post795`).
 2. [fpgas-online/apt](https://github.com/fpgas-online/apt) pulls them into <https://apt.fpgas.online> within 15 minutes.
 3. Infra CI (`nfsroot-build.yml`) builds the NFS root image with the latest packages, as
@@ -1234,7 +1287,7 @@ They come between `fpga-verifying` and `fpga-verified`.
 
 ### Collecting every Pi's result
 
-[`scripts/collect_verify_status.py`](https://github.com/fpgas-online/fpgas.online-test-designs/blob/dark-variants/scripts/collect_verify_status.py) reads every Pi's report, unit state,
+[`scripts/collect_verify_status.py`](https://github.com/fpgas-online/fpgas.online-test-designs/blob/main/scripts/collect_verify_status.py) reads every Pi's report, unit state,
 installed version and (with no report) journal over SSH. It only reads, so it is safe while boards are in use.
 
 ```bash

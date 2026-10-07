@@ -726,6 +726,10 @@ class Document(unittest.TestCase):
         self.assertIn("commit 0123456789 ·", text)
         self.assertNotIn("0123456789a", text.split("</style>")[0])
 
+    def test_the_foot_counts_the_appended_sheets_that_carry_no_foot(self):
+        self.assertIn('counter(pages) "";', self.make())
+        self.assertIn('counter(pages) " + 2 unnumbered";', self.make(appended=2))
+
     def test_link_lists_are_printed_unless_asked_not_to(self):
         self.assertIn("lists=True", self.make())
         text = self.make(link_lists=False)
@@ -882,7 +886,8 @@ class Printing(unittest.TestCase):
         self.united_fails = False
         self.pages = "Pages:          1\nPage    1 size: 612 x 792 pts (letter)\n"
         self.saved = (p.document, p.shutil.which, p.subprocess.run)
-        p.document = lambda *args: "<html></html>"
+        self.document_args = []
+        p.document = lambda *args: self.document_args.append(args) or "<html></html>"
         p.shutil.which = lambda name: "/fake/" + name
         p.subprocess.run = self.fake_run
         self.addCleanup(self.restore)
@@ -1048,6 +1053,11 @@ class Printing(unittest.TestCase):
         self.main("--append", str(label))
         self.assertEqual((self.dir / "x.pdf").read_bytes(), b"%PDF united")
         self.assertEqual(self.names(), ["labels.pdf", "x.pdf"])
+        self.assertEqual([args[-1] for args in self.document_args], [1])  # the foot is told of the label sheet
+
+    def test_without_append_the_foot_counts_no_unnumbered_sheets(self):
+        self.main()
+        self.assertEqual([args[-1] for args in self.document_args], [0])
 
     def test_a_failing_pdfunite_leaves_neither_output_nor_partial_file(self):
         label = self.dir / "labels.pdf"
@@ -1071,6 +1081,7 @@ class Printing(unittest.TestCase):
         label = self.dir / "labels.pdf"
         label.write_bytes(b"%PDF label")
         self.pages = "Pages:          2\nPage    1 size: 792 x 612 pts\nPage    2 size: 612.5 x 791 pts\n"
+        self.assertEqual(p.appended_sheets([label, label], "Letter"), 4)
         self.main("--append", str(label))
         self.assertEqual((self.dir / "x.pdf").read_bytes(), b"%PDF united")
 
@@ -1078,6 +1089,7 @@ class Printing(unittest.TestCase):
         with self.assertRaises(SystemExit):
             self.main("--append", str(self.dir / "none.pdf"))
         self.assertEqual(self.names(), [])
+        self.assertEqual(self.printed_pages, [])  # stopped before anything was printed
 
 
 CHROME = p.CHROME
@@ -1086,7 +1098,7 @@ CHROME = p.CHROME
 class Css(unittest.TestCase):
     def test_the_stylesheet_takes_each_paper_size(self):
         for paper, size in p.PAPERS.items():
-            css = p.CSS % {"paper": size, "foot": "x"}
+            css = p.CSS % {"paper": size, "foot": "x", "after": ""}
             self.assertIn(f"size: {size} portrait", css)
             self.assertIn(f"size: {size} landscape", css)
 
