@@ -199,6 +199,25 @@ class Tables(unittest.TestCase):
         text = '<a id="common-failures"></a>\n- x\n```\n<a id="kept"></a>\n```'
         self.assertEqual(s.anchors_to_targets(text), '(common-failures)=\n- x\n```\n<a id="kept"></a>\n```')
 
+    def test_an_id_in_shared_stays_the_raw_anchor(self):
+        text = '<a id="sources"></a>\n<a id="own"></a>'
+        self.assertEqual(s.anchors_to_targets(text, {"sources"}), '<a id="sources"></a>\n(own)=')
+
+    def test_anchor_ids_are_the_id_anchor_lines_outside_fenced_code(self):
+        self.assertEqual(s.anchor_ids('<a id="a"></a>\nx <a id="b"></a>\n```\n<a id="c"></a>\n```'), {"a"})
+
+    def test_an_id_anchored_on_two_pages_of_a_repository_is_no_site_label(self):
+        texts = {"docs/a.md": '# A\n\n<a id="sources"></a>\n<a id="only-a"></a>\n',
+                 "docs/b.md": '# B\n\n<a id="sources"></a>\n'}
+        with repos_with(PAGES={"docs/a.md": "docs/x/a.md", "docs/b.md": "docs/x/b.md"}), \
+                unittest.mock.patch.object(s, "fetch", side_effect=lambda f, c, p: texts[p].encode()):
+            wanted, missing = s.take(s.REPOS["infra"], "main", "c0ffee", lambda _: None, [])
+        self.assertEqual(missing, [])
+        a, b = (wanted[s.DOCS / f"docs/x/{n}.md"].decode() for n in "ab")
+        self.assertIn('\n<a id="sources"></a>\n(only-a)=\n', a)
+        self.assertIn('\n<a id="sources"></a>\n', b)
+        self.assertNotIn("(sources)=", a + b)
+
     def test_a_landing_page_gets_a_hidden_toctree_of_pages_that_are_pulled(self):
         for dest, entries in s.TEST_DESIGNS.TOCTREES.items():
             self.assertIn(dest, s.TEST_DESIGNS.PAGES.values())

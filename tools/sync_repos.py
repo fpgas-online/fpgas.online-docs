@@ -68,6 +68,7 @@ fpgas.online-mechanical: its PAGES go here; its drawings are copied by tools/syn
 pins one commit for them.
 """
 import argparse
+import collections
 import posixpath
 import re
 import subprocess
@@ -560,13 +561,21 @@ INFRA = Repo(
         "docs/network/power-cycle.md": "docs/setup/network/power-cycle.md",
         "docs/network/switches.md": "docs/setup/network/switches.md",
         "docs/network/isolation.md": "docs/setup/network/isolation.md",
+        "docs/network/poe-scripts.md": "docs/setup/network/poe-scripts.md",
+        "docs/network/sources.md": "docs/setup/network/sources.md",
         "docs/netboot.md": Page("docs/setup/netboot.md", **_SHARED),
         "docs/netboot/update-root.md": "docs/setup/netboot/update-root.md",
         "docs/netboot/not-booting.md": "docs/setup/netboot/not-booting.md",
+        "docs/netboot/root.md": "docs/setup/netboot/root.md",
+        "docs/netboot/eeprom.md": "docs/setup/netboot/eeprom.md",
+        "docs/netboot/history.md": "docs/setup/netboot/history.md",
+        "docs/netboot/sources.md": "docs/setup/netboot/sources.md",
         "docs/gateway.md": Page("docs/setup/gateway.md", **_SHARED),
         "docs/gateway/deploy.md": "docs/setup/gateway/deploy.md",
         "docs/gateway/rebuild.md": "docs/setup/gateway/rebuild.md",
         "docs/gateway/certificates.md": "docs/setup/gateway/certificates.md",
+        "docs/gateway/services.md": "docs/setup/gateway/services.md",
+        "docs/gateway/sources.md": "docs/setup/gateway/sources.md",
         "docs/pi.md": Page("docs/setup/pi.md", **_SHARED),
         "docs/pi/services.md": Page("docs/setup/pi/services.md", **_SHARED),
         "docs/pi/models.md": Page("docs/setup/pi/models.md", **_SHARED),
@@ -582,15 +591,23 @@ INFRA = Repo(
             ("Power-cycling a board", "network/power-cycle"),
             ("Converging the switches", "network/switches"),
             ("Checking isolation", "network/isolation"),
+            ("The PoE scripts", "network/poe-scripts"),
+            ("Sources", "network/sources"),
         ],
         "docs/setup/netboot.md": [
             ("Updating the NFS root", "netboot/update-root"),
             ("A Pi not booting", "netboot/not-booting"),
+            ("What is in the NFS root", "netboot/root"),
+            ("The EEPROM lock", "netboot/eeprom"),
+            ("Historical tooling", "netboot/history"),
+            ("Sources", "netboot/sources"),
         ],
         "docs/setup/gateway.md": [
             ("Deploying a gateway", "gateway/deploy"),
             ("Rebuilding a gateway", "gateway/rebuild"),
             ("Certificates at welland", "gateway/certificates"),
+            ("Services", "gateway/services"),
+            ("Sources", "gateway/sources"),
         ],
         "docs/setup/pi.md": [
             ("Services and boot settings", "pi/services"),
@@ -732,17 +749,28 @@ def check_tables(repos=None):
         raise Stop("the tables disagree: " + "; ".join(errors))
 
 
-def anchors_to_targets(text):
+def anchor_ids(text):
+    """The ids of the lines of `text` that are only an id anchor, <a id="x"></a>, outside fenced code."""
+    lines = text.split("\n")
+    return {m.group(1) for line, code in zip(lines, in_code(lines)) if not code and (m := ANCHOR.match(line))}
+
+
+def anchors_to_targets(text, shared=frozenset()):
     """A line that is only an id anchor, <a id="x"></a>, becomes the MyST target (x)=: on GitHub the anchor
     keeps an old heading's id on a landing page without showing anything; here the target does the same and
-    lets this site's links to page.md#x resolve, which a raw HTML id does not. Fenced code is left alone."""
+    lets this site's links to page.md#x resolve, which a raw HTML id does not. A MyST target is a label of the
+    whole site, so an id in `shared` (anchored on more than one page of the repository, as "sources" can be)
+    stays the raw anchor: the page keeps the id, and a link here to page.md#x, which needs the label, fails
+    the build rather than going to the wrong page. Fenced code is left alone."""
 
     def one(line, _):
         m = ANCHOR.match(line)
         if not m and re.search(r"<a\s", line, re.IGNORECASE):
             raise Stop(f"a raw <a> that is not a line of its own reading exactly <a id=\"lower-case-id\"></a>: "
                        f"{line.strip()!r}. Only that form keeps an anchor here; write it so.")
-        return f"({m.group(1)})=" if m else line
+        if not m or m.group(1) in shared:
+            return line
+        return f"({m.group(1)})="
 
     return outside_code(text, one)
 
@@ -1096,10 +1124,12 @@ def take(repo, ref, commit, titles_for, notes):
                                      own_fragments=fragments_in(text), files=set(names), titles=titles,
                                      notes=notes).encode("utf-8")
             wanted[DOCS / dest / name] = data
+    seen = collections.Counter(i for src in pages if src in texts for i in anchor_ids(texts[src]))
+    shared = {i for i, n in seen.items() if n > 1}
     for src, dest in pages.items():
         if src in texts:
             body = rewrite_links(texts[src], src, dest, ref, repo=repo.name, titles=titles, notes=notes)
-            body = anchors_to_targets(alerts_to_admonitions(body))
+            body = anchors_to_targets(alerts_to_admonitions(body), shared)
             wanted[DOCS / dest] = (marker(repo, src, "This page", ref) + body + toctree(dest, repo)).encode("utf-8")
     for (src, heading), (dest, page) in repo.SECTIONS.items():
         if src in texts:
