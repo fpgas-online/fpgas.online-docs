@@ -30,6 +30,9 @@ PNGs are rendered at double size) stays in the text at the column's width as
 an overview; the line under it names the landscape sheet at the end of the
 chapter where it is printed once at the full width of the paper (in vector
 form when the page links one).
+A step's words print on one sheet with its pictures, which are shrunk for that
+if need be, but not below a size whose labels can still be read; a picture that
+would have to be smaller goes on the next sheet under "Step N, continued".
 --append puts existing PDFs (label sheets) after the printed pages unchanged
 and not renumbered; every page of them must already be on the chosen paper,
 either way up, or the run stops.
@@ -50,6 +53,7 @@ import hashlib
 import html
 import http.client
 import json
+import math
 import mimetypes
 import os
 import re
@@ -101,6 +105,28 @@ LONG_LINES = 18
 # one may run over between its rows, so that it does not leave the rest of a sheet blank.
 SHORT_ROWS = 12
 SHORT_CHARS = 900
+# A step (its words, any list, and its pictures) is printed on one sheet: fit_steps estimates how tall its
+# words print and shrinks its pictures to one common scale if that is what it takes. The scale is that of a
+# picture as wide as the column: the site's drawings are drawn for it, with labels of 9 to 11 pt there. No
+# picture is printed below PICTURE_MIN_SCALE of that (labels of 5.5 to 6.5 pt), the smallest that can still
+# be read at the bench; a picture that would have to be smaller goes on the next sheet under a line "Step N,
+# continued". The estimate errs on the tall side, and STEP_SPARE_MM of the sheet is left over for what it
+# misses. A picture is at most PICTURE_MAX_MM tall, as the stylesheet says.
+# TEXT_MM: the width and height of a sheet's text area (the paper less the @page margins, and the 1 pt the
+# body keeps from the right edge). At 10 pt DejaVu Sans a character of text is CHAR_MM wide on average (a
+# little wider than measured, to err on the tall side); a heading's bold is BOLD times as wide. A line of
+# text is 1.4 times its size; a heading's, 1.2.
+PICTURE_MIN_SCALE, PICTURE_MAX_MM, STEP_SPARE_MM = 0.6, 200.0, 10.0
+TEXT_MM = {"A4": (210 - 30 - 0.35, 297 - 34), "Letter": (215.9 - 30 - 0.35, 279.4 - 34)}
+CHAR_MM, BOLD, PT_MM = 2.0, 1.1, 25.4 / 72
+# Each heading's size in pt and its margins, top and bottom, in mm (h2 with its rule).
+HEADING_SIZES = {"h1": (20, 4.0), "h2": (15, 9.7), "h3": (12, 7.0), "h4": (10.5, 5.5), "h5": (10, 4.5),
+                 "h6": (10, 4.5)}
+# The chapter's source line (8 pt, up to two lines with its rule and margins) is above a step at its top.
+SOURCE_MM = 2 * 8 * 1.4 * PT_MM + 5.6
+# Below a picture's image: its paragraph's margin and the line's descent (a figure: its margin and caption).
+PICTURE_BELOW_MM, FIGURE_BELOW_MM = 5.0, 3.5
+CONTINUED_MM = 10 * 1.4 * PT_MM + 2.5  # the line "Step N, continued"
 # Where a chapter's sheet number goes in the cover's list, once it is known.
 SHEET_PLACE = "<!--sheet-of-chapter-%d-->"
 SHEET_PLACE_RE = r"<!--sheet-of-chapter-(\d+)-->"
@@ -185,6 +211,9 @@ img { max-width: 100%%; }
 .picture { break-inside: avoid; text-align: center; }
 .picture img { max-height: 200mm; }
 .step { break-inside: avoid; }
+/* The pictures of a step too tall for one sheet (fit_steps), on the next sheet under the step's number. */
+.continued { break-before: page; }
+.continued-line { font-weight: bold; break-after: avoid; }
 .wide { page: wide; break-before: page; break-inside: avoid;
         margin: 0; text-align: center; }
 .wide img { width: 100%%; max-height: 172mm; object-fit: contain; }
@@ -596,8 +625,8 @@ def step_pictures(body: Tag, soup: BeautifulSoup) -> None:
     A paragraph that holds only an image, or the small copy of a wide picture
     over its line, is the picture of what comes just
     before it: the paragraph of a step, or that paragraph and its list. They
-    are wrapped together so the sheet does not end between them. A second
-    picture of the same step stays whole but may start the next sheet.
+    are wrapped together so the sheet does not end between them; fit_steps
+    then sizes the step to one sheet and takes in the pictures after it.
     """
     for paragraph in body.find_all(["p", "figure"]):
         overview = paragraph.name == "figure" and "inflow" in paragraph.get("class", [])
@@ -618,6 +647,136 @@ def step_pictures(body: Tag, soup: BeautifulSoup) -> None:
         before.insert_before(step)
         for part in (before, *reversed(words), paragraph):
             step.append(part.extract())
+
+
+def text_mm(text: str, width: float, size: float = 10.0, line: float = 1.4, char: float = CHAR_MM) -> float:
+    """How tall text prints in a column width mm wide at size pt, as whole lines of the average character."""
+    per_line = max(1, int(width / (char * size / 10)))
+    return max(1, math.ceil(len(" ".join(text.split())) / per_line)) * size * line * PT_MM
+
+
+def words_mm(block: Tag, width: float) -> float:
+    """How tall a step's paragraph or list prints, with its margin below (and each paragraph's in the list)."""
+    if block.name in ("ol", "ul"):
+        items = block.find_all("li", recursive=False) or [block]
+        return sum(text_mm(item.get_text(" ", strip=True), width - 6) + 2.5 * len(item.find_all("p"))
+                   for item in items) + 2.5
+    return text_mm(block.get_text(" ", strip=True), width) + 2.5
+
+
+def heading_mm(heading: Tag, width: float) -> float:
+    size, margins = HEADING_SIZES[heading.name]
+    return text_mm(heading.get_text(" ", strip=True), width, size, 1.2, CHAR_MM * BOLD) + margins
+
+
+def lead_mm(step: Tag, body: Tag, width: float) -> float:
+    """How tall the headings print that go to a new sheet with the step, since none is a sheet's last line.
+
+    A step at the top of its chapter brings the chapter's source line too."""
+    total, node = 0.0, step
+    while True:
+        before = node.find_previous_sibling()
+        if before is None:
+            if node.parent is body or node.parent is None:
+                return total + SOURCE_MM
+            node = node.parent
+        elif before.name in HEADING_SIZES:
+            total += heading_mm(before, width)
+            node = before
+        else:
+            return total
+
+
+def picture_mm(picture: Tag, width: float) -> tuple[float, float, float]:
+    """How tall a picture's image prints at its natural size (no wider than the column, no taller than
+    PICTURE_MAX_MM); how tall it would be as wide as the column; and how much its paragraph or figure adds
+    below it."""
+    image = picture.find("img")
+    source = image.get("src", "")
+    data = re.match(r"data:([^;,]+);base64,(.*)", source, re.DOTALL)
+    size = image_size(base64.b64decode(data.group(2)), data.group(1)) if data else None
+    if not size or not size[0] or not size[1]:
+        raise SystemExit(f"cannot read the size of a step's picture: {image.get('alt') or source[:80]!r}")
+    shown = min(width, size[0] * 25.4 / 96)  # 96 image pixels to the inch
+    below = PICTURE_BELOW_MM
+    if picture.name == "figure":
+        caption = picture.find("figcaption")
+        below = FIGURE_BELOW_MM + (text_mm(caption.get_text(" ", strip=True), width) if caption else 0)
+    return min(PICTURE_MAX_MM, shown * size[1] / size[0]), width * size[1] / size[0], below
+
+
+def fit_pictures(naturals: list[float], fulls: list[float], room: float) -> list[float] | None:
+    """The heights at which pictures fit room mm together, or None when they do not even at PICTURE_MIN_SCALE.
+
+    naturals: each picture's height at its natural size; fulls: its height as wide as the column. Each is
+    printed at one common scale of its full height, the largest that fits, and never above its natural."""
+    if sum(naturals) <= room:
+        return list(naturals)
+
+    def heights(scale: float) -> list[float]:
+        return [min(natural, scale * full) for natural, full in zip(naturals, fulls)]
+
+    if sum(heights(PICTURE_MIN_SCALE)) > room:
+        return None
+    low, high = PICTURE_MIN_SCALE, 1.0
+    for _ in range(40):
+        middle = (low + high) / 2
+        low, high = (middle, high) if sum(heights(middle)) <= room else (low, middle)
+    return heights(low)
+
+
+def place_pictures(pictures: list[Tag], room: float, width: float, at_least_one: bool) -> int:
+    """How many of pictures, from the first, fit room mm; each one shrunk is given its height.
+
+    at_least_one: the first is counted even when it does not fit; it then has a sheet to itself, as it is."""
+    sizes = [picture_mm(picture, width) for picture in pictures]
+    for count in range(len(pictures), 0, -1):
+        heights = fit_pictures([natural for natural, _, _ in sizes[:count]], [full for _, full, _ in sizes[:count]],
+                               room - sum(below for _, _, below in sizes[:count]))
+        if heights is not None:
+            break
+    else:
+        return 1 if at_least_one else 0
+    for picture, height, (natural, _, _) in zip(pictures, heights, sizes):
+        if height < natural - 0.05:
+            picture.find("img")["style"] = f"max-height: {height:.1f}mm"
+    return count
+
+
+def fit_steps(body: Tag, soup: BeautifulSoup, paper: str) -> None:
+    """Print each step whole on one sheet: its words and all its pictures.
+
+    A step's pictures are the one step_pictures wrapped with its words and those right after it. They are
+    shrunk if the step would not fit a sheet otherwise, to no less than PICTURE_MIN_SCALE. Pictures that still
+    do not fit go on the next sheet under a line "Step N, continued" (N from the step's words), as many to
+    a sheet as fit there."""
+    width, height = TEXT_MM[paper]
+    room = height - STEP_SPARE_MM
+    for step in body.find_all("div", class_="step"):
+        parts = step.find_all(recursive=False)
+        pictures = [parts[-1]]
+        after = step.find_next_sibling()
+        while after is not None and "picture" in after.get("class", []):
+            pictures.append(after)
+            after = after.find_next_sibling()
+        words = sum(words_mm(part, width) for part in parts[:-1])
+        kept = place_pictures(pictures, room - lead_mm(step, body, width) - words, width, False)
+        for picture in pictures[1:kept]:
+            step.append(picture.extract())
+        rest = pictures[kept:]
+        number = re.match(r"\s*(\d+)\.", parts[0].get_text())
+        line = f"Step {number.group(1)}, continued" if number else "Continued from the sheet before"
+        last = step
+        while rest:
+            count = place_pictures(rest, room - CONTINUED_MM, width, True)
+            block = soup.new_tag("div", attrs={"class": "step continued"})
+            said = soup.new_tag("p", attrs={"class": "continued-line"})
+            said.string = line
+            block.append(said)
+            for picture in rest[:count]:
+                block.append(picture.extract())
+            last.insert_after(block)
+            last, rest = block, rest[count:]
 
 
 def short_tables(body: Tag) -> None:
@@ -647,7 +806,8 @@ def whole_codes(body: Tag) -> None:
             code["class"] = [*code.get("class", []), "whole"]
 
 
-def chapter(number: int, spec: str, commit: str, fetched: str, link_lists: bool = True) -> tuple[str, str]:
+def chapter(number: int, spec: str, commit: str, fetched: str, paper: str,
+            link_lists: bool = True) -> tuple[str, str]:
     """The title and the printable HTML of one page, as chapter number of the PDF.
 
     link_lists: number each link and list the addresses at the chapter's end. Without it a link is printed
@@ -667,6 +827,7 @@ def chapter(number: int, spec: str, commit: str, fetched: str, link_lists: bool 
     short_tables(body)
     whole_codes(body)
     step_pictures(body, soup)
+    fit_steps(body, soup, paper)
     heading = body.find("h1")
     title = heading.get_text(strip=True) if heading else path
     note = f"Chapter {number} · Source: {url}"
@@ -751,7 +912,7 @@ def document(title: str, paper: str, specs: list[str], cover_notes: str | None =
             note_boxes(text)
     commit = built_commit()
     fetched = datetime.date.today().isoformat()
-    chapters = [chapter(number, spec, commit, fetched, link_lists) for number, spec in enumerate(specs, 1)]
+    chapters = [chapter(number, spec, commit, fetched, paper, link_lists) for number, spec in enumerate(specs, 1)]
     foot = css_string(f"{title} · docs.fpgas.online · commit {commit[:10]} · {fetched}")
     after = f" + {appended} unnumbered" if appended else ""
     css = CSS % {"paper": PAPERS[paper], "foot": foot, "after": after}

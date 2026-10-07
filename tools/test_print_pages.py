@@ -574,6 +574,121 @@ class StepPictures(unittest.TestCase):
         self.assertEqual(len(article.select("p.picture")), 1)
 
 
+def picture(width, height):
+    """An image-only paragraph holding a PNG of this many pixels, as inline_images leaves it."""
+    content = b"\x89PNG\r\n\x1a\n\x00\x00\x00\rIHDR" + width.to_bytes(4, "big") + height.to_bytes(4, "big")
+    return f'<p><img alt="pic {width}x{height}" src="{p.as_data_uri(content, "image/png")}"></p>'
+
+
+def words(count):
+    return " ".join(["word"] * (count // 5))
+
+
+class FitSteps(unittest.TestCase):
+    """A step's words and pictures on one sheet (issue #94): shrink the pictures if need be, never below
+    PICTURE_MIN_SCALE, and put what still does not fit on the next sheet under a "continued" line."""
+
+    def fit(self, html_text, paper="Letter"):
+        soup = p.BeautifulSoup("", "html.parser")
+        article = p.BeautifulSoup(html_text, "html.parser")
+        p.step_pictures(article, soup)
+        p.fit_steps(article, soup, paper)
+        return article
+
+    def height(self, image):
+        style = image.get("style", "")
+        self.assertRegex(style, r"^max-height: [0-9.]+mm$")
+        return float(style.split()[1][:-2])
+
+    def test_a_step_that_fits_is_left_as_it_is(self):
+        article = self.fit("<p>1. Cut.</p>" + picture(1560, 1118))
+        self.assertEqual(len(article.select("div.step")), 1)
+        self.assertNotIn("style", article.find("img").attrs)
+        self.assertIsNone(article.select_one(".continued"))
+
+    def test_a_step_too_tall_for_a_sheet_has_its_picture_shrunk_inside_the_step(self):
+        article = self.fit(f"<p>3. {words(1500)}</p>" + picture(1560, 1560))
+        image = article.select_one("div.step img")
+        width = p.TEXT_MM["Letter"][0]
+        self.assertLess(self.height(image), width)  # its natural height: a square as wide as the column
+        self.assertGreaterEqual(self.height(image), p.PICTURE_MIN_SCALE * width)
+        self.assertIsNone(article.select_one(".continued"))
+
+    def test_the_words_of_a_list_count(self):
+        items = "".join(f"<li><p>{words(300)}</p></li>" for _ in range(3))
+        self.assertNotIn("style", self.fit("<p>3. Find.</p>" + picture(1560, 1560)).find("img").attrs)
+        article = self.fit(f"<p>3. Find.</p><ol>{items}</ol>" + picture(1560, 1560))
+        self.assertIn("style", article.select_one("div.step").find("img").attrs)
+        self.assertIsNone(article.select_one(".continued"))
+
+    def test_a_second_picture_comes_into_the_step_when_the_whole_fits(self):
+        article = self.fit("<p>5. Fill.</p>" + picture(1560, 600) + picture(1560, 600) + "<p>after</p>")
+        step = article.select_one("div.step")
+        self.assertEqual(len(step.find_all("img")), 2)
+        self.assertEqual(article.find_all("p")[-1].get_text(), "after")
+        self.assertNotIn("style", step.find_all("img")[1].attrs)
+
+    def test_two_pictures_shrink_to_one_common_scale(self):
+        article = self.fit("<p>5. Fill.</p>" + picture(1560, 1560) + picture(1560, 780))
+        first, second = article.select("div.step img")
+        self.assertAlmostEqual(self.height(first), 2 * self.height(second), delta=0.2)
+
+    def test_a_second_picture_that_does_not_fit_goes_on_the_next_sheet_under_the_step_number(self):
+        article = self.fit("<p>5. Fill.</p>" + picture(1560, 2116) + picture(1560, 2116) + "<p>after</p>")
+        step, continued = article.select("div.step")
+        self.assertEqual(continued["class"], ["step", "continued"])
+        self.assertEqual(continued.find_previous_sibling(), step)
+        self.assertEqual(continued.select_one("p.continued-line").get_text(), "Step 5, continued")
+        self.assertEqual(continued.find("img")["alt"], "pic 1560x2116")
+        self.assertEqual(len(step.find_all("img")), 1)
+        self.assertEqual(continued.find_next_sibling().get_text(), "after")
+
+    def test_a_first_picture_that_cannot_fit_at_the_smallest_scale_goes_on_the_next_sheet(self):
+        article = self.fit(f"<p>2. {words(2500)}</p>" + picture(1560, 2116))
+        step, continued = article.select("div.step")
+        self.assertIsNone(step.find("img"))
+        self.assertEqual(continued.select_one("p.continued-line").get_text(), "Step 2, continued")
+        self.assertNotIn("style", continued.find("img").attrs)
+
+    def test_a_step_without_a_number_says_it_continues(self):
+        article = self.fit("<p>The two cavity pictures:</p>" + picture(1560, 2116) + picture(1560, 2116))
+        self.assertEqual(article.select_one("p.continued-line").get_text(), "Continued from the sheet before")
+
+    def test_more_pictures_than_one_sheet_holds_go_on_as_many_sheets_as_they_need(self):
+        article = self.fit("<p>4. Look.</p>" + picture(1560, 2116) * 3)
+        self.assertEqual(len(article.select("div.continued")), 2)
+        self.assertEqual(len(article.select("img")), 3)
+
+    def test_a_heading_before_the_step_goes_to_its_sheet_and_takes_room(self):
+        plain = self.fit(f"<p>x</p><p>3. {words(1500)}</p>" + picture(1560, 1560))
+        headed = self.fit(f"<p>x</p><h2>Steps</h2><p>3. {words(1500)}</p>" + picture(1560, 1560))
+        self.assertLess(self.height(headed.find("img")), self.height(plain.find("img")))
+
+    def test_a4_has_more_room_than_letter(self):
+        html_text = f"<p>3. {words(1500)}</p>" + picture(1560, 1560)
+        self.assertGreater(self.height(self.fit(html_text, "A4").find("img")),
+                           self.height(self.fit(html_text, "Letter").find("img")))
+
+    def test_a_picture_whose_size_cannot_be_read_stops_the_run(self):
+        with self.assertRaises(SystemExit):
+            self.fit('<p>1. Cut.</p><p><img alt="x" src="a.png"></p>')
+
+    def test_fit_pictures(self):
+        self.assertEqual(p.fit_pictures([100, 50], [100, 50], 200), [100, 50])
+        heights = p.fit_pictures([100, 50], [100, 50], 120)
+        self.assertAlmostEqual(heights[0], 80, delta=0.01)
+        self.assertAlmostEqual(heights[1], 40, delta=0.01)
+        # The first is already printed at 200/300 of its full height; at the common scale of 0.73 the
+        # second shrinks and the first keeps its height, since no picture is printed above its natural size.
+        heights = p.fit_pictures([200, 75], [300, 75], 255)
+        self.assertEqual(heights[0], 200)
+        self.assertAlmostEqual(heights[1], 55, delta=0.01)
+        self.assertIsNone(p.fit_pictures([200], [250], p.PICTURE_MIN_SCALE * 250 - 1))
+
+    def test_the_continued_block_starts_a_sheet(self):
+        self.assertIn(".continued { break-before: page; }", p.CSS)
+
+
 class ShortTables(unittest.TestCase):
     def table(self, rows):
         return "<table>%s</table>" % "".join("<tr><td>%d</td></tr>" % n for n in range(rows))
@@ -600,12 +715,13 @@ class ShortTables(unittest.TestCase):
 class Chapter(unittest.TestCase):
     def make(self, number=3, spec="boards/acorn/wiring#raspberry-pi-5"):
         with FakeFetch({URL: (PAGE.encode(), "text/html")}):
-            return p.chapter(number, spec, "0123456789abcdef", "2026-10-05")
+            return p.chapter(number, spec, "0123456789abcdef", "2026-10-05", "A4")
 
     def test_without_link_lists_no_link_is_numbered_and_no_address_list_is_printed(self):
         with FakeFetch({URL: (PAGE.encode(), "text/html")}):
-            _, with_lists = p.chapter(3, "boards/acorn/wiring#raspberry-pi-5", "0123456789abcdef", "2026-10-05")
-            _, without = p.chapter(3, "boards/acorn/wiring#raspberry-pi-5", "0123456789abcdef", "2026-10-05",
+            _, with_lists = p.chapter(3, "boards/acorn/wiring#raspberry-pi-5", "0123456789abcdef", "2026-10-05",
+                                      "A4")
+            _, without = p.chapter(3, "boards/acorn/wiring#raspberry-pi-5", "0123456789abcdef", "2026-10-05", "A4",
                                    link_lists=False)
         self.assertIn("Links in this chapter", with_lists)  # the page under test has links to list
         self.assertNotIn("Links in this chapter", without)
@@ -715,7 +831,7 @@ class FitCode(unittest.TestCase):
     def test_a_chapter_fits_its_listings(self):
         page = PAGE.replace('<article role="main">', '<article role="main"><pre>' + 'z' * 300 + '</pre>', 1)
         with FakeFetch({URL: (page.encode(), "text/html")}):
-            _, text = p.chapter(3, "boards/acorn/wiring", "0123456789abcdef", "2026-10-05")
+            _, text = p.chapter(3, "boards/acorn/wiring", "0123456789abcdef", "2026-10-05", "A4")
         self.assertIn("code-note", text)
         self.assertIn(p.CONTINUED.strip(), text)
 
@@ -784,7 +900,7 @@ class Notes(unittest.TestCase):
 class Document(unittest.TestCase):
     def make(self, title="Wiring", paper="A4", **notes):
         real = p.chapter
-        p.chapter = lambda number, spec, commit, fetched, link_lists: (
+        p.chapter = lambda number, spec, commit, fetched, paper, link_lists: (
             f"Chapter {spec}", f"<div>{spec} {commit[:10]} lists={link_lists}</div>")
         try:
             with FakeFetch({p.ADDONS: (b'{"builds": {"current": {"commit": "0123456789abcdef"}}}', "application/json")}):
