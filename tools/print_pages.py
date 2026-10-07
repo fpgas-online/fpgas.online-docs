@@ -78,6 +78,14 @@ CHROME = "google-chrome-stable"
 WHOLE_CODE = 24
 WHOLE_ROW = 48
 PAPERS = {"A4": "A4", "Letter": "letter"}
+# A listing is printed at CODE_SIZE pt if its longest line fits the width it has, smaller down to CODE_FLOOR pt
+# if that is what it takes, and a line still too long is broken by fit_code, never by the browser. The width:
+# CODE_WIDTH pt inside a top-level listing on A4 (180 mm less the listing's padding and border, and the 1 pt the
+# body keeps from the edge), less INDENT pt for each list or definition it is in and BOX pt for each box.
+# DejaVu Sans Mono is CODE_EM wide (1233/2048 em). A little is kept spare for rounding.
+CODE_SIZE, CODE_FLOOR, CODE_EM, CODE_SPARE = 8.0, 6.5, 0.60205, 6.0
+CODE_WIDTH, INDENT, BOX = 497.1, {"ul": 17.0, "ol": 17.0, "dd": 30.0}, 19.4
+CONTINUED = "\u21aa "  # the mark at the start of a continuation line
 # Sheet sizes in points (width, height, portrait), for checking appended PDFs.
 PAPER_POINTS = {"A4": (595.28, 841.89), "Letter": (612.0, 792.0)}
 # An image drawn at least this many pixels wide (a wiring sheet) gets a
@@ -139,7 +147,10 @@ pre { font-size: 8pt; line-height: 1.3; border: 0.4pt solid #888; background: #f
       padding: 2mm; margin: 0 0 3mm; white-space: pre-wrap; overflow-wrap: anywhere;
       break-inside: avoid; }
 pre.long { break-inside: auto; }
-pre code { background: none; padding: 0; }
+pre code { background: none; padding: 0; font-size: inherit; }
+/* fit_code has sized or broken every listing line to fit, so the browser never wraps one. */
+pre { white-space: pre; overflow-wrap: normal; }
+.code-note { font-size: 8pt; font-style: italic; margin-bottom: 1mm; break-after: avoid; }
 sup.ref { font-size: 6.5pt; line-height: 0; color: #333; }
 .links .together { break-inside: avoid; }
 .links ol { margin-bottom: 0; }
@@ -490,6 +501,46 @@ def link_notes(body: Tag, url: str, soup: BeautifulSoup) -> Tag | None:
     return box
 
 
+def code_chars(block: Tag) -> tuple[int, int]:
+    """How many characters of a listing fit on its line at CODE_SIZE and at CODE_FLOOR, where it sits."""
+    width = CODE_WIDTH - CODE_SPARE
+    for parent in block.parents:
+        width -= INDENT.get(parent.name, 0)
+        if "admonition" in (parent.get("class") or []):
+            width -= BOX
+    return int(width / (CODE_EM * CODE_SIZE)), int(width / (CODE_EM * CODE_FLOOR))
+
+
+def fit_code(body: Tag, soup: BeautifulSoup) -> None:
+    """Print every line of a listing as one line a reader can type: smaller if it must be, broken by hand if
+    even that is not enough, with each continuation marked and a note saying the marks are not typed."""
+    for block in body.find_all("pre"):
+        chars, floor_chars = code_chars(block)
+        lines = block.get_text().expandtabs(8).rstrip("\n").split("\n")  # Chrome's tab stops are every 8
+        longest = max((len(line) for line in lines), default=0)
+        if longest <= chars:
+            continue
+        size = max(CODE_FLOOR, CODE_SIZE * chars / longest)
+        block["style"] = f"font-size: {size:.2f}pt"
+        if longest <= floor_chars:
+            continue
+        width = floor_chars - len(CONTINUED)
+        out = []
+        for line in lines:
+            out.append(line[:floor_chars])
+            rest = line[floor_chars:]
+            while rest:
+                out.append(CONTINUED + rest[:width])
+                rest = rest[width:]
+        block.clear()
+        block.append("\n".join(out))
+        note = soup.new_tag("p", attrs={"class": "code-note"})
+        note.string = (f"A line below is too long for the sheet: where a line starts with {CONTINUED.strip()}, it "
+                       "continues the line above. Type the two as one line, leaving out the arrow and the one "
+                       "space after it.")
+        block.insert_before(note)
+
+
 def long_blocks(body: Tag) -> None:
     """Let a long listing run over a sheet's end; a short one stays whole."""
     for block in body.find_all("pre"):
@@ -569,6 +620,7 @@ def chapter(number: int, spec: str, commit: str, fetched: str, link_lists: bool 
     absolute_links(body, url)
     sheets = inline_images(body, url, soup, number)
     links = link_notes(body, url, soup) if link_lists else None
+    fit_code(body, soup)
     long_blocks(body)
     short_tables(body)
     whole_codes(body)
