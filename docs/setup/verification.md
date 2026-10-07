@@ -265,7 +265,7 @@ first, then a per-host override, then the board default.
 | Fomu | `openFPGALoader -b fomu <bitstream>` | USB DFU. |
 | Acorn | `rmmod spidev spi_bcm2835 2>&1; openFPGALoader -c rp1pio --pins 10:9:11:8 <bitstream>` | GPIO bit-bang JTAG on the Pi's SPI0 pins, which is why the SPI modules come out first. openFPGALoader's pin order is TDI:TDO:TCK:TMS, so GPIO 10 (SPI0 MOSI) is TDI and GPIO 11 (SCLK) is TCK; see [Acorn wiring on a Raspberry Pi 5](../boards/acorn/wiring/rpi-5.md). As configured in the runner. On a host without `/dev/pio0` (the Welland Pi 5s) the `rp1pio` cable cannot run; use `--cable libgpiod` with the `gpiochip0` link, see [P1: JTAG](../boards/acorn/wiring/rpi-5-host.md#jtag-from-the-pi). |
 | TT FPGA | `python3 ~/tt_fpga_program.py /dev/ttyACM0 <bitstream>` | Through the RP2350 over USB CDC. The PMOD loopback design appends `--gpio-release`. |
-| NeTV2 on `rpi5-netv2` | `sudo openFPGALoader -c rp1pio --pins 27:22:4:17 <bitstream>` | RP1 GPIO bit-bang JTAG on the 40-pin header, in openFPGALoader's TDI:TDO:TCK:TMS pin order; see [JTAG via RPi GPIO](../boards/netv2.md#jtag-via-rpi-gpio). As configured in the runner. On a host without `/dev/pio0` (the Welland Pi 5s) the `rp1pio` cable cannot run; use `--cable libgpiod` with the `gpiochip0` link, see [P1: JTAG](../boards/acorn/wiring/rpi-5-host.md#jtag-from-the-pi). |
+| NeTV2 on `rpi5-netv2` | `sudo openFPGALoader -c rp1pio --pins 27:22:4:17 <bitstream>` | RP1 GPIO bit-bang JTAG on the 40-pin header, in openFPGALoader's TDI:TDO:TCK:TMS pin order; see [JTAG via RPi GPIO](../boards/netv2/jtag.md#jtag-via-rpi-gpio). As configured in the runner. On a host without `/dev/pio0` (the Welland Pi 5s) the `rp1pio` cable cannot run; use `--cable libgpiod` with the `gpiochip0` link, see [P1: JTAG](../boards/acorn/wiring/rpi-5-host.md#jtag-from-the-pi). |
 | NeTV2 on `rpi3-netv2` | `sudo openocd -f ~/netv2/alphamax-rpi.cfg -c 'init; pld load 0 <bitstream>; exit'` | BCM2835 GPIO bit-bang JTAG. `pld load 0` is OpenOCD 0.10.x syntax, device index 0. |
 | NeTV2 on the Welland pool hosts | the same OpenOCD command **without** `sudo` | The gateway hop already lands as root on those Pis. |
 
@@ -365,7 +365,7 @@ PMOD design's `--gpio-release` programming override (line 253). (5) It calls
 (lines 68–71) and the variant-artifact selection at lines 407–413 is
 board-agnostic. (6) It glosses the `--pins 27:22:4:17` string as TCK:TDO:TDI:TMS;
 openFPGALoader's order is TDI:TDO:TCK:TMS, as
-[JTAG via RPi GPIO](../boards/netv2.md#jtag-via-rpi-gpio) and
+[JTAG via RPi GPIO](../boards/netv2/jtag.md#jtag-via-rpi-gpio) and
 [Acorn wiring on a Raspberry Pi 5](../boards/acorn/wiring/rpi-5.md#p1-jtag) both give it for the same pin strings,
 and GPIO 10 is SPI0 MOSI (TDI) with GPIO 11 the clock. Line numbers are
 `verify_hardware.py` on `main` as read on 2026-09-04.

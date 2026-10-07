@@ -26,8 +26,8 @@ page disagrees, the site page is the measured source and wins.
 | Board | Docs | [Welland](../sites/welland.md#hosts-and-boards) | [PS1](../sites/ps1.md#hosts-and-boards) | FPGA | Features |
 |-------|------|---------|-----|------|----------|
 | [Digilent Arty A7-35T](https://digilent.com/shop/arty-a7-artix-7-fpga-development-board/) | [Arty A7](arty-a7.md), [wiring to the Pi](arty-a7.md#wiring-to-the-raspberry-pi) | ×5 | ×8 | Xilinx XC7A35T | DDR3, Ethernet, PMOD, USB&nbsp;JTAG+UART |
-| [Kosagi NeTV2](https://www.crowdsupply.com/alphamax/netv2) (GPIO&nbsp;JTAG) | [Kosagi NeTV2](netv2.md), [JTAG via RPi GPIO](netv2.md#jtag-via-rpi-gpio) | ×5 | — | Xilinx XC7A35T | DDR3, Ethernet, PCIe, HDMI, GPIO&nbsp;JTAG+UART |
-| [Kosagi NeTV2](https://www.crowdsupply.com/alphamax/netv2) (RPi5&nbsp;PCIe) | [Kosagi NeTV2](netv2.md), [JTAG via RPi GPIO](netv2.md#jtag-via-rpi-gpio) | —&nbsp;(+×4) | — | Xilinx XC7A35T | DDR3, Ethernet, PCIe, HDMI, GPIO&nbsp;JTAG+UART |
+| [Kosagi NeTV2](https://www.crowdsupply.com/alphamax/netv2) (GPIO&nbsp;JTAG) | [Kosagi NeTV2](netv2.md), [JTAG via RPi GPIO](netv2/jtag.md#jtag-via-rpi-gpio) | ×5 | — | Xilinx XC7A35T | DDR3, Ethernet, PCIe, HDMI, GPIO&nbsp;JTAG+UART |
+| [Kosagi NeTV2](https://www.crowdsupply.com/alphamax/netv2) (RPi5&nbsp;PCIe) | [Kosagi NeTV2](netv2.md), [JTAG via RPi GPIO](netv2/jtag.md#jtag-via-rpi-gpio) | —&nbsp;(+×4) | — | Xilinx XC7A35T | DDR3, Ethernet, PCIe, HDMI, GPIO&nbsp;JTAG+UART |
 | [Sqrl Acorn CLE-215+](https://github.com/enjoy-digital/litex/wiki/Use-LiteX-on-the-Acorn-CLE-215) | [SQRL Acorn](acorn/index.md), [wiring on a Raspberry Pi 5](acorn/wiring/rpi-5.md), [installing the images](acorn/designs/install-images.md) | ×6 | — | Xilinx XC7A200T | DDR3, PCIe, SPI&nbsp;Flash, GPIO&nbsp;JTAG+UART |
 | [LiteFury](https://github.com/RHSResearchLLC/NiteFury-and-LiteFury) / Acorn CLE-101 | [SQRL Acorn](acorn/index.md), [wiring on a Compute Blade](acorn/wiring/compute-blade.md), [installing the images](acorn/designs/install-images.md) | — | ×3&nbsp;(+×1) | Xilinx XC7A100T | DDR3, PCIe, SPI&nbsp;Flash, GPIO&nbsp;JTAG+UART |
 | [Fomu EVT](https://www.crowdsupply.com/sutajio-kosagi/fomu) | [Fomu EVT](fomu-evt.md), [wiring to the Pi](fomu-evt.md#wiring-to-the-raspberry-pi) | ×2 | — | Lattice iCE40UP5K | USB&nbsp;1.1, SPI&nbsp;Flash, PMOD, I2C |
@@ -89,7 +89,7 @@ page is the measured source.
 - **NeTV2 (RPi5 PCIe) at Welland.** Four are pending here. The Welland page has
   no pending PCIe NeTV2 hosts; the only RPi 5 NeTV2 is `rpi5-netv2`, one of two
   development hosts on a separate network that is not part of the fleet — see
-  [Development hosts](netv2.md#development-hosts).
+  [Development hosts](netv2/hosts.md#development-hosts).
 - **ButterStick and ULX3S at Welland.** Four of each are pending here. Neither
   board appears anywhere on the [Welland page](../sites/welland.md), and neither
   has a host, a switch port or an allocation recorded.
@@ -119,7 +119,7 @@ board is on the [site pages](../sites/index.md).
 | Board type | Physical interface(s) to the Pi | Board page |
 |---|---|---|
 | Arty A7-35T | USB to an FTDI FT2232 — JTAG on `ttyUSB0`, 115200 baud UART on `ttyUSB1`; PMOD HAT | [Arty A7](arty-a7.md) |
-| NeTV2 | GPIO bit-bang JTAG; GPIO UART — `/dev/serial0`, a symlink to `/dev/ttyAMA0`, on the production Pi 3B+ hosts (measured 2026-09-06; `/dev/ttyS0` only on the stock `rpi3-netv2` image) and `/dev/ttyAMA0` on a Pi 5, see [Serial device by host](netv2.md#serial-device-by-host); PCIe Gen2 x1 and a secondary UART on the PCIe "hax" pins, Pi 5 only | [Kosagi NeTV2](netv2.md) |
+| NeTV2 | GPIO bit-bang JTAG; GPIO UART — `/dev/serial0`, a symlink to `/dev/ttyAMA0`, on the production Pi 3B+ hosts (measured 2026-09-06; `/dev/ttyS0` only on the stock `rpi3-netv2` image) and `/dev/ttyAMA0` on a Pi 5, see [Serial device by host](netv2/serial.md#serial-device-by-host); PCIe Gen2 x1 and a secondary UART on the PCIe "hax" pins, Pi 5 only | [Kosagi NeTV2](netv2.md) |
 | SQRL Acorn CLE-215+ and LiteFury CLE-101 | GPIO bit-bang JTAG (P1); GPIO UART (P2) on `/dev/ttyAMA0`; PCIe through the M.2 HAT on a Pi 5, or the carrier's own M.2 slot on a Compute Blade | [SQRL Acorn](acorn/index.md) |
 | Fomu EVT | Native USB (ValentyUSB), programmed over DFU with a USB analyzer inline; the board also sits on the GPIO header, so the test UART is the Pi's own GPIO UART at 115200 on `/dev/serial0` (iCE40 pins 13/21 to GPIO14/15) plus one confirmed GPIO loopback pair | [Fomu EVT](fomu-evt.md) |
 | Tiny Tapeout ASIC | USB to the RP2040 as `/dev/ttboard`; PMOD HAT | [Tiny Tapeout ASIC](tt-asic.md) |
