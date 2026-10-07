@@ -14,7 +14,7 @@ a "Check PoE" button (read on `https://ps1.fpgas.online/fpgas/pi3.html` on 7 Oct
 Blades have no page there.
 
 **Not yet run by fpgas.online since the gateway was reinstalled** (about 25 September 2026). The gateway read
-of 6 October 2026 found `snmp_switch` 0.0.17 in that venv. It did not open `/etc/environment.export`, because
+of 6 October 2026 found `snmp_switch` 0.0.17 in the web venv, `/srv/www/pib/venv`. It did not open `/etc/environment.export`, because
 the file holds credentials, and no role in fpgas.online-infra writes that file name. So whether the file came
 back with the reinstall is not known. If the settings file is not there, the switch settings are missing and the gateway's
 administrator has to put them back.
