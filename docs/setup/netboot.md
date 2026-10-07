@@ -66,12 +66,12 @@ root=/dev/nfs nfsroot=10.21.0.1:{{ nfs_root }}/root,nfsvers=3,tcp ro ip=dhcp roo
 Three parts are load-bearing:
 
 `nfsvers=3,tcp`
-: Welland's gateway [tweed](../sites/welland.md#gateway-tweed) runs trixie,
+: Welland's gateway [tweed](../sites/welland-gateway.md#gateway-tweed) runs trixie,
   whose `nfsd` serves v3 over TCP only, while the initramfs `nfsmount` from
   klibc defaults to UDP. Without this the mount hangs in the initramfs. The
   bookworm VM used in CI does not reproduce it, so it was only found on real
   hardware (tweed rebuild, 2026-08-25). PS1's gateway
-  [val2](../sites/ps1.md#gateway-val2) is still on bookworm, so the constraint
+  [val2](../sites/ps1-gateway.md#gateway-val2) is still on bookworm, so the constraint
   is a tweed one, not a fleet-wide one. The flag is in the shared template all
   the same, because there is one template for every site.
 
@@ -84,7 +84,7 @@ Three parts are load-bearing:
 This template is what the bookworm root boots. The PS1 Compute Blades boot the
 separate trixie root and have `console=tty1` with `serial-getty@ttyAMA0`
 inactive, so none of the console reasoning below applies to them — see
-[Compute blades](../sites/ps1.md#compute-blades).
+[Compute blades](../sites/ps1-boards.md#compute-blades).
 
 On a Pi 5 `dtoverlay=disable-bt` does not free the header UART, so the `fixpi`
 role enables it explicitly and points the kernel console somewhere else:
@@ -138,7 +138,7 @@ bootloader has timed out, and after the Pi comes back (roughly two minutes) it
 re-uploads every file, because the tmpfs is empty again, and re-runs its
 pre-test, because the `serial-getty` mask is lost too.
 
-Two roots exist at [PS1](../sites/ps1.md#gateway-val2), because the site runs
+Two roots exist at [PS1](../sites/ps1-gateway.md#gateway-val2), because the site runs
 two generations of hardware: a bookworm armhf root for the RPi 3B/3B+/4B, and a
 separate trixie arm64 root that the Compute Blades boot. Both are read-only with
 an overlay.
@@ -154,7 +154,7 @@ infra repository.
 Record how the trixie arm64 root is built and maintained. `group_vars/all/srv.yml`
 pins `dist: bookworm` for every host and nothing in `fpgas.online-infra` builds a
 trixie root, yet the PS1 Compute Blades boot `/srv/nfs/rpi/trixie/`
-([Two NFS roots](../sites/ps1.md#gateway-val2)). Either the roles gain a second
+([Two NFS roots](../sites/ps1-gateway.md#gateway-val2)). Either the roles gain a second
 `dist`, or the procedure that made that root by hand needs writing down.
 :::
 
@@ -260,7 +260,7 @@ shared root leave the Pis holding stale NFS handles. On 2026-08-30 an upgrade of
 `fpgas-online-cam` took the cameras off air on eleven boards with `ESTALE` on the
 replaced files, and days later the Tiny Tapeout hosts still had `dpkg-query`
 reporting a stale file handle. Only a reboot clears it. See
-[Known faults](../sites/welland.md#known-faults) on the Welland page.
+[Known faults](../sites/welland-boards.md) on the Welland page.
 
 So the update procedure is: converge, then reboot every Pi. On a PoE fleet that
 means a PoE cycle per port — see [Network](network.md) for the switch and PoE
@@ -488,8 +488,8 @@ Other repositories:
 - [fpgas.online-tools](https://github.com/fpgas-online/fpgas.online-tools)
   — `README.md` for the DHCP and netconsole utilities.
 
-Pages on this site: [Welland](../sites/welland.md#gateway-tweed) (tweed on
+Pages on this site: [Welland](../sites/welland-gateway.md#gateway-tweed) (tweed on
 trixie, Pi 5 console, stale NFS handles),
-[PS1](../sites/ps1.md#gateway-val2) (val2 on bookworm, the two roots) and
-[Compute blades](../sites/ps1.md#compute-blades) (`console=tty1` on the trixie
+[PS1](../sites/ps1-gateway.md#gateway-val2) (val2 on bookworm, the two roots) and
+[Compute blades](../sites/ps1-boards.md#compute-blades) (`console=tty1` on the trixie
 root), [Packages](../packages.md).

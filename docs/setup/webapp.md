@@ -17,7 +17,7 @@ through video.js, and a "Use this FPGA" link to the board page. Nothing on the
 card is interactive beyond the video controls. Which boards are on it is a site
 fact, not a platform one: the public grid is
 [PS1's](../sites/ps1.md#public-site), and Welland's boards are listed under
-[Hosts and boards](../sites/welland.md#hosts-and-boards).
+[Hosts and boards](../sites/welland-boards.md).
 
 The board page (`fpga.html`) is one screen with everything on it:
 

@@ -386,7 +386,7 @@ One other device hangs off the hub, and it is worth knowing it is useless:
 | 1-1.1.4 | Prolific PL2303 USB-serial (067b:2303) → `/dev/ttyUSB0` | Received **nothing** at 115200 8N1 while each of the four boards ran U-Boot, so it is not wired to any of their UART0 headers (or is wired TX/RX-swapped). |
 
 :::{todo}
-[Welland](../sites/welland.md#hosts-and-boards) does not list these five boards
+[Welland](../sites/welland-boards.md) does not list these five boards
 in any of its host tables. They are on s3300-1 ports 20 to 24 per `sunxi_boards`
 and the mapping above; the site page should gain an Orange Pi section for them.
 :::
