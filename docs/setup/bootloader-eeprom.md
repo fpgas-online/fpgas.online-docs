@@ -71,8 +71,9 @@ You do not need this part to do the job.
   says not to judge the write by it.
 - **How step 4 knows the write is over:** it does not, on the Pi. Step 4
   waits 60 seconds (how long the write takes has not been timed by us) and
-  says waiting longer does no harm, because Raspberry Pi's documentation says
-  `recovery.bin` "will stop after the update has completed" (quoted below).
+  says a longer wait does not cut a write short (our inference, not tried),
+  because Raspberry Pi's documentation says `recovery.bin` "will stop after
+  the update has completed" for an image called `pieeprom.bin` (quoted below).
   The check is the read-back of step 6 on the next start. That wording is our
   default while the question of a better completion check is with the
   project owner (7 Oct 2026); a timed watch of the LED at the next upgrade
