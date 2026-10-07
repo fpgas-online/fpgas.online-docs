@@ -41,7 +41,9 @@ and not renumbered; every page of them must already be on the chosen paper,
 either way up, or the run stops.
 
 The PDF is printed beside the output under a ".part" name and takes the output's
-name only after it is checked, so a failed run leaves no PDF that looks new.
+name only after it is checked, so a failed run leaves no PDF that looks new. A
+print that failed only the check of its steps is left as OUTPUT.STEPS-SPLIT.pdf
+(x.STEPS-SPLIT.pdf for x.pdf), to look at the sheets the message names.
 
 Needs google-chrome-stable, which does the printing, and from poppler-utils:
 pdftotext and pdfinfo to read the sheet numbers back, and pdfunite for --append.
@@ -65,6 +67,7 @@ import subprocess
 import sys
 import tempfile
 import time
+import unicodedata
 import urllib.parse
 import urllib.request
 from pathlib import Path
@@ -136,6 +139,11 @@ TAIL_MAX_MM = 60.0
 # them; a code span's padding (0.6 mm each side) in characters; a listing's padding, border and margin in mm.
 WORD_BLOCKS = ("p", "ul", "ol", "pre", "div", "blockquote", "dl", "table", "figure")
 CODE_PAD_CHARS, PRE_EXTRA_MM = 1, 2 * 2 + 2 * 0.15 + 3
+# mark_steps' marks: W for a step's words, K for the line of a continued sheet of it, P for a picture. Then
+# the chapter and the step's number in it, for K and P the block (0 the step itself, 1 its first continued
+# block, ...), for P the picture's number in its block; Z ends the mark, so no digit after it joins it.
+STEP_MARK = "PPSTEP-%s-Z"
+STEP_MARK_RE = r"PPSTEP-([WKP])-(\d+(?:-\d+)*)-Z"
 # Where a chapter's sheet number goes in the cover's list, once it is known.
 SHEET_PLACE = "<!--sheet-of-chapter-%d-->"
 SHEET_PLACE_RE = r"<!--sheet-of-chapter-(\d+)-->"
@@ -223,6 +231,12 @@ img { max-width: 100%%; }
 /* The pictures of a step too tall for one sheet (fit_steps), on the next sheet under the step's number. */
 .continued { break-before: page; }
 .continued-line { font-weight: bold; break-after: avoid; }
+/* mark_steps: text the PDF holds, for check_steps to find each step's sheet, but too small to see and taking
+   no room: 0.1 pt, white, in a box of no width in the line it marks (with any width at all, it pushed a
+   picture as wide as the column onto a line of its own). Chrome leaves out text of 0.01 pt or of opacity 0,
+   and printed a mark positioned absolutely on no sheet at all when a break came before it. */
+.step-mark { display: inline-block; width: 0; overflow: visible; font-size: 0.1pt; line-height: 1;
+             color: #fff; white-space: nowrap; }
 .wide { page: wide; break-before: page; break-inside: avoid;
         margin: 0; text-align: center; }
 .wide img { width: 100%%; max-height: 172mm; object-fit: contain; }
@@ -866,6 +880,7 @@ def fit_steps(body: Tag, soup: BeautifulSoup, paper: str, name: str) -> None:
             pictures.append(after)
             after = after.find_next_sibling()
         label, line = step_names(parts[0], name)
+        step["data-label"] = label
         words = sum(words_mm(part, width) for part in parts[:-1])
         # One entry for each sheet the step takes: the room its pictures have there, and the pictures.
         first_room = room - lead_mm(step, body, width) - words
@@ -910,6 +925,101 @@ def fit_steps(body: Tag, soup: BeautifulSoup, paper: str, name: str) -> None:
                 kept.append(part.extract())
             last.append(kept)
             say(f"{label}: the {len(tail)} paragraph(s) ending its section kept on the sheet of its last picture")
+
+
+def mark_steps(body: Tag, soup: BeautifulSoup, number: int, title: str) -> None:
+    """Mark each step and each of its continued blocks, for check_steps to find in the printed PDF.
+
+    A mark (STEP_MARK) is hidden text: at the start of the step's words, at the start of a continued block's
+    line, and just before each picture's image, so it prints on the same line, and the same sheet, as what it
+    marks. The blocks say which step they are (data-step: chapter and step number), and the step says the
+    chapter's title."""
+    step_number, block = 0, 0
+
+    def mark(at: Tag, what: str) -> None:
+        span = soup.new_tag("span", attrs={"class": "step-mark"})
+        span.string = STEP_MARK % what
+        if at.name == "img":
+            at.insert_before(span)
+        else:
+            at.insert(0, span)
+
+    for div in body.find_all("div", class_="step"):
+        if "continued" in div.get("class", []):
+            if not step_number:
+                raise SystemExit(f"chapter {number}: a continued block comes before any step")
+            block += 1
+            mark(div.find("p", class_="continued-line"), f"K-{number}-{step_number}-{block}")
+        else:
+            step_number, block = step_number + 1, 0
+            div["data-title"] = title
+            mark(div.find(recursive=False), f"W-{number}-{step_number}")
+        div["data-step"] = f"{number}-{step_number}"
+        div["data-block"] = str(block)
+        pictures = [part for part in div.find_all(recursive=False) if "picture" in part.get("class", [])]
+        for count, picture in enumerate(pictures, 1):
+            mark(picture.find("img"), f"P-{number}-{step_number}-{block}-{count}")
+
+
+def visible(text: str) -> str:
+    """Printed text as a reader sees it: without the marks, in one form of each character, spaces folded."""
+    return " ".join(unicodedata.normalize("NFKC", re.sub(STEP_MARK_RE, " ", text)).split())
+
+
+def check_steps(sheets: list[str], page: str) -> list[str]:
+    """What is wrong with where the steps of page printed, given each sheet's text (sheets[0] is sheet 1).
+
+    Every step's words and each of its pictures must be on one sheet: the same sheet, not the two sides of one
+    leaf. A picture fit_steps put on a later sheet must be on the sheet of its continued block's line, and that
+    line must be the first thing on its sheet and name the step. Each mark of page must be found once; a mark
+    not found, or found twice, means the PDF cannot be checked, and is said too."""
+    soup = BeautifulSoup(page, "html.parser")
+    declared = [span.get_text() for span in soup.select("span.step-mark")]
+    found: dict[str, list[int]] = {}
+    for sheet, text in enumerate(sheets, 1):
+        for mark in re.finditer(STEP_MARK_RE, text):
+            found.setdefault(mark.group(0), []).append(sheet)
+    problems = []
+    for mark in declared:
+        if len(found.get(mark, [])) != 1:
+            problems.append(f"mark {mark} is on sheets {found.get(mark, [])}, not on exactly one: cannot check it")
+    for mark in sorted(set(found) - set(declared)):
+        problems.append(f"mark {mark} is in the PDF but not in the page")
+    if problems:
+        return problems
+
+    def sheet_of(mark: Tag) -> int:
+        return found[mark.get_text()][0]
+
+    steps = {div["data-step"]: div for div in soup.select("div.step[data-step]") if div.get("data-block") == "0"}
+    for div in soup.select("div.step[data-step]"):
+        step = steps.get(div["data-step"])
+        if step is None:
+            problems.append(f"continued block {div['data-step']} has no step")
+            continue
+        chapter = div["data-step"].split("-")[0]
+        name = f"chapter {chapter} ({step.get('data-title')}), {step.get('data-label')}"
+        words = sheet_of(step.find("span", class_="step-mark"))
+        if div is step:
+            where, home = "its words are", words
+        else:
+            line = div.find("p", class_="continued-line")
+            home = sheet_of(line.find("span", class_="step-mark"))
+            where = f"its continued line (block {div['data-block']}) is"
+            said = visible(line.get_text())
+            if not said.startswith(f"{step.get('data-label')}, continued"):
+                problems.append(f"{name}: the continued line \u201c{said}\u201d does not name the step")
+            if not visible(sheets[home - 1]).startswith(said):
+                problems.append(f"{name}: the continued line \u201c{said}\u201d does not start sheet {home}")
+            if home <= words:
+                problems.append(f"{name}: its continued line is on sheet {home}, not after its words on sheet {words}")
+        pictures = [part for part in div.find_all(recursive=False) if "picture" in part.get("class", [])]
+        for count, picture in enumerate(pictures, 1):
+            sheet = sheet_of(picture.find("span", class_="step-mark"))
+            if sheet != home:
+                alt = picture.find("img").get("alt") or f"picture {count}"
+                problems.append(f"{name}: {where} on sheet {home} and its picture {alt!r} on sheet {sheet}")
+    return problems
 
 
 def short_tables(body: Tag) -> None:
@@ -963,6 +1073,7 @@ def chapter(number: int, spec: str, commit: str, fetched: str, paper: str,
     title = heading.get_text(strip=True) if heading else path
     step_pictures(body, soup)
     fit_steps(body, soup, paper, chapter_name(title))
+    mark_steps(body, soup, number, title)
     note = f"Chapter {number} · Source: {url}"
     if wanted:
         note += " (sections: " + ", ".join(wanted) + ")"
@@ -1284,11 +1395,13 @@ def main() -> int:
     kept = output.with_name(output.name + ".html")
     printed = output.with_name(output.name + ".part")
     united = output.with_name(output.name + ".united.part")
+    split = output.with_name(output.stem + ".STEPS-SPLIT.pdf")
     cover_notes = None if args.cover_notes is None else args.cover_notes.read_text(encoding="utf-8")
     last_sheet = None if args.last_sheet is None else args.last_sheet.read_text(encoding="utf-8")
     try:
         printed.unlink(missing_ok=True)
         united.unlink(missing_ok=True)
+        split.unlink(missing_ok=True)
         # Counted before anything is fetched or printed: a wrong PDF stops the run at once.
         appended = appended_sheets(args.append, args.paper)
         page = document(args.title, args.paper, args.pages, cover_notes, last_sheet, not args.no_link_lists,
@@ -1306,6 +1419,18 @@ def main() -> int:
             print_pdf(joined, printed)
             if chapter_sheets(printed, len(places)) != sheets or wide_sheets(printed, page) != wide:
                 raise SystemExit("the sheets moved when their numbers were put in")
+        if re.search(STEP_MARK_RE, page):
+            sheet_texts = run(["pdftotext", str(printed), "-"], f"pdftotext {printed}", timeout=120,
+                              capture_output=True, text=True).stdout.split("\f")
+            problems = check_steps(sheet_texts, page)
+            if problems:
+                # Kept under a name no one takes for the output, to look at the sheets named.
+                printed.replace(split)
+                if args.keep_html:
+                    joined.replace(kept)
+                raise SystemExit(
+                    f"a step's words and its pictures did not print on one sheet; {output.name} was not written, "
+                    f"and the print is {split} for a look:\n  " + "\n  ".join(problems))
         if args.append:
             append_pdfs(printed, args.append, args.paper, united)
             united.replace(output)

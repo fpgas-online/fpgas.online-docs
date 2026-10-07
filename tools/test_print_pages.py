@@ -823,6 +823,122 @@ class WordsHeight(unittest.TestCase):
         self.assertLess(self.mm(f'<pre style="font-size: 6.50pt">{listing}</pre>'), self.mm(f"<pre>{listing}</pre>"))
 
 
+def marked(html_text, number=3, title="Compute Blade cables: fitting"):
+    """html_text as chapter number of a PDF: its steps fitted to Letter, then marked."""
+    soup = p.BeautifulSoup("", "html.parser")
+    article = p.BeautifulSoup(html_text, "html.parser")
+    p.step_pictures(article, soup)
+    with contextlib.redirect_stderr(io.StringIO()):
+        p.fit_steps(article, soup, "Letter", p.chapter_name(title))
+    p.mark_steps(article, soup, number, title)
+    return article
+
+
+TWO_SHEETS = "<p>1. Fit the cables.</p>" + picture(1560, 2116) + picture(1560, 2116) + "<h2>Next</h2>"
+
+
+class MarkSteps(unittest.TestCase):
+    def test_each_step_continued_block_and_picture_is_marked_where_it_prints(self):
+        article = marked(TWO_SHEETS)
+        step, continued = article.select("div.step")
+        self.assertEqual((step["data-step"], step["data-block"], step["data-label"], step["data-title"]),
+                         ("3-1", "0", "Fitting, step 1", "Compute Blade cables: fitting"))
+        self.assertEqual((continued["data-step"], continued["data-block"]), ("3-1", "1"))
+        self.assertEqual(step.p.contents[0].get_text(), "PPSTEP-W-3-1-Z")
+        self.assertEqual(step.find("img").find_previous_sibling().get_text(), "PPSTEP-P-3-1-0-1-Z")
+        self.assertEqual(continued.p.contents[0].get_text(), "PPSTEP-K-3-1-1-Z")
+        self.assertEqual(continued.find("img").find_previous_sibling().get_text(), "PPSTEP-P-3-1-1-1-Z")
+        self.assertEqual([span["class"] for span in article.select("span")], [["step-mark"]] * 4)
+
+    def test_steps_are_numbered_in_order_and_a_picture_in_a_link_is_marked_beside_its_image(self):
+        linked = picture(1560, 600).replace("<p><img", '<p><a href="x.svg"><img').replace("></p>", "></a></p>")
+        article = marked("<p>1. Cut.</p>" + linked + "<p>2. Strip.</p>" + picture(1560, 600), number=5)
+        self.assertEqual([div["data-step"] for div in article.select("div.step")], ["5-1", "5-2"])
+        self.assertEqual(article.find("a").contents[0].get_text(), "PPSTEP-P-5-1-0-1-Z")
+
+    def test_a_mark_is_hidden_and_takes_no_room(self):
+        self.assertIn(".step-mark { display: inline-block; width: 0; overflow: visible; font-size: 0.1pt;", p.CSS)
+        self.assertIn("color: #fff; white-space: nowrap; }", p.CSS)
+
+    def test_the_mark_pattern_does_not_run_into_a_digit_after_it(self):
+        self.assertEqual(p.re.findall(p.STEP_MARK_RE, "PPSTEP-W-3-1-Z1. Fit"), [("W", "3-1")])
+
+
+class CheckSteps(unittest.TestCase):
+    """check_steps on a fake PDF: the text of each sheet, made from where each mark is said to print."""
+
+    def sheets(self, article, where, count):
+        """The text of count sheets with each mark on the sheet where gives it (1 if not given), and each
+        continued line first on its sheet after its mark."""
+        texts = [""] * count
+        for span in article.select("span.step-mark"):
+            mark = span.get_text()
+            text = span.parent.get_text() if mark.startswith("PPSTEP-K") else mark
+            texts[where.get(mark, 1) - 1] += text.replace(mark, mark + "\n") + "\n"
+        return texts
+
+    def test_words_and_pictures_on_one_sheet_pass(self):
+        article = marked("<p>1. Cut.</p>" + picture(1560, 1118) + picture(1560, 300))
+        self.assertEqual(p.check_steps(self.sheets(article, {}, 1), str(article)), [])
+
+    def test_a_picture_on_the_next_sheet_fails_naming_the_chapter_the_step_and_the_sheets(self):
+        article = marked("<p>2. Cut.</p>" + picture(1560, 1118))
+        problems = p.check_steps(self.sheets(article, {"PPSTEP-P-3-1-0-1-Z": 2}, 2), str(article))
+        self.assertEqual(problems, ["chapter 3 (Compute Blade cables: fitting), Fitting, step 2: its words are on "
+                                    "sheet 1 and its picture 'pic 1560x1118' on sheet 2"])
+
+    def test_the_two_sides_of_one_leaf_are_still_a_split(self):
+        article = marked("<p>2. Cut.</p>" + picture(1560, 1118))
+        where = {"PPSTEP-W-3-1-Z": 3, "PPSTEP-P-3-1-0-1-Z": 4}
+        self.assertEqual(len(p.check_steps(self.sheets(article, where, 4), str(article))), 1)
+
+    def test_a_declared_continuation_that_starts_its_sheet_passes(self):
+        article = marked(TWO_SHEETS)
+        where = {"PPSTEP-K-3-1-1-Z": 2, "PPSTEP-P-3-1-1-1-Z": 2}
+        self.assertEqual(p.check_steps(self.sheets(article, where, 2), str(article)), [])
+
+    def test_a_continued_picture_off_its_line_sheet_fails(self):
+        article = marked(TWO_SHEETS)
+        where = {"PPSTEP-K-3-1-1-Z": 2, "PPSTEP-P-3-1-1-1-Z": 3}
+        problems = p.check_steps(self.sheets(article, where, 3), str(article))
+        self.assertEqual(len(problems), 1)
+        self.assertIn("its continued line (block 1) is on sheet 2 and its picture 'pic 1560x2116' on sheet 3",
+                      problems[0])
+
+    def test_a_continued_line_that_does_not_start_its_sheet_fails(self):
+        article = marked(TWO_SHEETS)
+        texts = self.sheets(article, {"PPSTEP-K-3-1-1-Z": 2, "PPSTEP-P-3-1-1-1-Z": 2}, 2)
+        texts[1] = "the end of a paragraph\n" + texts[1]
+        problems = p.check_steps(texts, str(article))
+        self.assertEqual(len(problems), 1)
+        self.assertIn("does not start sheet 2", problems[0])
+
+    def test_a_continued_line_on_the_sheet_of_its_words_fails(self):
+        article = marked(TWO_SHEETS)
+        problems = p.check_steps(self.sheets(article, {}, 1), str(article))
+        self.assertTrue(any("not after its words on sheet 1" in problem for problem in problems))
+
+    def test_a_continued_line_that_does_not_name_its_step_fails(self):
+        article = marked(TWO_SHEETS)
+        line = article.select_one("p.continued-line")
+        line.contents[1].replace_with("Continued from the sheet before")
+        where = {"PPSTEP-K-3-1-1-Z": 2, "PPSTEP-P-3-1-1-1-Z": 2}
+        problems = p.check_steps(self.sheets(article, where, 2), str(article))
+        self.assertEqual(len(problems), 1)
+        self.assertIn("does not name the step", problems[0])
+
+    def test_a_mark_not_found_or_found_twice_cannot_be_checked(self):
+        article = marked("<p>2. Cut.</p>" + picture(1560, 1118))
+        texts = self.sheets(article, {}, 2)
+        self.assertIn("not on exactly one", p.check_steps([texts[0].replace("PPSTEP-W", "x")], str(article))[0])
+        self.assertIn("not on exactly one", p.check_steps([texts[0], texts[0]], str(article))[0])
+        self.assertIn("not in the page", p.check_steps([texts[0] + "PPSTEP-W-9-9-Z"], str(article))[0])
+
+    def test_marks_are_left_out_of_the_text_a_reader_sees(self):
+        self.assertEqual(p.visible("PPSTEP-K-3-1-1-Z\nFitting,  step 1,\ncontinued: \ufb01t"),
+                         "Fitting, step 1, continued: fit")
+
+
 class ShortTables(unittest.TestCase):
     def table(self, rows):
         return "<table>%s</table>" % "".join("<tr><td>%d</td></tr>" % n for n in range(rows))
@@ -1255,6 +1371,26 @@ class Printing(unittest.TestCase):
         self.assertEqual(self.main(), 0)
         self.assertEqual((self.dir / "x.pdf").read_bytes(), b"%PDF fresh")
         self.assertEqual(self.names(), ["x.pdf"])
+
+    def marked_page(self):
+        article = marked("<p>2. Cut.</p>" + picture(1560, 1118))
+        p.document = lambda *args: str(article)
+        return article
+
+    def test_a_page_whose_steps_print_whole_is_written(self):
+        self.marked_page()
+        self.sheet_texts = ["PPSTEP-W-3-1-Z\n2. Cut.\nPPSTEP-P-3-1-0-1-Z\n"]
+        self.assertEqual(self.main(), 0)
+        self.assertEqual(self.names(), ["x.pdf"])
+
+    def test_a_step_split_from_its_picture_stops_the_run_and_leaves_the_print_under_a_marked_name(self):
+        self.marked_page()
+        self.sheet_texts = ["PPSTEP-W-3-1-Z\n2. Cut.\n\fPPSTEP-P-3-1-0-1-Z\n"]
+        with self.assertRaises(SystemExit) as stop:
+            self.main()
+        self.assertIn("Fitting, step 2: its words are on sheet 1 and its picture 'pic 1560x1118' on sheet 2",
+                      str(stop.exception))
+        self.assertEqual(self.names(), ["x.STEPS-SPLIT.pdf"])
 
     def test_a_page_without_sheet_places_is_printed_once_and_not_read_back(self):
         self.main()
