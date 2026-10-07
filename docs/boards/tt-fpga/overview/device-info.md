@@ -14,37 +14,28 @@ Tapeout's own photographs and drawings of the board are in its
 
 The TT FPGA demo board consists of two PCBs:
 
-1. **TinyTapeout Demo PCB** (bottom): Contains the RP2350 microcontroller,
-   USB-C connector, 7-segment display, DIP switches, and PMOD headers. This PCB
+1. **TinyTapeout Demo PCB** (bottom): Contains the microcontroller (an RP2350 on a version 3 board, an
+   RP2040 on version 2), USB-C connector, 7-segment display, DIP switches, and PMOD headers. This PCB
    is designed to interface with TinyTapeout ASICs but also accepts the FPGA
    breakout board.
 
-2. **FPGA Breakout Board** (top): Contains the iCE40UP5K FPGA; it has no SPI flash. It
-   plugs into the demo PCB's chip socket, presenting the same interface as a
+2. **FPGA Breakout Board** (top): Contains the iCE40UP5K FPGA and a clock oscillator; it has no SPI flash.
+   It plugs into the demo PCB's chip socket, presenting the same interface as a
    TinyTapeout ASIC.
 
-```text
-┌──────────────────────────────┐
-│    FPGA Breakout Board       │
-│    (iCE40UP5K)               │
-│                              │
-│    ┌────────────────────┐    │
-│    │  Pin headers down  │    │
-│    └────────────────────┘    │
-└──────────────┬───────────────┘
-               │ (plugs into)
-┌──────────────┴───────────────┐
-│    TinyTapeout Demo PCB      │
-│                              │
-│  [USB-C] [RP2350] [7-seg]   │
-│  [DIP SW] [3 x PMOD header] │
-└──────────────────────────────┘
-```
+| Board | Where | What is on it |
+|---|---|---|
+| FPGA breakout board | on top, its pin headers down, plugged into the demo PCB's chip socket | the iCE40UP5K FPGA; a clock oscillator |
+| Tiny Tapeout demo PCB | underneath | USB-C; the RP2350 microcontroller (version 3); the 7-segment display; the DIP switches; three Pmod headers |
 
-The microcontroller programs the iCE40 over SPI and provides its 50 MHz clock.
-After programming it releases its GPIO pins to high impedance so the Raspberry
+Source for the clock oscillator: the pin-mapping page of fpgas.online-test-designs ("iCE40UP5K + clock
+oscillator (no SPI flash)"); not verified by us on a board.
+
+The microcontroller programs the iCE40 over SPI and provides its 50 MHz clock. When it is loaded with the
+loader's `--gpio-release` it then releases its GPIO pins to high impedance so the Raspberry
 Pi can talk to the FPGA directly through the PMOD HAT — the controller and the
-PMOD headers share the same physical traces.
+PMOD headers share the same physical traces. Without that flag it leaves them as they were:
+[functionality](functionality.md#by-hand).
 
 ## Key Specifications
 
@@ -101,10 +92,19 @@ block counts is wrong. Check against the Lattice datasheet and fix the loser.
 ## No SPI flash
 
 The FPGA breakout has no SPI flash, so the FPGA is empty at every power-up until a design is loaded into it.
-The four pins an earlier version of this page listed as flash pins are the iCE40's configuration pins, which
-go only to the demo board's microcontroller: [the pins that load the
-FPGA](../wiring/pins-other.md#loading-the-fpga-its-configuration-pins). How a design is loaded:
-[functionality](functionality.md#programming).
+Source: the breakout's published design
+([TinyTapeout/breakout-pcb, `ASIC-simulator/ttdbv3-fpga-ICE40UP5k`](https://github.com/TinyTapeout/breakout-pcb/tree/6e3725f7fc5707d0cbe7632c39b867da740d10d7/ASIC-simulator/ttdbv3-fpga-ICE40UP5k)),
+checked there on 4 October 2026 by the fpgas.online-test-designs repository; not measured by us on a board.
+So there is no SPI flash ID test for this board
+([test-designs issue #52](https://github.com/fpgas-online/fpgas.online-test-designs/issues/52)).
+
+Until 6 October 2026 this board's page said the breakout "also has SPI flash (CS_N=pin 16, CLK=pin 15,
+MOSI=pin 14, MISO=pin 17) for persistent bitstream storage, used by the SPI Flash ID test". Those four pins are
+the iCE40's configuration pins, which go only to the demo board's microcontroller: [the pins that load the
+FPGA](../wiring/pins-other.md#loading-the-fpga-its-configuration-pins). The results of 2 October 2026 on
+[Checking a board: fpgas-verify](../../../verify/fpgas-verify.md#current-results) still show `spiflash=fail`
+on the boards read that day: the test that was then removed, failing on a board with no flash to answer, not a
+fault of those boards. How a design is loaded: [functionality](functionality.md#programming).
 
 ## PMOD Headers
 

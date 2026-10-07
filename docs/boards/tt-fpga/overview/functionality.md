@@ -24,6 +24,21 @@ Each group is on its own Pmod header and reaches the Raspberry Pi through the Pm
 header to port JA, `uio` on BIDIR to JB, `uo_out` on OUTPUT to JC. Wire by wire:
 [`ui_in` and `uo_out`](../wiring/pins-ui-uo.md), [`uio`](../wiring/pins-uio-uart.md).
 
+### Who can drive `ui_in`
+
+Three things are on the eight `ui_in` signals, and the pages say each of them drives them:
+
+- **The Raspberry Pi**, through the Pmod HAT's port JA. The cable picture's "the Pi drives" means this: in
+  our tests the Pi drives `ui_in` and the FPGA reads it ([`ui_in` and `uo_out`](../wiring/pins-ui-uo.md)).
+- **The demo board's microcontroller.** Its GPIO17 to GPIO24 are on the same signals. Our serial bridge
+  sends on one of them, `ui_in[3]`, from its GPIO20 ([the UART test](../designs/uart.md)). A load made with
+  `--gpio-release` sets all 24 of its signal pins to inputs, so that only the FPGA and the Pi drive them
+  (below).
+- **The DIP switches**, according to Tiny Tapeout's specification (the table above); not verified by us.
+  How the switches must be set while the Pi or the microcontroller drives `ui_in` is not recorded.
+
+Two of them driving one signal at once fight each other.
+
 ## Serial Interface
 
 The TT FPGA board supports UART communication through the TinyTapeout I/O pins.
@@ -67,25 +82,51 @@ The iCE40 is programmed via the RP2350 over USB CDC, not directly from the RPi.
 | -------------- | ----------------------------------------------------- |
 | Interface      | RP2350 PIO SPI → iCE40 SPI configuration port         |
 | USB device     | `/dev/ttyACM0` (MicroPython REPL)                     |
-| USB VID:PID    | `2e8a:0005` (MicroPython Board in FS mode)            |
+| USB VID:PID    | `2e8a:0005` or `2e8a:000f` (MicroPython's serial port) |
 | Tool           | `python3 tt_fpga_program.py /dev/ttyACM0 <bitstream>` |
 | Bitstream type | `.bin` (volatile SRAM load)                           |
 
 The microcontroller pins the loader drives, and the iCE40's configuration pins: [the pins that load the
 FPGA](../wiring/pins-other.md#loading-the-fpga-its-configuration-pins).
 
+The check finds the board's microcontroller on USB as `2e8a:0005` or `2e8a:000f` (MicroPython's serial port;
+source: the check's code, `boards/tt_fpga.py`, and [what each board's check
+tests](../../../verify/fpgas-verify.md#arty-netv2-fomu-and-tt-fpga)). The boards at welland read `2e8a:0005`
+on 3 September 2026 ([the boards at welland](../installations/welland.md)). rpi-hwid, which asks the board
+what it is, looks at `2e8a:0005` only ([Which Tiny Tapeout board it
+is](../../../verify/fpgas-verify.md#which-tiny-tapeout-board-it-is)).
+
 ### By hand
 
-On a host of the public site the `fpgas-tt` daemon holds the board's serial port, so it is stopped around
-the load (why: [Serial port ownership](../../../setup/tinytapeout.md#serial-port-ownership)):
+Read these three things before the command:
+
+1. **The serial port.** On a host of the public site the `fpgas-tt` daemon holds the board's serial port,
+   so it is stopped around the load and started again after (why: [Serial port
+   ownership](../../../setup/tinytapeout.md#serial-port-ownership)).
+2. **`--gpio-release`, or the Pi and the microcontroller fight.** The microcontroller shares the same
+   physical traces as the Pmod headers. Without `--gpio-release` the loader leaves its 24 signal pins as they
+   were, and starts no clock. With it, the loader starts the 50 MHz clock on GPIO16 and sets GPIO17 to GPIO40
+   (`ui_in`, `uio`, `uo_out`) to inputs (source: `tt_fpga_program.py` on the record branch). Before anything
+   on the Pi drives a Pmod pin, load with `--gpio-release`.
+3. **What you need.** The loader is `designs/_host/tt_fpga_program.py` in a checkout of
+   [fpgas.online-test-designs](https://github.com/fpgas-online/fpgas.online-test-designs); the packages
+   carry a copy for the check's own use, at a path these pages do not record. The packaged test bitstreams
+   are in `/usr/share/fpgas-online/tt-fpga/bitstreams/` (one directory for each design, each holding
+   `tt_fpga_platform.bin`: [verifying 1](../building/verifying-1.md)).
 
 ```console
 # The fpgas-tt daemon holds the serial port open; stop it before programming
 # by hand, and start it again afterwards or the board drops off the public site.
 $ sudo systemctl stop fpgas-tt
-$ python3 designs/_host/tt_fpga_program.py /dev/ttyACM0 bitstream.bin
+# From the top of a checkout of fpgas.online-test-designs:
+$ python3 designs/_host/tt_fpga_program.py --gpio-release /dev/ttyACM0 \
+    /usr/share/fpgas-online/tt-fpga/bitstreams/uart-test-tt-fpga/tt_fpga_platform.bin
 $ sudo systemctl start fpgas-tt
 ```
+
+Not run by us in this form: the old page gave `python3 designs/_host/tt_fpga_program.py /dev/ttyACM0
+bitstream.bin`; the flag and the packaged path are from the record (the loader's `--help`, and the check's
+`boards/tt_fpga.py`, which names `uart-test-tt-fpga/tt_fpga_platform.bin`).
 
 ### Programming flow
 
@@ -102,17 +143,17 @@ $ sudo systemctl start fpgas-tt
    - Transfers the bitstream over SPI (SCK=GPIO6, MOSI=GPIO3, SS=GPIO5 — the
      version 3 values, hardcoded as `TTDBv3` in the programming script), streamed via PIO SPI at 1 MHz
    - Releases `CRESET` (`CDONE` is not read: the tests that follow are what show the design is running)
-   - Starts the 50 MHz clock on GPIO16
-3. For PMOD tests: release all GPIO pins to high-Z (`--gpio-release`). All
-   `ui_in`, `uo_out` and `uio` pins are set to `Pin.IN`. This is critical: the
+3. Only with `--gpio-release` (the Pmod tests): start the 50 MHz clock on GPIO16, and release all GPIO pins
+   to high-Z. All `ui_in`, `uo_out` and `uio` pins are set to `Pin.IN`. This is critical: the
    controller shares the same physical traces as the PMOD headers, so without
    releasing them its output drivers contend with the RPi's GPIO signals coming
-   through the PMOD HAT.
+   through the PMOD HAT. Without the flag the loader starts no clock; the UART test's bridge
+   (`tt_test_wrapper.py`) starts the clock itself.
 
-After step 3 the RPi has clean access to the FPGA through the PMOD HAT, and
-tests run the same way as on any other board — UART and PMOD tests work
-identically to Arty and Fomu once the FPGA is programmed. Programming is the
-only TT-specific step.
+After step 3 the RPi has clean access to the FPGA through the PMOD HAT, and the Pmod tests run the same way
+as on any other board. The UART test does not: its serial port goes through the demo board's microcontroller
+and the USB-C cable, not through the Pi's own UART as on the Arty and the Fomu ([the UART
+test](../designs/uart.md)).
 
 ### From the public site
 
