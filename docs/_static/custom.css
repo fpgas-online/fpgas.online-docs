@@ -76,6 +76,7 @@ article[role=main] table.docutils:not(.nowrap) td code.message-code {
 article[role=main] table.docutils td code.message-code span.pre {
   white-space: nowrap;
 }
+
 /* -- Pictures --------------------------------------------------------------
    No panel behind pictures. Every drawing brings its own paper and comes in
    two: the light one (class only-light) and a dark twin on the dark theme's

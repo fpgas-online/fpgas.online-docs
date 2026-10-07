@@ -15,8 +15,9 @@ from docutils import nodes
 
 # A column with one of these headers holds messages that a check prints, and nothing else in code that must
 # stay whole. "The failing line": verifying 2 (generated in fpgas.online-test-designs). "It says": verifying 2b
-# and the common failures page. "What the check does": the Tiny Tapeout check's variants.
-MESSAGE_HEADERS = frozenset({"The failing line", "It says", "What the check does"})
+# and the common failures page. An action column ("What the check does") is not one: a command could be put
+# in it, and a command must not wrap.
+MESSAGE_HEADERS = frozenset({"The failing line", "It says"})
 
 
 def message_columns(table: nodes.table) -> set[int]:
