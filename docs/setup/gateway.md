@@ -1,7 +1,7 @@
 # The gateway host
 
 Each site has exactly one x86 gateway, and it is everything at the site that is
-not a Pi: [tweed](../sites/welland.md#gateway-tweed) at Welland, which sits
+not a Pi: [tweed](../sites/welland-gateway.md#gateway-tweed) at Welland, which sits
 behind a separately managed upstream gateway on a private link, and
 [val2](../sites/ps1-gateway.md#gateway-val2) at PS1, which faces the public internet
 directly. The gateway serves the boot chain, exports the NFS root, is the
