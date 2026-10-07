@@ -61,7 +61,9 @@ cables](index.md#the-cables-33-v-not-connected).
 
 **Pin 1 on the cable itself.** A ribbon cable's IDC housing usually has a small triangle moulded on it at
 pin 1's end, and wire 1 is the marked one: a coloured stripe on a grey cable, usually the brown wire on a
-rainbow one. These are the common marks, not checked on our cables. Put wire 1 on pin 1 at both ends. A
+rainbow one. These are the common marks, not checked on our cables. Put wire 1 on pin 1 at both ends. Seen from the front of a
+right-angle socket, where the cable goes in, pins 1 to 6 are the upper row of openings: the row wired to the
+square-pad row (from how a right-angle socket is built and the makers' drawings; not checked on our boards). A
 10-wire cable goes on pins 1 to 5 and 7 to 11, the pin 1 end, and leaves the 3.3 V column (pins 6 and 12)
 free.
 
