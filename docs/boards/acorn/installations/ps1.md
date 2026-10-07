@@ -167,7 +167,7 @@ the FPGA, from the flash, which was never written.
 
 **After test 6 (converting pi20 at ps1's card) was stopped at step 1b (the root-complex re-probe and the reboot
 after it; 15:52, Adelaide time, 7 October 2026), pi20 at ps1 restarted every 2 to 3 minutes (one boot, from
-about 17:06, stayed up 12 minutes) until about 18:09,
+about 17:06, stayed up at least 12 minutes) until about 18:09,
 then stayed up; no power cycle was run by us; the cause is not known. It is back on Carl's shared boot files
 (above) with the card on the vendor image. The Acorn's flash was never written; Carl's boot files
 are unchanged.**
