@@ -20,7 +20,7 @@ Find pin 1 on both connectors before plugging a cable in. Every other page that 
 here.
 
 **The mounting plate.** Which holes of the fpgas.online mounting plate a demo board uses, and the plate's
-figures: [the mechanical page](../overview/mechanical.md). The boards at welland move onto it soon, and these
+figures: [the fitting guide](../overview/mechanical.md) and [the plate](../overview/plate.md). The boards at welland move onto it soon, and these
 pages are written for it (Tim Ansell, 7 October 2026); fitting it is step 2 of [fitting](fitting.md).
 
 What the makers' documents, Tim's answer and our cameras say about the cables. The line about a straight

@@ -16,7 +16,8 @@ welland. Each step says where it comes from.
 
 The demo board stands on the fpgas.online Tiny Tapeout mounting plate. The boards at welland do not yet;
 they move onto it soon, and these pages are written for the plate (Tim Ansell, 7 October 2026). Not yet run by
-us as a procedure; every figure is from the drawings on [the mechanical page](../overview/mechanical.md).
+us as a procedure; every figure is from the drawings on [the fitting guide](../overview/mechanical.md) and [the
+plate](../overview/plate.md) pages.
 
 ```{image} /_static/mechanical/tt-generic-mounting-plate-fitting-guide-views-a-light.svg
 :alt: Each Tiny Tapeout demo board revision on the mounting plate, with the holes or slots it uses in red, the holes it does not use and its outline in grey, and its USB-C connector in amber
@@ -110,7 +111,8 @@ loader shows here is not recorded (the check reports it as `2e8a:0003`).
 ## 6. The camera
 
 The camera is a Raspberry Pi Camera Module v1.3 with its stock 65 degree lens. It hangs lens down over the
-board from a printed holder, `TT-MP-CAM65`, which bolts onto the mounting plate. The holder is a design in
+board from a printed holder, `TT-MP-CAM65`, which bolts onto the mounting plate. Where the lens goes, the drawing and
+the holder's open item: [the camera over the mounting plate](../overview/camera.md). The holder is a design in
 [fpgas.online-mechanical](https://github.com/fpgas-online/fpgas.online-mechanical/tree/main/tinytapeout/camera_holder); it has not yet been built or used by us. In this order:
 
 1. **The holder onto the plate.** Its two feet sit over the plate's own M4 fixings along its left and right
@@ -127,15 +129,6 @@ board from a printed holder, `TT-MP-CAM65`, which bolts onto the mounting plate.
 
 The software that publishes the camera's feed: [Camera](../../../setup/pi.md#camera).
 
-:::{todo}
-Open, 7 October 2026: the holder `TT-MP-CAM65` holds the lens face 150.00 mm above the mounting plate, which
-was worked out for the lens as sold (focused at about 1 m). With the lens refocused to 142.8 mm, as the camera
-drawing now says, seeing every board revision with its 5 mm margin needs the lens face 152.37 mm above the
-plate: the holder is 2.37 mm low, more than its 1.00 mm print allowance. The boards are still fully in the
-picture, with 3.82 mm of the 5.00 mm margin left along X and 4.11 mm along Y. Whether to raise the holder is
-Tim's decision. Source: fpgas.online-mechanical PR #46 (`raspberry_pi_camera/README.md`,
-`tinytapeout/camera_holder/README.md`).
-:::
 
 ## Next
 

@@ -32,6 +32,8 @@ Variants: demo board version 3 against 2, the FPGA against a chip <overview/vari
 Functionality: the signals, the serial port, loading a design <overview/functionality>
 Resources and links <overview/resources>
 Mechanical: the demo board on its mounting plate <overview/mechanical>
+Mechanical: the mounting plate <overview/plate>
+Mechanical: the camera over the plate <overview/camera>
 ```
 
 **Load a bitstream by hand:** [functionality, by hand](overview/functionality.md#by-hand).

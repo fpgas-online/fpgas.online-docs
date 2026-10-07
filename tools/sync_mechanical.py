@@ -22,7 +22,10 @@ SOURCE = DEST / "SOURCE"
 # (directory in fpgas.online-mechanical, {stem: extensions}); each stem comes as -light and -dark.
 DRAWINGS = [
     ("raspberry_pi_camera/output/docs", {"over-acorn-cle-215-plus-views": ("svg", "png"),
-                                        "over-acorn-cle-215-plus-sheet": ("svg", "png")}),
+                                        "over-acorn-cle-215-plus-sheet": ("svg", "png"),
+                                        "over-tt-mounting-plate-views-a": ("svg", "png"),
+                                        "over-tt-mounting-plate-views-b": ("svg", "png"),
+                                        "over-tt-mounting-plate-sheet": ("png",)}),
     ("tinytapeout/mounting_plate/output/docs", {"tt-generic-mounting-plate-views": ("svg", "png"),
                                                "tt-generic-mounting-plate-sheet": ("png",),
                                                "tt-generic-mounting-plate-fitting-guide-views-a": ("svg", "png"),
@@ -31,7 +34,8 @@ DRAWINGS = [
 ]
 # Whole drawings copied as they are (vector, for zooming), where a sheet has no SVG picture.
 DOCUMENTS = ["tinytapeout/mounting_plate/output/tt-generic-mounting-plate.pdf",
-             "tinytapeout/mounting_plate/output/tt-generic-mounting-plate-fitting-guide.pdf"]
+             "tinytapeout/mounting_plate/output/tt-generic-mounting-plate-fitting-guide.pdf",
+             "raspberry_pi_camera/output/over-tt-mounting-plate.pdf"]
 COMMIT = re.compile(r"^commit: ([0-9a-f]{40})$", re.M)
 
 
