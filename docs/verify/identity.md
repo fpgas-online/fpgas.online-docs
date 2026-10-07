@@ -1,5 +1,5 @@
 % This page is copied from https://github.com/fpgas-online/fpgas.online-test-designs/blob/main/docs/identity.md
-% by tools/sync_test_designs.py. Do not edit it here: change it in test-designs.
+% by tools/sync_repos.py. Do not edit it here: change it in test-designs.
 
 # Board identity
 
@@ -73,7 +73,7 @@ fpgas-verify's own fields:
 
 A TT board's fields are rpi-hwid's `TinyTapeoutBoard` fields, under its names. The site makes rpi-hwid's Tiny
 Tapeout label from them. Except `usb_serial`, they come from `rpi-hwid tinytapeout --json --no-stop-service`,
-which the boot check runs while it holds the board's port (see [verify.md](fpgas-verify.md#tt-fpga-identity)).
+which the boot check runs while it holds the board's port (see [fpgas-verify: TT FPGA identity](tt-fpga.md#tt-fpga-identity)).
 rpi-hwid gives `null` for a field it read and found no value for: the TT FPGA has no shuttle, for example.
 Every TT FPGA board has an `mcu`, `chip`, `demoboard` and `sdk`, so rpi-hwid giving `null` for one of those
 means its read failed: the identity then has `tinytapeout_error` instead of the Tiny Tapeout fields. A field

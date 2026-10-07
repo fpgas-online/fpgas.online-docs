@@ -2,11 +2,11 @@
 
 ## Every other message about an Acorn
 
-The check's own words, from the tool's list of [common failures](/verify/fpgas-verify.md#common-failures), which has the other boards' too. A wire of the cables is behind the `jtag` and `p2-…` lines only; for those, the page "verifying 2" goes from the line to the wire.
+The check's own words, from the tool's list of [common failures](/verify/common-failures.md#common-failures), which has the other boards' too. A wire of the cables is behind the `jtag` and `p2-…` lines only; for those, the page "verifying 2" goes from the line to the wire.
 
 | It says | Meaning, and what to do |
 |---|---|
-| `fail`: `unconverted: …` | an Acorn on SQRL's factory image (or the XDMA sample): convert it ([converting a card](/boards/acorn/pcie-programming.md)) |
+| `fail`: `unconverted: …` | an Acorn on SQRL's factory image (or the XDMA sample). On a Raspberry Pi 5: convert it ([converting a card](/boards/acorn/pcie-programming.md)). On a Compute Blade: **do not** load a design into the card or convert it; that is not in the guide yet. The only attempt (pi20 at ps1, 7 October 2026) lost the card's PCIe endpoint (a bus rescan did not bring it back, and a root-complex re-probe failed), and the reboot after it was followed by about two hours of restarts, cause not known |
 | `fail`: `… is not a design we built` | a Xilinx PCIe design the Acorn check does not know; its flash is not read |
 | `fail`: `running the golden image` | the Acorn's operational slot did not boot; it fell back to golden |
 | `fail`: `link is x2, expected x1` | the Acorn's PCIe link is not the setup's (`expected.toml`) |
@@ -18,7 +18,7 @@ The check's own words, from the tool's list of [common failures](/verify/fpgas-v
 | `fail`: `J5 -> GPIO3: the FPGA drove 0, the Pi read 1` (or the other way) | a P2 spare wire is cut or miswired |
 | `fail`: `K2 -> GPIO15: …` / `GPIO14 -> J2: …` | a P2 serial wire is cut or miswired |
 | `fail`: `DRAM write … MB/s, below the … MB/s expected` / `… words wrong in the … half` | the DRAM is slow or broken; `selftest.py` shows more |
-| `fail`: `power-cycle fail: the FPGA has not restarted since an earlier boot's check` | the Acorn kept its configuration across the Pi's restart (not seen after a soft reboot on the one Pi 5 measured): power-cycle the Pi (PoE). [The power-cycle check](/verify/fpgas-verify.md#the-acorns-power-cycle-check-opt-in) |
+| `fail`: `power-cycle fail: the FPGA has not restarted since an earlier boot's check` | the Acorn kept its configuration across the Pi's restart (not seen after a soft reboot on the one Pi 5 measured): power-cycle the Pi (PoE). [The power-cycle check](/verify/acorn-power-cycle.md#the-acorns-power-cycle-check-opt-in) |
 | `error`: `this host (…) is not an Acorn setup in wiring.toml` | an Acorn on a host neither setup has: add the host to `wiring.toml` if it is a real setup |
 | `error`: `… does not match its manifest` / `manifest.json is missing` | `sudo apt install --reinstall fpgas-online-<board>-bitstreams` |
 | `changed` | the board or its flash differs from the recorded state. Meant it? `sudo fpgas-verify --update` |

@@ -4,7 +4,7 @@
 
 Find the failing line in the table, then the wire in the two cavity pictures under it: the number in a cavity is the number on the wire's flag.
 
-**Before you touch a cable: Power off the Compute Blade: unplug its PoE cable, and a USB-C cable if one is plugged in.** After moving a wire, boot and run the check again (on a blade at ps1 the install is gone after the boot: install again, as on verifying 1). One test can be run on its own, `sudo fpgas-acorn-verify --test jtag` or `--test p2-serial`; it prints the usual summary, then the whole report as JSON.
+**Before you touch a cable: Power off the Compute Blade: unplug its PoE cable, and a USB-C cable if one is plugged in.** After moving a wire, boot and run the check again (on a blade at ps1 the install is gone after the boot: install again, as on verifying 1; and not on pi14 or pi18 at ps1 yet, as verifying 1 says). One test can be run on its own, `sudo fpgas-acorn-verify --test jtag` or `--test p2-serial`; it prints the usual summary, then the whole report as JSON.
 
 | The failing line | Look at |
 |---|---|
@@ -26,22 +26,6 @@ The two cavity pictures are the ones the cables were built from, shown again to 
 ![Which wire goes in which cavity, P2 cable](acorn-cable-blade-p2-dark.png){.only-dark}
 
 `p2-serial` prints what was driven and what was read, eight lines for two wires. The two digits are the two signals: the right-hand digit is J2, the left-hand one K2.
-
-**A crossed pair**: read on acorn-olive at Welland (an Acorn on a Raspberry Pi 5), 4 October 2026, whose P2 pairs were both crossed. The `p2-serial` test
-drives each wire as a plain pin, first from the FPGA and then from the host. `FPGA drives 01` raises J2, which
-should arrive on GPIO14; it arrives on GPIO15:
-
-```text
-    p2-serial  fail: J2 -> GPIO14: the FPGA drove 1, the Pi read 0; K2 -> GPIO15: the FPGA drove 0, the Pi read 1; J2 -> GPIO14: the FPGA drove 0, the Pi read 1; K2 -> GPIO15: the FPGA drove 1, the Pi read 0; GPIO14 -> J2: the Pi drove 1, the FPGA read 0; GPIO15 -> K2: the Pi drove 0, the FPGA read 1; GPIO14 -> J2: the Pi drove 0, the FPGA read 1; GPIO15 -> K2: the Pi drove 1, the FPGA read 0; the UARTBone does not answer on /dev/ttyAMA0 after the switch (no fpgas.online SoC answered at 1200 baud after a break)
-        FPGA drives 00: Pi reads GPIO14=0 GPIO15=0
-        FPGA drives 01: Pi reads GPIO14=0 GPIO15=1
-        FPGA drives 10: Pi reads GPIO14=1 GPIO15=0
-        FPGA drives 11: Pi reads GPIO14=1 GPIO15=1
-        Pi drives 00: FPGA reads 00
-        Pi drives 01: FPGA reads 10
-        Pi drives 10: FPGA reads 01
-        Pi drives 11: FPGA reads 11
-```
 
 A correctly wired pair reads back what was driven: `FPGA drives 01: Pi reads GPIO14=1 GPIO15=0`, `Pi drives 01:
 FPGA reads 01`, and so on for every pattern.

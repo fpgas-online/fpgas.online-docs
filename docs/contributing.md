@@ -142,7 +142,5 @@ numbers), `pdfinfo` (also poppler-utils) to find a wide picture's sheet, and
 ## Open items
 
 Every unresolved question found while writing these pages is a `{todo}` on
-the page it belongs to. They are collected here:
-
-```{todolist}
-```
+the page it belongs to. They are collected on their own page: [Open items on
+these pages](open-items.md).

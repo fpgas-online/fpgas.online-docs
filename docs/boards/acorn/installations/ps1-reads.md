@@ -40,8 +40,9 @@ Acorn](../index.md).
 wiring](../building/compute-blade/index.md) yet.** That wiring puts P1 on
 the Extension Port and P2 on the 4-pin UART header, with a 470 Ω resistor in the
 J2 wire. pi20 at ps1, the one blade whose wiring has been read, has its P2 serial pair
-on Extension Port pins 9 and 10 instead, sharing pin 9 (GPIO14) directly with
-TMS and with no resistor, so a design that drives J2 costs JTAG until a PoE
+wired straight to GPIO14 (J2) and GPIO15 (K2) instead (pin-ID read, 31 August
+2026; on which header pins the wires sit is not recorded by us), so J2 shares
+GPIO14 directly with TMS, with no resistor, so a design that drives J2 costs JTAG until a PoE
 cycle ([why](../wiring/compute-blade-host.md#the-shared-line-and-the-470-ω-resistor)),
 and its J5 and H5 are not wired. How pi14 at ps1's and pi16 at ps1's P2 cables are wired is
 not known: pi14 at ps1's P1 did not answer on 2026-09-20 and pi16 at ps1's JTAG cannot run
@@ -83,7 +84,8 @@ Moving the console does not free JTAG. With `enable_uart=1` the serial driver
 holds GPIO14 whether or not a console or a getty uses the port. For JTAG the
 header's serial port itself has to be off at boot (`enable_uart=0`, and no
 `console=serial0` word), and in that boot the tests of the P2 serial pair
-cannot run. **Not yet run by us on this hardware.** The same applies to any
+cannot run. Run on pi20 at ps1 on 2026-10-07 (with `uart_2ndstage=1` taken out too): the check's `jtag` test
+passed ([Acorns at ps1](ps1.md)). The same applies to any
 blade on this kernel with the serial port on, pi20 at ps1 included (next section).
 
 ## pi20 at ps1 on 5 October 2026
@@ -103,7 +105,8 @@ pi20 at ps1's JTAG answered on 2026-09-20 under kernel 6.12.75. On 2026-10-05 it
 the same kernel as pi16 at ps1 with the same serial-port settings, so its JTAG is
 **expected not to run** for the same reason (the serial driver holds GPIO14).
 **Not tried:** no JTAG command was run on pi20 at ps1 that day. On 2026-10-07 the check's
-`jtag` test was run there with these settings and failed: the serial driver holds GPIO14.
+`jtag` test was run there with these settings and failed: the serial driver holds GPIO14. The same day, with
+the header's serial port off at boot, it passed ([Acorns at ps1](ps1.md)).
 
 ## Where a blade's boot configuration is
 
