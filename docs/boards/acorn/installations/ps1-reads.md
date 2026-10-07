@@ -102,7 +102,8 @@ changed.
 pi20 at ps1's JTAG answered on 2026-09-20 under kernel 6.12.75. On 2026-10-05 it ran
 the same kernel as pi16 at ps1 with the same serial-port settings, so its JTAG is
 **expected not to run** for the same reason (the serial driver holds GPIO14).
-**Not tried:** no JTAG command was run on pi20 at ps1 that day.
+**Not tried:** no JTAG command was run on pi20 at ps1 that day. On 2026-10-07 the check's
+`jtag` test was run there with these settings and failed: the serial driver holds GPIO14.
 
 ## Where a blade's boot configuration is
 
