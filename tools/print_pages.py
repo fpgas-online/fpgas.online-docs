@@ -222,6 +222,13 @@ def article(page: str, url: str) -> Tag:
         raise SystemExit(f"{url}: no <article role=main>; is this a page of the site?")
     for junk in body.select("a.headerlink, button, script, style, .toc-drawer, .related-pages"):
         junk.decompose()
+    # Paper is white: of a picture drawn for each theme, only the light one is printed. The theme hides
+    # .only-dark in light mode; a link that held nothing but the dark picture goes with it.
+    for dark in body.select(".only-dark"):
+        holder = dark.find_parent("a")
+        dark.decompose()
+        if holder is not None and holder.find("img") is None and not holder.get_text(strip=True):
+            holder.decompose()
     # A comment of the page must never look like one of our sheet places.
     for comment in body.find_all(string=lambda text: isinstance(text, Comment)):
         comment.extract()
