@@ -105,15 +105,15 @@ intersphinx_mapping = {
 # broken link into our own repositories and sites.
 linkcheck_anchors_ignore_for_url = [r"https://github\.com/.*"]
 
-# -- todo boxes on the contributing page --------------------------------------
-# {todolist} copies every {todo} box into docs/contributing.md and re-resolves
+# -- todo boxes on the open items page ----------------------------------------
+# {todolist} copies every {todo} box into docs/open-items.md and re-resolves
 # its cross-references from there. But sphinx.ext.todo stores the box nodes
 # themselves, not copies, and Sphinx keeps the read documents in memory when it
-# writes. So a page written before contributing.md (everything under boards/)
+# writes. So a page written before open-items.md (everything under boards/)
 # has already resolved its boxes' links relative to itself, and the copy on the
-# contributing page inherits links such as "pin-id.html" or a bare "#anchor".
+# open items page inherits links such as "pin-id.html" or a bare "#anchor".
 # Storing a copy leaves the page's own document alone and the list's copy
-# unresolved, so its links are resolved from contributing.md.
+# unresolved, so its links are resolved from open-items.md.
 
 
 def _copy_todos_for_the_list(app, doctree):
