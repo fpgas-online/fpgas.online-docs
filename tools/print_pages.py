@@ -850,9 +850,10 @@ def appended_sheets(extra: list[Path], paper: str) -> int:
 
 
 def append_pdfs(printed: Path, extra: list[Path], paper: str, result: Path) -> None:
-    """Write result: the printed pages, then the extra PDFs (label sheets, say) as they are."""
+    """Write result: the printed pages, then the extra PDFs (label sheets, say) as they are.
+
+    The extra PDFs were checked by appended_sheets before anything was printed."""
     joiner = shutil.which("pdfunite")
-    appended_sheets(extra, paper)
     run([joiner, str(printed), *map(str, extra), str(result)], "pdfunite", timeout=120)
     if not result.is_file() or result.stat().st_size == 0:
         raise SystemExit(f"pdfunite wrote no PDF at {result}")

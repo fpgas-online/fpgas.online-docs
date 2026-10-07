@@ -852,7 +852,8 @@ class Printing(unittest.TestCase):
         self.united_fails = False
         self.pages = "Pages:          1\nPage    1 size: 612 x 792 pts (letter)\n"
         self.saved = (p.document, p.shutil.which, p.subprocess.run)
-        p.document = lambda *args: "<html></html>"
+        self.document_args = []
+        p.document = lambda *args: self.document_args.append(args) or "<html></html>"
         p.shutil.which = lambda name: "/fake/" + name
         p.subprocess.run = self.fake_run
         self.addCleanup(self.restore)
@@ -1018,6 +1019,11 @@ class Printing(unittest.TestCase):
         self.main("--append", str(label))
         self.assertEqual((self.dir / "x.pdf").read_bytes(), b"%PDF united")
         self.assertEqual(self.names(), ["labels.pdf", "x.pdf"])
+        self.assertEqual([args[-1] for args in self.document_args], [1])  # the foot is told of the label sheet
+
+    def test_without_append_the_foot_counts_no_unnumbered_sheets(self):
+        self.main()
+        self.assertEqual([args[-1] for args in self.document_args], [0])
 
     def test_a_failing_pdfunite_leaves_neither_output_nor_partial_file(self):
         label = self.dir / "labels.pdf"
@@ -1049,6 +1055,7 @@ class Printing(unittest.TestCase):
         with self.assertRaises(SystemExit):
             self.main("--append", str(self.dir / "none.pdf"))
         self.assertEqual(self.names(), [])
+        self.assertEqual(self.printed_pages, [])  # stopped before anything was printed
 
 
 CHROME = p.CHROME
