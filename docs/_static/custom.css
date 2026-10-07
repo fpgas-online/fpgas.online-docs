@@ -63,6 +63,19 @@ article[role=main] table.docutils th code {
 article[role=main] table.docutils th {
   white-space: nowrap;
 }
+/* ...except a long code span with spaces in it, a message rather than a name
+   (docs/_ext/table_code.py marks it long-code). Kept on one line, a failing
+   line on "verifying 2" took the whole width and crushed the column beside it
+   to a word per line. It wraps at its spaces only: Sphinx puts each of its
+   words in a span.pre, which does not break, not even at a hyphen (Furo,
+   unlike Sphinx's basic theme, would let it). A table marked nowrap keeps it
+   on one line all the same. */
+article[role=main] table.docutils:not(.nowrap) td code.long-code {
+  white-space: normal;
+}
+article[role=main] table.docutils td code.long-code span.pre {
+  white-space: nowrap;
+}
 
 /* -- Pictures --------------------------------------------------------------
    No panel behind pictures. Every drawing brings its own paper and comes in
