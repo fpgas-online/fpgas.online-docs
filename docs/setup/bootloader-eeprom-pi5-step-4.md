@@ -76,7 +76,7 @@ Photo: Suyash Dwivedi, [Wikimedia Commons](https://commons.wikimedia.org/wiki/Fi
    pattern of long and short flashes, Raspberry Pi calls that an error code.
    Write down the pattern and still go on to step 5: on one of our runs a
    pattern of 3 long and 3 short came after a write that had worked, and step 6
-   tells which it was. If after two minutes it does neither, go on to step 5
+   tells which it was. If after five minutes it does neither, go on to step 5
    as well, and let step 6 tell.
 
    Whether the write worked is checked in

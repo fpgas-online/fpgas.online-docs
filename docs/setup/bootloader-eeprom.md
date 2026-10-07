@@ -47,7 +47,7 @@ You do not need this part to do the job.
   start there began. Neither Pi was watched between its two reads, so whether
   that was its first start on the normal port is not known. The Pi of 3 Oct
   read locked when next looked at.
-- **The times in the steps** (60 seconds for the write, two minutes for the
+- **The times in the steps** (at least 60 seconds and at most five minutes for the write, two minutes for the
   start, five minutes before calling a Pi gone) are generous round figures of
   ours, not measurements of the write. The two minutes of step 5 cover the
   40 and 100 seconds above.
