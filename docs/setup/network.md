@@ -33,7 +33,7 @@ Checking isolation <network-isolation>
 
 ## Two addressing schemes
 
-welland has run **VLAN-per-port** since 2026-08-23 (fpgas.online-infra PR #10): a Pi's identity comes from the
+welland has run **VLAN-per-port** since late August 2026 (fpgas.online-infra PR #10, merged 2026-08-24): a Pi's identity comes from the
 switch port it is plugged into. ps1 runs the **legacy MAC table**: a Pi is recognised by its MAC and handed a
 reserved address, so its identity travels with the board rather than the socket.
 

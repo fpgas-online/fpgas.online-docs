@@ -48,8 +48,16 @@ reverts.
 
 ## 3. An unknown device is quarantined
 
-Plug a laptop into a switch port that is not one of the access ports (not a trunk port), and watch the leases
-on the gateway:
+Use a port outside the access range that nothing else uses (`host_vars/fpgas.online.yml`, fpgas.online-infra
+main, read 2026-10-07):
+
+- switch 1: ports 41 to 45 are outside its access range (1 to 40) and kept for special items; use one with
+  nothing plugged in. Never 46 (tweed's BMC), 47 (the trunk to tweed), 48 (tweed's uplink), 49 and 51
+  (another house switch), or 50 (the trunk to switch 2);
+- switch 2: every port from 1 to 48 is an access port, 51 is its trunk and 52 the house uplink; 49 and 50 are
+  not recorded. There is no free port to use here.
+
+Plug a laptop into that port and watch the leases on the gateway:
 
 ```console
 $ tail -f /var/lib/misc/dnsmasq.leases
@@ -58,6 +66,3 @@ $ tail -f /var/lib/misc/dnsmasq.leases
 A pass is a lease from the quarantine pool, `10.21.0.128` to `10.21.0.150`, with no host name, for one hour
 (`ansible/roles/pxe/templates/ports.conf.j2`, fpgas.online-infra main, read 2026-10-07). The laptop reaches the
 gateway and no Pi.
-
-The access ports are 1 to 40 on switch 1 and 1 to 48 on switch 2 ([Converging the
-switches](network-switches.md)).
