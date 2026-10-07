@@ -47,31 +47,26 @@ digest is a root update ([Updating the NFS root](../netboot/update-root.md)).
 
 ## 2. If the change touches the firewall: preview first
 
-:::{warning}
-**A bad firewall file leaves the gateway with no firewall.** The `firewall` role restarts `nftables.service`
-on every run (`state: restarted` in `roles/firewall/tasks/main.yml`), and Debian's unit stops with
-`nft flush ruleset` (`ExecStop` of `nftables.service` in Debian 13's nftables 1.1.3-1, read 2026-10-07): if the new `/etc/nftables.conf` does not load, the old rules are already gone and the Pi
-network is open. Your SSH session would not tell you, because an empty ruleset blocks nothing.
-:::
+The `firewall` role (`roles/firewall/tasks/main.yml`):
 
-Preview the run and read the rendered firewall file before the real one:
+- writes `/etc/nftables.conf` only if `nft -c -f` accepts it (`validate`), so a file that does not parse stops
+  the converge there and the running rules stay up;
+- keeps `nftables.service` enabled and started, and never restarts it. Debian's unit stops with
+  `nft flush ruleset` (`ExecStop`, Debian 13's nftables 1.1.3-1, read 2026-10-07), so a restart leaves the
+  gateway with no filter and no NAT until the start;
+- when the file changed, reloads the unit straight after writing it (`ExecReload=/usr/sbin/nft -f
+  /etc/nftables.conf`). The template begins with `flush ruleset`, so the flush and the new rules are one atomic
+  `nft -f` transaction. The reload is a task, not a handler, so a later role failing cannot leave the new file
+  unloaded.
+
+A file that parses can still be wrong. Preview the run and read the rendered firewall file before the real one:
 
 ```console
 $ uv run ansible-playbook ansible/site.yml --limit fpgas.online --check --diff \
     -e img_nfsroot_image=ghcr.io/fpgas-online/nfsroot@sha256:<digest>
 ```
 
-The role's notify handler reloads (`state: reloaded`; Debian's unit has `ExecReload=/usr/sbin/nft -f /etc/nftables.conf`,
-nftables 1.1.3-1, read 2026-10-07), and that load is
-atomic: a parse error fails and the running ruleset stays up. It is the converge task `Enable nftables service` that
-restarts the unit (`roles/firewall/tasks/main.yml`, main, read 2026-10-07). SSH surviving tells you nothing: both
-templates accept it unconditionally on the input chain, and an empty ruleset accepts everything.
-
-:::{note}
-Open, in fpgas.online-infra: nothing yet stops a converge with a bad ruleset from flushing the old rules and
-loading nothing (`state: started`, a validation step before the restart, or both). The cause is the `firewall`
-role's `state: restarted` on `Enable nftables service` (still present on main, read 2026-10-07).
-:::
+SSH surviving tells you nothing: both templates accept it unconditionally on the input chain.
 
 ## 3. Deploy: the whole playbook
 
@@ -113,10 +108,30 @@ $ uv run ansible-playbook ansible/verify-server.yml --limit fpgas.online
 defined, the web tier's, and the NFS root's contents. It fails while an NFS root update lock is held. Compare
 it with step 1: a check that failed before will fail again.
 
-`verify-pi.yml` checks the running Pis, named by address (`-i 10.21.2.33, -e verify_pi_hosts=all`; the
-inventory lists none, and a run that selects no Pi, `--limit fpgas.online` for example, fails). It needs a
-route to the Pi network, `10.21.0.0/16`, which only the gateway has: `ansible/ssh.cfg` sets no jump, so run it
-where that network is routed, or add a `ProxyJump` through the gateway to your own SSH configuration.
+`verify-pi.yml` checks the running Pis, named by address. The site inventory lists none, so give the
+addresses as a second inventory, select them, and name the gateway they boot from:
+
+```console
+$ uv run ansible-playbook ansible/verify-pi.yml -i ansible/inventory -i 10.21.2.33,10.21.1.17, \
+    -e verify_pi_hosts='10.21.*' -e verify_pi_via=fpgas.online
+```
+
+- Run it from the repository's root: ansible's ssh settings are `-F ansible/ssh.cfg`, a relative path.
+- `-i ansible/inventory` loads the gateways. The fleet registration, the pi password, the Orange Pi rows and
+  the jump account's hop are checked against the gateway's own settings.
+- `-e verify_pi_via=fpgas.online` names that gateway (ps1's is `ps1.fpgas.online`). It also reaches each Pi
+  through it, as the `ansible` account with the automation key: the Pi network, `10.21.0.0/16`, is routed only
+  on the gateway. The hop to the gateway uses the gateway's own inventory settings: welland's log in as
+  `ansible`; ps1's inventory sets no `ansible_user`, so that hop logs in as your own user name.
+- The run fails before connecting:
+  - with no gateway in the inventory;
+  - with two gateways and none named;
+  - when `ansible_ssh_common_args` ends in an option with no value. A `-e 'ansible_ssh_common_args=-o ProxyJump=…'`
+    without inner quotes is parsed as key=value pairs and leaves a bare `-o`, which kills ansible's worker
+    ("A worker was found in a dead state"); `verify_pi_via` replaces it.
+- A run that selects no Pi, `--limit fpgas.online` for example, fails too.
+
+The VM test runs `verify-pi.yml` this way as well, through its virtual gateway (`tests/vm/run_tests.py`).
 
 `verify-server.yml` has three plays, one per group. The `nbp` play runs each server role's own `verify/` tasks
 (`apt_client`, `automation_user`, `operators`, `jump`, `sshd`, `lldp`, `firewall`, `nfs`, `img`, `fixpi`, `nspawn_pi`,
