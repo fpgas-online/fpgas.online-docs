@@ -6,6 +6,8 @@ follow one of the design's eight inputs or eight outputs from the FPGA pin to th
 Where the text below says `tt-fpga-cables.md`, that is [which cable goes where](cables.md); where it says
 `tt-fpga-sources.md`, that is the [sources page](sources.md).
 
+The RP2350 GPIO numbers on this page follow Tiny Tapeout's specification for the version 3 demo board, as [Tiny Tapeout PMOD layouts](../../pmod/tinytapeout.md#rp2350-gpio-mapping-demo-board-v3-tt09) gives it.
+
 ## The INPUT and OUTPUT headers
 
 ```{include} ../generated/tt-fpga-pins-ui-uo.md

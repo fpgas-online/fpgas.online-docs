@@ -28,11 +28,13 @@ pages:
 ```{toctree}
 :maxdepth: 1
 
-overview/device-info
-overview/variants
-overview/functionality
-overview/resources
+Device info: what is on the board <overview/device-info>
+Variants: demo board version 3 against 2, the FPGA against a chip <overview/variants>
+Functionality: the signals, the serial port, loading a design <overview/functionality>
+Resources and links <overview/resources>
 ```
+
+**Load a bitstream by hand:** [functionality, by hand](overview/functionality.md#by-hand).
 
 ## Wiring Overview
 
@@ -42,11 +44,11 @@ group, and where each fact comes from:
 ```{toctree}
 :maxdepth: 1
 
-wiring/cables
-wiring/pins-ui-uo
-wiring/pins-uio-uart
-wiring/pins-other
-wiring/sources
+Which cable goes where <wiring/cables>
+ui_in and uo_out, wire by wire <wiring/pins-ui-uo>
+uio and the serial port <wiring/pins-uio-uart>
+The loading pins, display, clock, reset and LED <wiring/pins-other>
+Sources of the wiring facts <wiring/sources>
 ```
 
 ## Building Guide
@@ -57,23 +59,24 @@ Putting a demo board on a Raspberry Pi with a Pmod HAT: parts, fitting, and chec
 :maxdepth: 2
 :titlesonly:
 
-building/index
+Building overview <building/index>
 ```
 
 ## Test Designs
 
 The designs loaded into the FPGA, one page for each, then what the public site loads and the demo board's
-own firmware:
+own firmware. Running the whole check, which loads the pin-ID and UART designs itself, is [verifying
+1](building/verifying-1.md) of the building guide.
 
 ```{toctree}
 :maxdepth: 1
 
-designs/pmod-pin-id
-designs/pmod-loopback
-designs/uart
-designs/spi-flash-id
-designs/demos
-designs/firmware
+Pmod pin ID <designs/pmod-pin-id>
+Pmod loopback <designs/pmod-loopback>
+UART <designs/uart>
+Running the tests from a workstation <designs/from-a-workstation>
+What the public site loads <designs/demos>
+Firmware and known workarounds <designs/firmware>
 ```
 
 ## Installations
@@ -84,9 +87,11 @@ still needs:
 ```{toctree}
 :maxdepth: 1
 
-installations/welland
-installations/ps1
+At welland <installations/welland>
+At ps1 <installations/ps1>
 ```
 
+:::{note}
 This board's page used to be one page, [at its old address](../tt-fpga.md): each of its headings is listed
 there with the page that holds it now.
+:::

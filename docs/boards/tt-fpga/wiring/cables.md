@@ -5,6 +5,9 @@ header of the demo board is cabled to which port of the HAT.** Each wire is on t
 one: [`ui_in` and `uo_out`](pins-ui-uo.md), [`uio` and the serial port](pins-uio-uart.md), [the other
 pins](pins-other.md). To fit the cables, follow the [building guide](../building/index.md).
 
+```{include} ../power-off.inc
+```
+
 Where the text below says `tt-fpga-sources.md`, that is the [sources page](sources.md).
 
 ```{include} ../generated/tt-fpga-cables.md

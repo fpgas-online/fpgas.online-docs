@@ -1,7 +1,7 @@
-# Tiny Tapeout FPGA board on a Raspberry Pi: parts
+# Tiny Tapeout FPGA board on a Raspberry Pi: what is known about the parts
 
 **You are about to put a Tiny Tapeout FPGA demo board on a Raspberry Pi with a Pmod HAT and want to know what
-parts that takes.**
+is known and what is not known about the parts it takes. This is not a list to buy from.**
 
 **No bill of materials has been written.** No document of ours holds part numbers, suppliers or quantities
 for this build. The list below is the parts the records name, each with what is and is not recorded about it.
