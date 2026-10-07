@@ -23,7 +23,7 @@ pin-id
 Counts are the test-designs hardware README as read on 2026-09-03; where a site
 page disagrees, the site page is the measured source and wins.
 
-| Board | Docs | [Welland](../sites/welland.md#hosts-and-boards) | [PS1](../sites/ps1-boards.md) | FPGA | Features |
+| Board | Docs | [Welland](../sites/welland-boards.md) | [PS1](../sites/ps1-boards.md) | FPGA | Features |
 |-------|------|---------|-----|------|----------|
 | [Digilent Arty A7-35T](https://digilent.com/shop/arty-a7-artix-7-fpga-development-board/) | [Arty A7](arty-a7.md), [wiring to the Pi](arty-a7.md#wiring-to-the-raspberry-pi) | ×5 | ×8 | Xilinx XC7A35T | DDR3, Ethernet, PMOD, USB&nbsp;JTAG+UART |
 | [Kosagi NeTV2](https://www.crowdsupply.com/alphamax/netv2) (GPIO&nbsp;JTAG) | [Kosagi NeTV2](netv2.md), [JTAG via RPi GPIO](netv2.md#jtag-via-rpi-gpio) | ×5 | — | Xilinx XC7A35T | DDR3, Ethernet, PCIe, HDMI, GPIO&nbsp;JTAG+UART |
@@ -48,7 +48,7 @@ Deployment counts: `×N` = deployed, `(+×N)` = pending deployment, `—` = none
 The Welland TT ASIC and TT FPGA boards are the public boards on
 [tinytapeout.fpgas.online](https://tinytapeout.fpgas.online) and sit on S3300
 ports 3–8 and 33–36 (`pi-sw2-p<port>`); see
-[Welland hosts and boards](../sites/welland.md#hosts-and-boards).
+[Welland hosts and boards](../sites/welland-boards.md).
 
 The Docs column links the board pages rather than the litex-boards platform
 files the source listed; every board page carries its own platform link in its
@@ -85,7 +85,7 @@ page is the measured source.
   Welland. The Welland page records only that S3300 ports 9 and 10 are reserved
   for `tt09` and `tt10` with no Pi behind them, says nothing about TT02 or TT03,
   and names a `tt10` that has no row here — see
-  [Tiny Tapeout ASIC boards](../sites/welland.md#tiny-tapeout-asic-boards).
+  [Tiny Tapeout ASIC boards](../sites/welland-boards.md#tiny-tapeout-asic-boards).
 - **NeTV2 (RPi5 PCIe) at Welland.** Four are pending here. The Welland page has
   no pending PCIe NeTV2 hosts; the only RPi 5 NeTV2 is `rpi5-netv2`, one of two
   development hosts on a separate network that is not part of the fleet — see
