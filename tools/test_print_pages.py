@@ -622,12 +622,12 @@ class FitCode(unittest.TestCase):
         return soup.div
 
     def test_a_listing_that_fits_is_left_alone(self):
-        body = self.fit("x" * p.CODE_CHARS)
+        body = self.fit("x" * p.code_chars(p.BeautifulSoup("<pre></pre>", "html.parser").pre)[0])
         self.assertIsNone(body.pre.get("style"))
         self.assertIsNone(body.find("p"))
 
     def test_a_longer_line_is_printed_smaller_and_not_broken(self):
-        line = "y" * (p.CODE_CHARS + 10)
+        line = "y" * (p.code_chars(p.BeautifulSoup("<pre></pre>", "html.parser").pre)[0] + 10)
         body = self.fit(line)
         self.assertIn("font-size:", body.pre["style"])
         self.assertEqual(body.pre.get_text(), line)
@@ -642,9 +642,32 @@ class FitCode(unittest.TestCase):
         self.assertTrue(all(row.startswith(p.CONTINUED) for row in printed[2:]))
         rebuilt = printed[1] + "".join(row[len(p.CONTINUED):] for row in printed[2:])
         self.assertEqual(rebuilt, line)
-        floor_chars = int(p.CODE_CHARS * p.CODE_SIZE / p.CODE_FLOOR)
+        floor_chars = p.code_chars(p.BeautifulSoup("<pre></pre>", "html.parser").pre)[1]
         self.assertTrue(all(len(row) <= floor_chars for row in printed))
-        self.assertIn("without the arrow", body.find("p", class_="code-note").get_text())
+        self.assertIn("leaving out the arrow and the one space after it", body.find("p", class_="code-note").get_text())
+
+    def test_a_listing_in_lists_and_a_box_has_fewer_characters_and_every_place_fits_at_the_floor(self):
+        top = p.BeautifulSoup("<pre></pre>", "html.parser").pre
+        deep = p.BeautifulSoup('<ul><li><ol><li><div class="admonition"><pre></pre></div></li></ol></li></ul>',
+                               "html.parser").pre
+        self.assertLess(p.code_chars(deep)[0], p.code_chars(top)[0])
+        for block in (top, deep):  # the widths measured in Chrome on A4 (review of PR #50): 497.1 and 443.7 pt
+            chars, floor_chars = p.code_chars(block)
+            room = 497.1 if block is top else 443.7
+            self.assertLessEqual(chars * p.CODE_EM * p.CODE_SIZE, room)
+            self.assertLessEqual(floor_chars * p.CODE_EM * p.CODE_FLOOR, room)
+
+    def test_a_tab_counts_as_the_columns_chrome_gives_it(self):
+        top = p.code_chars(p.BeautifulSoup("<pre></pre>", "html.parser").pre)[0]
+        body = self.fit("\t" * (top // 8 + 1))
+        self.assertIn("font-size:", body.pre["style"])
+
+    def test_a_chapter_fits_its_listings(self):
+        page = PAGE.replace('<article role="main">', '<article role="main"><pre>' + 'z' * 300 + '</pre>', 1)
+        with FakeFetch({URL: (page.encode(), "text/html")}):
+            _, text = p.chapter(3, "boards/acorn/wiring", "0123456789abcdef", "2026-10-05")
+        self.assertIn("code-note", text)
+        self.assertIn(p.CONTINUED.strip(), text)
 
     def test_the_browser_never_wraps_a_listing(self):
         self.assertIn("pre { white-space: pre; overflow-wrap: normal; }", p.CSS)
