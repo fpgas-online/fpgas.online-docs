@@ -6,6 +6,7 @@
 
 How the board is connected on the two Welland hosts, and what has to be true on
 the Pi before a test will pass.
+The loopback test's own requirements are with it, on [the PMOD / GPIO loopback test](loopback.md).
 
 ### Physical form factor
 

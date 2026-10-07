@@ -2,6 +2,10 @@
 
 **You want to run the PMOD / GPIO loopback test between a Fomu and its Raspberry Pi.**
 
+Before it: how the Fomu meets the Pi's GPIO header ([physical form factor](wiring.md#physical-form-factor)),
+and loading the loopback design ([programming](programming.md)) within the bootloader's window ([DFU bootloader
+timeout](wiring.md#dfu-bootloader-timeout)).
+
 ## PMOD / GPIO loopback
 
 The Fomu EVT has two PMOD-style connectors defined in the platform file (see
