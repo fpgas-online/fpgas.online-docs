@@ -18,7 +18,10 @@ and a USB-C cable if one is plugged in), take the card out of its M.2 slot, and 
    guide ([JTAG connector 1](../building/compute-blade/jtag-connector-1.md) and 2).
 2. Otherwise take P1's housing off its header and its plug out of the card's socket P1 too, and check it as
    [JTAG connector 2](../building/compute-blade/jtag-connector-2.md) step 2 does: each plug contact beeps to its
-   cavity and to no other. If it does not, or its housing is not the guide's 2×5, build a new P1 cable.
+   cavity and to no other, and contact 6 (VCC, 3.3 V from the Acorn) beeps to no cavity at all: in the guide's
+   cable its wire is cut off short and insulated ([JTAG connector 1](../building/compute-blade/jtag-connector-1.md)
+   step 4). The bench check cannot catch a wire 6 that sits on one of the header's power pins. If any of this
+   fails, or the housing is not the guide's 2×5, build a new P1 cable.
 3. Run the [bench check](../building/compute-blade/bench-check.md) with the new P2 cable and the P1 cable, kept or
    new, the card still out, as that page says. It is what shows that no housing is turned round.
 4. Then fit both cables and the card as [Fitting](../building/compute-blade/fitting.md) does. Whether P1's TMS
