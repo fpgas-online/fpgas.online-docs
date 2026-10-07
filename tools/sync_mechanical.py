@@ -19,17 +19,23 @@ import urllib.request
 REPO = "fpgas-online/fpgas.online-mechanical"
 DEST = pathlib.Path(__file__).resolve().parent.parent / "docs/_static/mechanical"
 SOURCE = DEST / "SOURCE"
-# (directory in fpgas.online-mechanical, [stems]); each stem comes as -light and -dark, .svg and .png.
+# (directory in fpgas.online-mechanical, {stem: extensions}); each stem comes as -light and -dark.
 DRAWINGS = [
-    ("raspberry_pi_camera/output/docs", ["over-acorn-cle-215-plus-views", "over-acorn-cle-215-plus-sheet"]),
+    ("raspberry_pi_camera/output/docs", {"over-acorn-cle-215-plus-views": ("svg", "png"),
+                                        "over-acorn-cle-215-plus-sheet": ("svg", "png")}),
+    ("tinytapeout/mounting_plate/output/docs", {"tt-generic-mounting-plate-views": ("svg", "png"),
+                                               "tt-generic-mounting-plate-sheet": ("png",)}),
 ]
+# Whole drawings copied as they are (vector, for zooming), where a sheet has no SVG picture.
+DOCUMENTS = ["tinytapeout/mounting_plate/output/tt-generic-mounting-plate.pdf"]
 COMMIT = re.compile(r"^commit: ([0-9a-f]{40})$", re.M)
 
 
 def files():
     """[(path in fpgas.online-mechanical, file name here)] for every drawing."""
-    return [(f"{src}/{stem}-{theme}.{ext}", f"{stem}-{theme}.{ext}")
-            for src, stems in DRAWINGS for stem in stems for theme in ("light", "dark") for ext in ("svg", "png")]
+    out = [(f"{src}/{stem}-{theme}.{ext}", f"{stem}-{theme}.{ext}")
+           for src, stems in DRAWINGS for stem, exts in stems.items() for theme in ("light", "dark") for ext in exts]
+    return out + [(path, path.rsplit("/", 1)[1]) for path in DOCUMENTS]
 
 
 def pinned():

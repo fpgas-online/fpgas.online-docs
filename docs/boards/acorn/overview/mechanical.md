@@ -36,4 +36,4 @@ The whole drawing sheet, with its title block: {download}`light </_static/mechan
 
 Source: the sheet RPICAM-OVER-ACORN in
 [fpgas.online-mechanical](https://github.com/fpgas-online/fpgas.online-mechanical/tree/main/raspberry_pi_camera),
-copied from commit `fd1c69a` (the commit is recorded beside the files in `docs/_static/mechanical/SOURCE`).
+copied from commit `60046f6` (the commit is recorded beside the files in `docs/_static/mechanical/SOURCE`).

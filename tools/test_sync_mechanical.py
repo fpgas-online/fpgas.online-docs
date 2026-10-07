@@ -12,12 +12,13 @@ DOCS = pathlib.Path(__file__).resolve().parent.parent / "docs"
 
 
 class Mechanical(unittest.TestCase):
-    def test_every_drawing_comes_light_and_dark_as_svg_and_png(self):
+    def test_every_drawing_comes_light_and_dark_and_every_picture_as_png(self):
         names = [name for _, name in m.files()]
         self.assertEqual(len(names), len(set(names)))
-        for stem in (s for _, stems in m.DRAWINGS for s in stems):
+        for stem, exts in ((s, e) for _, stems in m.DRAWINGS for s, e in stems.items()):
+            self.assertIn("png", exts)
             for theme in ("light", "dark"):
-                for ext in ("svg", "png"):
+                for ext in exts:
                     self.assertIn(f"{stem}-{theme}.{ext}", names)
 
     def test_the_copies_and_the_pinned_commit_are_here(self):
