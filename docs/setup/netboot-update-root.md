@@ -20,28 +20,39 @@ On the gateway the playbook's `img` role pulls the image and copies its `boot/` 
 `/srv/nfs/rpi/bookworm` with rsync, recording the image's digest in `/srv/nfs/rpi/bookworm/.image-digest`.
 The `fixpi` role then adds what belongs to the site and is never in the image: the `pi` password, the
 `authorized_keys` files and the SSH host keys. Then `nfsroot_generation` bumps a generation number in the
-root if any file changed.
+root if any file changed. (The root used to be built on the gateway through a `piroot` account; the
+`operators` role now deletes that account.)
 
-## 1. Choose the image and pin it
+## 1. Before: record what is there
 
-Take the digest of the image to deploy, from the packages page of the image
-(`https://github.com/orgs/fpgas-online/packages/container/package/nfsroot`) or:
-
-```console
-$ gh api "orgs/fpgas-online/packages/container/nfsroot/versions?per_page=6" \
-    --jq '.[] | "\(.name) \(.metadata.container.tags | join(","))"'
-```
-
-Write down the digest the gateway serves now, so you can go back:
+Write down the digest the gateway serves now, so you can go back, and which Pis are up, with their check
+results, so you can compare after:
 
 ```console
 $ ssh <you>@gw.welland.fpgas.online cat /srv/nfs/rpi/bookworm/.image-digest
+$ # the Pis that answer: the gateway's neighbour entries on the per-port interfaces
+$ ssh <you>@gw.welland.fpgas.online "ip -4 neigh show | grep -E ' dev v2[0-9]+ ' | grep -v FAILED"
 ```
 
-## 2. Run the whole playbook
+Then run `verify-pi.yml` on those addresses (step 5) and keep its output.
 
-From the fpgas.online-infra checkout, on a branch that is `origin/main`. The run is the whole playbook,
-scoped only with `--limit` and `-e`; never `--tags` or `--skip-tags` (issue #157):
+## 2. Choose the image and pin it
+
+Deploy the image the rolling tag `bookworm-armhf` points to: CI has netbooted a virtual Pi from it. The tags
+`ci-<run>` are every CI build, tested or not. List the newest versions with their tags and take the digest of
+the one tagged `bookworm-armhf`:
+
+```console
+$ gh api "orgs/fpgas-online/packages/container/nfsroot/versions?per_page=10" \
+    --jq '.[] | "\(.name) \(.metadata.container.tags | join(","))"' | grep bookworm-armhf
+```
+
+## 3. Run the whole playbook
+
+From the fpgas.online-infra checkout, on a branch that is `origin/main`. `ansible.cfg` supplies the
+inventory (`ansible/inventory`), which names the welland gateway `fpgas.online` and reaches it as
+`gw.welland.fpgas.online` over IPv6. The run is the whole playbook, scoped only with `--limit` and `-e`; never
+`--tags` or `--skip-tags` (issue #157):
 
 ```console
 $ export ANSIBLE_VAULT_PASSWORD_FILE=<your copy of the vault password>
@@ -50,12 +61,12 @@ $ uv run ansible-playbook ansible/site.yml --limit fpgas.online \
 ```
 
 Without `-e img_nfsroot_image=…` the run pulls the rolling tag, which may have moved since you looked. At
-welland on 6 October 2026 such a run took 32 minutes and ended `failed=0`.
+welland on 6 October 2026 a run pinned this way took 32 minutes and ended `failed=0`.
 
 If the run fails part-way, the update lock stays on the root on purpose and no Pi reboots into a half-made
 root; `verify-server.yml` fails while the lock exists. Fix the cause and run the playbook again.
 
-## 3. Every Pi reboots
+## 4. Every Pi reboots
 
 When the root changed, every Pi's `nfsroot-watchdog` sees the new generation and reboots at its own time:
 `420 s + slot × 20 s` after the generation, where the slot comes from its port, `(switch − 1) × 48 +
@@ -69,19 +80,19 @@ and the Orange Pis, left to the watchdog, by 08:57, 36 minutes after the 08:21 s
 To keep one board from rebooting (a JTAG session, say): `sudo nfsroot-watchdog inhibit` on the board, until it
 next reboots or `nfsroot-watchdog release`. `nfsroot-watchdog status` on a board says what it plans.
 
-## 4. Check
+## 5. Check
 
 ```console
 $ uv run ansible-playbook ansible/verify-server.yml --limit fpgas.online
-$ # the Pis by address: the inventory lists none
+$ # the Pis by address, as found in step 1 (the inventory lists none); the trailing comma matters
 $ uv run ansible-playbook ansible/verify-pi.yml -i 10.21.2.33,10.21.2.46, -e verify_pi_hosts=all
 ```
 
 `verify-server.yml` checks the gateway and the root's contents; `verify-pi.yml` checks each running Pi: its
 mounts, address, services, packages, JTAG tools, camera and board. A `verify-pi.yml` run that selects no Pi
-fails rather than passing. Compare with the results from before the update: a board that failed before
-will fail again.
+fails rather than passing. Compare with the results from step 1: a board that failed before will fail again.
 
 ## To go back
 
-Run step 2 again with the digest you wrote down in step 1. The Pis reboot onto it the same way.
+Run step 3 again with the digest you wrote down in step 1; the Pis reboot onto it the same way. This has
+not been done at welland yet: every update so far went forward.

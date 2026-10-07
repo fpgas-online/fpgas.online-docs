@@ -1,14 +1,15 @@
 # Netboot and the NFS root
 
-**You want to know how a fleet Pi gets its kernel and its root filesystem from the gateway, so that you can
-reason about a boot problem or a change to the root.** To put a new root on a gateway, or to find out why a Pi
-does not boot, go to the pages listed under [The tasks](#the-tasks).
+**You operate the fleet and want to know how a Pi gets its kernel and its root filesystem from the gateway,
+so that you can reason about a boot problem or a change to the root.** To put a new root on a gateway, or to
+find out why a Pi does not boot, go to the pages listed under [The tasks](#the-tasks).
 
-A fleet Pi has no SD card and no local storage. Its boot ROM asks for DHCP, fetches its firmware and kernel
-over TFTP, and mounts one shared, read-only NFS root from the site's gateway, with a tmpfs on top that is
-thrown away at every reboot. This page describes what fpgas.online-infra builds (main, read 2026-10-07). ps1's
-gateway was not built by it as it stands: [The ps1 gateway and switch](../sites/ps1-gateway.md) has what was
-read there.
+A fleet Pi boots from the network, not from an SD card. (The one exception at welland is the Orange Pis' hub
+host, `pi-sw2-p30`, which boots its own card: [Orange Pi H3 hosts](orange-pi.md).) Its boot ROM asks for DHCP,
+fetches its firmware and kernel over TFTP, and mounts one shared, read-only NFS root from the site's gateway,
+with a tmpfs on top that is thrown away at every reboot. This page describes what fpgas.online-infra builds
+(main, read 2026-10-07). ps1's gateway was not built by it as it stands: [The ps1 gateway and
+switch](../sites/ps1-gateway.md) has what was read there.
 
 ## The tasks
 
@@ -19,12 +20,13 @@ read there.
 - [How the root is built](netboot-update-root.md#how-the-root-is-built): CI builds it, the gateway pulls it.
 
 (the-provisioning-container)=
-- [The provisioning container](netboot-update-root.md#how-the-root-is-built): the same.
+- [The provisioning container](netboot-update-root.md#how-the-root-is-built): gone. The root used to be built
+  on the gateway through a `piroot` account; it is now built in CI, and that account is deleted.
 
 (when-a-pi-does-not-boot)=
-- [When a Pi does not boot](netboot-not-booting.md).
+- [When a Pi does not boot](netboot-not-booting.md): where its boot stops.
 
-- [EEPROM write protect](#eeprom-write-protect): the lock the served `config.txt` sets.
+- [EEPROM write protect](#eeprom-write-protect), below: the lock the served `config.txt` sets.
 
 ```{toctree}
 :hidden:
@@ -46,7 +48,7 @@ When a Pi does not boot <netboot-not-booting>
 5. Everything the Pi runs is already in that root; nothing is installed at boot.
 
 dnsmasq also names the gateway as the NTP server: the Pis have no route to the internet, and without it their
-clocks stay on the `fake-hwclock` date (found at the welland gateway's rebuild of 2026-08-25).
+clocks stay on the `fake-hwclock` date (`roles/pxe`; found at the welland gateway's rebuild of 2026-08-25).
 
 ## Where TFTP serves from
 
@@ -57,8 +59,9 @@ tftp_root: "{{ (nfs_root ~ '/boot') if switches is defined else '/srv/tftp' }}"
 ```
 
 At welland (`switches` defined) dnsmasq serves the root's own `boot/` directly. A Pi 4 or 5 asks for
-`<serial>/<file>` first and, when that is not there, asks again without the prefix, so no Pi is registered by
-serial number: plug it into its port and it boots.
+`<serial>/<file>` first and, when that is not there, asks again without the prefix (Raspberry Pi's bootloader
+setting `TFTP_PREFIX`, as that file's comment quotes it), so no Pi is registered by serial number: plug it into
+its port and it boots.
 
 On a MAC-table gateway, `/srv/tftp` holds one link per Pi serial number pointing at the root's `boot/`
 (`roles/fixpi/tasks/netboot.yml`); adding a Pi means adding its entry to `switch.nos` in the gateway's
@@ -66,27 +69,35 @@ On a MAC-table gateway, `/srv/tftp` holds one link per Pi serial number pointing
 
 ## The kernel command line
 
-`roles/fixpi/templates/boot/cmdline.txt.j2`, as served to every Pi but a Pi 5:
+`roles/fixpi/templates/boot/cmdline.txt.j2`, as served to every Pi but a Pi 5, at welland
+(`nfs_root` is `/srv/nfs/rpi/bookworm`). It is one line; here it is split at each setting:
 
 ```text
-root=/dev/nfs nfsroot=10.21.0.1:{{ nfs_root }}/root,nfsvers=3,tcp ro ip=dhcp rootwait consoleblank=0 netconsole=@/,@10.21.0.1/ overlayroot=tmpfs console=tty1 systemd.log_level=debug systemd.log_target=kmsg log_buf_len=1M printk.devkmsg=on
+root=/dev/nfs
+nfsroot=10.21.0.1:/srv/nfs/rpi/bookworm/root,nfsvers=3,tcp ro
+ip=dhcp rootwait consoleblank=0
+netconsole=@/,@10.21.0.1/
+overlayroot=tmpfs
+console=tty1
+systemd.log_level=debug systemd.log_target=kmsg log_buf_len=1M printk.devkmsg=on
 ```
 
 `nfsvers=3,tcp`
-: welland's gateway runs Debian 13, whose NFS server serves version 3 over TCP only, while the initramfs's
-  mount tool defaults to UDP; without it the mount hangs in the initramfs (found on real hardware at the
-  rebuild of 2026-08-25; the CI VM did not show it).
+: The welland gateway's NFS server (Debian 13) serves version 3 over TCP only, while the initramfs's mount
+  tool defaults to UDP; without `tcp` the root mount hangs. Found on real hardware at the gateway's rebuild of
+  2026-08-25 (entry C1-3c of `docs/rebuilds/2026-08-25-tweed-rebuild.md` in fpgas.online-infra); the CI VM
+  did not show it.
 
 `overlayroot=tmpfs`
 : the writable layer ([below](#the-nfs-root-is-shared-and-read-only)).
 
 `console=tty1`
-: the kernel console is on the screen, not on a serial port. On a Pi 3B+ the serial pins are the ones a NeTV2's
-  FPGA drives, and bytes from it must not reach a console; the root also sets `kernel.sysrq = 0`
-  (`roles/fixpi/tasks/netboot.yml`).
+: the kernel console is on the screen, not on a serial port, so bytes that an FPGA board sends on the Pi's
+  serial pins never reach a console. The root also sets `kernel.sysrq = 0` (`roles/fixpi/tasks/netboot.yml`,
+  "FPGA serial must not trigger SysRq").
 
-A Pi 5 boots `cmdline-pi5.txt` instead: the same line with `console=ttyAMA10,115200`, the Pi 5's own debug UART.
-`roles/fixpi/tasks/tweeks.yml` adds to the served `config.txt`:
+A Pi 5 boots `cmdline-pi5.txt` instead: the same line with `console=ttyAMA10,115200`, the Pi 5's own debug
+UART. `roles/fixpi/tasks/tweeks.yml` adds to the served `config.txt`:
 
 ```text
 [pi5]
@@ -112,9 +123,6 @@ including anything copied to `/home/pi`. A bitstream that loaded a minute ago fa
 because the file is not there any more: openFPGALoader prints `Open file … FAIL`. Copy it again.
 :::
 
-Test automation that power-cycles a Pi (fpgas.online-test-designs' hardware tests) uploads its files again
-afterwards for the same reason.
-
 A Pi that booted before the root was replaced keeps file handles into the old files: every replaced file
 answers `Stale file handle` (`ESTALE`). That broke `dpkg-query`, and, since `authorized_keys` was among the
 replaced files, key-based SSH, on every board at once (measured on `pi-sw2-p33` at welland on 2026-09-24;
@@ -123,36 +131,23 @@ root](netboot-update-root.md) is how that happens.
 
 ## EEPROM write protect
 
-The fleet Pis netboot from a read-only NFS root with a tmpfs overlay: everything
-a user changes is reverted on reboot, and root access is deliberately available.
-The bootloader EEPROM — the SPI flash holding the second-stage bootloader and its
-config, `BOOT_ORDER`, `NET_INSTALL_*` and so on — is the **one piece of per-board
-state that does not live in the NFS root and therefore does not revert**. Without
-protection, a user with root can run `rpi-eeprom-update`, `rpi-eeprom-config` or
-`flashrom` and leave a persistent change to how the board boots. It is the only
-persistent-tampering surface on an otherwise ephemeral device, so it is locked.
+Everything a user changes on a fleet Pi's root is gone at the next reboot, but not the bootloader EEPROM: the
+flash holding the Pi's second-stage bootloader and its settings (`BOOT_ORDER` and the rest). A user with root
+could rewrite it with `rpi-eeprom-update`, `rpi-eeprom-config` or `flashrom` and change how the board boots
+for good. (A board's own flash, an Acorn's for example, is a separate matter, on its board's pages.) So the
+served `config.txt` carries `eeprom_write_protect=1` (`roles/fixpi/tasks/tweeks.yml`), which tells the
+bootloader to set the flash's Write Status Register to protect the whole chip, at every boot.
 
-The `fixpi` role (`tasks/tweeks.yml`) adds `eeprom_write_protect=1` to the served `config.txt`. That
-tells the bootloader to configure the SPI flash **Write Status Register** to
-protect the entire device. Because `config.txt` comes from the read-only TFTP
-root, it is re-applied on every boot.
+How much that protects depends on the model (the role's own comment, and Raspberry Pi's `config.txt`
+documentation, section `eeprom_write_protect`):
 
-From the official `config.txt` documentation:
+- **Raspberry Pi 5:** the flash's `/WP` pin is pulled low by default, so the register setting is enforced by
+  the hardware; clearing it needs the `TP14` and `TP1` pads joined.
+- **Raspberry Pi 4:** `/WP` (`TP5`) is not pulled low by default, so the setting stops the standard tools,
+  but a root user could clear the register; pulling `TP5` low makes it a hardware lock.
+- **Compute Module 4 or 5:** `/WP` is the module's `EEPROM_nWP` pin, and what it is tied to depends on the
+  carrier board.
 
-> This option must be used in conjunction with the EEPROM `/WP` pin which
-> controls updates to the EEPROM `Write Status Register`. Pulling `/WP` low
-> (CM4 `EEPROM_nWP` or on a Raspberry Pi 4 `TP5`) does NOT write-protect the
-> EEPROM unless the `Write Status Register` has also been configured.
->
-> [...]
->
-> On Raspberry Pi 5 `/WP` is pulled low by default and consequently
-> write-protect is enabled as soon as the `Write Status Register` is configured.
-> To clear write-protect pull `/WP` high by connecting `TP14` and `TP1`.
-
-Values: `1` = protect entire EEPROM, `0` = clear protection, `-1` = do nothing
-(default).
-
-What each model's lock does, how to check it and how to upgrade a locked board are on the bootloader EEPROM
-pages: [a Raspberry Pi 5](bootloader-eeprom-pi5.md), [a Compute Module](bootloader-eeprom-compute-module.md),
-and [what was measured](bootloader-eeprom.md).
+Values: `1` protects the whole flash, `0` clears the protection, `-1` (the default) does nothing. How to check
+a board and how to upgrade a locked one: [a Raspberry Pi 5](bootloader-eeprom-pi5.md), [a Compute
+Module](bootloader-eeprom-compute-module.md), and [what was measured](bootloader-eeprom.md).
