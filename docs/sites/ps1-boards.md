@@ -26,23 +26,21 @@ hardware on site.
 
 The hosts, MACs, models, serials and adapters are the site notes' (their copy of the gateway's `pibs.conf`,
 undated); fpgas.online has not probed these hosts. The last column is the gateway read of 6 October 2026 ([The
-ps1 gateway and switch](ps1-gateway.md#gateway-val2)): a lease, or an answer to the gateway's ARP. On
+ps1 gateway and switch](ps1-gateway.md#gateway-val2)): a lease, or an answer to the gateway's ARP (pi3's
+neighbour entry was stale). On
 7 October 2026 ps1.fpgas.online listed board pages for pi2, pi3, pi5, pi7, pi9, pi11, pi13, pi21 and pi23
 (`https://ps1.fpgas.online/fpgas/`); pi23 is on no table here, and pi17 has no page.
 
-```{rst-class} nowrap
-```
-
-| Host | Port | Address | Pi MAC | Pi model | Arty serial | USB Ethernet | Seen by the gateway, 2026-10-06 |
+| Host | Port | Address | Pi MAC | Pi model | Arty serial | USB Ethernet | Seen 2026-10-06 |
 |---|---|---|---|---|---|---|---|
 | [pi2](https://ps1.fpgas.online/fpgas/pi2.html) | e2 | 10.21.0.102 | b8:27:eb:2f:5d:08 | 3B Rev 1.2 | 210319B301E0 | Apple A1277 (MAC not recorded) | no |
-| [pi3](https://ps1.fpgas.online/fpgas/pi3.html) | e3 | 10.21.0.103 | dc:a6:32:05:32:45 | 4B Rev 1.1 | 210319A43AD3 | ASIX AX88179 (00:05:1b:b0:47:9d) | lease only (neighbour entry stale) |
+| [pi3](https://ps1.fpgas.online/fpgas/pi3.html) | e3 | 10.21.0.103 | dc:a6:32:05:32:45 | 4B Rev 1.1 | 210319A43AD3 | ASIX AX88179 (00:05:1b:b0:47:9d) | lease only |
 | [pi5](https://ps1.fpgas.online/fpgas/pi5.html) | e5 | 10.21.0.105 | b8:27:eb:d4:f1:74 | 3B Rev 1.2 | 210319B58381 | ASIX AX88179 (f8:e4:3b:a6:a8:62) | no |
 | [pi7](https://ps1.fpgas.online/fpgas/pi7.html) | e7 | 10.21.0.107 | b8:27:eb:33:51:27 | 3B+ Rev 1.3 | 210319A764F5 | ASIX AX88179 (00:05:1b:b0:46:51) | no |
 | [pi9](https://ps1.fpgas.online/fpgas/pi9.html) | e9 | 10.21.0.109 | b8:27:eb:a3:51:b4 | 3B+ Rev 1.3 | 210319B58379 | ASIX AX88179 (f8:e4:3b:a0:55:af) | no |
 | [pi11](https://ps1.fpgas.online/fpgas/pi11.html) | e11 | 10.21.0.111 | b8:27:eb:51:01:df | 3B Rev 1.2 | 210319B5835B | ASIX AX88179 (f8:e4:3b:a6:c6:a9) | no |
 | [pi13](https://ps1.fpgas.online/fpgas/pi13.html) | e13 | 10.21.0.113 | b8:27:eb:68:fc:e7 | 3B Rev 1.2 | 210319B3E5C3 | ASIX AX88179 (f8:e4:3b:a6:cf:b1) | no |
-| pi17 | e17 | 10.21.0.117 | b8:27:eb:5f:de:85 | 3B Rev 1.2 | 210319B58370 | ASIX AX88179 (f8:e4:3b:a6:c6:10) | no; not in the gateway's `pibs.conf` |
+| pi17 | e17 | 10.21.0.117 | b8:27:eb:5f:de:85 | 3B Rev 1.2 | 210319B58370 | ASIX AX88179 (f8:e4:3b:a6:c6:10) | no; not in `pibs.conf` |
 
 Every Arty connects through its FTDI FT2232 (`0403:6010`): `/dev/ttyUSB0` for JTAG and `/dev/ttyUSB1` for the
 115200-baud console; a second USB Ethernet adapter on each Pi is wired to the Arty's own Ethernet port
