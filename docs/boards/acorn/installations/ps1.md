@@ -81,6 +81,11 @@ blade](ps1-reads.md#the-cards-as-read).
 
 ## What each blade still needs
 
+**The check on the two Compute Module 4 blades (pi14 at ps1 and pi18 at ps1) has not been run by us**: it
+was run as written only on pi16 at ps1 and pi20 at ps1, both Compute Module 5 (7 October 2026). `vcgencmd`
+hung for good on the two CM4 blades that day. Until the check has been tried on a CM4 blade, make, check
+and fit pi14 at ps1's cables, and run the check on the two CM5 blades only.
+
 **What to build.** P2: four new cables by the guide, one for each blade; pi20 at ps1's present serial wiring
 is taken off (below). P1: one new cable for pi18 at ps1, certainly. On pi14 at ps1 and pi16 at ps1 TCK reads
 as if no P1 cable were mated (a cable may be fitted and loose, or not fitted at all): reseat a fitted one
@@ -160,7 +165,9 @@ missing resistor does not survive is a design that drives J2, such as pin-ID.
 ## Labels
 
 Each host and each card gets a label with what identifies it, made by
-`fpgas-verify` from a read of the hardware itself. Run on the blade, once the packages are installed there
+`fpgas-verify` from a read of the hardware itself. **Not on pi14 at ps1 or pi18 at ps1:** the label read asks
+the firmware (`vcgencmd`), which hung for good on those two Compute Module 4 blades on 7 October 2026. On
+pi16 at ps1 or pi20 at ps1, once the packages are installed there
 ([verifying 1](../building/compute-blade/verifying-1.md)):
 
 ```console
