@@ -45,7 +45,9 @@ neighbour entry was stale). On
 Every Arty connects through its FTDI FT2232 (`0403:6010`): `/dev/ttyUSB0` for JTAG and `/dev/ttyUSB1` for the
 115200-baud console; a second USB Ethernet adapter on each Pi is wired to the Arty's own Ethernet port
 ([Arty A7](../boards/arty-a7.md)). The public pages carry live camera feeds of the Arty boards' LEDs (site
-notes; `pi3.html` has its feed, read 7 October 2026). Which Pi holds which camera is not recorded.
+notes; `pi3.html` has its feed, read 7 October 2026). Which Pi holds which camera is not recorded. The earlier docs page
+said the Arty hosts are the ones with cameras and that no Compute Blade has one (not re-checked); on a Pi,
+`systemctl status fpgas-cam` says whether it streams ([The camera on a Pi host](https://github.com/fpgas-online/fpgas.online-cam/blob/main/docs/camera.md)).
 
 **Known wrong with an Arty host:**
 
