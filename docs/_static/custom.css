@@ -65,10 +65,9 @@ article[role=main] table.docutils th {
 }
 
 /* -- Pictures --------------------------------------------------------------
-   A drawing is made for a light sheet: dark lines and words. One that has no
-   background of its own would lose them on the dark theme, so every picture
-   in a page stands on a light panel in both themes. A picture that brings
-   its own paper colour is unchanged by this. */
-article[role=main] img {
-  background-color: #faf9f5;
-}
+   No panel behind pictures. Every drawing brings its own paper and comes in
+   two: the light one (class only-light) and a dark twin on the dark theme's
+   background (only-dark), and the theme shows the one for its mode. A light
+   panel behind a picture would only ever show through a transparent one,
+   and on the dark theme that is exactly what it must not do (Tim, 7 Oct
+   2026: "Giant white diagrams on a dark-mode site is bad"). */

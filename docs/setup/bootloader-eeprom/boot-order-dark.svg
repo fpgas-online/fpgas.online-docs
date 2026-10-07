@@ -1,0 +1,37 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 950 530" width="950" height="530" font-family="DejaVu Sans, Arial, sans-serif">
+<rect width="950" height="530" fill="#131416"/>
+<text x="20" y="36" font-size="26" font-weight="bold" fill="#e3e6ea" text-anchor="start">Reading BOOT_ORDER: start at the LAST digit and go left</text>
+<text x="20" y="92" font-size="21" font-weight="bold" fill="#e3e6ea" text-anchor="start">0xf2: the fleet's Pi 5 setting. Network only.</text>
+<rect x="20" y="106" width="174" height="84" rx="8" fill="#15301b" stroke="#e3e6ea" stroke-width="2"/>
+<text x="107" y="142" font-size="30" font-weight="bold" fill="#e3e6ea" text-anchor="middle" font-family="DejaVu Sans Mono, monospace">f</text>
+<text x="107" y="174" font-size="17" font-weight="normal" fill="#e3e6ea" text-anchor="middle">start again: then</text>
+<rect x="204" y="106" width="174" height="84" rx="8" fill="#15301b" stroke="#e3e6ea" stroke-width="2"/>
+<text x="291" y="142" font-size="30" font-weight="bold" fill="#e3e6ea" text-anchor="middle" font-family="DejaVu Sans Mono, monospace">2</text>
+<text x="291" y="174" font-size="17" font-weight="normal" fill="#e3e6ea" text-anchor="middle">network: tried 1st</text>
+<text x="20" y="242" font-size="21" font-weight="bold" fill="#e3e6ea" text-anchor="start">0xf12: network, then an SD card. Not the fleet's.</text>
+<rect x="20" y="256" width="174" height="84" rx="8" fill="#3d1c1c" stroke="#e3e6ea" stroke-width="2"/>
+<text x="107" y="292" font-size="30" font-weight="bold" fill="#e3e6ea" text-anchor="middle" font-family="DejaVu Sans Mono, monospace">f</text>
+<text x="107" y="324" font-size="17" font-weight="normal" fill="#e3e6ea" text-anchor="middle">start again: then</text>
+<rect x="204" y="256" width="174" height="84" rx="8" fill="#3d1c1c" stroke="#e3e6ea" stroke-width="2"/>
+<text x="291" y="292" font-size="30" font-weight="bold" fill="#e3e6ea" text-anchor="middle" font-family="DejaVu Sans Mono, monospace">1</text>
+<text x="291" y="324" font-size="17" font-weight="normal" fill="#e3e6ea" text-anchor="middle">SD card: tried 2nd</text>
+<rect x="388" y="256" width="174" height="84" rx="8" fill="#3d1c1c" stroke="#e3e6ea" stroke-width="2"/>
+<text x="475" y="292" font-size="30" font-weight="bold" fill="#e3e6ea" text-anchor="middle" font-family="DejaVu Sans Mono, monospace">2</text>
+<text x="475" y="324" font-size="17" font-weight="normal" fill="#e3e6ea" text-anchor="middle">network: tried 1st</text>
+<text x="20" y="392" font-size="21" font-weight="bold" fill="#e3e6ea" text-anchor="start">0xf2461: SD card, NVMe, USB, then network. Not the fleet's.</text>
+<rect x="20" y="406" width="174" height="84" rx="8" fill="#3d1c1c" stroke="#e3e6ea" stroke-width="2"/>
+<text x="107" y="442" font-size="30" font-weight="bold" fill="#e3e6ea" text-anchor="middle" font-family="DejaVu Sans Mono, monospace">f</text>
+<text x="107" y="474" font-size="17" font-weight="normal" fill="#e3e6ea" text-anchor="middle">start again: then</text>
+<rect x="204" y="406" width="174" height="84" rx="8" fill="#3d1c1c" stroke="#e3e6ea" stroke-width="2"/>
+<text x="291" y="442" font-size="30" font-weight="bold" fill="#e3e6ea" text-anchor="middle" font-family="DejaVu Sans Mono, monospace">2</text>
+<text x="291" y="474" font-size="17" font-weight="normal" fill="#e3e6ea" text-anchor="middle">network: tried 4th</text>
+<rect x="388" y="406" width="174" height="84" rx="8" fill="#3d1c1c" stroke="#e3e6ea" stroke-width="2"/>
+<text x="475" y="442" font-size="30" font-weight="bold" fill="#e3e6ea" text-anchor="middle" font-family="DejaVu Sans Mono, monospace">4</text>
+<text x="475" y="474" font-size="17" font-weight="normal" fill="#e3e6ea" text-anchor="middle">USB: tried 3rd</text>
+<rect x="572" y="406" width="174" height="84" rx="8" fill="#3d1c1c" stroke="#e3e6ea" stroke-width="2"/>
+<text x="659" y="442" font-size="30" font-weight="bold" fill="#e3e6ea" text-anchor="middle" font-family="DejaVu Sans Mono, monospace">6</text>
+<text x="659" y="474" font-size="17" font-weight="normal" fill="#e3e6ea" text-anchor="middle">NVMe: tried 2nd</text>
+<rect x="756" y="406" width="174" height="84" rx="8" fill="#3d1c1c" stroke="#e3e6ea" stroke-width="2"/>
+<text x="843" y="442" font-size="30" font-weight="bold" fill="#e3e6ea" text-anchor="middle" font-family="DejaVu Sans Mono, monospace">1</text>
+<text x="843" y="474" font-size="17" font-weight="normal" fill="#e3e6ea" text-anchor="middle">SD card: tried 1st</text>
+</svg>

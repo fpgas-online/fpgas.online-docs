@@ -71,6 +71,40 @@ class Article(unittest.TestCase):
         with self.assertRaises(SystemExit):
             p.article("<html><body><p>404</p></body></html>", URL)
 
+    # A picture drawn for each theme, as the site builds it: the light one, then its dark twin.
+    TWINS = (
+        '<p><img alt="Fitting" class="only-light" src="../_images/fit.png" />\n'
+        '<img alt="Fitting" class="only-dark" src="../_images/fit-dark.png" /></p>'
+        '<p><a class="only-light reference download internal" download="" href="../_downloads/1/sheet.svg">'
+        '<span class="xref download myst"><img alt="Sheet" src="../_images/sheet.png" />'
+        '</span></a>\n<a class="only-dark reference download internal" download="" href="../_downloads/2/sheet-dark.svg">'
+        '<span class="xref download myst"><img alt="Sheet" src="../_images/sheet-dark.png" />'
+        "</span></a></p>"
+        '<figure class="only-light align-default" id="id1"><img alt="Pads" src="../_images/pads.jpg" />'
+        '<figcaption><p>Photo: <a href="https://example.org/photo">source</a></p></figcaption></figure>'
+        '<figure class="only-dark align-default" id="id2"><img alt="Pads" src="../_images/pads-dark.jpg" />'
+        '<figcaption><p>Photo: <a href="https://example.org/photo">source</a></p></figcaption></figure>'
+    )
+
+    def test_only_the_light_picture_of_a_theme_pair_is_printed(self):
+        article = p.article(PAGE.replace("<p>parts</p>", self.TWINS), URL)
+        sources = [img["src"] for img in article.find_all("img")]
+        self.assertEqual(sources, ["../_images/fit.png", "../_images/sheet.png", "../_images/pads.jpg"])
+        self.assertEqual(len(article.find_all("figcaption")), 1)  # the dark figure goes with its caption
+        self.assertEqual(article.select(".only-dark"), [])
+
+    def test_the_link_that_held_only_the_dark_picture_goes_too(self):
+        article = p.article(PAGE.replace("<p>parts</p>", self.TWINS), URL)
+        self.assertEqual([a["href"] for a in article.select("a.download")], ["../_downloads/1/sheet.svg"])
+
+    def test_a_dark_picture_in_a_link_with_words_leaves_the_words(self):
+        page = PAGE.replace(
+            "<p>parts</p>", '<p><a href="x.svg">the sheet <img class="only-dark" src="x-dark.png" /></a></p>'
+        )
+        article = p.article(page, URL)
+        self.assertEqual(article.find("a", href="x.svg").get_text(strip=True), "the sheet")
+        self.assertIsNone(article.find("img"))
+
 
 class KeepSections(unittest.TestCase):
     def kept(self, wanted):
