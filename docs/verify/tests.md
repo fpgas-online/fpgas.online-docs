@@ -13,16 +13,16 @@ Every fpgas-verify page is listed in [fpgas-verify](fpgas-verify.md).
 
 Each test checks its bitstream's sha256 against the `-bitstreams` package's manifest (a damaged file is an
 `error`, never loaded), loads it, runs its host script, and passes when the script exits 0
-([`testbench.py`](https://github.com/fpgas-online/fpgas.online-test-designs/blob/verify-split/verify/src/fpgas_online_verify/testbench.py)).
+([`testbench.py`](https://github.com/fpgas-online/fpgas.online-test-designs/blob/main/verify/src/fpgas_online_verify/testbench.py)).
 
 | Test | Host script | Passes when |
 |---|---|---|
-| `uart` | [`test_uart.py`](https://github.com/fpgas-online/fpgas.online-test-designs/blob/verify-split/designs/uart/host/test_uart.py) | the LiteX BIOS banner arrives (Arty only) and printable ASCII echoes back |
-| `ddr` | [`test_ddr.py`](https://github.com/fpgas-online/fpgas.online-test-designs/blob/verify-split/designs/ddr-memory/host/test_ddr.py) | the BIOS reports DRAM calibration and `Memtest OK` |
-| `spiflash` | [`test_spiflash.py`](https://github.com/fpgas-online/fpgas.online-test-designs/blob/verify-split/designs/spi-flash-id/host/test_spiflash.py) | the design reads the flash's JEDEC ID and prints `SPI_FLASH_TEST: PASS` |
-| `ethernet` | [`test_ethernet.py`](https://github.com/fpgas-online/fpgas.online-test-designs/blob/verify-split/designs/ethernet-test/host/test_ethernet.py) | the design answers ARP and ping through the Pi's USB Ethernet adapter (192.168.1.100/24 on that adapter only) |
-| `pin-id` | [`identify_pmod_pins.py`](https://github.com/fpgas-online/fpgas.online-test-designs/blob/verify-split/designs/pmod-pin-id/host/identify_pmod_pins.py) | each Pmod HAT GPIO the test covers receives the FPGA ball name the expected cabling puts there. TT FPGA: all 24 signal wires of the three ribbons, each on its own (the six that share three Pi pins send in turns). Arty: 18 of 24 (not the six on the shared pins). The test's last lines say which |
-| `pmod` | [`test_pmod_loopback.py`](https://github.com/fpgas-online/fpgas.online-test-designs/blob/verify-split/designs/pmod-loopback/host/test_pmod_loopback.py) | the loopback wiring reads back; `-debug` only |
+| `uart` | [`test_uart.py`](https://github.com/fpgas-online/fpgas.online-test-designs/blob/main/designs/uart/host/test_uart.py) | the LiteX BIOS banner arrives (Arty only) and printable ASCII echoes back |
+| `ddr` | [`test_ddr.py`](https://github.com/fpgas-online/fpgas.online-test-designs/blob/main/designs/ddr-memory/host/test_ddr.py) | the BIOS reports DRAM calibration and `Memtest OK` |
+| `spiflash` | [`test_spiflash.py`](https://github.com/fpgas-online/fpgas.online-test-designs/blob/main/designs/spi-flash-id/host/test_spiflash.py) | the design reads the flash's JEDEC ID and prints `SPI_FLASH_TEST: PASS` |
+| `ethernet` | [`test_ethernet.py`](https://github.com/fpgas-online/fpgas.online-test-designs/blob/main/designs/ethernet-test/host/test_ethernet.py) | the design answers ARP and ping through the Pi's USB Ethernet adapter (192.168.1.100/24 on that adapter only) |
+| `pin-id` | [`identify_pmod_pins.py`](https://github.com/fpgas-online/fpgas.online-test-designs/blob/main/designs/pmod-pin-id/host/identify_pmod_pins.py) | each Pmod HAT GPIO the test covers receives the FPGA ball name the expected cabling puts there. TT FPGA: all 24 signal wires of the three ribbons, each on its own (the six that share three Pi pins send in turns). Arty: 18 of 24 (not the six on the shared pins). The test's last lines say which |
+| `pmod` | [`test_pmod_loopback.py`](https://github.com/fpgas-online/fpgas.online-test-designs/blob/main/designs/pmod-loopback/host/test_pmod_loopback.py) | the loopback wiring reads back; `-debug` only |
 
 | Board | Found by | Loaded with | UART | Boot-check tests, in order | Only in `-debug` | Recorded state |
 |---|---|---|---|---|---|---|

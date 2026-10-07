@@ -10,9 +10,9 @@ board, tests the board and its wiring to the Pi, and gives one result, pass or f
 
 * What the tool must do: [fpgas-verify: what it must do](goals.md). Where this page and that one disagree,
   verify-goals.md says what the tool should do.
-* The code: [`verify/`](https://github.com/fpgas-online/fpgas.online-test-designs/tree/verify-split/verify). The design notes:
-  [fpgas-online-verify: boot-time FPGA board verification, packaged per board](https://github.com/fpgas-online/fpgas.online-test-designs/blob/verify-split/docs/plans/2026-09-26-fpgas-online-verify-design.md).
-* `verify_hardware.py` ([verify_hardware.py — How the Hardware Verification Script Works](https://github.com/fpgas-online/fpgas.online-test-designs/blob/verify-split/docs/verify-hardware.md)) is a different tool: a developer's script
+* The code: [`verify/`](https://github.com/fpgas-online/fpgas.online-test-designs/tree/main/verify). The design notes:
+  [fpgas-online-verify: boot-time FPGA board verification, packaged per board](https://github.com/fpgas-online/fpgas.online-test-designs/blob/main/docs/plans/2026-09-26-fpgas-online-verify-design.md).
+* `verify_hardware.py` ([verify_hardware.py — How the Hardware Verification Script Works](https://github.com/fpgas-online/fpgas.online-test-designs/blob/main/docs/verify-hardware.md)) is a different tool: a developer's script
   that loads freshly built bitstreams from a workstation over SSH.
 
 This page has two parts:

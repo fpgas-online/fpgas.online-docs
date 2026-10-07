@@ -23,7 +23,7 @@ Every fpgas-verify page is listed in [fpgas-verify](fpgas-verify.md).
 The check tells the site what it is doing as it goes. `fleet-event` (from
 [setup-pi](https://github.com/fpgas-online/fpgas.online-setup-pi)) sends each over MQTT to
 `fpgas/<site>/pi/<serial>/event`. The names and details are `EVENTS` in
-[`runner.py`](https://github.com/fpgas-online/fpgas.online-test-designs/blob/verify-split/verify/src/fpgas_online_verify/runner.py):
+[`runner.py`](https://github.com/fpgas-online/fpgas.online-test-designs/blob/main/verify/src/fpgas_online_verify/runner.py):
 
 | Event | When | Details |
 |---|---|---|
@@ -45,7 +45,7 @@ The check tells the site what it is doing as it goes. `fleet-event` (from
 * Nothing is sent without `publish = on` (above). With it, `--test` runs and `--no-publish` still send nothing.
 
 The progress events of an Acorn passing every test, in order, with their details (the check run against the
-tests' fake Acorn, [`tests/acorn_fakes.py`](https://github.com/fpgas-online/fpgas.online-test-designs/blob/verify-split/tests/acorn_fakes.py); the last 12 are cut):
+tests' fake Acorn, [`tests/acorn_fakes.py`](https://github.com/fpgas-online/fpgas.online-test-designs/blob/main/tests/acorn_fakes.py); the last 12 are cut):
 
 ```text
 fpga-board-found {"board": "acorn", "variant": "cle-215+", "where": "0001:01:00.0"}
@@ -64,7 +64,7 @@ They come between `fpga-verifying` and `fpga-verified`.
 
 ## How a deploy picks up new packages
 
-1. A commit lands on `main`. When CI is green, [`collect-bitstreams.yml`](https://github.com/fpgas-online/fpgas.online-test-designs/blob/verify-split/.github/workflows/collect-bitstreams.yml)
+1. A commit lands on `main`. When CI is green, [`collect-bitstreams.yml`](https://github.com/fpgas-online/fpgas.online-test-designs/blob/main/.github/workflows/collect-bitstreams.yml)
    uploads the packages to that build's own release, `build-<version>` (for example `build-0.0.post795`).
 2. [fpgas-online/apt](https://github.com/fpgas-online/apt) pulls them into <https://apt.fpgas.online> within 15 minutes.
 3. Infra CI (`nfsroot-build.yml`) builds the NFS root image with the latest packages, as
@@ -77,7 +77,7 @@ They come between `fpga-verifying` and `fpga-verified`.
 
 ## Collecting every Pi's result
 
-[`scripts/collect_verify_status.py`](https://github.com/fpgas-online/fpgas.online-test-designs/blob/verify-split/scripts/collect_verify_status.py) reads every Pi's report, unit state,
+[`scripts/collect_verify_status.py`](https://github.com/fpgas-online/fpgas.online-test-designs/blob/main/scripts/collect_verify_status.py) reads every Pi's report, unit state,
 installed version and (with no report) journal over SSH. It only reads, so it is safe while boards are in use.
 
 ```bash

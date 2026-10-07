@@ -8,7 +8,7 @@ summary with more failing and missing results.
 Every fpgas-verify page is listed in [fpgas-verify](fpgas-verify.md).
 
 **fail, with two faults**: the check run against the tests' fake Acorn
-([`tests/acorn_fakes.py`](https://github.com/fpgas-online/fpgas.online-test-designs/blob/verify-split/tests/acorn_fakes.py)), with its PCIe link at x2 and a JTAG TDI wire that does not carry:
+([`tests/acorn_fakes.py`](https://github.com/fpgas-online/fpgas.online-test-designs/blob/main/tests/acorn_fakes.py)), with its PCIe link at x2 and a JTAG TDI wire that does not carry:
 
 ```text
 $ sudo fpgas-verify --no-publish
