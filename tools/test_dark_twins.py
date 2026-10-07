@@ -1,7 +1,8 @@
 #!/usr/bin/env python3
 # SPDX-License-Identifier: Apache-2.0
-"""Every drawing on the site has a dark twin, and every page shows the light one in the light theme and the
-dark one in the dark theme (Furo's only-light / only-dark classes). Photographs (JPEG) are the same in both.
+"""Every drawing and every annotated photograph on the site has a dark twin, and every page shows the light one in
+the light theme and the dark one in the dark theme (Furo's only-light / only-dark classes). A plain photograph is
+the same in both.
 
 Run: python -m unittest discover -s tools -p 'test_*.py'
 """
@@ -16,16 +17,27 @@ import sync_test_designs as sync
 DOCS = Path(__file__).resolve().parent.parent / "docs"
 FIGURES = DOCS / "setup" / "bootloader-eeprom"
 DRAWING = (".png", ".svg")
-# ![alt](src){attrs}, and the image directive with its options
-MARKDOWN_IMAGE = re.compile(r"!\[([^\]]*)\]\(([^)\s]+)\)(\{[^}]*\})?")
-DIRECTIVE = re.compile(r"```\{(?:image|figure)\} (\S+)\n((?::[^\n]*\n)*)")
+# ![alt](src){attrs}, or the same image inside a link: [![alt](src)](target){attrs}
+MARKDOWN_IMAGE = re.compile(
+    r"(?P<link>\[)?!\[(?P<alt>[^\]]*)\]\((?P<src>[^)\s]+)\)(?P<attrs>\{[^}]*\})?"
+    r"(?(link)\]\((?P<target>[^)\s]+)\)(?P<link_attrs>\{[^}]*\})?)"
+)
+# the image or figure directive, with its options; the class of a figure is its figclass
+DIRECTIVE = re.compile(r"^ *```\{(?P<kind>image|figure)\} (?P<src>\S+)\n(?P<options>(?: *:[^\n]*\n)*)", re.M)
+THEME_OPTION = re.compile(r"^ *:(?:fig)?class: (only-light|only-dark)\n", re.M)
 # An example written out in a page (a block fenced with four backticks, around the directive's own three).
 EXAMPLE = re.compile(r"^````.*?^````\n", re.M | re.S)
+# A picture written in prose as code, to show how it is done.
+CODE_SPAN = re.compile(r"`[^`\n]+`")
 
 
 def dark(name):
     stem, _, ext = name.rpartition(".")
     return f"{stem}-dark.{ext}"
+
+
+def is_dark(name):
+    return name.rpartition(".")[0].endswith("-dark")
 
 
 def pages():
@@ -41,41 +53,69 @@ def load_figures():
     return module
 
 
-class EveryPicture(unittest.TestCase):
-    def test_every_drawing_in_markdown_is_a_light_and_dark_pair(self):
-        checked = 0
-        for page in pages():
-            text = EXAMPLE.sub("", page.read_text())
-            found = MARKDOWN_IMAGE.findall(text)
-            drawings = [f for f in found if f[1].endswith(DRAWING)]
-            for alt, src, attrs in drawings:
-                if src.removesuffix(Path(src).suffix).endswith("-dark"):
-                    self.assertEqual(attrs, "{.only-dark}", f"{page}: {src}")
-                    continue
-                checked += 1
-                self.assertEqual(attrs, "{.only-light}", f"{page}: {src} is shown in both themes")
-                self.assertIn((alt, dark(src), "{.only-dark}"), drawings, f"{page}: {src} has no dark twin shown")
-                self.assertTrue((page.parent / dark(src)).exists(), f"{page}: {dark(src)} is missing")
-        self.assertGreater(checked, 20)
+def annotated():
+    """The annotated photographs make_figures.py writes: each has a dark twin, as a drawing does."""
+    return set(load_figures().PHOTOS)
 
-    def test_every_drawing_in_an_image_directive_is_a_light_and_dark_pair(self):
+
+def needs_twin(src):
+    return src.endswith(DRAWING) or Path(src).name in annotated()
+
+
+def shown(page):
+    """(src, theme class or None, where) of every picture on a page; a linked picture's class is its link's."""
+    text = CODE_SPAN.sub("", EXAMPLE.sub("", page.read_text()))
+    out = []
+    for m in MARKDOWN_IMAGE.finditer(text):
+        if m["link"] and m["attrs"]:
+            out.append((m["src"], "on the image, not its link", m))  # the hidden link would stay focusable
+            continue
+        attrs = m["link_attrs"] if m["link"] else m["attrs"]
+        out.append((m["src"], (attrs or "").strip("{}.") or None, m))
+    for m in DIRECTIVE.finditer(text):
+        theme = THEME_OPTION.search(m["options"])
+        if m["kind"] == "figure" and re.search(r":class: only-", m["options"]):
+            out.append((m["src"], "class on a figure's image, not :figclass:", m))
+            continue
+        out.append((m["src"], theme[1] if theme else None, m))
+    return out
+
+
+class EveryPicture(unittest.TestCase):
+    def test_every_drawing_and_annotated_photo_is_shown_as_a_light_and_dark_pair(self):
         checked = 0
         for page in pages():
-            blocks = DIRECTIVE.findall(EXAMPLE.sub("", page.read_text()))
-            for src, options in blocks:
-                if not src.endswith(DRAWING):
-                    self.assertNotIn(":class: only-", options, f"{page}: {src} is a photograph, the same in both")
+            pictures = shown(page)
+            for src, theme, m in pictures:
+                if not needs_twin(src.replace("-dark.", ".")):
+                    self.assertIsNone(theme, f"{page}: {src} is a photograph, the same in both themes")
                     continue
-                if src.removesuffix(Path(src).suffix).endswith("-dark"):
-                    self.assertIn(":class: only-dark\n", options, f"{page}: {src}")
+                if is_dark(src):
+                    self.assertEqual(theme, "only-dark", f"{page}: {src}")
                     continue
                 checked += 1
-                self.assertIn(":class: only-light\n", options, f"{page}: {src} is shown in both themes")
-                twin = [o for s, o in blocks if s == dark(src)]
-                self.assertTrue(twin, f"{page}: {src} has no dark twin shown")
-                self.assertEqual(twin[0].replace("only-dark", "only-light"), options, f"{page}: {src}: options differ")
+                self.assertEqual(theme, "only-light", f"{page}: {src} is shown in both themes")
+                # its twin: the next picture of that name after it
+                twins = sorted((t for t in pictures if t[0] == dark(src) and t[2].start() > m.start()), key=lambda t: t[2].start())
+                self.assertTrue(twins, f"{page}: {src} has no dark twin shown")
                 self.assertTrue((page.parent / dark(src)).exists(), f"{page}: {dark(src)} is missing")
-        self.assertGreater(checked, 10)
+                twin = twins[0][2]
+                if "kind" in m.groupdict():  # a directive: the same options but the class
+                    self.assertEqual(twin["options"].replace("only-dark", "only-light"), m["options"], f"{page}: {src}")
+                else:  # Markdown: the same words, a linked picture links its own twin
+                    self.assertEqual(twin["alt"], m["alt"], f"{page}: {src}")
+                    if m["link"]:
+                        self.assertEqual(twin["target"], dark(m["target"]), f"{page}: {src}")
+        self.assertGreater(checked, 40)
+
+    def test_every_figure_make_figures_writes_has_its_twin_and_is_shown_with_it(self):
+        figures = load_figures()
+        written = [*figures.PHOTOS, *(n for n in figures.files() if not is_dark(n))]
+        on_pages = "".join(page.read_text() for page in pages())
+        for name in written:
+            self.assertTrue((FIGURES / dark(name)).exists(), f"{dark(name)}: run make_figures.py")
+            if f"bootloader-eeprom/{name}" in on_pages:
+                self.assertIn(f"bootloader-eeprom/{dark(name)}", on_pages, f"{name} is shown without its twin")
 
 
 class SyncedDrawings(unittest.TestCase):
@@ -90,7 +130,7 @@ class SyncedDrawings(unittest.TestCase):
             for name in names:
                 if name.endswith(".md"):
                     text = (DOCS.parent / dest / name).read_text()
-                    for _alt, src, _attrs in MARKDOWN_IMAGE.findall(text):
+                    for src in (m["src"] for m in MARKDOWN_IMAGE.finditer(text)):
                         self.assertIn(src, names, f"{dest}/{name} shows {src}, which the sync does not take")
 
 
