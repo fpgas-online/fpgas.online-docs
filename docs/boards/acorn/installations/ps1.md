@@ -61,8 +61,8 @@ written here.
 **Converting a card** means loading the fpgas.online design into it over JTAG and writing that design to the
 card's flash, once; after that the card runs it from every power-on. The steps are [written for a Raspberry Pi
 5](../designs/install-images.md) and have **not yet been run by us on a Compute
-Blade**: on a blade they wait for a flash write over JTAG, which has not been run on a blade (the Host column
-below).
+Blade** to their end: begun once on pi20 at ps1 on 7 October 2026 and stopped before the flash write (the
+Host column below).
 
 ```{rst-class} nowrap
 ```
@@ -71,7 +71,7 @@ below).
 |---|---|---|---|---|---|---|
 | Acorn CLE-101, no label yet (device DNA not read) | pi14 at ps1 (`1e24:0101` seen 2026-10-07) | CM4 Rev 1.1 4 GB | SQRL's factory image, `1e24:0101` | `0000:01` | 2026-09-20: no response, TCK floating | not known |
 | Acorn CLE-101, no label yet (device DNA not read) | pi16 at ps1 (2026-10-05) | CM5 Lite Rev 1.0 8 GB | SQRL's factory image, `1e24:0101` | `0001:01` | 2026-09-20: no response, TCK floating. 2026-10-05: cannot run (the serial driver holds GPIO14) | not known |
-| Acorn CLE-101, device DNA `0x0028e5c45e304854` | pi20 at ps1 (2026-10-05) | CM5 Lite Rev 1.0 8 GB | a vendor XDMA sample image, `10ee:7011` | `0001:01` | 2026-09-20 (kernel 6.12.75): answered, IDCODE `0x3631093`. 2026-10-07 (kernel 6.18, serial port on): the check's `jtag` test failed: GPIO14 is held by the serial port. 2026-10-07, the header's serial port off at boot: `jtag` passed, IDCODE `0x13631093` (the same part as read on 2026-09-20: that reading left out the leading
+| Acorn CLE-101, device DNA `0x0028e5c45e304854` | pi20 at ps1 (2026-10-05) | CM5 Lite Rev 1.0 8 GB | a vendor XDMA sample image, `10ee:7011` (read 2026-10-05; on 2026-10-07 our SoC was loaded into its SRAM for a test, the flash unchanged: below) | `0001:01` | 2026-09-20 (kernel 6.12.75): answered, IDCODE `0x3631093`. 2026-10-07 (kernel 6.18, serial port on): the check's `jtag` test failed: GPIO14 is held by the serial port. 2026-10-07, the header's serial port off at boot: `jtag` passed, IDCODE `0x13631093` (the same part as read on 2026-09-20: that reading left out the leading
 version digit), device DNA as in the first column (no bitstream loaded, flash not written) | on the Extension Port: K2 to GPIO15, J2 to GPIO14, no resistor; J5 and H5 not wired |
 | none seen: no PCIe device (2026-10-07; the slot is empty, or a card has no link: `lspci` cannot tell) | pi18 at ps1 (2026-10-07) | CM4 Rev 1.1 4 GB | | | | |
 
@@ -117,7 +117,7 @@ bitstream is not**.
 
 To reach the wiring of the [Compute Blade building guide](../building/compute-blade/index.md), from what the table above
 records. None of us has wired a blade this way or
-converted a card on one yet: **not yet run by us on this hardware**.
+converted a card on one yet (one conversion was begun on pi20 at ps1 and stopped before the flash write: below): **not yet run by us on this hardware**.
 
 | Blade | Card | P1 (JTAG) cable | P2 (serial) cable | Host |
 |-------|------|-----------------|-------------------|------|
@@ -155,8 +155,13 @@ the word `console=serial0,115200` is taken out. In that boot GPIO14 had no user,
 Compute Module 5's own debug serial port (not on the header), so nothing more had to be taken off the header's
 pins, and the check's `jtag` test read the FPGA's IDCODE and device DNA (after checking that GPIO14 followed
 the Pi's pull both ways, verifying 3's step for a blade with no 470 Ω in its J2 wire, as pi20 at ps1 has).
-**Not yet run on a Compute Module 4 blade.** No flash write over JTAG has been run that way: converting pi20
-at ps1's card was begun on 7 October 2026 and stopped before its flash was written.
+**Not yet run on a Compute Module 4 blade.** Converting pi20 at ps1's card was begun on 7 October 2026, as
+its last record that day stands: a load of our SoC into the FPGA (its SRAM, not its flash) over JTAG worked,
+but the card's PCIe endpoint did not come back on a bus rescan, and the run stopped there. **The flash was
+not written**, so the card still holds the vendor's sample image and runs it again from its next power-on or
+`openFPGALoader --reset`. Until then it may run our SoC, or show no PCIe device. On this blade the endpoint
+comes back after a root-complex re-probe ([Bring the endpoint back after a JTAG
+load](../designs/pcie.md#bring-the-endpoint-back-after-a-jtag-load)); that was not yet run for this load.
 
 The Host column's (a) has no written steps and has **not been tried by us**. What is known: on pi20 at ps1
 (read 7 October 2026) the login prompt on `/dev/ttyAMA0` was there only because of the word
