@@ -311,14 +311,14 @@ def data_uri(url: str) -> str:
     return as_data_uri(content, content_kind(url, kind))
 
 
-def png_width(content: bytes) -> int | None:
-    if content[:8] == b"\x89PNG\r\n\x1a\n":
-        return int.from_bytes(content[16:20], "big")
+def png_size(content: bytes) -> tuple[int, int] | None:
+    if content[:8] == b"\x89PNG\r\n\x1a\n" and len(content) >= 24:
+        return int.from_bytes(content[16:20], "big"), int.from_bytes(content[20:24], "big")
     return None
 
 
-def jpeg_width(content: bytes) -> int | None:
-    """The width in the first start-of-frame marker of a JPEG."""
+def jpeg_size(content: bytes) -> tuple[int, int] | None:
+    """The width and height in the first start-of-frame marker of a JPEG."""
     if content[:2] != b"\xff\xd8":
         return None
     position = 2
@@ -336,37 +336,70 @@ def jpeg_width(content: bytes) -> int | None:
         if marker in range(0xC0, 0xD0) and marker not in (0xC4, 0xC8, 0xCC):
             if position + 9 > len(content):
                 return None
-            return int.from_bytes(content[position + 7:position + 9], "big")
+            return (int.from_bytes(content[position + 7:position + 9], "big"),
+                    int.from_bytes(content[position + 5:position + 7], "big"))
         position += 2 + length
     return None
 
 
-def gif_width(content: bytes) -> int | None:
+def gif_size(content: bytes) -> tuple[int, int] | None:
     if content[:6] in (b"GIF87a", b"GIF89a") and len(content) >= 10:
-        return int.from_bytes(content[6:8], "little")
+        return int.from_bytes(content[6:8], "little"), int.from_bytes(content[8:10], "little")
     return None
 
 
-def svg_width(content: bytes) -> int | None:
-    """The width an SVG states: its width attribute, else its viewBox."""
+def svg_size(content: bytes) -> tuple[int, int] | None:
+    """The size an SVG states: its width and height attributes, else its viewBox.
+
+    A width without a height takes the height from the viewBox's proportions."""
     root = re.search(rb"<svg\b[^>]*>", content)
     if root is None:
         return None
     tag = root.group(0).decode("utf-8", "replace")
     width = re.search(r"""\swidth\s*=\s*["']\s*([0-9.]+)\s*(px)?\s*["']""", tag)
+    height = re.search(r"""\sheight\s*=\s*["']\s*([0-9.]+)\s*(px)?\s*["']""", tag)
+    box = re.search(r"""\sviewBox\s*=\s*["']\s*[-0-9.]+[\s,]+[-0-9.]+[\s,]+([0-9.]+)[\s,]+([0-9.]+)\s*["']""", tag)
+    if width and height:
+        return round(float(width.group(1))), round(float(height.group(1)))
+    if box and float(box.group(1)) > 0:
+        box_width, box_height = float(box.group(1)), float(box.group(2))
+        if width:
+            return round(float(width.group(1))), round(float(width.group(1)) * box_height / box_width)
+        return round(box_width), round(box_height)
     if width:
-        return round(float(width.group(1)))
-    box = re.search(r"""\sviewBox\s*=\s*["']\s*[-0-9.]+[\s,]+[-0-9.]+[\s,]+([0-9.]+)[\s,]+[0-9.]+\s*["']""", tag)
-    if box:
-        return round(float(box.group(1)))
+        return round(float(width.group(1))), 0
     return None
+
+
+def image_size(content: bytes, kind: str) -> tuple[int, int] | None:
+    """The pixel width and height of a PNG, JPEG, GIF or SVG; None when they cannot be read.
+
+    An SVG that states only its width has height 0."""
+    if kind == "image/svg+xml":
+        return svg_size(content)
+    return png_size(content) or jpeg_size(content) or gif_size(content)
+
+
+def png_width(content: bytes) -> int | None:
+    return (png_size(content) or (None,))[0]
+
+
+def jpeg_width(content: bytes) -> int | None:
+    return (jpeg_size(content) or (None,))[0]
+
+
+def gif_width(content: bytes) -> int | None:
+    return (gif_size(content) or (None,))[0]
+
+
+def svg_width(content: bytes) -> int | None:
+    """The width an SVG states: its width attribute, else its viewBox."""
+    return (svg_size(content) or (None,))[0]
 
 
 def image_width(content: bytes, kind: str) -> int | None:
     """The pixel width of a PNG, JPEG, GIF or SVG; None when it cannot be read."""
-    if kind == "image/svg+xml":
-        return svg_width(content)
-    return png_width(content) or jpeg_width(content) or gif_width(content)
+    return (image_size(content, kind) or (None,))[0]
 
 
 def place_figure(movable: Tag, figure: Tag, lifted: dict[int, Tag]) -> None:

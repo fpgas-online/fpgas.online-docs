@@ -237,6 +237,16 @@ class ImageWidth(unittest.TestCase):
     def test_gif_width_is_read_from_the_header(self):
         self.assertEqual(p.gif_width(b"GIF89a" + (640).to_bytes(2, "little") + (480).to_bytes(2, "little")), 640)
 
+    def test_the_height_comes_with_the_width(self):
+        self.assertEqual(p.image_size(png(1560), "image/png"), (1560, 100))
+        self.assertEqual(p.image_size(jpeg(2400), "image/jpeg"), (2400, 50))
+        self.assertEqual(p.image_size(b"GIF89a" + (640).to_bytes(2, "little") + (480).to_bytes(2, "little"),
+                                      "image/gif"), (640, 480))
+        self.assertEqual(p.image_size(svg("width='300' height='200px'"), "image/svg+xml"), (300, 200))
+        self.assertEqual(p.image_size(svg("viewBox='0 0 3200 1800'"), "image/svg+xml"), (3200, 1800))
+        self.assertEqual(p.image_size(svg("width='1600' viewBox='0 0 3200 1800'"), "image/svg+xml"), (1600, 900))
+        self.assertIsNone(p.image_size(b"<html>not an image</html>", "text/html"))
+
     def test_svg_width_is_the_attribute_else_the_view_box(self):
         self.assertEqual(p.image_width(svg("width='1500px' viewBox='0 0 10 10'"), "image/svg+xml"), 1500)
         self.assertEqual(p.image_width(svg("viewBox='0 0 3200 1800'"), "image/svg+xml"), 3200)
