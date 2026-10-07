@@ -1,6 +1,7 @@
 # Tiny Tapeout FPGA demo board
 
-> On 7 October 2026 the name of the site's network-config tool was replaced by its role, under Tim's rule that the fpgas.online repositories name no host specifics.
+% On 7 October 2026 the name of the site's network-config tool was replaced by its role, under Tim's rule
+% that the fpgas.online repositories name no host specifics.
 
 The Tiny Tapeout (TT) FPGA demo board is a Lattice iCE40UP5K "FabricFox" FPGA
 breakout plugged into a Tiny Tapeout demo PCB, in place of the Tiny Tapeout ASIC
