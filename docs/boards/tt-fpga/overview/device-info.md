@@ -142,6 +142,7 @@ Source: [TinyTapeout PCB Specs](https://tinytapeout.com/specs/pcb/)
 
 ## DIP Switches
 
-The demo PCB has DIP switches connected to the `ui_in` pins, allowing manual
-input to the FPGA design during development and testing (no source is recorded for this; not verified by us).
-How the switches must be set while the Raspberry Pi drives `ui_in` through the Pmod HAT is not recorded.
+The demo PCB has an 8-way DIP switch on the `ui_in` pins, for setting a design's inputs by hand. Each switch,
+when on, pulls its line up to 3.3 V through 1 kΩ (switch 1 is `ui_in[0]`, switch 8 `ui_in[7]`); off, it leaves
+the line alone. The `ui_in` lines have no other pull on the demo board (Tiny Tapeout's KiCad files for the demo board v3.2, tt-demo-pcb at commit 0277545: SW1 with R3 to R10; not verified by us on a board). So while the Raspberry Pi
+drives `ui_in` through the Pmod HAT, every switch must be off.

@@ -49,8 +49,8 @@ Three things are on the eight `ui_in` signals:
   bridge sends on one of them, `ui_in[3]`, from its GPIO20 ([the UART test](../designs/uart.md)). A load
   made with `--gpio-release` sets all 24 of its signal pins to inputs; one made without it leaves them as
   they were (below).
-- **The DIP switches**, according to Tiny Tapeout's specification (the table above); not verified by us.
-  How the switches must be set while the Pi or the microcontroller drives `ui_in` is not recorded.
+- **The DIP switches**: each, when on, pulls its line up to 3.3 V through 1 kΩ; off, it leaves the line alone
+  (Tiny Tapeout's KiCad files for the demo board v3.2, tt-demo-pcb at commit 0277545: SW1 with R3 to R10; not verified by us on a board). Set them all off while the Pi or the microcontroller drives `ui_in`.
 
 Two of them driving one signal at once fight each other.
 

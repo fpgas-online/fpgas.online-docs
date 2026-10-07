@@ -2,4 +2,4 @@ These files are copied from https://github.com/fpgas-online/fpgas.online-test-de
 by tools/sync_test_designs.py. Do not edit them here: change them in test-designs.
 
 ref: tt-fpga-wiring
-commit: 2ae43409d43eaa460e53d2aa7e5668c76d102c99
+commit: 28303a20f668e6c3ba62b8c39b83d26d868ddb99

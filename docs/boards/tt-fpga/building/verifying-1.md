@@ -3,8 +3,7 @@
 **You have a Tiny Tapeout FPGA demo board fitted to a Raspberry Pi with a Pmod HAT, and want to install the
 fpgas.online packages for it, run the check and know whether the board and its wiring pass.**
 
-**What this page cannot give you:** which position of the demo board's DIP switches is safe while the check
-drives `ui_in` (step 4); it is not recorded, so the page says to leave them as you find them. The commands are written for Raspberry Pi OS or Debian **trixie**; on
+The commands are written for Raspberry Pi OS or Debian **trixie**; on
 **bookworm** one more line is needed (step 3).
 
 The steps, each a section of this page:
@@ -95,15 +94,14 @@ sudo apt install -t bookworm-backports micropython-mpremote
 1. **The three Pmod cables are on the right ports and the right way round**: INPUT to JA, BIDIR to JB,
    OUTPUT to JC, pin 1 to pin 1 ([fitting](fitting.md#4-the-three-pmod-cables-and-the-usb-c-cable)). The
    check drives the Pi's GPIOs into those cables.
-2. **The DIP switches: leave them as you find them.** That is how the one board that has passed was checked
-   (below). Which position leaves `ui_in` undriven is **not recorded** (asked of the boards' owner on
-   7 October 2026). The switches are on the `ui_in` signals (Tiny Tapeout's specification; not verified by
-   us), the check drives those same signals from the Pi, and two drivers on one signal fight. What is
-   recorded: on 5 October 2026 the
+2. **Set every DIP switch off.** Each switch, when on, pulls its `ui_in` line up to 3.3 V through 1 kΩ (switch
+   1 is `ui_in[0]`, switch 8 is `ui_in[7]`); off, it leaves the line alone (Tiny Tapeout's KiCad files for the demo board v3.2, tt-demo-pcb at commit 0277545: SW1 with R3 to R10; not verified by us on a board). The check drives
+   those same lines from the Pi, so a switch left on makes a line read high when the Pi lets go, and costs
+   current when the Pi drives it low. The check does not look at the switches yet ([fpgas.online-test-designs issue #166](https://github.com/fpgas-online/fpgas.online-test-designs/issues/166)). On 5 October 2026 the
    board with USB serial `4df39a7a6856f86f` passed `pin-id` with its switches as they were found, and with
    its SDK running and the microcontroller not driving `ui_in`, `ui_in` read `00001001`: `ui_in[0]` and
-   `ui_in[3]` held high, by the switches or by the Pi, not decided (read on 5 October 2026). A camera still of
-   a passing board's switches would record a setting that passes: not yet taken.
+   `ui_in[3]` held high, by the switches or by the Pi, not decided (read on 5 October 2026): switches 1 and 4
+   on would give exactly that.
 3. **On a board that is on the public site:** the check stops the `fpgas-tt` daemon for its tests and starts
    it again when its report is written, so the board is off
    [tinytapeout.fpgas.online](https://tinytapeout.fpgas.online) while the check runs, and whatever design the
