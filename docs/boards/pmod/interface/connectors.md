@@ -65,3 +65,5 @@ Host side (looking at board edge):
 | I/O standard        | LVCMOS33 (matched to VCC)   |
 | Pin pitch           | 100 mil (2.54 mm)           |
 | Connector type      | Standard 100 mil pin header |
+
+See also: [the standard interface types](types.md), which use this pin numbering; [the summary table](i2c-summary.md#summary-table).

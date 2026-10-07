@@ -39,6 +39,15 @@ Which do you need?
 (references)=
 - **[References](interface/references.md):** for you if you want the sources behind these pages.
 
+```{toctree}
+:hidden:
+
+Physical connectors <interface/connectors>
+Interface types <interface/types>
+I2C, summary table <interface/i2c-summary>
+References <interface/references>
+```
+
 ## Board-specific pinouts
 
 How the PMOD signals map onto the Raspberry Pi HAT and onto Tiny Tapeout demo boards:
@@ -48,13 +57,4 @@ How the PMOD signals map onto the Raspberry Pi HAT and onto Tiny Tapeout demo bo
 
 rpi-hat
 tinytapeout
-```
-
-```{toctree}
-:hidden:
-
-Physical connectors <interface/connectors>
-Interface types <interface/types>
-I2C, summary table <interface/i2c-summary>
-References <interface/references>
 ```

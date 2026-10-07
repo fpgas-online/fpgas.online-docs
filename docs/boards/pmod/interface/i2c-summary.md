@@ -38,3 +38,5 @@ Source: [High Speed PMOD Spreadsheet](https://docs.google.com/spreadsheets/d/1D-
 | 5    | H-Bridge       | Single | 6    | Motor driver      |
 | 6    | Dual H-Bridge  | Single | 6    | Dual motor driver |
 | —    | I2C (extended) | Custom | 8    | I2C bus           |
+
+See also: [each type in detail](types.md); [single and double width connectors](connectors.md).

@@ -124,3 +124,5 @@ Two H-bridge motor/phase drivers on a single 6-pin connector (no feedback).
 | 4   | EN2    | Out       | Motor/Phase 2 enable                  |
 | 5   | GND    | —         |                                       |
 | 6   | VCC    | —         |                                       |
+
+See also: [the connector's pin numbering](connectors.md) these pinouts use; [all the types in one table](i2c-summary.md#summary-table).
