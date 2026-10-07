@@ -52,5 +52,5 @@ fpgas.online-test-designs).
 `poe.sh PORT` takes no switch argument: it acts on the one switch its settings name. That ps1 has one PoE
 switch, a Netgear FS728TPv2 carrying every host, is the site notes' reading and matches the OID and MAC in
 `host_vars/ps1.fpgas.online.yml` (fpgas.online-infra); that file's comments also name an HP ProCurve 2610 and a
-Netgear GS728TPP, and nobody from fpgas.online has looked at the rack, so this is not settled. It takes PoE commands only on a Netgear-private OID, `1.3.6.1.4.1.4526.11.16.1.1.1.3.1`
+Netgear GS728TPP, and nobody from fpgas.online has looked at the rack, so this is not settled. The FS728TPv2 takes PoE commands only on a Netgear-private OID, `1.3.6.1.4.1.4526.11.16.1.1.1.3.1`
 (site notes; the `oid` in `host_vars`).
