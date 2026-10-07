@@ -16,7 +16,7 @@ Extension Port (P1) and 4-pin UART header (P2).
 
 ## Overview
 
-What the card is, its variants, what works on fpgas.online today, and the documents behind these pages:
+What the card is, its variants, what works on fpgas.online today, the documents behind these pages, and where the camera goes over it:
 
 ```{toctree}
 :maxdepth: 1
@@ -25,6 +25,7 @@ overview/device-info
 overview/variants
 overview/functionality
 overview/resources
+overview/mechanical
 ```
 
 ## Wiring Overview
