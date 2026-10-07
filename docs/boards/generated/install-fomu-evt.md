@@ -1,9 +1,9 @@
 % This section ("Installing the Fomu Packages") is copied from https://github.com/fpgas-online/fpgas.online-test-designs/blob/main/docs/hardware/fomu-evt.md
-% by tools/sync_test_designs.py. Do not edit it here: change it in test-designs.
+% by tools/sync_repos.py. Do not edit it here: change it in test-designs.
 
 ## Installing the Fomu Packages
 
-Add the fpgas.online APT repository first ([verify.md: Installing](../verify/installing.md#installing)), then on the Fomu's Pi:
+Add the fpgas.online APT repository first ([fpgas-verify: installing it](../verify/installing.md#installing)), then on the Fomu's Pi:
 
 ```bash
 sudo apt install fpgas-online-fomu
@@ -27,4 +27,4 @@ sudo fpgas-fomu-verify --no-publish --report -  # this board only, the JSON repo
 sudo fpgas-fomu-debug test spiflash             # load one test's design and run its test
 ```
 
-What the results mean, the report, `changed` and `--update`, the debug tool and common failures: [verify.md](../verify/reading-the-result.md#reading-the-result).
+What the results mean, the report, `changed` and `--update`, the debug tool and common failures: [fpgas-verify: reading the result](../verify/reading-the-result.md#reading-the-result).

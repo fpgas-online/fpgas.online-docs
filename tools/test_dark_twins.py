@@ -12,7 +12,7 @@ import re
 import unittest
 from pathlib import Path
 
-import sync_test_designs as sync
+import sync_repos as sync
 
 DOCS = Path(__file__).resolve().parent.parent / "docs"
 FIGURES = DOCS / "setup" / "bootloader-eeprom"
@@ -125,13 +125,13 @@ class EveryPicture(unittest.TestCase):
 
 class SyncedDrawings(unittest.TestCase):
     def test_every_drawing_taken_from_test_designs_comes_with_its_dark_twin(self):
-        for dest, (_src, names) in sync.FILES.items():
+        for dest, (_src, names) in (f for repo in sync.REPOS.values() for f in repo.FILES.items()):
             for name in names:
                 if name.endswith(DRAWING) and not name.removesuffix(name[-4:]).endswith("-dark"):
                     self.assertIn(dark(name), names, f"{dest}: {name}")
 
     def test_every_picture_a_taken_page_shows_is_taken_too(self):
-        for dest, (_src, names) in sync.FILES.items():
+        for dest, (_src, names) in (f for repo in sync.REPOS.values() for f in repo.FILES.items()):
             for name in names:
                 if name.endswith(".md"):
                     text = (DOCS.parent / dest / name).read_text()

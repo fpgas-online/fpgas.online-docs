@@ -1,13 +1,13 @@
-# .github/workflows/sync-test-designs.yml
+# .github/workflows/sync-repos.yml
 #
-# Every day, copy what these docs take from fpgas.online-test-designs (tools/sync_test_designs.py: the Acorn
-# wiring sheets and pin tables, the fpgas-verify pages, and each board's install section) and open a pull
-# request if any changed. The docs build itself
-# never reaches out to another repository.
+# Every day, copy what these docs take from the other fpgas.online repositories (tools/sync_repos.py: from
+# fpgas.online-test-designs the Acorn wiring sheets and pin tables, the Acorn building guide, the
+# fpgas-verify pages and each board's install section; the other repositories as their tables fill) and open
+# a pull request if any changed. The docs build itself never reaches out to another repository.
 #
-# If test-designs no longer has a listed file, the sync fails, this run goes red, and an issue is
-# opened (or commented on) saying which file, so the script gets updated instead of the copy going stale.
-name: Sync from test-designs
+# If a repository no longer has a listed file, the sync fails, this run goes red, and an issue is opened (or
+# commented on) naming the repository and the file, so the tables get updated instead of the copy going stale.
+name: Sync from the fpgas.online repositories
 
 on:
   schedule:
@@ -20,7 +20,7 @@ permissions:
   issues: write
 
 concurrency:
-  group: sync-test-designs
+  group: sync-repos
   cancel-in-progress: false
 
 jobs:
@@ -38,17 +38,18 @@ jobs:
           cache: pip
           cache-dependency-path: docs/requirements.txt
 
-      - name: Copy from test-designs main
+      - name: Copy from every repository's main
         id: sync
         # pipefail: without it the step takes tee's exit status, and a failed sync would pass.
         run: |
           set -o pipefail
-          python -u tools/sync_test_designs.py 2>&1 | tee sync.log
+          python -u tools/sync_repos.py 2>&1 | tee sync.log
 
+      # Only the sync has written anything under docs/ in this run.
       - name: Changed?
         id: diff
         run: |
-          git add -A docs/boards/acorn/generated docs/boards/generated docs/verify
+          git add -A docs
           if git diff --cached --quiet; then echo "changed=false" >> "$GITHUB_OUTPUT"; else echo "changed=true" >> "$GITHUB_OUTPUT"; fi
 
       # A pull request opened with GITHUB_TOKEN does not trigger the Docs workflow, so build here, with the same
@@ -60,21 +61,23 @@ jobs:
           pip install -r docs/requirements.txt
           sphinx-build -b html -W --keep-going docs docs/_build/html
 
+      - name: Describe the change
+        if: steps.diff.outputs.changed == 'true'
+        run: |
+          { echo "Synced by tools/sync_repos.py from:"; echo; grep -E '^fpgas-online/' sync.log | sed 's/^/- /'; echo; echo '```'; grep -E '^  (add|update|remove|source|note) ' sync.log; echo '```'; } > pr-body.md
+
       # Needs "Allow GitHub Actions to create and approve pull requests" in the repository's Actions settings.
       - name: Open or update the pull request
         id: pr
         if: steps.diff.outputs.changed == 'true'
         uses: peter-evans/create-pull-request@v7
         with:
-          branch: sync/test-designs
+          branch: sync/repos
           delete-branch: true
-          add-paths: |
-            docs/boards/acorn/generated
-            docs/boards/generated
-            docs/verify
-          commit-message: "Sync the pages and tables taken from fpgas.online-test-designs"
-          title: "Sync the pages and tables taken from fpgas.online-test-designs"
-          body-path: docs/boards/acorn/generated/SOURCE
+          add-paths: docs
+          commit-message: "Sync the pages and files taken from the fpgas.online repositories"
+          title: "Sync the pages and files taken from the fpgas.online repositories"
+          body-path: pr-body.md
 
       - name: Report a failed sync
         if: failure()
@@ -85,8 +88,10 @@ jobs:
           BUILD: ${{ steps.build.outcome }}
           PR: ${{ steps.pr.outcome }}
         run: |
-          title="Sync from fpgas.online-test-designs is failing"
-          if [ "$SYNC" = failure ]; then what="Copying the files failed: a listed file is missing upstream, or test-designs could not be reached."
+          # The repositories the sync names as failing ("sync: FAILED. fpgas-online/fpgas.online-x at ...").
+          repos=$(grep -oE '^sync: FAILED\. fpgas-online/[^ ]+' sync.log 2>&1 | sed 's/^sync: FAILED\. //' | sort -u | paste -sd, - || true)
+          if [ -n "$repos" ]; then title="Sync from $repos is failing"; else title="Sync from the fpgas.online repositories is failing"; fi
+          if [ "$SYNC" = failure ]; then what="Copying the files failed${repos:+ for $repos}: a listed file is missing there, or a repository could not be reached."
           elif [ "$BUILD" = failure ]; then what="The files copied, but the docs do not build with them."
           elif [ "$PR" = failure ]; then what="The files copied and the docs build, but the pull request could not be opened (is 'Allow GitHub Actions to create and approve pull requests' on?)."
           else what="A step failed."; fi

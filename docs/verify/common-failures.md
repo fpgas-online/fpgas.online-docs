@@ -1,5 +1,5 @@
 % This page is copied from https://github.com/fpgas-online/fpgas.online-test-designs/blob/main/docs/verify/common-failures.md
-% by tools/sync_test_designs.py. Do not edit it here: change it in test-designs.
+% by tools/sync_repos.py. Do not edit it here: change it in test-designs.
 
 # fpgas-verify: common failures
 
@@ -28,7 +28,7 @@ Every fpgas-verify page is listed in [fpgas-verify](fpgas-verify.md).
 | `fail`: `N/24 pins match expected wiring` (TT FPGA) or `N/18` (Arty) | the Pmod HAT cabling differs from the board's expected map: the table above that line shows each wire, what was expected on it and what was heard. The line after it says how many of the cabling's signal wires the test covers: all 24 on a TT FPGA board; 18 of 24 on an Arty, whose design cannot test the six wires on the three Pi pins two Pmods share |
 | `fail`: `… is an XC7A100T, not the a7-35's XC7A35T …` / `P1 JTAG chain has … expected one …` | the JTAG IDCODE is not the variant's part: the wrong board, or the wrong `--variant` |
 | `fail`: `the JTAG chain has N devices (…), not one` | more than the board's FPGA answers on its JTAG chain (an Arty or a NeTV2): another device wired into it, or a fault on the cable |
-| `fail`: `unconverted: …` | an Acorn on SQRL's factory image (or the XDMA sample): convert it ([acorn-pcie-programming.md](../boards/acorn/pcie-programming.md)) |
+| `fail`: `unconverted: …` | an Acorn on SQRL's factory image (or the XDMA sample): convert it ([Acorn PCIe programming and multiboot](../boards/acorn/pcie-programming.md)) |
 | `fail`: `… is not a design we built` | a Xilinx PCIe design the Acorn check does not know; its flash is not read |
 | `fail`: `… has no test design for this board yet` | a Xilinx PCIe board that is not an Acorn (a PCIe Screamer, a PicoEVB) |
 | `fail`: `running the golden image` | the Acorn's operational slot did not boot; it fell back to golden |

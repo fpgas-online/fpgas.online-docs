@@ -1,5 +1,5 @@
 % This page is copied from https://github.com/fpgas-online/fpgas.online-test-designs/blob/main/docs/verify.md
-% by tools/sync_test_designs.py. Do not edit it here: change it in test-designs.
+% by tools/sync_repos.py. Do not edit it here: change it in test-designs.
 
 # fpgas-verify: checking an FPGA board from its Raspberry Pi
 
@@ -8,11 +8,11 @@
 `fpgas-verify` answers one question per Pi: **is this Pi and its FPGA board ready for users?** It finds the
 board, tests the board and its wiring to the Pi, and gives one result, pass or fail, with every fault it found.
 
-* What the tool must do: [verify-goals.md](goals.md). Where this page and that one disagree,
+* What the tool must do: [fpgas-verify: what it must do](goals.md). Where this page and that one disagree,
   verify-goals.md says what the tool should do.
 * The code: [`verify/`](https://github.com/fpgas-online/fpgas.online-test-designs/tree/verify-split/verify). The design notes:
-  [plans/2026-09-26-fpgas-online-verify-design.md](https://github.com/fpgas-online/fpgas.online-test-designs/blob/verify-split/docs/plans/2026-09-26-fpgas-online-verify-design.md).
-* `verify_hardware.py` ([verify-hardware.md](https://github.com/fpgas-online/fpgas.online-test-designs/blob/verify-split/docs/verify-hardware.md)) is a different tool: a developer's script
+  [fpgas-online-verify: boot-time FPGA board verification, packaged per board](https://github.com/fpgas-online/fpgas.online-test-designs/blob/verify-split/docs/plans/2026-09-26-fpgas-online-verify-design.md).
+* `verify_hardware.py` ([verify_hardware.py — How the Hardware Verification Script Works](https://github.com/fpgas-online/fpgas.online-test-designs/blob/verify-split/docs/verify-hardware.md)) is a different tool: a developer's script
   that loads freshly built bitstreams from a workstation over SSH.
 
 This page has two parts:

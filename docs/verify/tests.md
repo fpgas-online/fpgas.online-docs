@@ -1,5 +1,5 @@
 % This page is copied from https://github.com/fpgas-online/fpgas.online-test-designs/blob/main/docs/verify/tests.md
-% by tools/sync_test_designs.py. Do not edit it here: change it in test-designs.
+% by tools/sync_repos.py. Do not edit it here: change it in test-designs.
 
 # fpgas-verify: what an Arty, NeTV2, Fomu or TT FPGA check tests
 
