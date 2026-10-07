@@ -2,7 +2,8 @@
 
 **You have a Compute Module 4 or 5 in a Compute Blade** (at ps1, each Acorn
 sits on one) **and want to know whether its bootloader needs anything before
-or after the rest of the work.** For the two blades we read, the answer is no.
+or after the rest of the work.** For the two Compute Module 5 Lite blades we read (pi16 at ps1 and pi20 at
+ps1), the answer is no; for the two Compute Module 4 blades at ps1 it is not known (below).
 A Raspberry Pi 5 has [its own page](bootloader-eeprom-pi5.md); nothing there is
 for a blade.
 
@@ -19,11 +20,12 @@ Log in to the blade the way you normally do and run these two. They change
 nothing and need no root.
 
 **At ps1, do not run them on the two Compute Module 4 blades (pi14 at ps1 and pi18 at ps1).** There, on
-7 October 2026, `vcgencmd` hung in the firmware and never returned; it could not be stopped, and only a
-reboot clears it. Why is not known, and whether `timeout` would bring the prompt back from such a hang has
-not been tried. So for those two blades the answer to this page's question is **not known**; nothing
-else in this booklet needs it. On a Compute Module 5 blade run them as written, with `timeout 10` in front
-as a guard.
+7 October 2026, `vcgencmd get_config enable_uart` hung in the firmware and did not return: it could not be
+stopped, and `timeout 10` in front of it did not help (it was still waiting 15 minutes later). A reboot is
+expected to clear it; not tried. Why it hangs is not known. So for those two blades the answer to this
+page's question is **not known**; nothing else in this booklet needs it. On a Compute Module 5 blade run
+them as written (they answered on one; `timeout 10` in front does no harm, and whether it would help there
+is not known).
 
 ```console
 $ timeout 10 vcgencmd bootloader_version
@@ -41,8 +43,7 @@ BOOT_ORDER=0xf2461
 ```
 
 That is what one blade of ours (a Compute Module 5 Lite) printed while it was
-running from the network. A Compute Module 4 answers the same two commands with
-the same fields (not read by us on one).
+running from the network. The Compute Module 4 blades at ps1 did not answer `vcgencmd` (above).
 
 ```{image} bootloader-eeprom/boot-order-blade.svg
 :alt: 0xf2461 read from its last digit: SD card, NVMe, USB, then the network, then round again

@@ -33,13 +33,19 @@ the serial number off a blade in the hand, without running it (a sticker on the 
 been checked by eye by us):
 
 - pi18 at ps1: no card seen in its M.2 slot (no PCIe device on 7 October 2026).
-- pi20 at ps1: a cable already on the Extension Port, with its serial pair on pins 9 and 10.
 - pi14 at ps1 and pi18 at ps1 carry a Compute Module 4; pi16 at ps1 and pi20 at ps1 a Compute Module 5
   Lite. Which marking on the module tells the two apart is not recorded by us.
+- Between the two Compute Module 5 blades: pi20 at ps1's serial pair was recorded (5 October 2026) on
+  Extension Port pins 9 and 10, so it is the one with a wire on pin 10 (GPIO15); the guide's P1 cable uses
+  no pin 10. How the Extension Port's pins are numbered is on [the blade's
+  pins](../wiring/compute-blade-host.md). If no wire is on pin 10 of either, the two cannot be told apart
+  by eye: use the way below.
 
 A way that does not depend on looking, **not yet tried by us**: with every other blade running, unplug one
-blade's PoE cable; the name whose visitor port then stops answering (`ssh -p 1NN22 ...`, above) is that
-blade. Plug it back in; it boots again in about two minutes.
+blade's PoE cable and wait a minute; the name whose visitor port then stops answering is that blade. The
+ports are 11422 for pi14 at ps1, 11622 for pi16 at ps1, 11822 for pi18 at ps1 and 12022 for pi20 at ps1
+(`ssh -p 11622 pi@ps1.fpgas.online` and so on). Plug it back in; how long it takes to boot at ps1 is not
+recorded by us: wait until its port answers again. Anything installed on it is gone (below).
 
 All four answered on their visitor ports on 7 October 2026 (pi14 at ps1 and pi18 at ps1 had not on
 5 October). **If a blade's ssh port does not answer**, nothing can be run on it from this guide; first find out
@@ -70,25 +76,17 @@ Blade**: on a blade they wait for JTAG (the Host column below).
 How each card was read, and what "P1 unmated" rests on, is on [Acorns at ps1: what was read on each
 blade](ps1-reads.md#the-cards-as-read).
 
-**No blade is wired to the [Compute Blade
-wiring](../building/compute-blade/index.md) yet.** That wiring puts P1 on
-the Extension Port and P2 on the 4-pin UART header, with a 470 Ω resistor in the
-J2 wire. pi20 at ps1, the one blade whose wiring has been read, has its P2 serial pair
-on Extension Port pins 9 and 10 instead, sharing pin 9 (GPIO14) directly with
-TMS and with no resistor, so a design that drives J2 costs JTAG until a PoE
-cycle ([why](../wiring/compute-blade-host.md#the-shared-line-and-the-470-ω-resistor)),
-and its J5 and H5 are not wired. How pi14 at ps1's and pi16 at ps1's P2 cables are wired is
-not known: pi14 at ps1's P1 did not answer on 2026-09-20 and pi16 at ps1's JTAG cannot run
-today ([pi16 at ps1 on 5 October 2026](ps1-reads.md#pi16-at-ps1-on-5-october-2026)), so nothing can be
-loaded to read them.
+**No blade is wired to the guide yet**; how each is wired today is on [what was read on each
+blade](ps1-reads.md#the-cards-as-read).
 
 ## What each blade still needs
 
-**What to build.** Four P2 cables, one for each blade, by the guide (pi20 at ps1's present P2 wiring is not
-the guide's: below). P1: pi20 at ps1's cable answered on 2026-09-20, so leave it. On pi14 at ps1 and pi16
-at ps1 a P1 cable is fitted but TCK reads as if it were not mated: reseat it first; if it still does not
-answer, or its wiring cannot be read against the guide, build a new P1 cable by the guide for it. pi18 at
-ps1 needs a card and both cables; which card goes there is not recorded by us.
+**What to build.** P2: four new cables by the guide, one for each blade; pi20 at ps1's present serial wiring
+is taken off (below). P1: one new cable for pi18 at ps1, certainly. On pi14 at ps1 and pi16 at ps1 TCK reads
+as if no P1 cable were mated (a cable may be fitted and loose, or not fitted at all): reseat a fitted one
+first; if none is fitted, or it still reads unmated, build a new one by the guide. pi20 at ps1's P1 answered
+on 2026-09-20: leave it, unless taking its old serial wiring off disturbs it. So: four P2 cables, and one
+to three P1 cables. pi18 at ps1 also needs a card; which card goes there is not recorded by us.
 
 **Before anything is fitted, refitted or reseated: power the blade off (unplug its PoE cable, and a USB-C cable if
 one is plugged in).** And before any design is loaded over JTAG:
@@ -116,10 +114,10 @@ converted a card on one yet: **not yet run by us on this hardware**.
 
 | Blade | Card | P1 (JTAG) cable | P2 (serial) cable | Host |
 |-------|------|-----------------|-------------------|------|
-| pi14 at ps1 | fitted, factory image: to be converted | not mated, or its TCK wire open (TCK follows the host's pull, as on the empty pi18 at ps1: 2026-09-20 and again 2026-10-07): reseat or refit on the Extension Port | not known: build to the UART header, 470 Ω in the J2 wire, J5 and H5 cut back | as pi16 at ps1 (read 2026-10-07: the same serial-port settings) |
-| pi16 at ps1 | fitted, factory image: to be converted | not mated, or its TCK wire open (TCK follows the host's pull, as on the empty pi18 at ps1: 2026-10-07): reseat or refit on the Extension Port | not known: build to the UART header, 470 Ω in the J2 wire, J5 and H5 cut back | (a) for the serial-pair tests: the kernel console and the getty off `/dev/ttyAMA0`; (b) only for JTAG: the serial port off at boot (below) |
+| pi14 at ps1 | fitted, factory image: to be converted | not mated, or its TCK wire open (TCK follows the host's pull, as on the empty pi18 at ps1: 2026-09-20 and again 2026-10-07): reseat a fitted one; if none, or still unmated, build a new one | not known: build to the UART header, 470 Ω in the J2 wire, J5 and H5 cut back | as pi16 at ps1 (read 2026-10-07: the same serial-port settings) |
+| pi16 at ps1 | fitted, factory image: to be converted | not mated, or its TCK wire open (TCK follows the host's pull, as on the empty pi18 at ps1: 2026-10-07): reseat a fitted one; if none, or still unmated, build a new one | not known: build to the UART header, 470 Ω in the J2 wire, J5 and H5 cut back | (a) for the serial-pair tests: the kernel console and the getty off `/dev/ttyAMA0`; (b) only for JTAG: the serial port off at boot (below) |
 | pi18 at ps1 | none seen: look; if the slot is empty, fit one | fit on the Extension Port | fit on the UART header, 470 Ω in the J2 wire, J5 and H5 cut back | as pi16 at ps1 (read 2026-10-07: the same serial-port settings) |
-| pi20 at ps1 | fitted, vendor sample image in flash: to be converted | answered on 2026-09-20: leave the cable. JTAG is expected not to run as the blade boots now (not tried) | move the serial pair from Extension Port pins 9 and 10 to the UART header, and add the 470 Ω resistor in the J2 wire | as pi16 at ps1 (read 2026-10-05: the same kernel and serial-port settings): (a) for the serial-pair tests: the kernel console and the getty off `/dev/ttyAMA0`; (b) only for JTAG: the serial port off at boot (below) |
+| pi20 at ps1 | fitted, vendor sample image in flash: to be converted | answered on 2026-09-20: leave the cable. JTAG is expected not to run as the blade boots now (not tried) | build a new one by the guide for the UART header (470 Ω in the J2 wire) and take the old serial wiring off Extension Port pins 9 and 10 (below) | as pi16 at ps1 (read 2026-10-05: the same kernel and serial-port settings): (a) for the serial-pair tests: the kernel console and the getty off `/dev/ttyAMA0`; (b) only for JTAG: the serial port off at boot (below) |
 
 **The Host column is Carl's to do, on the gateway, not on a blade.** The two files it means, `config.txt` and
 `cmdline.txt`, are in one directory on the ps1 gateway, `/srv/nfs/rpi/trixie/boot/`, which every netbooted
