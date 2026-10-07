@@ -10,8 +10,8 @@ for a blade.
 :::{warning}
 **There are no upgrade steps for a Compute Module in a Compute Blade, because
 we have not done one.** What this page gives you is how to tell
-whether your blade needs anything. The one blade we read (a Compute Module 5 Lite)
-is fine as it is and needs nothing.
+whether your blade needs anything. Both Compute Module 5 Lite blades we read (pi16 at ps1 and pi20 at ps1) are fine as they are
+and need nothing.
 :::
 
 ## Does this blade need anything?
@@ -24,7 +24,7 @@ nothing and need no root.
 stopped, and `timeout 10` in front of it did not help (it was still waiting 15 minutes later). A reboot is
 expected to clear it; not tried. Why it hangs is not known. So for those two blades the answer to this
 page's question is **not known**, and so are their labels, which wait on the same read (Labels). On a Compute Module 5 blade run
-them as written (they answered on one; `timeout 10` in front does no harm, and whether it would help there
+them as written (they answered on both; `timeout 10` in front does no harm, and whether it would help there
 is not known).
 
 ```console
