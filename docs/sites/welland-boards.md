@@ -7,19 +7,27 @@ power](../setup/network.md).
 
 ## What was up on 6 October 2026
 
-After the NFS root update of 6 October 2026, every Pi that came back was swept, and `verify-pi.yml`
+After the NFS root update of 6 October 2026, every Pi that came back was swept (the MAC is the gateway's
+neighbour entry for the port's address), and `verify-pi.yml`
 (fpgas.online-infra) checked each, including its board's own check, `fpgas-verify`. From the record of that
 update (08:21 to 08:57 Adelaide time):
 
-| Host | Board, as its check reported it | Check |
-|---|---|---|
-| pi-sw1-p10, -p12, -p14, -p16, -p18 | NeTV2 (Artix-7 XC7A35T) | fail on all five: the `ddr` test failed, the other two passed |
-| pi-sw1-p17 | Fomu host | pass |
-| pi-sw1-p38 | Acorn carrying a PCIe Screamer (PCILeech) image; MAC `88:a2:9e:45:dd:81` | fail: fpgas.online has no test design for that image |
-| pi-sw2-p33, -p35, -p36 | Tiny Tapeout FPGA demo board | pass |
-| pi-sw2-p46, -p47 | Acorn CLE-215+ | pass |
-| pi-sw2-p19, -p21, -p22, -p24 | Orange Pi, no FPGA | back by themselves by 08:57; `verify-pi.yml` failed on each: no HAT ID EEPROM read over the kernel's TWI1 bus |
-| pi-sw2-p30 | the Orange Pis' USB hub host (a Raspberry Pi) | answered the gateway's ping; not checked |
+| Host | MAC seen at the port | Board, as its check reported it | Check |
+|---|---|---|---|
+| pi-sw1-p10 | b8:27:eb:e3:e7:e4 | NeTV2 (Artix-7 XC7A35T) | fail: the `ddr` test failed, the other two passed |
+| pi-sw1-p12 | b8:27:eb:eb:5d:bf | NeTV2 | the same |
+| pi-sw1-p14 | b8:27:eb:e3:7c:3c | NeTV2 | the same |
+| pi-sw1-p16 | b8:27:eb:c6:29:79 | NeTV2 | the same |
+| pi-sw1-p18 | b8:27:eb:2c:e8:de | NeTV2 | the same |
+| pi-sw1-p17 | b8:27:eb:47:9f:d1 | Fomu host | pass |
+| pi-sw1-p38 | 88:a2:9e:45:dd:81 | Acorn carrying a PCIe Screamer (PCILeech) image | fail: fpgas.online has no test design for that image |
+| pi-sw2-p19, -p21, -p22, -p24 | 02:81:e1:ce:7d:46, 02:81:31:f4:6e:48, 02:81:2e:b7:a3:4e, 02:81:f5:c0:a6:10 | Orange Pi, no FPGA | back by themselves by 08:57; `verify-pi.yml` failed on each: no HAT ID EEPROM read over the kernel's TWI1 bus |
+| pi-sw2-p30 | 98:fe:54:13:f5:9c | the Orange Pis' USB hub host ([Orange Pi H3 hosts](../setup/orange-pi.md)) | answered the gateway's ping; not checked |
+| pi-sw2-p33 | e4:5f:01:97:0e:77 | Tiny Tapeout FPGA demo board | pass |
+| pi-sw2-p35 | e4:5f:01:8e:02:27 | Tiny Tapeout FPGA demo board | pass |
+| pi-sw2-p36 | e4:5f:01:97:0c:e3 | Tiny Tapeout FPGA demo board | pass |
+| pi-sw2-p46 | 88:a2:9e:45:85:77 | Acorn CLE-215+ | pass |
+| pi-sw2-p47 | 88:a2:9e:45:c6:87 | Acorn CLE-215+ | pass |
 
 Not among the boards up that morning (the gateway's neighbour table): the Tiny Tapeout ASIC hosts (switch 2, ports 3 to 8), pi-sw2-p34 (Tiny Tapeout FPGA
 board 2), and the Arty hosts. Boards are moved and visitors use them; this table is that morning's, not
@@ -76,7 +84,7 @@ been read since.
 
 ## Acorn CLE-215+
 
-Acorn cards, each on a Raspberry Pi 5 with an M.2 HAT. On 6 October 2026 the Acorn hosts up were
+Acorn cards on Raspberry Pi 5 hosts with M.2 HATs (pi-sw1-p38's host model was not recorded). On 6 October 2026 the Acorn hosts up were
 pi-sw2-p46 and pi-sw2-p47 (both passed their check) and pi-sw1-p38 (a card with a PCILeech image, which the
 check cannot test) (above). An Acorn is known by its label, not its port: which labelled card is on which
 host, its state, what it still needs and its cable faults are on [Acorns at
@@ -86,15 +94,15 @@ welland](../boards/acorn/installations/welland.md), the one place that list is k
 
 Surveyed 2026-03-17. Five boards, on RPi 4 / 3B+ hosts with PMOD HATs.
 
-| Host | Switch Port | IP (retired) | RPi MAC           | RPi Model   | Arty Serial         | Arty DNA           | USB Ethernet                     | Serial Devices   |
-| ---- | ----------- | ------------ | ----------------- | --------------- | ------------------- | ------------------ | -------------------------------- | ---------------- |
-| pi7  | p7          | 10.21.0.107  | e4:5f:01:96:f8:a5 | RPi 4 2 GB       | 210319B301DE        | 0x00628502251ea85c | ASIX AX88179 (f8:e4:3b:0f:c1:e6) | ttyUSB0, ttyUSB1 |
-| pi9  | p9          | 10.21.0.109  | b8:27:eb:86:39:63 | RPi 3B+ 1 GB     | (FTDI disconnected) | —                  | Apple Eth (48:d7:05:e9:40:52)    | **none**         |
-| pi11 | p11         | 10.21.0.111  | e4:5f:01:8d:f7:17 | RPi 4 8 GB       | 210319B3E5C5        | 0x002c8d02251ea854 | DM9601 (00:e0:4c:53:44:58)       | ttyUSB0, ttyUSB1 |
-| pi13 | p13         | 10.21.0.113  | b8:27:eb:6d:27:f6 | RPi 3B+ 1 GB     | 210319A43ADB        | 0x0002f54832290854 | ASIX (8a:ce:4c:ff:ae:83)         | ttyUSB0, ttyUSB1 |
-| pi26 | p26         | 10.21.0.126  | e4:5f:01:97:1f:7e | RPi 4 2 GB       | 210319B0C238        | 0x0144cd2a47442854 | Linksys GbE (60:38:e0:e3:56:4f)  | ttyUSB0, ttyUSB1 |
+| Host | Switch Port | RPi MAC           | RPi Model   | Arty Serial         | Arty DNA           | USB Ethernet                     | Serial Devices   |
+| ---- | ----------- | ----------------- | --------------- | ------------------- | ------------------ | -------------------------------- | ---------------- |
+| pi7  | p7          | e4:5f:01:96:f8:a5 | RPi 4 2 GB       | 210319B301DE        | 0x00628502251ea85c | ASIX AX88179 (f8:e4:3b:0f:c1:e6) | ttyUSB0, ttyUSB1 |
+| pi9  | p9          | b8:27:eb:86:39:63 | RPi 3B+ 1 GB     | (FTDI disconnected) | —                  | Apple Eth (48:d7:05:e9:40:52)    | **none**         |
+| pi11 | p11         | e4:5f:01:8d:f7:17 | RPi 4 8 GB       | 210319B3E5C5        | 0x002c8d02251ea854 | DM9601 (00:e0:4c:53:44:58)       | ttyUSB0, ttyUSB1 |
+| pi13 | p13         | b8:27:eb:6d:27:f6 | RPi 3B+ 1 GB     | 210319A43ADB        | 0x0002f54832290854 | ASIX (8a:ce:4c:ff:ae:83)         | ttyUSB0, ttyUSB1 |
+| pi26 | p26         | e4:5f:01:97:1f:7e | RPi 4 2 GB       | 210319B0C238        | 0x0144cd2a47442854 | Linksys GbE (60:38:e0:e3:56:4f)  | ttyUSB0, ttyUSB1 |
 
-These names and addresses are retired: the switch ports are flat numbers from before the one-VLAN-per-port
+These names, and their addresses `10.21.0.1NN` for `piNN`, are retired: the switch ports are flat numbers from before the one-VLAN-per-port
 scheme (`p7` here is not switch 2 port 7, which carries TT07). The 2026-08-30 hardware inventory sheet places
 the Arty `210319B3E5C5` (was pi11) at switch 2 port 38. Each Pi also carries a USB Ethernet adapter wired to
 the Arty's Ethernet port ([Arty A7](../boards/arty-a7.md)). Source: `lsusb` and `/dev/serial/by-id/` on each
