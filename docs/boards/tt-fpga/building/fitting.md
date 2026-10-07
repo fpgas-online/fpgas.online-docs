@@ -19,19 +19,20 @@ they move onto it soon, and these pages are written for the plate (Tim Ansell, 7
 us as a procedure; every figure is from the drawings on [the fitting guide](../overview/mechanical.md) and [the
 plate](../overview/plate.md) pages.
 
-```{image} /_static/mechanical/tt-generic-mounting-plate-fitting-guide-views-a-light.svg
-:alt: Each Tiny Tapeout demo board revision on the mounting plate, with the holes or slots it uses in red, the holes it does not use and its outline in grey, and its USB-C connector in amber
+```{image} /_static/mechanical/tt-generic-mounting-plate-fitting-guide-v3-light.svg
+:alt: The version 3 demo boards, DB ETR v3.2 and v3.3, on the mounting plate: the holes each uses in red (A1 and D1; D1 and E1), its outline, its USB-C connector in amber, the Pmod fields and the plate fixings
 :class: only-light
 ```
 
-```{image} /_static/mechanical/tt-generic-mounting-plate-fitting-guide-views-a-dark.svg
-:alt: Each Tiny Tapeout demo board revision on the mounting plate, with the holes or slots it uses in red, the holes it does not use and its outline in grey, and its USB-C connector in amber
+```{image} /_static/mechanical/tt-generic-mounting-plate-fitting-guide-v3-dark.svg
+:alt: The version 3 demo boards, DB ETR v3.2 and v3.3, on the mounting plate: the holes each uses in red (A1 and D1; D1 and E1), its outline, its USB-C connector in amber, the Pmod fields and the plate fixings
 :class: only-dark
 ```
 
 1. **Fit the plate to its chassis first**, by the plate's own fixings P1 to P6 (4.3 mm holes, for M4): the
    board overhangs them once it is on.
-2. **Find your board in the picture** by its board revision (DB ETR v3.2 for the version 3 board that has
+2. **Find your board in the picture** (the version 3 boards; every revision is on [the fitting
+   guide](../overview/mechanical.md)) by its board revision (DB ETR v3.2 for the version 3 board that has
    reported itself, `TTDBv3 [3.2]`) and **put an M3 × 8 mm standoff in each hole it uses** (red in the
    picture): on DB ETR v3.2, holes A1 and D1; on DB ETR v3.3, D1 and E1.
 3. **Put the board on the standoffs** with its three Pmod sockets along the plate's front (lower) edge, as

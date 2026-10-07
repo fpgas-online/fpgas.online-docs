@@ -30,7 +30,8 @@ DRAWINGS = [
                                                "tt-generic-mounting-plate-sheet": ("png",),
                                                "tt-generic-mounting-plate-fitting-guide-views-a": ("svg", "png"),
                                                "tt-generic-mounting-plate-fitting-guide-views-b": ("svg", "png"),
-                                               "tt-generic-mounting-plate-fitting-guide-sheet": ("png",)}),
+                                               "tt-generic-mounting-plate-fitting-guide-sheet": ("png",),
+                                               "tt-generic-mounting-plate-fitting-guide-v3": ("svg", "png")}),
 ]
 # Whole drawings copied as they are (vector, for zooming), where a sheet has no SVG picture.
 DOCUMENTS = ["tinytapeout/mounting_plate/output/tt-generic-mounting-plate.pdf",
