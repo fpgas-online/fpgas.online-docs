@@ -36,7 +36,7 @@ each FPGA host hangs off one switch port with one FPGA board attached:
 
 boot path: Pi ─DHCP▶ dnsmasq ─TFTP▶ kernel ─NFS▶ shared read-only root
 user path: browser ─https▶ gateway ─ssh/proxy▶ Pi ─USB/JTAG/PCIe▶ board
-prov path: Ansible ─ssh▶ gateway ─chroot▶ NFS root, baked before any Pi boots
+prov path: CI ─build▶ root image ─pull▶ gateway ─▶ NFS root, before any Pi boots
 ```
 
 One VLAN per port is the Welland scheme, and the gateway link is a VLAN trunk
