@@ -4,9 +4,11 @@
     uv run --no-project --with pillow docs/setup/bootloader-eeprom/make_figures.py
     uv run --no-project docs/setup/bootloader-eeprom/make_figures.py --no-photos    # the diagrams only
 
-Every diagram is written twice, <name>.svg for the light theme and the printed booklet and <name>-dark.svg
-for the dark theme, from one drawing and the colours in PALETTE; the page shows each in its theme
-(only-light / only-dark). tools/test_bootloader_figures.py checks that the files are what this writes.
+Every figure is written twice, <name> for the light theme and the printed booklet and <name>-dark for the
+dark theme; the page shows each in its theme (only-light / only-dark). A diagram is one drawing resolved with
+the colours of PALETTE; an annotated photograph (PHOTOS) gets its caption band and words in the dark page's
+colours, the photograph itself unchanged. tools/test_dark_twins.py checks that the diagrams are what this
+writes and that every figure has its twin on the page.
 
 The two photographs (`source/pi5-underside.jpg`, `source/pi5-flash-wp-closeup.jpg`) are crops of
 "Raspberry Pi5 8GB Bottom View (1).jpg" by Suyash Dwivedi, Wikimedia Commons, CC BY-SA 4.0
@@ -24,10 +26,33 @@ import sys
 
 HERE = pathlib.Path(__file__).parent
 SRC = HERE / "source"
+THEMES = ("light", "dark")
 ORANGE, WHITE, BLACK, SILVER = (232, 112, 42), (255, 255, 255), (0, 0, 0), (214, 218, 222)
 FONT = "/usr/share/fonts/truetype/dejavu/DejaVuSans-Bold.ttf"
+GREEN, RED = (30, 140, 60), (200, 30, 30)
 
-
+# The annotated photographs, each written twice: <name>.jpg with its caption band in white for the light theme and
+# the printed booklet, and <name>-dark.jpg for the dark theme, its band in the dark page's colour and its words in
+# the dark palette. The photograph (its own background too) and what is drawn on it (rings, leaders, solder,
+# labels in white with a black edge) are the same on both.
+# file name: (picture, what it shows)
+PHOTOS = {
+    "pi5-underside-flash-wp.jpg": ("underside", "pads"),
+    "pi5-underside-sd-slot.jpg": ("underside", "sd"),
+    "pi5-flash-wp-closeup.jpg": ("closeup", "pads"),
+    "pi5-flash-wp-bridged.jpg": ("closeup", "bridged"),
+    "pi5-flash-wp-wrong.jpg": ("closeup", "wrong"),
+    "pi5-flash-wp-tweezers.jpg": ("closeup", "tweezers"),
+    "pi5-flash-wp-clear.jpg": ("closeup", "clear"),
+}
+# The words under a photograph, and what they stand on: (light, dark). The dark values are PALETTE's below.
+BAND = {
+    "band": (WHITE, (0x13, 0x14, 0x16)),
+    "words": (BLACK, (0xE3, 0xE6, 0xEA)),
+    "orange": (ORANGE, (0xFF, 0xA0, 0x60)),
+    "good": (GREEN, (0x5F, 0xD2, 0x7A)),
+    "bad": (RED, (0xFF, 0x7B, 0x7B)),
+}
 def font(size):
     from PIL import ImageFont  # here, not at the top: the diagrams and their tests need no Pillow
 
@@ -43,15 +68,20 @@ def ring(d, box, width=7, colour=ORANGE):
     d.ellipse(box, outline=colour, width=width)
 
 
-def band(im, height):
-    """The picture with a white band under it for the labels, and a draw handle."""
+def band(im, height, theme):
+    """The picture with a band under it for the words, in the page's colour, and a draw handle."""
     from PIL import Image, ImageDraw
-    out = Image.new("RGB", (im.width, im.height + height), WHITE)
+
+    out = Image.new("RGB", (im.width, im.height + height), BAND["band"][THEMES.index(theme)])
     out.paste(im, (0, 0))
     return out, ImageDraw.Draw(out)
 
 
-def note(d, xy, text, size=30, fill=BLACK, anchor="mm"):
+def words(theme, role="words"):
+    return BAND[role][THEMES.index(theme)]
+
+
+def note(d, xy, text, size, fill, anchor="mm"):
     d.text(xy, text, font=font(size), fill=fill, anchor=anchor)
 
 
@@ -60,43 +90,43 @@ def leader(d, start, end, colour=ORANGE):
     d.line((start, end), fill=colour, width=6)
 
 
-GREEN, RED = (30, 140, 60), (200, 30, 30)
-
-
-def underside(name, what):
+def underside(what, theme):
     """The whole underside with its landmarks, and one thing ringed."""
     from PIL import Image
+
     photo = Image.open(SRC / "pi5-underside.jpg").convert("RGB")
-    im, d = band(photo, 150)
+    im, d = band(photo, 150, theme)
     for xy, text in (((874, 110), "GPIO header"), ((70, 290), "USB-A"), ((871, 880), "micro-HDMI ×2"),
                      ((1215, 795), "USB-C power"), ((520, 770), "CE mark")):
         label(d, xy, text, 24)
     if what == "pads":
         ring(d, (690, 664, 824, 760), 9)
         leader(d, (757, 760), (757, 935))
-        note(d, (700, 975), "TP14 and TP1: the two pads marked FLASH WP", 40, ORANGE)
-        note(d, (700, 1030), "right of the CE mark, above the two micro-HDMI sockets", 30)
+        note(d, (700, 975), "TP14 and TP1: the two pads marked FLASH WP", 40, words(theme, "orange"))
+        note(d, (700, 1030), "right of the CE mark, above the two micro-HDMI sockets", 30, words(theme))
     else:
         ring(d, (1150, 330, 1362, 540), 9)
         # a microSD card, drawn, on its way into the slot from the board's edge
         d.rounded_rectangle((1372, 372, 1398, 498), radius=6, fill=(40, 40, 40), outline=WHITE, width=3)
         leader(d, (1256, 540), (1256, 935))
-        note(d, (700, 975), "microSD slot: push the card in from the edge of the board,", 38, ORANGE)
-        note(d, (700, 1030), "gold contacts facing the board, until it stops", 38, ORANGE)
+        note(d, (700, 975), "microSD slot: push the card in from the edge of the board,", 38, words(theme, "orange"))
+        note(d, (700, 1030), "gold contacts facing the board, until it stops", 38, words(theme, "orange"))
         d.rounded_rectangle((722, 696, 792, 728), radius=16, fill=SILVER, outline=BLACK, width=3)
         ring(d, (690, 664, 824, 760), 6, WHITE)
         leader(d, (690, 712), (560, 712), WHITE)
         label(d, (555, 712), "the bridge stays on (drawn)", 26, WHITE, "rm")
-    im.save(HERE / name, quality=88)
+    return im
 
 
-def closeup(name, what):
+def closeup(what, theme):
     from PIL import Image
+
     photo = Image.open(SRC / "pi5-flash-wp-closeup.jpg").convert("RGB")
     photo = photo.resize((photo.width * 2, photo.height * 2), Image.LANCZOS)
-    im, d = band(photo, 190)
+    im, d = band(photo, 190, theme)
     tp14, tp1, tp17 = (826, 456), (1006, 456), (650, 356)  # pad centres, in the doubled picture
     y0 = photo.height
+    good, bad, plain = words(theme, "good"), words(theme, "bad"), words(theme)
 
     def blob(points, colour):
         """Solder, drawn: a rounded shape through the given pad centres."""
@@ -114,34 +144,42 @@ def closeup(name, what):
                            (tp1, "TP1 (right): power", 1400)):
             ring(d, (c[0] - 84, c[1] - 84, c[0] + 84, c[1] + 84), 8)
             leader(d, (c[0], c[1] + 84), (c[0], y0 + 30))
-            note(d, (x, y0 + 70), text, 36, ORANGE)
-        note(d, (900, y0 + 140), "The board prints TP14 TP1 above the pads and FLASH WP below them.", 32)
+            note(d, (x, y0 + 70), text, 36, words(theme, "orange"))
+        note(d, (900, y0 + 140), "The board prints TP14 TP1 above the pads and FLASH WP below them.", 32, plain)
     elif what == "bridged":
         blob([tp14, tp1], GREEN)
-        note(d, (900, y0 + 60), "RIGHT: one blob of solder over TP14 and TP1, touching nothing else", 38, GREEN)
-        note(d, (900, y0 + 120), "(Without an iron: a wire or tweezers held on both pads.)", 30)
-        note(d, (900, y0 + 164), "A drawing on the photo.", 30)
+        note(d, (900, y0 + 60), "RIGHT: one blob of solder over TP14 and TP1, touching nothing else", 38, good)
+        note(d, (900, y0 + 120), "(Without an iron: a wire or tweezers held on both pads.)", 30, plain)
+        note(d, (900, y0 + 164), "A drawing on the photo.", 30, plain)
     elif what == "wrong":
         blob([tp17, tp14, tp1], RED)
         ring(d, (tp17[0] - 100, tp17[1] - 100, tp17[0] + 100, tp17[1] + 100), 10, RED)
         leader(d, (tp17[0] - 100, tp17[1]), (330, 120), RED)
         label(d, (330, 90), "TP17 is touched too", 40, RED)
-        note(d, (900, y0 + 60), "WRONG: the solder also reaches TP17", 38, RED)
-        note(d, (900, y0 + 120), "Take it off and make it again before any power goes on.", 30)
-        note(d, (900, y0 + 164), "A drawing on the photo.", 30)
+        note(d, (900, y0 + 60), "WRONG: the solder also reaches TP17", 38, bad)
+        note(d, (900, y0 + 120), "Take it off and make it again before any power goes on.", 30, plain)
+        note(d, (900, y0 + 164), "A drawing on the photo.", 30, plain)
     elif what == "tweezers":
         for q in (tp14, tp1):  # two tips, one on each pad, meeting above the picture
             d.polygon([(q[0] - 16, q[1] + 10), (q[0] + 16, q[1] + 10), (916 + (q[0] - 916) // 6 + 26, 0),
                        (916 + (q[0] - 916) // 6 - 26, 0)], fill=SILVER, outline=BLACK)
-        note(d, (900, y0 + 60), "Without an iron: one tip of the tweezers on each pad", 38, GREEN)
-        note(d, (900, y0 + 120), "Hold them there for the whole 60 seconds of step 4.", 30)
-        note(d, (900, y0 + 164), "A drawing on the photo.", 30)
+        note(d, (900, y0 + 60), "Without an iron: one tip of the tweezers on each pad", 38, good)
+        note(d, (900, y0 + 120), "Hold them there for the whole 60 seconds of step 4.", 30, plain)
+        note(d, (900, y0 + 164), "A drawing on the photo.", 30, plain)
     else:  # clear: the pads separate again
         for c in (tp14, tp1):
             ring(d, (c[0] - 84, c[1] - 84, c[0] + 84, c[1] + 84), 8, GREEN)
-        note(d, (900, y0 + 70), "Bridge off: TP14 and TP1 are two separate pads again,", 38, GREEN)
-        note(d, (900, y0 + 130), "and no solder went anywhere else.", 38, GREEN)
-    im.save(HERE / name, quality=88)
+        note(d, (900, y0 + 70), "Bridge off: TP14 and TP1 are two separate pads again,", 38, good)
+        note(d, (900, y0 + 130), "and no solder went anywhere else.", 38, good)
+    return im
+
+
+def photos():
+    """Write every annotated photograph and its dark twin."""
+    for name, (picture, what) in PHOTOS.items():
+        for theme in THEMES:
+            im = {"underside": underside, "closeup": closeup}[picture](what, theme)
+            im.save(HERE / (name if theme == "light" else dark_name(name)), quality=88)
 
 
 # ----------------------------------------------------------------------------------------------------------------
@@ -248,7 +286,9 @@ def contrast_errors(theme="dark"):
 
 
 def dark_name(name):
-    return name.removesuffix(".svg") + "-dark.svg"
+    """kit.svg -> kit-dark.svg, pi5-flash-wp-clear.jpg -> pi5-flash-wp-clear-dark.jpg."""
+    stem, _, ext = name.rpartition(".")
+    return f"{stem}-dark.{ext}"
 
 
 def box(body, x, y, w, h, fill="surface", stroke="ink", width=2, rx=8):
@@ -549,14 +589,8 @@ def files():
 
 
 def main(argv):
-    if "--no-photos" not in argv:  # the annotated photographs: the same on both themes
-        underside("pi5-underside-flash-wp.jpg", "pads")
-        underside("pi5-underside-sd-slot.jpg", "sd")
-        closeup("pi5-flash-wp-closeup.jpg", "pads")
-        closeup("pi5-flash-wp-bridged.jpg", "bridged")
-        closeup("pi5-flash-wp-wrong.jpg", "wrong")
-        closeup("pi5-flash-wp-tweezers.jpg", "tweezers")
-        closeup("pi5-flash-wp-clear.jpg", "clear")
+    if "--no-photos" not in argv:  # the annotated photographs, light and dark
+        photos()
     for name, svg in files().items():
         (HERE / name).write_text(svg)
     print("figures written to", HERE)

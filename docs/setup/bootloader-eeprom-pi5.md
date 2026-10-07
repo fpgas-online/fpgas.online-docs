@@ -192,6 +192,15 @@ header along the top:
 ```{figure} bootloader-eeprom/pi5-underside-flash-wp.jpg
 :alt: Underside of a Raspberry Pi 5 with the two FLASH WP pads ringed, right of the CE mark and above the micro-HDMI sockets
 :width: 100%
+:figclass: only-light
+
+Photo: Suyash Dwivedi, [Wikimedia Commons](https://commons.wikimedia.org/wiki/File:Raspberry_Pi5_8GB_Bottom_View_(1).jpg), [CC BY-SA 4.0](https://creativecommons.org/licenses/by-sa/4.0/); annotated, same licence.
+```
+
+```{figure} bootloader-eeprom/pi5-underside-flash-wp-dark.jpg
+:alt: Underside of a Raspberry Pi 5 with the two FLASH WP pads ringed, right of the CE mark and above the micro-HDMI sockets
+:width: 100%
+:figclass: only-dark
 
 Photo: Suyash Dwivedi, [Wikimedia Commons](https://commons.wikimedia.org/wiki/File:Raspberry_Pi5_8GB_Bottom_View_(1).jpg), [CC BY-SA 4.0](https://creativecommons.org/licenses/by-sa/4.0/); annotated, same licence.
 ```
@@ -199,6 +208,15 @@ Photo: Suyash Dwivedi, [Wikimedia Commons](https://commons.wikimedia.org/wiki/Fi
 ```{figure} bootloader-eeprom/pi5-flash-wp-closeup.jpg
 :alt: Close-up of the pads: TP14 on the left, TP1 on the right, FLASH WP printed below
 :width: 100%
+:figclass: only-light
+
+Photo: Suyash Dwivedi, [Wikimedia Commons](https://commons.wikimedia.org/wiki/File:Raspberry_Pi5_8GB_Bottom_View_(1).jpg), [CC BY-SA 4.0](https://creativecommons.org/licenses/by-sa/4.0/); annotated, same licence.
+```
+
+```{figure} bootloader-eeprom/pi5-flash-wp-closeup-dark.jpg
+:alt: Close-up of the pads: TP14 on the left, TP1 on the right, FLASH WP printed below
+:width: 100%
+:figclass: only-dark
 
 Photo: Suyash Dwivedi, [Wikimedia Commons](https://commons.wikimedia.org/wiki/File:Raspberry_Pi5_8GB_Bottom_View_(1).jpg), [CC BY-SA 4.0](https://creativecommons.org/licenses/by-sa/4.0/); annotated, same licence.
 ```
@@ -206,6 +224,15 @@ Photo: Suyash Dwivedi, [Wikimedia Commons](https://commons.wikimedia.org/wiki/Fi
 ```{figure} bootloader-eeprom/pi5-flash-wp-bridged.jpg
 :alt: The same close-up with a blob of solder drawn across TP14 and TP1 only
 :width: 100%
+:figclass: only-light
+
+Photo: Suyash Dwivedi, [Wikimedia Commons](https://commons.wikimedia.org/wiki/File:Raspberry_Pi5_8GB_Bottom_View_(1).jpg), [CC BY-SA 4.0](https://creativecommons.org/licenses/by-sa/4.0/); annotated, same licence.
+```
+
+```{figure} bootloader-eeprom/pi5-flash-wp-bridged-dark.jpg
+:alt: The same close-up with a blob of solder drawn across TP14 and TP1 only
+:width: 100%
+:figclass: only-dark
 
 Photo: Suyash Dwivedi, [Wikimedia Commons](https://commons.wikimedia.org/wiki/File:Raspberry_Pi5_8GB_Bottom_View_(1).jpg), [CC BY-SA 4.0](https://creativecommons.org/licenses/by-sa/4.0/); annotated, same licence.
 ```
@@ -213,6 +240,15 @@ Photo: Suyash Dwivedi, [Wikimedia Commons](https://commons.wikimedia.org/wiki/Fi
 ```{figure} bootloader-eeprom/pi5-flash-wp-wrong.jpg
 :alt: The same close-up with a blob of solder drawn that also reaches TP17, marked wrong
 :width: 100%
+:figclass: only-light
+
+Photo: Suyash Dwivedi, [Wikimedia Commons](https://commons.wikimedia.org/wiki/File:Raspberry_Pi5_8GB_Bottom_View_(1).jpg), [CC BY-SA 4.0](https://creativecommons.org/licenses/by-sa/4.0/); annotated, same licence.
+```
+
+```{figure} bootloader-eeprom/pi5-flash-wp-wrong-dark.jpg
+:alt: The same close-up with a blob of solder drawn that also reaches TP17, marked wrong
+:width: 100%
+:figclass: only-dark
 
 Photo: Suyash Dwivedi, [Wikimedia Commons](https://commons.wikimedia.org/wiki/File:Raspberry_Pi5_8GB_Bottom_View_(1).jpg), [CC BY-SA 4.0](https://creativecommons.org/licenses/by-sa/4.0/); annotated, same licence.
 ```
@@ -236,6 +272,15 @@ on the two pads instead:
 ```{figure} bootloader-eeprom/pi5-flash-wp-tweezers.jpg
 :alt: The same close-up with the two tips of a pair of tweezers drawn, one on TP14 and one on TP1
 :width: 100%
+:figclass: only-light
+
+Photo: Suyash Dwivedi, [Wikimedia Commons](https://commons.wikimedia.org/wiki/File:Raspberry_Pi5_8GB_Bottom_View_(1).jpg), [CC BY-SA 4.0](https://creativecommons.org/licenses/by-sa/4.0/); annotated, same licence.
+```
+
+```{figure} bootloader-eeprom/pi5-flash-wp-tweezers-dark.jpg
+:alt: The same close-up with the two tips of a pair of tweezers drawn, one on TP14 and one on TP1
+:width: 100%
+:figclass: only-dark
 
 Photo: Suyash Dwivedi, [Wikimedia Commons](https://commons.wikimedia.org/wiki/File:Raspberry_Pi5_8GB_Bottom_View_(1).jpg), [CC BY-SA 4.0](https://creativecommons.org/licenses/by-sa/4.0/); annotated, same licence.
 ```
@@ -245,6 +290,15 @@ Photo: Suyash Dwivedi, [Wikimedia Commons](https://commons.wikimedia.org/wiki/Fi
 ```{figure} bootloader-eeprom/pi5-underside-sd-slot.jpg
 :alt: Underside of a Raspberry Pi 5 with the microSD slot ringed on the right edge, a card going in, and the bridge still on the FLASH WP pads
 :width: 100%
+:figclass: only-light
+
+Photo: Suyash Dwivedi, [Wikimedia Commons](https://commons.wikimedia.org/wiki/File:Raspberry_Pi5_8GB_Bottom_View_(1).jpg), [CC BY-SA 4.0](https://creativecommons.org/licenses/by-sa/4.0/); annotated, same licence.
+```
+
+```{figure} bootloader-eeprom/pi5-underside-sd-slot-dark.jpg
+:alt: Underside of a Raspberry Pi 5 with the microSD slot ringed on the right edge, a card going in, and the bridge still on the FLASH WP pads
+:width: 100%
+:figclass: only-dark
 
 Photo: Suyash Dwivedi, [Wikimedia Commons](https://commons.wikimedia.org/wiki/File:Raspberry_Pi5_8GB_Bottom_View_(1).jpg), [CC BY-SA 4.0](https://creativecommons.org/licenses/by-sa/4.0/); annotated, same licence.
 ```
@@ -272,6 +326,15 @@ Photo: Suyash Dwivedi, [Wikimedia Commons](https://commons.wikimedia.org/wiki/Fi
    ```{figure} bootloader-eeprom/pi5-flash-wp-tweezers.jpg
    :alt: The same close-up with the two tips of a pair of tweezers drawn, one on TP14 and one on TP1
    :width: 100%
+   :figclass: only-light
+
+   Photo: Suyash Dwivedi, [Wikimedia Commons](https://commons.wikimedia.org/wiki/File:Raspberry_Pi5_8GB_Bottom_View_(1).jpg), [CC BY-SA 4.0](https://creativecommons.org/licenses/by-sa/4.0/); annotated, same licence.
+   ```
+
+   ```{figure} bootloader-eeprom/pi5-flash-wp-tweezers-dark.jpg
+   :alt: The same close-up with the two tips of a pair of tweezers drawn, one on TP14 and one on TP1
+   :width: 100%
+   :figclass: only-dark
 
    Photo: Suyash Dwivedi, [Wikimedia Commons](https://commons.wikimedia.org/wiki/File:Raspberry_Pi5_8GB_Bottom_View_(1).jpg), [CC BY-SA 4.0](https://creativecommons.org/licenses/by-sa/4.0/); annotated, same licence.
    ```
@@ -303,6 +366,15 @@ Photo: Suyash Dwivedi, [Wikimedia Commons](https://commons.wikimedia.org/wiki/Fi
 ```{figure} bootloader-eeprom/pi5-flash-wp-clear.jpg
 :alt: Close-up of TP14 and TP1 as two separate pads again
 :width: 100%
+:figclass: only-light
+
+Photo: Suyash Dwivedi, [Wikimedia Commons](https://commons.wikimedia.org/wiki/File:Raspberry_Pi5_8GB_Bottom_View_(1).jpg), [CC BY-SA 4.0](https://creativecommons.org/licenses/by-sa/4.0/); annotated, same licence.
+```
+
+```{figure} bootloader-eeprom/pi5-flash-wp-clear-dark.jpg
+:alt: Close-up of TP14 and TP1 as two separate pads again
+:width: 100%
+:figclass: only-dark
 
 Photo: Suyash Dwivedi, [Wikimedia Commons](https://commons.wikimedia.org/wiki/File:Raspberry_Pi5_8GB_Bottom_View_(1).jpg), [CC BY-SA 4.0](https://creativecommons.org/licenses/by-sa/4.0/); annotated, same licence.
 ```
