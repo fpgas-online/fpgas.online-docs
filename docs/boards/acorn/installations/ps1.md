@@ -102,8 +102,8 @@ three P1 cables (four if pi20 at ps1's fails). Each bought Molex cable gives one
 takes four Molex cables, with one P1 half spare (for pi20 at ps1 if needed). The terminals are 3 per P2 cable
 and 5 per P1 cable: 27 in all (32 with a new P1 for pi20 at ps1), and a few spare. pi18 at ps1 also needs a card; which card goes there is not recorded by us.
 
-**Before anything is fitted, refitted or reseated: power the blade off (unplug its PoE cable, and a USB-C cable if
-one is plugged in).** Over JTAG, run only the check's own `jtag` test (`sudo fpgas-acorn-verify --test jtag`), and only as [verifying
+**Before anything is fitted, refitted or reseated: ask Tim, then power the blade off (unplug its PoE cable, and a
+USB-C cable if one is plugged in).** Over JTAG, run only the check's own `jtag` test (`sudo fpgas-acorn-verify --no-publish --test jtag`), and only as [verifying
 3](../building/compute-blade/verifying-3.md) says: in a boot with the header's serial port off, after its steps that show
 GPIO14 is free and nothing on the card drives it. Do not run `openFPGALoader` by hand on a blade.
 **Loading a bitstream on a blade is not part of this guide**: on the one blade it was tried on, the card's PCIe
