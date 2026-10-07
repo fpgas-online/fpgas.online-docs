@@ -1,14 +1,11 @@
 # Sites
 
-Two deployments, with different carrier hardware, and therefore different
-wiring. Nothing ties a carrier to a room — a Compute Blade could be racked at
-Welland and a Pi 5 with an M.2 HAT installed at PS1 — so what a host is plugged
-into is inventory, and what that implies for wiring is on the board pages. The
-sites also differ in how hosts are addressed: Welland gives each port its own
-VLAN, while PS1 still runs a flat, MAC-based network.
+**You want to know which fpgas.online sites there are and which page has each.** Two sites, each with one
+gateway and its own Raspberry Pi hosts; a bare host name in these pages means welland, and a ps1 host is
+always written with its site ("pi20 at ps1").
 
 ```{toctree}
-:maxdepth: 2
+:maxdepth: 1
 
 welland
 ps1
@@ -16,22 +13,13 @@ ps1
 
 ## At a glance
 
-| | Welland | PS1 |
+| | welland | ps1 |
 |---|---|---|
-| Location | South Australia (private lab) | Pumping Station: One, Chicago (public) |
-| Carrier | Raspberry Pi 5 + M.2 HAT | Compute Blade (CM4 / CM5) |
-| Boards | Arty A7, NeTV2, Fomu EVT, TT ASIC, TT FPGA demo, Acorn CLE-215+ | Arty A7, LiteFury / Acorn CLE-101 (Compute Blades) |
-| Addressing | [VLAN-per-port (since 2026-08-23)](../setup/network.md) | [MAC-based (legacy)](../setup/network.md) |
-| Acorn wiring variant, which follows the carrier | [Raspberry Pi 5](../boards/acorn/wiring/rpi-5.md) — JTAG on `10:9:11:8` | [Compute Blade](../boards/acorn/wiring/compute-blade.md) — JTAG on `2:3:4:14` |
-| Cameras | Arty, Fomu, Tiny Tapeout and Acorn hosts | Arty hosts only; no blade has one |
+| Where | South Australia, a private lab | Pumping Station: One, Chicago, run by Carl Karsten |
+| Public site | [the welland site](https://welland.fpgas.online) and [the Tiny Tapeout site](https://tinytapeout.fpgas.online) | [the ps1 site](https://ps1.fpgas.online/fpgas/) |
+| Hosts and boards | [Hosts and boards at welland](welland-boards.md): NeTV2, Fomu, Acorn, Arty A7, Tiny Tapeout, Orange Pis | [Hosts and boards at ps1](ps1-boards.md): Arty A7 (on Raspberry Pis), Acorn CLE-101 (on Compute Blades) |
+| Gateway | [tweed](welland-gateway.md), deployed by fpgas.online-infra | [Carl's own install](ps1-gateway.md), read but not deployed by fpgas.online |
+| Addressing | one VLAN per switch port, since late August 2026 ([Network and power](../setup/network.md)) | one flat network, a Pi known by its MAC |
 
-The P2 serial crossover — K2 (FPGA TX) to GPIO15, J2 (FPGA RX) to GPIO14 — is
-the same on both carriers, so one cable design works everywhere.
-
-:::{warning}
-The two JTAG pin orders are not interchangeable, and on a Compute Blade GPIO14
-is TMS *and* half of the serial pair, so loading a design that drives it leaves
-the FPGA holding a line JTAG needs, recoverable only with a power cycle. That
-follows from the carrier rather than from the site, and each variant has its page: [on a Raspberry Pi 5](../boards/acorn/wiring/rpi-5.md), [on a Compute
-Blade](../boards/acorn/wiring/compute-blade.md).
-:::
+Where an Acorn's wiring differs, it follows the carrier, not the site: a Raspberry Pi 5 with an M.2 HAT, or
+a Compute Module on a Compute Blade. Each carrier has its own pages under [Acorn](../boards/acorn/index.md).
