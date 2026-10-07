@@ -36,7 +36,7 @@ each FPGA host hangs off one switch port with one FPGA board attached:
 
 boot path: Pi ─DHCP▶ dnsmasq ─TFTP▶ kernel ─NFS▶ shared read-only root
 user path: browser ─https▶ gateway ─ssh/proxy▶ Pi ─USB/JTAG/PCIe▶ board
-prov path: Ansible ─ssh▶ gateway ─chroot▶ NFS root, baked before any Pi boots
+prov path: CI ─build▶ root image ─pull▶ gateway ─▶ NFS root, before any Pi boots
 ```
 
 One VLAN per port is the Welland scheme, and the gateway link is a VLAN trunk
@@ -55,7 +55,7 @@ take that picture apart:
   was measured and what is not known](bootloader-eeprom.md) is behind both.
 - [What runs on a Pi host](pi.md) — the packages, systemd units and boot-time
   settings that building the root leaves behind on every host.
-- [Orange Pi H3 hosts](orange-pi.md) — how five non-Raspberry boards boot the
+- [Orange Pi H3 hosts](orange-pi.md) — how seven non-Raspberry boards boot the
   same NFS root after being loaded with U-Boot over USB FEL, and what to do
   when one of them does not come back.
 - [The gateway host](gateway.md) — what the one x86 machine per site runs, how

@@ -199,6 +199,29 @@ class Tables(unittest.TestCase):
         text = '<a id="common-failures"></a>\n- x\n```\n<a id="kept"></a>\n```'
         self.assertEqual(s.anchors_to_targets(text), '(common-failures)=\n- x\n```\n<a id="kept"></a>\n```')
 
+    def test_an_id_with_an_underscore_is_an_anchor_too(self):
+        # GitHub keeps "_" in a heading's slug, as in "who-owns-authorized_keys-and-why"
+        self.assertEqual(s.anchors_to_targets('<a id="owns-authorized_keys"></a>'), "(owns-authorized_keys)=")
+
+    def test_an_id_in_shared_stays_the_raw_anchor(self):
+        text = '<a id="sources"></a>\n<a id="own"></a>'
+        self.assertEqual(s.anchors_to_targets(text, {"sources"}), '<a id="sources"></a>\n(own)=')
+
+    def test_anchor_ids_are_the_id_anchor_lines_outside_fenced_code(self):
+        self.assertEqual(s.anchor_ids('<a id="a"></a>\nx <a id="b"></a>\n```\n<a id="c"></a>\n```'), {"a"})
+
+    def test_an_id_anchored_on_two_pages_of_a_repository_is_no_site_label(self):
+        texts = {"docs/a.md": '# A\n\n<a id="sources"></a>\n<a id="only-a"></a>\n',
+                 "docs/b.md": '# B\n\n<a id="sources"></a>\n'}
+        with repos_with(PAGES={"docs/a.md": "docs/x/a.md", "docs/b.md": "docs/x/b.md"}), \
+                unittest.mock.patch.object(s, "fetch", side_effect=lambda f, c, p: texts[p].encode()):
+            wanted, missing = s.take(s.REPOS["infra"], "main", "c0ffee", lambda _: None, [])
+        self.assertEqual(missing, [])
+        a, b = (wanted[s.DOCS / f"docs/x/{n}.md"].decode() for n in "ab")
+        self.assertIn('\n<a id="sources"></a>\n(only-a)=\n', a)
+        self.assertIn('\n<a id="sources"></a>\n', b)
+        self.assertNotIn("(sources)=", a + b)
+
     def test_a_landing_page_gets_a_hidden_toctree_of_pages_that_are_pulled(self):
         for dest, entries in s.TEST_DESIGNS.TOCTREES.items():
             self.assertIn(dest, s.TEST_DESIGNS.PAGES.values())
@@ -212,8 +235,8 @@ class Tables(unittest.TestCase):
 
     def test_every_destination_is_in_a_directory_the_tool_owns(self):
         for repo in s.REPOS.values():
-            for dest in [*repo.PAGES.values(), *(d for d, _ in repo.SECTIONS.values()),
-                         *(w.dest for w in repo.WRAPPERS if w.own_dir)]:
+            for dest in [*(p.dest for p in repo.pages().values() if p.own_dir),
+                         *(d for d, _ in repo.SECTIONS.values()), *(w.dest for w in repo.WRAPPERS if w.own_dir)]:
                 self.assertIn(dest.rsplit("/", 1)[0], repo.owned_dirs())
 
 
@@ -262,8 +285,67 @@ class Ownership(unittest.TestCase):
         self.assertEqual(list(s.REPOS), ["test-designs", "infra", "site", "tt", "setup-pi", "poe", "cam", "mechanical"])
         for name, repo in s.REPOS.items():
             self.assertEqual(repo.full, f"fpgas-online/fpgas.online-{name}")
-            if name != "test-designs":
-                self.assertTrue(repo.empty(), name)
+            self.assertEqual(repo.empty(), name not in ("test-designs", "infra", "cam"), name)
+
+    def test_a_toctree_lists_only_what_some_row_writes(self):
+        a = s.Repo("a", PAGES={"x.md": s.Page("docs/a.md", own_dir=False)}, TOCTREES={"docs/a.md": [("G", "a/gone")]})
+        with self.assertRaisesRegex(s.Stop, "the toctree of docs/a.md lists a/gone, which no row writes"):
+            s.check_tables(self.tables(a))
+        b = s.Repo("b", PAGES={"y.md": s.Page("docs/a/there.md", own_dir=False)})
+        a.TOCTREES["docs/a.md"] = [("T", "a/there")]
+        s.check_tables(self.tables(a, b))
+        a.TOCTREES["docs/other.md"] = []
+        with self.assertRaisesRegex(s.Stop, "names docs/other.md, which none of its rows writes"):
+            s.check_tables(self.tables(a, b))
+
+
+class SharedPages(unittest.TestCase):
+    """A Page with own_dir=False claims its path and nothing else in its directory."""
+
+    def tables(self, *repos):
+        return {r.name: r for r in repos}
+
+    def test_a_shared_page_never_makes_its_directory_owned(self):
+        a = s.Repo("a", PAGES={"x.md": s.Page("docs/setup/x.md", own_dir=False), "y.md": "docs/setup/x/y.md"})
+        self.assertEqual(a.owned_dirs(), ["docs/setup/x"])
+        self.assertEqual(a.dests(), ["docs/setup/x.md", "docs/setup/x/y.md"])
+        b = s.Repo("b", PAGES={"z.md": s.Page("docs/setup/z.md", own_dir=False)})
+        s.check_tables(self.tables(a, b))
+
+    def test_two_repositories_may_not_claim_one_path(self):
+        a = s.Repo("a", PAGES={"x.md": s.Page("docs/setup/x.md", own_dir=False)})
+        b = s.Repo("b", PAGES={"y.md": s.Page("docs/setup/x.md", own_dir=False)})
+        with self.assertRaisesRegex(s.Stop, "docs/setup/x.md is written by a and by b"):
+            s.check_tables(self.tables(a, b))
+
+    def test_a_shared_page_in_a_directory_another_repository_owns_is_an_error(self):
+        a = s.Repo("a", PAGES={"x.md": "docs/setup/x/x.md"})
+        b = s.Repo("b", PAGES={"y.md": s.Page("docs/setup/x/y.md", own_dir=False)})
+        with self.assertRaisesRegex(s.Stop, "which a owns"):
+            s.check_tables(self.tables(a, b))
+
+    def test_the_docs_own_file_beside_a_shared_page_is_never_touched_nor_reported(self):
+        d = s.DOCS / "docs/zz-shared"
+        d.mkdir()
+        self.addCleanup(shutil.rmtree, d)
+        own = d / "own.md"
+        own.write_text("# The docs' own page, mentioning tools/sync_repos.py\n")
+        (d / "page.md").write_text("# Written by hand before the sync took it\n")
+        tables = {"zz-a": s.Repo("zz-a", PAGES={"docs/a.md": s.Page("docs/zz-shared/page.md", own_dir=False)})}
+        with unittest.mock.patch.dict(s.REPOS, tables), \
+                unittest.mock.patch.object(s, "resolve", return_value="c0ffee" * 6 + "c0ff"), \
+                unittest.mock.patch.object(s, "fetch", return_value=b"# A\n"):
+            out = io.StringIO()
+            with contextlib.redirect_stdout(out), contextlib.redirect_stderr(io.StringIO()):
+                self.assertEqual(s.main(["--repo", "zz-a"]), 0)
+            self.assertIn("update docs/zz-shared/page.md", out.getvalue())
+            self.assertNotIn("own.md", out.getvalue())
+            self.assertEqual(s.stale_files(), {})
+            with contextlib.redirect_stdout(io.StringIO()):
+                self.assertEqual(s.main(["--repo", "zz-a", "--check"]), 0)
+        self.assertEqual(sorted(p.name for p in d.iterdir()), ["own.md", "page.md"])
+        self.assertEqual(own.read_text(), "# The docs' own page, mentioning tools/sync_repos.py\n")
+        self.assertTrue((d / "page.md").read_text().endswith("# A\n"))
 
 
 class StaleFiles(unittest.TestCase):
@@ -290,7 +372,7 @@ class StaleFiles(unittest.TestCase):
         (self.dir / "page.md").write_text(s.marker(s.REPOS["infra"], "docs/x.md", "This page", "main") + "# X\n")
         for argv in (["--repo", "infra", "--check"], ["--repo", "infra"]):
             err = io.StringIO()
-            with contextlib.redirect_stderr(err), contextlib.redirect_stdout(io.StringIO()):
+            with repos_with(), contextlib.redirect_stderr(err), contextlib.redirect_stdout(io.StringIO()):
                 self.assertEqual(s.main(argv), 2)
             self.assertIn("sync: FAILED. fpgas-online/fpgas.online-infra: docs/zz-stale-test/page.md", err.getvalue())
             self.assertTrue((self.dir / "page.md").exists())
@@ -459,7 +541,7 @@ class CommandLine(unittest.TestCase):
 
     def test_an_empty_repository_makes_no_network_call(self):
         with unittest.mock.patch.object(s, "resolve") as resolve, unittest.mock.patch.object(s, "fetch") as fetch:
-            self.assertEqual(self.run_main(["--repo", "infra", "--repo", "mechanical", "--check"])[0], 0)
+            self.assertEqual(self.run_main(["--repo", "site", "--repo", "mechanical", "--check"])[0], 0)
         resolve.assert_not_called()
         fetch.assert_not_called()
 
@@ -477,18 +559,19 @@ class CommandLine(unittest.TestCase):
     def test_a_failing_repository_blocks_no_other(self):
         dest = s.DOCS / "docs/zz-healthy/page.md"
         self.addCleanup(shutil.rmtree, dest.parent, True)
-        tables = {"infra": s.Repo("infra", PAGES={"docs/a.md": "docs/zz-healthy/page.md"}),
-                  "cam": s.Repo("cam", PAGES={"docs/b.md": "docs/zz-broken/page.md"})}
+        # repositories of their own, so the real ones' synced pages stay accounted for
+        tables = {"zz-a": s.Repo("zz-a", PAGES={"docs/a.md": "docs/zz-healthy/page.md"}),
+                  "zz-b": s.Repo("zz-b", PAGES={"docs/b.md": "docs/zz-broken/page.md"})}
 
         def fetch(full, commit, path):
-            return b"# A\n" if full.endswith("-infra") else b"# B\n[x](../../outside.md)\n"
+            return b"# A\n" if full.endswith("-zz-a") else b"# B\n[x](../../outside.md)\n"
         with unittest.mock.patch.dict(s.REPOS, tables), \
                 unittest.mock.patch.object(s, "resolve", return_value="c0ffee" * 6 + "c0ff"), \
                 unittest.mock.patch.object(s, "fetch", side_effect=fetch):
-            code, out, err = self.run_main(["--repo", "infra", "--repo", "cam"])
+            code, out, err = self.run_main(["--repo", "zz-a", "--repo", "zz-b"])
         self.assertEqual(code, 2)
-        self.assertIn("sync: FAILED. fpgas-online/fpgas.online-cam: docs/b.md links outside the repository", err)
-        self.assertNotIn("fpgas.online-infra:", err)
+        self.assertIn("sync: FAILED. fpgas-online/fpgas.online-zz-b: docs/b.md links outside the repository", err)
+        self.assertNotIn("fpgas.online-zz-a:", err)
         self.assertTrue(dest.exists(), out)
         self.assertTrue((dest.parent / "SOURCE").exists())
         self.assertFalse((s.DOCS / "docs/zz-broken").exists())
