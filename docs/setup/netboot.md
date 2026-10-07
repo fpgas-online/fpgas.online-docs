@@ -66,7 +66,7 @@ root=/dev/nfs nfsroot=10.21.0.1:{{ nfs_root }}/root,nfsvers=3,tcp ro ip=dhcp roo
 Three parts are load-bearing:
 
 `nfsvers=3,tcp`
-: Welland's gateway [tweed](../sites/welland.md#gateway-tweed) runs trixie,
+: Welland's gateway [tweed](../sites/welland-gateway.md#gateway-tweed) runs trixie,
   whose `nfsd` serves v3 over TCP only, while the initramfs `nfsmount` from
   klibc defaults to UDP. Without this the mount hangs in the initramfs. The
   bookworm VM used in CI does not reproduce it, so it was only found on real
@@ -260,7 +260,7 @@ shared root leave the Pis holding stale NFS handles. On 2026-08-30 an upgrade of
 `fpgas-online-cam` took the cameras off air on eleven boards with `ESTALE` on the
 replaced files, and days later the Tiny Tapeout hosts still had `dpkg-query`
 reporting a stale file handle. Only a reboot clears it. See
-[Known faults](../sites/welland.md#known-faults) on the Welland page.
+[Known faults](../sites/welland-boards.md) on the Welland page.
 
 So the update procedure is: converge, then reboot every Pi. On a PoE fleet that
 means a PoE cycle per port — see [Network](network.md) for the switch and PoE
@@ -488,7 +488,7 @@ Other repositories:
 - [fpgas.online-tools](https://github.com/fpgas-online/fpgas.online-tools)
   — `README.md` for the DHCP and netconsole utilities.
 
-Pages on this site: [Welland](../sites/welland.md#gateway-tweed) (tweed on
+Pages on this site: [Welland](../sites/welland-gateway.md#gateway-tweed) (tweed on
 trixie, Pi 5 console, stale NFS handles),
 [PS1](../sites/ps1-gateway.md#gateway-val2) (val2 on bookworm, the two roots) and
 [Compute blades](../sites/ps1-boards.md#compute-blades) (`console=tty1` on the trixie
