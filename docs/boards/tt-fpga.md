@@ -26,7 +26,7 @@ public **fpga-1 … fpga-4** boards on
 [tinytapeout.fpgas.online](https://tinytapeout.fpgas.online), live since
 2026-08-24 and probed live 2026-09-03. Their hosts, IP addresses, MACs, RP2350
 serials, switch ports and old `piNN` names are in
-[Tiny Tapeout FPGA demo boards](../sites/welland-boards.md#tiny-tapeout-fpga-demo-boards)
+[Tiny Tapeout FPGA demo boards](../sites/welland-tinytapeout.md#tiny-tapeout-fpga-demo-boards)
 on the Welland page, which also carries the gateway and the per-port VLAN scheme
 that gives each Pi `10.21.<switch>.<port>`.
 

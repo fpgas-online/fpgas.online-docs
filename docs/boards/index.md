@@ -85,7 +85,7 @@ page is the measured source.
   Welland. The Welland page records only that S3300 ports 9 and 10 are reserved
   for `tt09` and `tt10` with no Pi behind them, says nothing about TT02 or TT03,
   and names a `tt10` that has no row here — see
-  [Tiny Tapeout ASIC boards](../sites/welland-boards.md#tiny-tapeout-asic-boards).
+  [Tiny Tapeout ASIC boards](../sites/welland-tinytapeout.md#tiny-tapeout-asic-boards).
 - **NeTV2 (RPi5 PCIe) at Welland.** Four are pending here. The Welland page has
   no pending PCIe NeTV2 hosts; the only RPi 5 NeTV2 is `rpi5-netv2`, one of two
   development hosts on a separate network that is not part of the fleet — see

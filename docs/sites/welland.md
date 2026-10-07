@@ -11,7 +11,7 @@ boards, and Orange Pis that carry no FPGA. A bare host name on these pages (`pi-
 
 | You want | Page |
 |---|---|
-| Which board is on which host, what was last seen on each, and what is known wrong | [Hosts and boards at welland](welland-boards.md) |
+| Which board is on which host, what was last seen on each, and what is known wrong | [Hosts and boards at welland](welland-boards.md); the Tiny Tapeout boards: [Tiny Tapeout boards at welland](welland-tinytapeout.md) |
 | tweed: what it is, its addresses, how to reach a Pi through it | [The welland gateway](welland-gateway.md) |
 | An Acorn: which card, its state, what it still needs | [Acorns at welland](../boards/acorn/installations/welland.md) |
 | How a port becomes an address and a name | [Network and power](../setup/network.md) |
@@ -77,10 +77,10 @@ The sections of this page moved on 7 October 2026. Links to the old sections lan
 - [Fomu EVT](welland-boards.md#fomu-evt).
 
 (tiny-tapeout-asic-boards)=
-- [Tiny Tapeout ASIC boards](welland-boards.md#tiny-tapeout-asic-boards).
+- [Tiny Tapeout ASIC boards](welland-tinytapeout.md#tiny-tapeout-asic-boards).
 
 (tiny-tapeout-fpga-demo-boards)=
-- [Tiny Tapeout FPGA demo boards](welland-boards.md#tiny-tapeout-fpga-demo-boards).
+- [Tiny Tapeout FPGA demo boards](welland-tinytapeout.md#tiny-tapeout-fpga-demo-boards).
 
 (disconnected-hosts)=
 - [Disconnected hosts](welland-boards.md#retired-and-unlocated-hosts).
@@ -92,5 +92,6 @@ The sections of this page moved on 7 October 2026. Links to the old sections lan
 :hidden:
 
 Hosts and boards <welland-boards>
+Tiny Tapeout boards <welland-tinytapeout>
 Gateway <welland-gateway>
 ```

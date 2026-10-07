@@ -164,7 +164,7 @@ All six deployed boards are at Welland, on S3300 ports 3–8, on Raspberry Pi 4
 and 3B+ hosts with Pmod HATs — the switch port number is the shuttle number, so
 port N carries TTN. The hosts, their addresses, MACs, RP2040 serial numbers,
 per-board firmware versions and old `piNN` names are in
-[Tiny Tapeout ASIC boards](../sites/welland-boards.md#tiny-tapeout-asic-boards) on the
+[Tiny Tapeout ASIC boards](../sites/welland-tinytapeout.md#tiny-tapeout-asic-boards) on the
 Welland page, which also carries the per-port VLAN scheme those addresses come
 from. These hosts have no page under `welland.fpgas.online/fpgas/`; their public
 pages are the `tinytapeout.fpgas.online` board pages linked above.
