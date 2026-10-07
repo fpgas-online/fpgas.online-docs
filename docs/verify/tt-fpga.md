@@ -44,7 +44,7 @@ chosen.
 
 ## What the TT FPGA is left running
 
-The check of an FPGA board ends by streaming one more design, [`tt-display`](https://github.com/fpgas-online/fpgas.online-test-designs/blob/verify-split/designs/tt-display/README.md),
+The check of an FPGA board ends by streaming one more design, [`tt-display`](https://github.com/fpgas-online/fpgas.online-test-designs/blob/main/designs/tt-display/README.md),
 so that the board's seven-segment display moves and the board looks alive on its camera
 ([#139](https://github.com/fpgas-online/fpgas.online-test-designs/issues/139)): one segment runs round the
 ring, the middle segment changes at each lap, the dot blinks once a second. It is not a test, and nothing

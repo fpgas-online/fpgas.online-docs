@@ -1,5 +1,5 @@
 These files are copied from https://github.com/fpgas-online/fpgas.online-test-designs
 by tools/sync_test_designs.py. Do not edit them here: change them in test-designs.
 
-ref: verify-split
-commit: d343a10717324181434c9fc81ecafb99b65ceaf2
+ref: main
+commit: a8aae68b70db942496ef5c830a49584c064b6b7a

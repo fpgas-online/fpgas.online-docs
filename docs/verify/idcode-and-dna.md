@@ -10,7 +10,7 @@ Every fpgas-verify page is listed in [fpgas-verify](fpgas-verify.md).
 ## The JTAG IDCODE
 
 Every board with JTAG has its FPGA's whole 32-bit IDCODE read and decoded
-([`idcode.py`](https://github.com/fpgas-online/fpgas.online-test-designs/blob/verify-split/verify/src/fpgas_online_verify/idcode.py)):
+([`idcode.py`](https://github.com/fpgas-online/fpgas.online-test-designs/blob/main/verify/src/fpgas_online_verify/idcode.py)):
 
 | Board | Read with | Must be | In the report |
 |---|---|---|---|
@@ -80,7 +80,7 @@ Its `jtag` test entry:
 ## The device DNA
 
 The Acorn, Arty and NeTV2 have their FPGA's device DNA read: a 57-bit number fused into each chip, different on
-every one ([`dna.py`](https://github.com/fpgas-online/fpgas.online-test-designs/blob/verify-split/verify/src/fpgas_online_verify/dna.py)).
+every one ([`dna.py`](https://github.com/fpgas-online/fpgas.online-test-designs/blob/main/verify/src/fpgas_online_verify/dna.py)).
 
 | Board | Read with | In the report |
 |---|---|---|

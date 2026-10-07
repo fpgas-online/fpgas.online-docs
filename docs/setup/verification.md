@@ -36,7 +36,7 @@ and are called out as such.
 `/etc/dnsmasq.d/pibs.conf` on the gateway, giving the hostname, the IP and a
 comment naming the board type. PS1 still runs the legacy MAC table, so a Pi's
 identity comes from its MAC and nothing is derived from the socket; see
-[Gateway: val2](../sites/ps1.md#gateway-val2) for what that file is and which
+[Gateway: val2](../sites/ps1-gateway.md#gateway-val2) for what that file is and which
 range it hands out.
 
 **Welland (tweed)** — nothing to add for the network. Since 2026-08-23 every
@@ -84,7 +84,7 @@ and fix the checklist.
 
 Add the new host to the right table on its site page —
 [Welland hosts and boards](../sites/welland.md#hosts-and-boards) or
-[PS1 hosts and boards](../sites/ps1.md#hosts-and-boards) — under the section
+[PS1 hosts and boards](../sites/ps1-boards.md) — under the section
 for that board type (Arty, NeTV2, Fomu, TT FPGA, Acorn, and so on).
 
 Give hostname, switch port, IP, Pi model, board type or serial, and status.
@@ -151,7 +151,7 @@ the serial port, parse the result — is under
 
 ```
 1. On val2: Add dhcp-host line to /etc/dnsmasq.d/pibs.conf
-2. Edit docs/sites/ps1.md: Add row to the Arty A7 hosts table
+2. Edit docs/sites/ps1-boards.md: Add row to the Arty A7 hosts table
 3. Edit docs/boards/index.md: Increment PS1 (deployed) count for Arty A7
 4. Edit verify_hardware.py: Add "ps1-piNN" to HOSTS dict
 5. Power on the RPi, verify PXE boot, run verify_hardware.py

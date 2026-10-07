@@ -9,10 +9,10 @@ Every fpgas-verify page is listed in [fpgas-verify](fpgas-verify.md).
 
 ## Acorn
 
-The Acorn check ([`suite.py`](https://github.com/fpgas-online/fpgas.online-test-designs/blob/verify-split/verify/src/fpgas_online_verify/boards/acorn/suite.py),
-[`check.py`](https://github.com/fpgas-online/fpgas.online-test-designs/blob/verify-split/verify/src/fpgas_online_verify/boards/acorn/check.py),
-[`links.py`](https://github.com/fpgas-online/fpgas.online-test-designs/blob/verify-split/verify/src/fpgas_online_verify/boards/acorn/links.py),
-[`bist.py`](https://github.com/fpgas-online/fpgas.online-test-designs/blob/verify-split/verify/src/fpgas_online_verify/boards/acorn/bist.py)) tests the board as it booted from its
+The Acorn check ([`suite.py`](https://github.com/fpgas-online/fpgas.online-test-designs/blob/main/verify/src/fpgas_online_verify/boards/acorn/suite.py),
+[`check.py`](https://github.com/fpgas-online/fpgas.online-test-designs/blob/main/verify/src/fpgas_online_verify/boards/acorn/check.py),
+[`links.py`](https://github.com/fpgas-online/fpgas.online-test-designs/blob/main/verify/src/fpgas_online_verify/boards/acorn/links.py),
+[`bist.py`](https://github.com/fpgas-online/fpgas.online-test-designs/blob/main/verify/src/fpgas_online_verify/boards/acorn/bist.py)) tests the board as it booted from its
 flash:
 
 * It loads nothing, never writes the flash and never reconfigures the FPGA.
@@ -48,8 +48,8 @@ flash:
 
 | File | Holds | In the repository | Installed |
 |---|---|---|---|
-| `wiring.toml` | each setup's wiring: which Pi GPIO each P1/P2 signal lands on, the JTAG cable and pins, the UART, and which hosts are that setup | [`docs/wiring/acorn/wiring.toml`](https://github.com/fpgas-online/fpgas.online-test-designs/blob/verify-split/docs/wiring/acorn/wiring.toml) | `/usr/lib/python3/dist-packages/fpgas_online_verify/boards/acorn/data/` |
-| `expected.toml` | the figures the board must meet: PCIe link speed and width per setup, XADC ranges, and the least DRAM write and read bandwidth per variant | [`docs/wiring/acorn/expected.toml`](https://github.com/fpgas-online/fpgas.online-test-designs/blob/verify-split/docs/wiring/acorn/expected.toml) | the same |
+| `wiring.toml` | each setup's wiring: which Pi GPIO each P1/P2 signal lands on, the JTAG cable and pins, the UART, and which hosts are that setup | [`docs/wiring/acorn/wiring.toml`](https://github.com/fpgas-online/fpgas.online-test-designs/blob/main/docs/wiring/acorn/wiring.toml) | `/usr/lib/python3/dist-packages/fpgas_online_verify/boards/acorn/data/` |
+| `expected.toml` | the figures the board must meet: PCIe link speed and width per setup, XADC ranges, and the least DRAM write and read bandwidth per variant | [`docs/wiring/acorn/expected.toml`](https://github.com/fpgas-online/fpgas.online-test-designs/blob/main/docs/wiring/acorn/expected.toml) | the same |
 
 From a checkout, the check reads them from the repository.
 

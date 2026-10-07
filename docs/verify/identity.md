@@ -11,7 +11,7 @@ fpgas-verify describes each board it finds as one flat set of fields. The same f
 
 The field names are [rpi-hwid](https://github.com/mithro/rpi-hwid)'s `FpgaBoard` fields, spelled the same, a
 Tiny Tapeout board's `TinyTapeoutBoard` fields, and some fields only fpgas-verify has. The code is
-[`identity.py`](https://github.com/fpgas-online/fpgas.online-test-designs/blob/verify-split/verify/src/fpgas_online_verify/identity.py).
+[`identity.py`](https://github.com/fpgas-online/fpgas.online-test-designs/blob/main/verify/src/fpgas_online_verify/identity.py).
 
 ## Rules
 
@@ -73,7 +73,7 @@ fpgas-verify's own fields:
 
 A TT board's fields are rpi-hwid's `TinyTapeoutBoard` fields, under its names. The site makes rpi-hwid's Tiny
 Tapeout label from them. Except `usb_serial`, they come from `rpi-hwid tinytapeout --json --no-stop-service`,
-which the boot check runs while it holds the board's port (see [verify.md](tt-fpga.md#tt-fpga-identity)).
+which the boot check runs while it holds the board's port (see [fpgas-verify: TT FPGA identity](tt-fpga.md#tt-fpga-identity)).
 rpi-hwid gives `null` for a field it read and found no value for: the TT FPGA has no shuttle, for example.
 Every TT FPGA board has an `mcu`, `chip`, `demoboard` and `sdk`, so rpi-hwid giving `null` for one of those
 means its read failed: the identity then has `tinytapeout_error` instead of the Tiny Tapeout fields. A field
@@ -159,7 +159,7 @@ The identity document holds the fields of every board found:
 `source` is always `live`. A run inside `fpgas-verify --label` prints the outer run's document byte for byte,
 so it says `live` too.
 
-[`tests/data/identity-v1-acorn-p48.json`](https://github.com/fpgas-online/fpgas.online-test-designs/blob/verify-split/tests/data/identity-v1-acorn-p48.json) is an example: the
+[`tests/data/identity-v1-acorn-p48.json`](https://github.com/fpgas-online/fpgas.online-test-designs/blob/main/tests/data/identity-v1-acorn-p48.json) is an example: the
 Acorn on pi-sw2-p48. rpi-hwid keeps a byte-identical copy and tests its reader on it. It is exactly what
 that board printed, which did not include `flash_sfdp`.
 

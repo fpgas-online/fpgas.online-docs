@@ -48,8 +48,8 @@ that says how to switch it on.
 
 ## The Acorn's tests in detail
 
-* `ddr` in detail ([`bist.py`](https://github.com/fpgas-online/fpgas.online-test-designs/blob/verify-split/verify/src/fpgas_online_verify/boards/acorn/bist.py), the same code
-  [`selftest.py`](https://github.com/fpgas-online/fpgas.online-test-designs/blob/verify-split/designs/acorn-pcie/host/selftest.py) runs):
+* `ddr` in detail ([`bist.py`](https://github.com/fpgas-online/fpgas.online-test-designs/blob/main/verify/src/fpgas_online_verify/boards/acorn/bist.py), the same code
+  [`selftest.py`](https://github.com/fpgas-online/fpgas.online-test-designs/blob/main/designs/acorn-pcie/host/selftest.py) runs):
   1. The BIOS console is read until it has been quiet for 2 s. In the installed release
      (`vivado-bitstreams-acorn-pcie-20261001-ge568a408e7bd`, built from e568a40, which does not have
      [#47](https://github.com/fpgas-online/fpgas.online-test-designs/pull/47)) the BIOS stops while its

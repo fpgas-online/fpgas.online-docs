@@ -3,7 +3,7 @@
 Each site has exactly one x86 gateway, and it is everything at the site that is
 not a Pi: [tweed](../sites/welland.md#gateway-tweed) at Welland, which sits
 behind a separately managed upstream gateway on a private link, and
-[val2](../sites/ps1.md#gateway-val2) at PS1, which faces the public internet
+[val2](../sites/ps1-gateway.md#gateway-val2) at PS1, which faces the public internet
 directly. The gateway serves the boot chain, exports the NFS root, is the
 network edge and firewall for the Pi network, and runs the web tier that end
 users see. This page covers which hosts those are, what runs on them, how they
