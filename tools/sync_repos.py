@@ -570,6 +570,9 @@ INFRA = Repo(
         "docs/pi.md": Page("docs/setup/pi.md", **_SHARED),
         "docs/pi/services.md": Page("docs/setup/pi/services.md", **_SHARED),
         "docs/pi/models.md": Page("docs/setup/pi/models.md", **_SHARED),
+        "docs/orange-pi.md": Page("docs/setup/orange-pi.md", **_SHARED),
+        "docs/orange-pi/recover.md": "docs/setup/orange-pi/recover.md",
+        "docs/orange-pi/add.md": "docs/setup/orange-pi/add.md",
         "docs/access.md": Page("docs/setup/access.md", **_SHARED),
     },
     # in each landing page's order of its pages
@@ -592,6 +595,10 @@ INFRA = Repo(
             ("Services and boot settings", "pi/services"),
             ("Models and serial consoles", "pi/models"),
             ("Camera", "pi/camera"),
+        ],
+        "docs/setup/orange-pi.md": [
+            ("Reading and recovering", "orange-pi/recover"),
+            ("Adding and deploying", "orange-pi/add"),
         ],
     },
 )
