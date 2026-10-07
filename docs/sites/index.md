@@ -5,7 +5,7 @@ gateway and its own Raspberry Pi hosts; a bare host name in these pages means we
 always written with its site ("pi20 at ps1").
 
 ```{toctree}
-:maxdepth: 2
+:maxdepth: 1
 
 welland
 ps1
@@ -16,8 +16,8 @@ ps1
 | | welland | ps1 |
 |---|---|---|
 | Where | South Australia, a private lab | Pumping Station: One, Chicago, run by Carl Karsten |
-| Public site | [welland.fpgas.online](https://welland.fpgas.online), [tinytapeout.fpgas.online](https://tinytapeout.fpgas.online) | [ps1.fpgas.online](https://ps1.fpgas.online/fpgas/) |
-| Hosts and boards | [Hosts and boards at welland](welland-boards.md): NeTV2, Fomu, Acorn (on Raspberry Pi 5s), Arty A7, Tiny Tapeout, Orange Pis | [Hosts and boards at ps1](ps1-boards.md): Arty A7 (on Pi 3B, 3B+ and 4B), Acorn CLE-101 (on Compute Blades) |
+| Public site | [the welland site](https://welland.fpgas.online) and [the Tiny Tapeout site](https://tinytapeout.fpgas.online) | [the ps1 site](https://ps1.fpgas.online/fpgas/) |
+| Hosts and boards | [Hosts and boards at welland](welland-boards.md): NeTV2, Fomu, Acorn, Arty A7, Tiny Tapeout, Orange Pis | [Hosts and boards at ps1](ps1-boards.md): Arty A7 (on Raspberry Pis), Acorn CLE-101 (on Compute Blades) |
 | Gateway | [tweed](welland-gateway.md), deployed by fpgas.online-infra | [Carl's own install](ps1-gateway.md), read but not deployed by fpgas.online |
 | Addressing | one VLAN per switch port, since late August 2026 ([Network and power](../setup/network.md)) | one flat network, a Pi known by its MAC |
 
