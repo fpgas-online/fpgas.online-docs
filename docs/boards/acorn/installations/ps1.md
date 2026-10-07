@@ -161,7 +161,10 @@ but the card's PCIe endpoint did not come back on a bus rescan, and the run stop
 not written**, so the card still holds the vendor's sample image and runs it again from its next power-on or
 `openFPGALoader --reset`. Until then it may run our SoC, or show no PCIe device. On this blade the endpoint
 comes back after a root-complex re-probe ([Bring the endpoint back after a JTAG
-load](../designs/pcie.md#bring-the-endpoint-back-after-a-jtag-load)); that was not yet run for this load.
+load](../designs/pcie.md#bring-the-endpoint-back-after-a-jtag-load)). For this load the re-probe was run once
+the same day and failed: the bind answered "No such device" and the root port was gone too. pi20 at ps1 was
+rebooted and did not come back (7 October 2026); a power cycle of the blade is pending. The flash was never
+written.
 
 The Host column's (a) has no written steps and has **not been tried by us**. What is known: on pi20 at ps1
 (read 7 October 2026) the login prompt on `/dev/ttyAMA0` was there only because of the word
