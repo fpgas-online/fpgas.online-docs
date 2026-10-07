@@ -59,6 +59,33 @@ characters wide and each row becomes several lines tall:
 
 Leave the class off tables whose cells hold prose; those should wrap normally.
 
+## Drawings: one for each theme
+
+The site has a light and a dark theme, and a drawing made on white paper is a
+bright slab on the dark one. So every drawing (a PNG or SVG diagram, not a
+photograph) comes in two, made by its generator from one palette: `<name>` on
+light paper and `<name>-dark` on the dark theme's background, and a page shows
+both, each with the theme's class for it:
+
+````markdown
+![What the drawing shows](picture.png){.only-light}
+![What the drawing shows](picture-dark.png){.only-dark}
+
+```{image} picture.svg
+:alt: What the drawing shows
+:class: only-light
+```
+
+```{image} picture-dark.svg
+:alt: What the drawing shows
+:class: only-dark
+```
+````
+
+The theme shows the one that fits its mode, and the printed booklet takes the
+light one. `tools/test_dark_twins.py` fails if a drawing on a page has no dark
+twin. Photographs are the same in both themes.
+
 ## What belongs here
 
 This site is for things that outlive a single change: how the hardware is
