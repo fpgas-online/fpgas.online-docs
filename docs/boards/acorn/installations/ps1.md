@@ -13,18 +13,32 @@ has one: an Acorn's label carries its device DNA and its flash ID, and the
 flash ID is read through the fpgas.online design, so a card gets its label when
 it is converted. Until then a row says where the card was last read.
 
-**Which physical blade carries which name: we hold no record of it.** Nothing we have says which slot or
-position pi14 at ps1, pi16 at ps1, pi18 at ps1 or pi20 at ps1 is in. What ties a name to a blade is its
-Ethernet MAC address. The ps1 gateway's DHCP reservations give each name its MAC (read on the ps1 gateway,
-6 October 2026), and a blade that answers reports its own (`ip link` on the blade). For pi16 at ps1 and
-pi20 at ps1 the MAC is also on the eth line of their labels ([Labels](#labels)); for pi14 at ps1 and pi18 at
-ps1, which did not answer, it can come only from the gateway's reservations.
+**Which physical blade carries which name: we hold no record of where each one is.** Nothing we have says which
+slot or position pi14 at ps1, pi16 at ps1, pi18 at ps1 or pi20 at ps1 is in. What ties a name to a blade is
+its Ethernet MAC address and its Compute Module's serial number, read on each blade on 7 October 2026 (they
+match the ps1 gateway's DHCP reservations):
 
-**A blade whose ssh port does not answer cannot be checked from this guide.** The visitor ports of pi14 at
-ps1 and pi18 at ps1 did not answer on 5 October 2026; why is not known (off, not booted, or the forward
-missing). First find out whether such a blade is powered and its network link is up (its lights; the
-gateway's view of it): **not yet checked by us**. Until it answers, its cables can be made, bench-checked and
-fitted, and nothing can be run on it.
+| Name | Compute Module | Serial number | Ethernet MAC |
+|------|----------------|---------------|--------------|
+| pi14 at ps1 | CM4 Rev 1.1 4 GB | `10000000d00eb762` | `2c:cf:67:37:d4:bd` |
+| pi16 at ps1 | CM5 Lite 8 GB | `9fb8cfc7cb291e63` | `2c:cf:67:fb:91:e5` |
+| pi18 at ps1 | CM4 Rev 1.1 4 GB | `100000004e45f174` | `2c:cf:67:37:d5:08` |
+| pi20 at ps1 | CM5 Lite 8 GB | `d85a19afde59093d` | `2c:cf:67:fd:1e:be` |
+
+On a blade that is running, `ip link` prints its MAC (the `link/ether` line of `eth0`). How to read the MAC or
+the serial number off a blade in the hand, without running it (a sticker on the module or on the blade), is
+**not verified by us**.
+
+All four answered on their visitor ports on 7 October 2026 (pi14 at ps1 and pi18 at ps1 had not on
+5 October). **If a blade's ssh port does not answer**, nothing can be run on it from this guide; first find out
+whether it is powered and its network link is up (its lights; the gateway's view of it): **not yet checked by
+us**. Its cables can still be made, bench-checked and fitted.
+
+**An install on a blade lasts until its next boot.** The blades run their root file system from the gateway with
+an overlay in memory (`overlayroot=tmpfs` on the kernel command line, read 7 October 2026), so packages
+installed on a blade are gone after it reboots: an install of 5 October on pi16 at ps1 was gone on
+7 October. Putting them into the shared root on the gateway is the gateway's owner's to do, and is not
+written here.
 
 **Converting a card** means loading the fpgas.online design into it over JTAG and writing that design to the
 card's flash, once; after that the card runs it from every power-on. The steps are [written for a Raspberry Pi
@@ -36,10 +50,10 @@ Blade**: on a blade they wait for JTAG (the Host column below).
 
 | Card, by its label | On (last read) | Compute Module | What the card runs | PCIe | JTAG (P1) | P2 cable |
 |---|---|---|---|---|---|---|
-| Acorn CLE-101, no label yet (device DNA not read) | pi14 at ps1 (2026-09-20) | CM4 Rev 1.1 4 GB | SQRL's factory image, `1e24:0101` | `0000:01` | 2026-09-20: no response, TCK floating | not known |
+| Acorn CLE-101, no label yet (device DNA not read) | pi14 at ps1 (`1e24:0101` seen 2026-10-07) | CM4 Rev 1.1 4 GB | SQRL's factory image, `1e24:0101` | `0000:01` | 2026-09-20: no response, TCK floating | not known |
 | Acorn CLE-101, no label yet (device DNA not read) | pi16 at ps1 (2026-10-05) | CM5 Lite Rev 1.0 8 GB | SQRL's factory image, `1e24:0101` | `0001:01` | 2026-09-20: no response, TCK floating. 2026-10-05: cannot run (the serial driver holds GPIO14) | not known |
 | Acorn CLE-101, device DNA `0x0028e5c45e304854` | pi20 at ps1 (2026-10-05) | CM5 Lite Rev 1.0 8 GB | a vendor XDMA sample image, `10ee:7011` | `0001:01` | 2026-09-20 (kernel 6.12.75): answered, IDCODE `0x3631093`. 2026-10-05 (kernel 6.18.50, serial port on): not tried, expected not to run | on the Extension Port: K2 to GPIO15, J2 to GPIO14, no resistor; J5 and H5 not wired |
-| none: the M.2 slot is empty | pi18 at ps1 (2026-09-20) | CM4 Rev 1.1 4 GB | | | | |
+| none seen: no PCIe device (2026-10-07; the slot is empty, or a card has no link: `lspci` cannot tell) | pi18 at ps1 (2026-10-07) | CM4 Rev 1.1 4 GB | | | | |
 
 pi20 at ps1 is the only blade whose JTAG has answered (on 2026-09-20), so it is the
 only one with a device DNA: `0x0028e5c45e304854`, an XC7A100T. The fpgas.online
@@ -96,9 +110,9 @@ converted a card on one yet: **not yet run by us on this hardware**.
 
 | Blade | Card | P1 (JTAG) cable | P2 (serial) cable | Host |
 |-------|------|-----------------|-------------------|------|
-| pi14 at ps1 | fitted, factory image: to be converted | did not answer: reseat or refit on the Extension Port | not known: build to the UART header, 470 Ω in the J2 wire, J5 and H5 cut back | when it answers: read its kernel command line and serial getty again (last read 2026-09-20) |
+| pi14 at ps1 | fitted, factory image: to be converted | did not answer: reseat or refit on the Extension Port | not known: build to the UART header, 470 Ω in the J2 wire, J5 and H5 cut back | as pi16 at ps1 (read 2026-10-07: the same serial-port settings) |
 | pi16 at ps1 | fitted, factory image: to be converted | not known (see above): check, reseat or refit on the Extension Port | not known: build to the UART header, 470 Ω in the J2 wire, J5 and H5 cut back | (a) for the serial-pair tests: the kernel console and the getty off `/dev/ttyAMA0`; (b) only for JTAG: the serial port off at boot (below) |
-| pi18 at ps1 | none: fit one | fit on the Extension Port | fit on the UART header, 470 Ω in the J2 wire, J5 and H5 cut back | when it answers: read its kernel command line and serial getty again (last read 2026-09-20) |
+| pi18 at ps1 | none seen: look; if the slot is empty, fit one | fit on the Extension Port | fit on the UART header, 470 Ω in the J2 wire, J5 and H5 cut back | as pi16 at ps1 (read 2026-10-07: the same serial-port settings) |
 | pi20 at ps1 | fitted, vendor sample image in flash: to be converted | answered on 2026-09-20: leave the cable. JTAG is expected not to run as the blade boots now (not tried) | move the serial pair from Extension Port pins 9 and 10 to the UART header, and add the 470 Ω resistor in the J2 wire | as pi16 at ps1 (read 2026-10-05: the same kernel and serial-port settings): (a) for the serial-pair tests: the kernel console and the getty off `/dev/ttyAMA0`; (b) only for JTAG: the serial port off at boot (below) |
 
 **The Host column is Carl's to do, on the gateway, not on a blade.** The two files it means, `config.txt` and
@@ -162,8 +176,9 @@ $ sudo fpgas-verify --label --out labels.pdf
   scanned, because on a Compute Blade they are JTAG wires.
 - **The Acorn labels are not made yet.** Each waits for its card's conversion
   (above).
-- **No labels for pi14 at ps1 and pi18 at ps1.** Their visitor ssh ports did not
-  answer on 5 October 2026, so nothing was read from them that day.
+- **No labels yet for pi14 at ps1 and pi18 at ps1.** Their visitor ports did not answer on 5 October 2026,
+  when the other two were read; both answered on 7 October 2026, so their labels can now be made (not done
+  yet).
 
 The blades have no page under `https://ps1.fpgas.online/fpgas/`: pi14 at ps1, pi16 at ps1,
 pi18 at ps1 and pi20 at ps1 all return 404 there (checked 2026-09-03 and again 2026-10-06).
