@@ -308,18 +308,18 @@ class SharedPages(unittest.TestCase):
         own = d / "own.md"
         own.write_text("# The docs' own page, mentioning tools/sync_repos.py\n")
         (d / "page.md").write_text("# Written by hand before the sync took it\n")
-        tables = {"infra": s.Repo("infra", PAGES={"docs/a.md": s.Page("docs/zz-shared/page.md", own_dir=False)})}
+        tables = {"zz-a": s.Repo("zz-a", PAGES={"docs/a.md": s.Page("docs/zz-shared/page.md", own_dir=False)})}
         with unittest.mock.patch.dict(s.REPOS, tables), \
                 unittest.mock.patch.object(s, "resolve", return_value="c0ffee" * 6 + "c0ff"), \
                 unittest.mock.patch.object(s, "fetch", return_value=b"# A\n"):
             out = io.StringIO()
             with contextlib.redirect_stdout(out), contextlib.redirect_stderr(io.StringIO()):
-                self.assertEqual(s.main(["--repo", "infra"]), 0)
+                self.assertEqual(s.main(["--repo", "zz-a"]), 0)
             self.assertIn("update docs/zz-shared/page.md", out.getvalue())
             self.assertNotIn("own.md", out.getvalue())
             self.assertEqual(s.stale_files(), {})
             with contextlib.redirect_stdout(io.StringIO()):
-                self.assertEqual(s.main(["--repo", "infra", "--check"]), 0)
+                self.assertEqual(s.main(["--repo", "zz-a", "--check"]), 0)
         self.assertEqual(sorted(p.name for p in d.iterdir()), ["own.md", "page.md"])
         self.assertEqual(own.read_text(), "# The docs' own page, mentioning tools/sync_repos.py\n")
         self.assertTrue((d / "page.md").read_text().endswith("# A\n"))
@@ -536,18 +536,19 @@ class CommandLine(unittest.TestCase):
     def test_a_failing_repository_blocks_no_other(self):
         dest = s.DOCS / "docs/zz-healthy/page.md"
         self.addCleanup(shutil.rmtree, dest.parent, True)
-        tables = {"infra": s.Repo("infra", PAGES={"docs/a.md": "docs/zz-healthy/page.md"}),
-                  "cam": s.Repo("cam", PAGES={"docs/b.md": "docs/zz-broken/page.md"})}
+        # repositories of their own, so the real ones' synced pages stay accounted for
+        tables = {"zz-a": s.Repo("zz-a", PAGES={"docs/a.md": "docs/zz-healthy/page.md"}),
+                  "zz-b": s.Repo("zz-b", PAGES={"docs/b.md": "docs/zz-broken/page.md"})}
 
         def fetch(full, commit, path):
-            return b"# A\n" if full.endswith("-infra") else b"# B\n[x](../../outside.md)\n"
+            return b"# A\n" if full.endswith("-zz-a") else b"# B\n[x](../../outside.md)\n"
         with unittest.mock.patch.dict(s.REPOS, tables), \
                 unittest.mock.patch.object(s, "resolve", return_value="c0ffee" * 6 + "c0ff"), \
                 unittest.mock.patch.object(s, "fetch", side_effect=fetch):
-            code, out, err = self.run_main(["--repo", "infra", "--repo", "cam"])
+            code, out, err = self.run_main(["--repo", "zz-a", "--repo", "zz-b"])
         self.assertEqual(code, 2)
-        self.assertIn("sync: FAILED. fpgas-online/fpgas.online-cam: docs/b.md links outside the repository", err)
-        self.assertNotIn("fpgas.online-infra:", err)
+        self.assertIn("sync: FAILED. fpgas-online/fpgas.online-zz-b: docs/b.md links outside the repository", err)
+        self.assertNotIn("fpgas.online-zz-a:", err)
         self.assertTrue(dest.exists(), out)
         self.assertTrue((dest.parent / "SOURCE").exists())
         self.assertFalse((s.DOCS / "docs/zz-broken").exists())
