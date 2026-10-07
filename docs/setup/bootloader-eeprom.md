@@ -232,6 +232,15 @@ is **not** protected (a new Pi, or one cleared with the card), and it is where a
 upgrade can be watched. Making it a managed feature that upgrades a locked Pi
 without a visit is open work.
 
+That boot tree has to be a TFTP root of its own. A netbooting Pi 5's bootloader
+looks for `pieeprom.sig` and `pieeprom.upd` at the TFTP **root**, not in its
+per-serial directory, so the gateway's dnsmasq needs a per-interface
+`tftp-root=<dir>,v22NN` for that port's VLAN. The same line pointing at an empty
+directory is how one Pi's netboot was broken on purpose for the SD-card fallback
+test of the hub host. A Pi booted from an SD card needs none of this:
+`rpi-eeprom-config --apply` updates it from the card, with no TFTP involved. (From the operators' runbook
+and an earlier Orange Pi page of these docs; not re-checked.)
+
 ### Why there are no steps for a blade: what it would need
 
 ```{image} bootloader-eeprom/blade-dev.svg
