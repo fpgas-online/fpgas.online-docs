@@ -203,3 +203,17 @@ class TinyTapeoutFpga(unittest.TestCase):
 
 if __name__ == "__main__":
     unittest.main()
+
+
+class FragmentLinks(unittest.TestCase):
+    def test_a_link_to_a_sibling_fragment_goes_to_the_page_that_shows_it(self):
+        text = "see [Sources](tt-fpga-sources.md) and [the cables page](tt-fpga-cables.md#x), not `tt-fpga-sources.md`"
+        self.assertEqual(
+            s.fragment_links(text),
+            "see [Sources](/boards/tt-fpga/wiring/sources.md) and [the cables page](/boards/tt-fpga/wiring/cables.md#x),"
+            " not `tt-fpga-sources.md`",
+        )
+
+    def test_every_page_named_exists(self):
+        for page in s.FRAGMENT_PAGES.values():
+            self.assertTrue((s.DOCS / "docs" / page.lstrip("/")).exists(), page)

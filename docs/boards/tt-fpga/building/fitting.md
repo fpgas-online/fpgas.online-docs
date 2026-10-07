@@ -22,8 +22,6 @@ header. What the HAT is and which GPIO each of its pins is: [Raspberry Pi PMOD H
 2x6 cable turned round puts 3.3 V on signal pins. What cable to use, and whether its 3.3 V pins may be
 connected, is not recorded (the list "The cables" below): nothing here tells you which to choose.
 
-Where the text below says `tt-fpga-sources.md`, that is the [sources page](../wiring/sources.md).
-
 ```{include} ../generated/tt-fpga-cables.md
 :relative-images:
 :relative-docs: tt-fpga-

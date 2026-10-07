@@ -8,8 +8,6 @@ pins](pins-other.md). To fit the cables, follow the [building guide](../building
 ```{include} ../power-off.inc
 ```
 
-Where the text below says `tt-fpga-sources.md`, that is the [sources page](sources.md).
-
 ```{include} ../generated/tt-fpga-cables.md
 :relative-images:
 :relative-docs: tt-fpga-

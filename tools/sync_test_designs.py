@@ -122,6 +122,8 @@ FILES = {
             "tt-fpga-pmod-cables-ui-uo.png",
             "tt-fpga-pmod-cables-uo.svg",
             "tt-fpga-pmod-cables-uo.png",
+            "tt-fpga-display.svg",
+            "tt-fpga-display.png",
         ],
     ),
 }
@@ -191,6 +193,23 @@ def link_targets():
     for src, dest in ALSO_HERE.items():
         targets.setdefault(src, (dest, set()))
     return targets
+
+
+# A generated fragment that links to another fragment by its file name: the page of this site that shows that
+# fragment. (Fragments are included, not built as pages, so a link to one would go nowhere.)
+FRAGMENT_PAGES = {
+    "tt-fpga-cables.md": "/boards/tt-fpga/wiring/cables.md",
+    "tt-fpga-pins-ui-uo.md": "/boards/tt-fpga/wiring/pins-ui-uo.md",
+    "tt-fpga-pins-uio-uart.md": "/boards/tt-fpga/wiring/pins-uio-uart.md",
+    "tt-fpga-pins-other.md": "/boards/tt-fpga/wiring/pins-other.md",
+    "tt-fpga-sources.md": "/boards/tt-fpga/wiring/sources.md",
+}
+FRAGMENT_LINK = re.compile(r"(?<=\]\()(" + "|".join(map(re.escape, FRAGMENT_PAGES)) + r")(#[^)\s]*)?(?=\))")
+
+
+def fragment_links(text):
+    """A copied fragment's links to sibling fragments, as links to the pages that show them."""
+    return FRAGMENT_LINK.sub(lambda m: FRAGMENT_PAGES[m.group(1)] + (m.group(2) or ""), text)
 
 
 OWN_LINK = re.compile(r"(?<=\]\()" + re.escape(PUBLISHED) + r"([^)\s#?]+)\.html(#[^)\s]*)?(?=\))")
@@ -353,7 +372,9 @@ def main(argv=None):
         for name in names:
             try:
                 data = fetch(commit, f"{src}/{name}")
-                wanted[DOCS / dest / name] = own_links(data.decode("utf-8")).encode("utf-8") if name.endswith(".md") else data
+                wanted[DOCS / dest / name] = (
+                    fragment_links(own_links(data.decode("utf-8"))).encode("utf-8") if name.endswith(".md") else data
+                )
             except Missing as e:
                 missing.append(str(e))
     texts = {}

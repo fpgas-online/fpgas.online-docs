@@ -26,7 +26,7 @@ From [Checking a board: fpgas-verify](../../../verify/fpgas-verify.md#installing
 Then step 3, the section below, which installs the packages:
 
 ```{include} ../../generated/install-tt-fpga.md
-:end-before: "The check finds the board by its Raspberry Pi microcontroller"
+:end-before: "The check, at each boot:"
 ```
 
 `fpgas-tt-fpga-debug`, which runs one test with its output live, is in `fpgas-online-tt-fpga-debug` (the
