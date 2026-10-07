@@ -68,6 +68,7 @@ FILES = {
             "acorn-cable-crimp.png",
             "acorn-cable-push.png",
             "acorn-cable-check.png",
+            "acorn-cable-check-blade-p2.png",
             "acorn-cable-blade-p1-prepare.png",
             "acorn-cable-blade-p1.png",
             "acorn-cable-blade-p2-prepare.png",

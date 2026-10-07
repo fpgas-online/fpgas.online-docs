@@ -14,7 +14,10 @@ all four netbooted the trixie NFS root (arm64 then) with overlayroot, with `cons
 `serial-getty@ttyAMA0` inactive, so the [kernel console
 crash](../wiring/compute-blade-host.md#kernel-console-on-the-fpga-uart) could not
 happen. That no longer holds on pi16 at ps1 or pi20 at ps1 (their boot configuration, read on
-2026-10-05, is below), and pi14 at ps1 and pi18 at ps1 have not been read since.
+2026-10-05, is below). On 2026-10-07 all four were read again: every one boots with
+`console=ttyAMA0,115200` on the kernel command line, `serial-getty@ttyAMA0` active, GPIO14 and GPIO15 as the
+serial port's TXD0 and RXD0 and `enable_uart=1` (one shared boot directory). GPIO2, 3 and 4 read as inputs
+with pull-ups on the two CM4 blades and with no pull on the two CM5 blades.
 
 ## pi16 at ps1 on 5 October 2026
 
