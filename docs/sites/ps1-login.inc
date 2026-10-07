@@ -7,4 +7,5 @@ $ ssh -p 11622 pi@ps1.fpgas.online
 The password is in the banner that `ssh` prints when you connect, before it asks for one: the board pages of
 <https://ps1.fpgas.online/fpgas/> say so under "Use your own ssh client" (read on 6 October 2026 on
 `pi3.html`, the page of pi3 at ps1, port `10322`). `sudo` asks for the same one. The blades have no board page
-of their own there, and the banner on a blade's port is not verified by us.
+of their own there. On 7 October 2026 this login was run as written on all four blades (pi14 at ps1, pi16 at ps1,
+pi18 at ps1 and pi20 at ps1), with the password from the banner.

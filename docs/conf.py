@@ -58,6 +58,7 @@ todo_include_todos = True
 
 myst_enable_extensions = [
     "colon_fence",       # ::: fences, so admonitions work without indentation
+    "attrs_inline",      # {.class} after an image: only-light / only-dark pictures for the two themes
     "deflist",           # definition lists, useful for pin/option tables
     "fieldlist",
     "linkify",           # bare URLs become links

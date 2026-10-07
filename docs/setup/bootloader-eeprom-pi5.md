@@ -17,6 +17,13 @@ Three reads.
 ```{image} bootloader-eeprom/check-card.svg
 :alt: Three reads: the bootloader date should be 2026/09/25, the boot order BOOT_ORDER=0xf2, and the flash lock SR1 0xbc
 :width: 100%
+:class: only-light
+```
+
+```{image} bootloader-eeprom/check-card-dark.svg
+:alt: Three reads: the bootloader date should be 2026/09/25, the boot order BOOT_ORDER=0xf2, and the flash lock SR1 0xbc
+:width: 100%
+:class: only-dark
 ```
 
 ```{include} bootloader-eeprom-read-state.inc
@@ -25,6 +32,13 @@ Three reads.
 ```{image} bootloader-eeprom/boot-order.svg
 :alt: BOOT_ORDER is read from its last digit: 0xf2 is network only; 0xf12 and 0xf2461 also boot local media
 :width: 100%
+:class: only-light
+```
+
+```{image} bootloader-eeprom/boot-order-dark.svg
+:alt: BOOT_ORDER is read from its last digit: 0xf2 is network only; 0xf12 and 0xf2461 also boot local media
+:width: 100%
+:class: only-dark
 ```
 
 ## Upgrade a locked Raspberry Pi 5
@@ -35,6 +49,13 @@ tried by us is listed under [What has been run](bootloader-eeprom.md#what-has-be
 ```{image} bootloader-eeprom/kit.svg
 :alt: What you need: the Pi 5 with its underside reachable, a microSD card, a Linux computer with a card reader, something to bridge two pads, the Pi's network cable on its switch port
 :width: 100%
+:class: only-light
+```
+
+```{image} bootloader-eeprom/kit-dark.svg
+:alt: What you need: the Pi 5 with its underside reachable, a microSD card, a Linux computer with a card reader, something to bridge two pads, the Pi's network cable on its switch port
+:width: 100%
+:class: only-dark
 ```
 
 ### Step 1: make the card
@@ -44,6 +65,13 @@ The Pi stays plugged in and running during this step.
 ```{image} bootloader-eeprom/card-files.svg
 :alt: The finished card holds four files at its top level: recovery.bin, pieeprom.bin, pieeprom.sig and config.txt
 :width: 100%
+:class: only-light
+```
+
+```{image} bootloader-eeprom/card-files-dark.svg
+:alt: The finished card holds four files at its top level: recovery.bin, pieeprom.bin, pieeprom.sig and config.txt
+:width: 100%
+:class: only-dark
 ```
 
 On the computer, get Raspberry Pi's bootloader files, at the version these
@@ -142,6 +170,13 @@ Take the card out of the reader.
 ```{image} bootloader-eeprom/cable-out.svg
 :alt: A Raspberry Pi 5, top side up, with its network cable pulled out of the Ethernet socket
 :width: 80%
+:class: only-light
+```
+
+```{image} bootloader-eeprom/cable-out-dark.svg
+:alt: A Raspberry Pi 5, top side up, with its network cable pulled out of the Ethernet socket
+:width: 80%
+:class: only-dark
 ```
 
 1. Pull the Pi's network cable. If the Pi also has a USB-C power supply, pull
@@ -157,6 +192,15 @@ header along the top:
 ```{figure} bootloader-eeprom/pi5-underside-flash-wp.jpg
 :alt: Underside of a Raspberry Pi 5 with the two FLASH WP pads ringed, right of the CE mark and above the micro-HDMI sockets
 :width: 100%
+:figclass: only-light
+
+Photo: Suyash Dwivedi, [Wikimedia Commons](https://commons.wikimedia.org/wiki/File:Raspberry_Pi5_8GB_Bottom_View_(1).jpg), [CC BY-SA 4.0](https://creativecommons.org/licenses/by-sa/4.0/); annotated, same licence.
+```
+
+```{figure} bootloader-eeprom/pi5-underside-flash-wp-dark.jpg
+:alt: Underside of a Raspberry Pi 5 with the two FLASH WP pads ringed, right of the CE mark and above the micro-HDMI sockets
+:width: 100%
+:figclass: only-dark
 
 Photo: Suyash Dwivedi, [Wikimedia Commons](https://commons.wikimedia.org/wiki/File:Raspberry_Pi5_8GB_Bottom_View_(1).jpg), [CC BY-SA 4.0](https://creativecommons.org/licenses/by-sa/4.0/); annotated, same licence.
 ```
@@ -164,6 +208,15 @@ Photo: Suyash Dwivedi, [Wikimedia Commons](https://commons.wikimedia.org/wiki/Fi
 ```{figure} bootloader-eeprom/pi5-flash-wp-closeup.jpg
 :alt: Close-up of the pads: TP14 on the left, TP1 on the right, FLASH WP printed below
 :width: 100%
+:figclass: only-light
+
+Photo: Suyash Dwivedi, [Wikimedia Commons](https://commons.wikimedia.org/wiki/File:Raspberry_Pi5_8GB_Bottom_View_(1).jpg), [CC BY-SA 4.0](https://creativecommons.org/licenses/by-sa/4.0/); annotated, same licence.
+```
+
+```{figure} bootloader-eeprom/pi5-flash-wp-closeup-dark.jpg
+:alt: Close-up of the pads: TP14 on the left, TP1 on the right, FLASH WP printed below
+:width: 100%
+:figclass: only-dark
 
 Photo: Suyash Dwivedi, [Wikimedia Commons](https://commons.wikimedia.org/wiki/File:Raspberry_Pi5_8GB_Bottom_View_(1).jpg), [CC BY-SA 4.0](https://creativecommons.org/licenses/by-sa/4.0/); annotated, same licence.
 ```
@@ -171,6 +224,15 @@ Photo: Suyash Dwivedi, [Wikimedia Commons](https://commons.wikimedia.org/wiki/Fi
 ```{figure} bootloader-eeprom/pi5-flash-wp-bridged.jpg
 :alt: The same close-up with a blob of solder drawn across TP14 and TP1 only
 :width: 100%
+:figclass: only-light
+
+Photo: Suyash Dwivedi, [Wikimedia Commons](https://commons.wikimedia.org/wiki/File:Raspberry_Pi5_8GB_Bottom_View_(1).jpg), [CC BY-SA 4.0](https://creativecommons.org/licenses/by-sa/4.0/); annotated, same licence.
+```
+
+```{figure} bootloader-eeprom/pi5-flash-wp-bridged-dark.jpg
+:alt: The same close-up with a blob of solder drawn across TP14 and TP1 only
+:width: 100%
+:figclass: only-dark
 
 Photo: Suyash Dwivedi, [Wikimedia Commons](https://commons.wikimedia.org/wiki/File:Raspberry_Pi5_8GB_Bottom_View_(1).jpg), [CC BY-SA 4.0](https://creativecommons.org/licenses/by-sa/4.0/); annotated, same licence.
 ```
@@ -178,6 +240,15 @@ Photo: Suyash Dwivedi, [Wikimedia Commons](https://commons.wikimedia.org/wiki/Fi
 ```{figure} bootloader-eeprom/pi5-flash-wp-wrong.jpg
 :alt: The same close-up with a blob of solder drawn that also reaches TP17, marked wrong
 :width: 100%
+:figclass: only-light
+
+Photo: Suyash Dwivedi, [Wikimedia Commons](https://commons.wikimedia.org/wiki/File:Raspberry_Pi5_8GB_Bottom_View_(1).jpg), [CC BY-SA 4.0](https://creativecommons.org/licenses/by-sa/4.0/); annotated, same licence.
+```
+
+```{figure} bootloader-eeprom/pi5-flash-wp-wrong-dark.jpg
+:alt: The same close-up with a blob of solder drawn that also reaches TP17, marked wrong
+:width: 100%
+:figclass: only-dark
 
 Photo: Suyash Dwivedi, [Wikimedia Commons](https://commons.wikimedia.org/wiki/File:Raspberry_Pi5_8GB_Bottom_View_(1).jpg), [CC BY-SA 4.0](https://creativecommons.org/licenses/by-sa/4.0/); annotated, same licence.
 ```
@@ -201,6 +272,15 @@ on the two pads instead:
 ```{figure} bootloader-eeprom/pi5-flash-wp-tweezers.jpg
 :alt: The same close-up with the two tips of a pair of tweezers drawn, one on TP14 and one on TP1
 :width: 100%
+:figclass: only-light
+
+Photo: Suyash Dwivedi, [Wikimedia Commons](https://commons.wikimedia.org/wiki/File:Raspberry_Pi5_8GB_Bottom_View_(1).jpg), [CC BY-SA 4.0](https://creativecommons.org/licenses/by-sa/4.0/); annotated, same licence.
+```
+
+```{figure} bootloader-eeprom/pi5-flash-wp-tweezers-dark.jpg
+:alt: The same close-up with the two tips of a pair of tweezers drawn, one on TP14 and one on TP1
+:width: 100%
+:figclass: only-dark
 
 Photo: Suyash Dwivedi, [Wikimedia Commons](https://commons.wikimedia.org/wiki/File:Raspberry_Pi5_8GB_Bottom_View_(1).jpg), [CC BY-SA 4.0](https://creativecommons.org/licenses/by-sa/4.0/); annotated, same licence.
 ```
@@ -210,6 +290,15 @@ Photo: Suyash Dwivedi, [Wikimedia Commons](https://commons.wikimedia.org/wiki/Fi
 ```{figure} bootloader-eeprom/pi5-underside-sd-slot.jpg
 :alt: Underside of a Raspberry Pi 5 with the microSD slot ringed on the right edge, a card going in, and the bridge still on the FLASH WP pads
 :width: 100%
+:figclass: only-light
+
+Photo: Suyash Dwivedi, [Wikimedia Commons](https://commons.wikimedia.org/wiki/File:Raspberry_Pi5_8GB_Bottom_View_(1).jpg), [CC BY-SA 4.0](https://creativecommons.org/licenses/by-sa/4.0/); annotated, same licence.
+```
+
+```{figure} bootloader-eeprom/pi5-underside-sd-slot-dark.jpg
+:alt: Underside of a Raspberry Pi 5 with the microSD slot ringed on the right edge, a card going in, and the bridge still on the FLASH WP pads
+:width: 100%
+:figclass: only-dark
 
 Photo: Suyash Dwivedi, [Wikimedia Commons](https://commons.wikimedia.org/wiki/File:Raspberry_Pi5_8GB_Bottom_View_(1).jpg), [CC BY-SA 4.0](https://creativecommons.org/licenses/by-sa/4.0/); annotated, same licence.
 ```
@@ -219,6 +308,13 @@ Photo: Suyash Dwivedi, [Wikimedia Commons](https://commons.wikimedia.org/wiki/Fi
 ```{image} bootloader-eeprom/cable-in.svg
 :alt: A Raspberry Pi 5, top side up, with its network cable going into the Ethernet socket
 :width: 80%
+:class: only-light
+```
+
+```{image} bootloader-eeprom/cable-in-dark.svg
+:alt: A Raspberry Pi 5, top side up, with its network cable going into the Ethernet socket
+:width: 80%
+:class: only-dark
 ```
 
 2. Plug the network cable in, on the switch port the Pi was on. (The drawing
@@ -230,6 +326,15 @@ Photo: Suyash Dwivedi, [Wikimedia Commons](https://commons.wikimedia.org/wiki/Fi
    ```{figure} bootloader-eeprom/pi5-flash-wp-tweezers.jpg
    :alt: The same close-up with the two tips of a pair of tweezers drawn, one on TP14 and one on TP1
    :width: 100%
+   :figclass: only-light
+
+   Photo: Suyash Dwivedi, [Wikimedia Commons](https://commons.wikimedia.org/wiki/File:Raspberry_Pi5_8GB_Bottom_View_(1).jpg), [CC BY-SA 4.0](https://creativecommons.org/licenses/by-sa/4.0/); annotated, same licence.
+   ```
+
+   ```{figure} bootloader-eeprom/pi5-flash-wp-tweezers-dark.jpg
+   :alt: The same close-up with the two tips of a pair of tweezers drawn, one on TP14 and one on TP1
+   :width: 100%
+   :figclass: only-dark
 
    Photo: Suyash Dwivedi, [Wikimedia Commons](https://commons.wikimedia.org/wiki/File:Raspberry_Pi5_8GB_Bottom_View_(1).jpg), [CC BY-SA 4.0](https://creativecommons.org/licenses/by-sa/4.0/); annotated, same licence.
    ```
@@ -246,6 +351,13 @@ Photo: Suyash Dwivedi, [Wikimedia Commons](https://commons.wikimedia.org/wiki/Fi
 ```{image} bootloader-eeprom/cable-out.svg
 :alt: A Raspberry Pi 5, top side up, with its network cable pulled out of the Ethernet socket
 :width: 80%
+:class: only-light
+```
+
+```{image} bootloader-eeprom/cable-out-dark.svg
+:alt: A Raspberry Pi 5, top side up, with its network cable pulled out of the Ethernet socket
+:width: 80%
+:class: only-dark
 ```
 
 1. Pull the network cable.
@@ -254,6 +366,15 @@ Photo: Suyash Dwivedi, [Wikimedia Commons](https://commons.wikimedia.org/wiki/Fi
 ```{figure} bootloader-eeprom/pi5-flash-wp-clear.jpg
 :alt: Close-up of TP14 and TP1 as two separate pads again
 :width: 100%
+:figclass: only-light
+
+Photo: Suyash Dwivedi, [Wikimedia Commons](https://commons.wikimedia.org/wiki/File:Raspberry_Pi5_8GB_Bottom_View_(1).jpg), [CC BY-SA 4.0](https://creativecommons.org/licenses/by-sa/4.0/); annotated, same licence.
+```
+
+```{figure} bootloader-eeprom/pi5-flash-wp-clear-dark.jpg
+:alt: Close-up of TP14 and TP1 as two separate pads again
+:width: 100%
+:figclass: only-dark
 
 Photo: Suyash Dwivedi, [Wikimedia Commons](https://commons.wikimedia.org/wiki/File:Raspberry_Pi5_8GB_Bottom_View_(1).jpg), [CC BY-SA 4.0](https://creativecommons.org/licenses/by-sa/4.0/); annotated, same licence.
 ```
@@ -265,6 +386,13 @@ Photo: Suyash Dwivedi, [Wikimedia Commons](https://commons.wikimedia.org/wiki/Fi
 ```{image} bootloader-eeprom/cable-in.svg
 :alt: A Raspberry Pi 5, top side up, with its network cable going into the Ethernet socket
 :width: 80%
+:class: only-light
+```
+
+```{image} bootloader-eeprom/cable-in-dark.svg
+:alt: A Raspberry Pi 5, top side up, with its network cable going into the Ethernet socket
+:width: 80%
+:class: only-dark
 ```
 
 5. Plug the network cable in, on the same switch port: the port this Pi
@@ -287,6 +415,13 @@ this step.
 ```{image} bootloader-eeprom/check-card-after.svg
 :alt: Three reads: the bootloader date should be 2026/09/25, the boot order BOOT_ORDER=0xf2, and the flash lock SR1 0xbc
 :width: 100%
+:class: only-light
+```
+
+```{image} bootloader-eeprom/check-card-after-dark.svg
+:alt: Three reads: the bootloader date should be 2026/09/25, the boot order BOOT_ORDER=0xf2, and the flash lock SR1 0xbc
+:width: 100%
+:class: only-dark
 ```
 ```{include} bootloader-eeprom-read-state.inc
 ```
@@ -296,4 +431,11 @@ Your result:
 ```{image} bootloader-eeprom/outcomes.svg
 :alt: What step 6 can read and what to do: all three as wanted, done; the old date, nothing was written, go back to step 2; the new date but another boot order, make the card again; the new date and boot order but SR1 0x0, power the Pi off and on and read again; no answer after five minutes, go back to step 2 with a checked card
 :width: 100%
+:class: only-light
+```
+
+```{image} bootloader-eeprom/outcomes-dark.svg
+:alt: What step 6 can read and what to do: all three as wanted, done; the old date, nothing was written, go back to step 2; the new date but another boot order, make the card again; the new date and boot order but SR1 0x0, power the Pi off and on and read again; no answer after five minutes, go back to step 2 with a checked card
+:width: 100%
+:class: only-dark
 ```
