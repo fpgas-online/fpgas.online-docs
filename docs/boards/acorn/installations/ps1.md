@@ -8,7 +8,8 @@ its date, is on [Acorns at ps1: what was read on each blade](ps1-reads.md).
 
 ## The cards
 
-Four Compute Blades; an Acorn was seen on three of them (on pi18 at ps1 none was seen: below). A card is named by its label once it
+Four Compute Blades; an Acorn was seen on three of them (on pi18 at ps1 none was
+seen: below). A card is named by its label once it
 has one: an Acorn's label carries its device DNA and its flash ID, and the
 flash ID is read through the fpgas.online design, so a card gets its label when
 it is converted. Until then a row says where the card was last read.
@@ -109,7 +110,8 @@ $ echo 1 | sudo tee /sys/bus/pci/devices/$BDF/remove
 
 No way of bringing the endpoint back after a load has worked on a blade yet. On pi20 at ps1 on 7 October
 2026 a bus rescan did not bring it back, a root-complex re-probe failed, and after the reboot that followed,
-the blade restarted every 2 to 3 minutes for over two hours (the cause is not known: below). Loading a
+the blade restarted every 2 to 3 minutes for over two hours (whether the load, the re-probe or the reboot
+caused it is not known: below). Loading a
 bitstream on a blade is not part of this guide until a way back is known.
 `--detect` and the other read-only queries are safe without this; **loading a
 bitstream is not**.
@@ -137,8 +139,8 @@ gateway, 6 and 7 October 2026). For (b) there are two ways, and which to take is
   board, and seven hosts we cannot name. Undo: put the two files back (keep a copy of both first).
 - **Change one blade only.** Copy the directory, make the change in the copy, and point only that blade's link
   in `/srv/tftp/` at the copy. Undo: point the link back at `/srv/nfs/rpi/trixie/boot`. This is how pi20 at
-  ps1 was tested on 7 October 2026. Its link points at the shared directory again: pi20 at ps1 has booted
-  from it since 17:20 that day (the gateway's TFTP and NFS logs), and at 18:10 its serial port was on
+  ps1 was tested on 7 October 2026. Its link points at the shared directory again: it was put back at 17:19:48 that
+  day, and the shared directory has served every boot of pi20 at ps1 since 17:20 (the gateway's TFTP and NFS logs), and at 18:10 its serial port was on
   again (`serial0` was `ttyAMA0`). A change to the shared directory reaches pi20 at ps1 as it reaches the
   other hosts.
 
@@ -147,8 +149,8 @@ nothing from the gateway. Then the Host column's (a), and the serial-pair checks
 port on. Then (b), only when JTAG is to run on a blade, which is what converting a card needs: with the serial
 port off, `/dev/ttyAMA0` is not there, so the `p2-uart`, `p2-serial` and `scratch` tests cannot pass in that
 boot ([verifying 3](../building/compute-blade/verifying-3.md)). Both are changes to the gateway's boot files,
-so they are Carl's to decide and to time, (b) for every host or for one blade only (above). Then, for a load over JTAG: the endpoint detached first (the
-warning above), then the load.
+so they are Carl's to decide and to time, (b) for every host or for one blade only (above). A load over
+JTAG, which converting a card needs, is not part of this guide yet (the warning above).
 
 What the Host column's (b) is, as run on pi20 at ps1 on 7 October 2026 ([verifying
 3](../building/compute-blade/verifying-3.md) has the steps, both ways and their undo): in `config.txt`'s `[all]`
@@ -164,7 +166,8 @@ too), and the run stopped there. An `openFPGALoader --reset` at 17:19 put the ve
 the FPGA, from the flash, which was never written.
 
 **After test 6 (converting pi20 at ps1's card) was stopped at step 1b (the root-complex re-probe and the reboot
-after it; 15:52, Adelaide time, 7 October 2026), pi20 at ps1 restarted every 2 to 3 minutes until about 18:09,
+after it; 15:52, Adelaide time, 7 October 2026), pi20 at ps1 restarted every 2 to 3 minutes (one boot, from
+about 17:06, stayed up 12 minutes) until about 18:09,
 then stayed up; no power cycle was run by us; the cause is not known. It is back on Carl's shared boot files
 (above) with the card on the vendor image. The Acorn's flash was never written; Carl's boot files
 are unchanged.**
