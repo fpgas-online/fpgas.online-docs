@@ -3,7 +3,7 @@
 **You are fitting the camera that watches a Tiny Tapeout demo board on its mounting plate and want to know
 where its lens goes and how it is held.** The drawing is the record; the figures a builder needs are repeated
 here in words. How the camera and its holder are put on, step by step, is [fitting, step
-6](../building/fitting.md#6-the-camera).
+6](../building/fitting-2.md#6-the-camera).
 
 ## The figures
 

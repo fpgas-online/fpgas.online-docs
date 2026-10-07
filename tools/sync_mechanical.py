@@ -32,6 +32,8 @@ DRAWINGS = [
                                                "tt-generic-mounting-plate-fitting-guide-views-b": ("svg", "png"),
                                                "tt-generic-mounting-plate-fitting-guide-sheet": ("png",),
                                                "tt-generic-mounting-plate-fitting-guide-v3": ("svg", "png")}),
+    ("tinytapeout/pmod_pin1/output/docs", {"tt-demoboard-v3.2-pmods": ("svg", "png"),
+                                          "digilent-pmod-hat-ports": ("svg", "png")}),
 ]
 # Whole drawings copied as they are (vector, for zooming), where a sheet has no SVG picture.
 DOCUMENTS = ["tinytapeout/mounting_plate/output/tt-generic-mounting-plate.pdf",

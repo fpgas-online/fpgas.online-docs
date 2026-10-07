@@ -52,7 +52,8 @@ from the demo board to a USB port of the Raspberry Pi.
 :maxdepth: 1
 
 What is known about the parts <bom>
-Fitting: power off, the HAT, the cables, power on, the camera <fitting>
+Fitting 1: power off, the plate, the HAT <fitting>
+Fitting 2: the cables, power on, the camera <fitting-2>
 Verifying 1: install and run the check <verifying-1>
 Verifying 2: from a failing line to the cable <verifying-2>
 ```
