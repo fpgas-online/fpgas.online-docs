@@ -5,7 +5,7 @@
 
 These are the goals for `fpgas-verify`, as set by Tim Ansell on 2026-10-01. Where the code, an older plan
 (such as [plans/2026-09-26-fpgas-online-verify-design.md](https://github.com/fpgas-online/fpgas.online-test-designs/blob/main/docs/plans/2026-09-26-fpgas-online-verify-design.md)) or
-[verify.md](fpgas-verify.md) disagrees with this page, this page is what the tool should do; change the tool, or ask
+[fpgas-verify](fpgas-verify.md) disagrees with this page, this page is what the tool should do; change the tool, or ask
 before changing this page.
 
 ## Words used on this page
