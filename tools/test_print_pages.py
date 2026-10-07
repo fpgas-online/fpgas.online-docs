@@ -742,6 +742,21 @@ class FitSteps(unittest.TestCase):
         self.assertGreaterEqual(self.height(image), p.PICTURE_MIN_SCALE * width * 1800 / 1560)
         self.assertIn("print_pages: Fitting, step 1: kept on the sheet of the chapter's opening", self.said)
 
+    def test_a_step_that_fits_after_its_opening_as_it_is_is_not_shrunk_for_it(self):
+        # Review of #106: the overview's picture, which fitted after its opening at full size on main, was shrunk
+        # from 104 mm to 71 mm because the estimate, with its spare, came out 1 mm short.
+        width, height = p.TEXT_MM["Letter"]
+        html_text = self.OPENING + "<p>1. Fit the plugs.</p>" + picture(1560, 1240) + "</section></section>"
+        article = self.fit(html_text)
+        step = article.select_one("div.step")
+        natural, _, below = p.picture_mm(step.find(class_="picture"), width)
+        total = p.opening_mm(step, article, width) + p.words_mm(step.p, width) + natural + below
+        self.assertGreater(total, height - p.STEP_SPARE_MM)  # short of the estimate's room...
+        self.assertLessEqual(total, height)  # ...but within the sheet
+        self.assertNotIn("style", article.find("img").attrs)
+        self.assertFalse(any("kept on the sheet of the chapter's opening" in line for line in self.said))
+        self.assertIsNone(step.get("data-opening"))
+
     def test_an_opening_too_tall_to_share_a_sheet_with_the_step_is_left_alone(self):
         tall = self.OPENING.replace("<p>Both cables.</p>", f"<p>{words(3000)}</p>")
         article = self.fit(tall + "<p>1. Fit the plugs.</p>" + picture(1560, 1800) + "</section></section>")

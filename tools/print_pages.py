@@ -1066,7 +1066,12 @@ def fit_steps(body: Tag, soup: BeautifulSoup, paper: str, name: str) -> None:
         opening = opening_mm(step, body, width)
         if opening:
             opening += words_after(pictures[-1] if len(pictures) > 1 else step, width)
-        with_opening = place_pictures(pictures, room - opening - words, width, False) if opening else []
+        # Only a step that does not fit after the opening as it is: one whose pictures, at their own size, fit
+        # in the whole of the sheet after it (the estimate errs tall, and keeps STEP_SPARE_MM) is printed there
+        # by the browser without help, and no picture is shrunk for it.
+        natural = sum(size[0] + size[2] for size in (picture_mm(picture, width) for picture in pictures[:len(placed)]))
+        needed = opening and opening + words + natural > height
+        with_opening = place_pictures(pictures, room - opening - words, width, False) if needed else []
         if placed and len(with_opening) == len(placed) and with_opening != placed:
             first_room, placed = room - opening - words, with_opening
             step["data-opening"] = "1"  # check_steps: its words must be on the chapter's first sheet
