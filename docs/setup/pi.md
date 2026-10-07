@@ -14,10 +14,11 @@ logins](access.md)).
 ## The other pages
 
 (services)=
-- [Services and boot settings](pi/services.md): the systemd units, and what `config.txt` and `cmdline.txt` set.
+- [Services](pi/services.md): the systemd units the root enables.
+- [Units shipped by fpgas-online-setup-pi](pi/setup-pi-units.md), and why the pistat and Arty units do not run.
 
-(boot-time-configuration)=
-- [Boot-time configuration](pi/services.md#boot-time-configuration).
+<a id="boot-time-configuration"></a>
+- [Boot-time configuration](pi/boot-config.md).
 
 (model-differences)=
 - [Model differences and serial consoles](pi/models.md): Pi 3B+, Pi 4, Pi 5, CM4 and CM5, and freeing the header UART.
@@ -112,7 +113,9 @@ file behind every other fact on the Pi pages is listed on [Where each fact on th
 ```{toctree}
 :hidden:
 
-Services and boot settings <pi/services>
+Services <pi/services>
+Units shipped by fpgas-online-setup-pi <pi/setup-pi-units>
+Boot-time configuration <pi/boot-config>
 Models and serial consoles <pi/models>
 Camera <pi/camera>
 Sources <pi/sources>
