@@ -18,10 +18,10 @@ edges, as on the cable pages), and look at Extension Port pins 9 and
    splice with P1's TMS wire, do not cut or pull it: take P1's cable off with it, and build a new P1 cable by the
    guide ([JTAG connector 1](../building/compute-blade/jtag-connector-1.md) and 2).
 2. Otherwise take P1's housing off its header and its plug out of the card's socket P1 too, and check it as
-   [JTAG connector 2](../building/compute-blade/jtag-connector-2.md) step 2 does: each plug contact beeps to its
+   [JTAG connector 2](../building/compute-blade/jtag-connector-2.md) steps 3 and 4 do: each plug contact beeps to its
    cavity and to no other, and contact 6 (VCC, 3.3 V from the Acorn) beeps to no cavity at all: in the guide's
    cable its wire is cut off short and insulated ([JTAG connector 1](../building/compute-blade/jtag-connector-1.md)
-   step 4): look at it, a short stub with tube over its cut end. The bench check cannot tell whether wire 6 reaches
+   step 5): look at it, a short stub with tube over its cut end. The bench check cannot tell whether wire 6 reaches
    a header pin, so this look and the meter are what keep its 3.3 V off the host. If any of this fails, or the housing is not the guide's 2×5, build a new P1 cable.
 3. Run the [bench check](../building/compute-blade/bench-check.md) with the new P2 cable and the P1 cable, kept or
    new, the card still out, as that page says. Its ground beep is meant to show that no housing is turned round (that a turned housing would
