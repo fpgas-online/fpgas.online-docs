@@ -632,7 +632,7 @@ INFRA = Repo(
             ("Sources", "pi/sources"),
         ],
         "docs/setup/access.md": [
-            ("tweed", "access/tweed"),
+            ("The gateway, tweed", "access/tweed"),
             ("The Pi NFS root", "access/pi-root"),
             ("Logging in", "access/logging-in"),
             ("Adding or removing a person", "access/people"),
