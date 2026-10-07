@@ -1,5 +1,7 @@
 # Tiny Tapeout FPGA demo board
 
+> On 7 October 2026 the name of the site's network-config tool was replaced by its role, under Tim's rule that the fpgas.online repositories name no host specifics.
+
 The Tiny Tapeout (TT) FPGA demo board is a Lattice iCE40UP5K "FabricFox" FPGA
 breakout plugged into a Tiny Tapeout demo PCB, in place of the Tiny Tapeout ASIC
 the demo PCB was designed for. The FPGA presents the same `ui_in` / `uo_out` /
@@ -380,7 +382,7 @@ tinytapeout.fpgas.online until the SDK files are restored.
 :::
 
 If a board does hang, a PoE cycle of its switch port (the S3300 write community
-is in gdoc2netcfg) resets it; the RP2's mass-storage bootloader path stalls on
+is in the site's network-config tool) resets it; the RP2's mass-storage bootloader path stalls on
 Pi 3B+ hosts, so reflashing from a Pi 3B+ needs the PICOBOOT path rather than
 MSC (no TT FPGA host is a Pi 3B+ today; all four are Pi 4).
 
