@@ -2,7 +2,7 @@
 
 The Digilent Arty A7 is a Xilinx Artix-7 development board and the most numerous
 FPGA board in the fleet: five at Welland ([Arty A7-35T](../sites/welland.md#arty-a7-35t))
-and eight at PS1 ([Arty A7 hosts](../sites/ps1.md#arty-a7-hosts)). Each board
+and eight at PS1 ([Arty A7 hosts](../sites/ps1-boards.md#arty-a7-hosts)). Each board
 reaches its Raspberry Pi host over a single USB cable — an on-board FTDI
 FT2232HQ gives the host both a JTAG channel and a UART channel — and, on hosts
 fitted with a [PMOD HAT](pmod/rpi-hat.md), over three ribbon cables from the
@@ -368,7 +368,7 @@ the addresses quoted below no longer resolve and the current name of a host has
 to be derived from its switch port using the
 [Arty A7-35T host table](../sites/welland.md#arty-a7-35t); if they are PS1
 hosts, pi3, pi5 and pi9 are still at exactly these addresses in the
-[Arty A7 hosts table](../sites/ps1.md#arty-a7-hosts). The routing itself is a
+[Arty A7 hosts table](../sites/ps1-boards.md#arty-a7-hosts). The routing itself is a
 property of the cables and the board, not of the host, so it is recorded here
 rather than on a site page.
 :::
@@ -479,7 +479,7 @@ which site was scanned. The evidence:
   programmed or tested on 2026-03-17. The `pmod-pin-id` scan needs the FTDI JTAG
   channel to load its bitstream, and pi9 produced a successful 21-of-24 scan
   that day. That argues **against** these being the Welland hosts.
-- The [PS1 Arty table](../sites/ps1.md#arty-a7-hosts) has pi3, pi5 and pi9 at
+- The [PS1 Arty table](../sites/ps1-boards.md#arty-a7-hosts) has pi3, pi5 and pi9 at
   exactly 10.21.0.103, 10.21.0.105 and 10.21.0.109. It records pi9 online with a
   working FTDI, but that column has no date or provenance.
 - The [Welland Arty table](../sites/welland.md#arty-a7-35t) has pi7, pi9, pi11,

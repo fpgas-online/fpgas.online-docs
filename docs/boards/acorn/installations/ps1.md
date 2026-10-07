@@ -3,7 +3,7 @@
 **You look after the Acorns at ps1 (Pumping Station: One, Chicago) and want to
 know which card is where, what state it is in, and what it still needs.** The
 hosts as hosts (addresses, switch ports, power) are on the [PS1 site
-page](../../../sites/ps1.md#compute-blades); what was read on each blade, with
+page](../../../sites/ps1-boards.md#compute-blades); what was read on each blade, with
 its date, is on [Acorns at ps1: what was read on each blade](ps1-reads.md).
 
 ## The cards

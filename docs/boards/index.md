@@ -23,7 +23,7 @@ pin-id
 Counts are the test-designs hardware README as read on 2026-09-03; where a site
 page disagrees, the site page is the measured source and wins.
 
-| Board | Docs | [Welland](../sites/welland.md#hosts-and-boards) | [PS1](../sites/ps1.md#hosts-and-boards) | FPGA | Features |
+| Board | Docs | [Welland](../sites/welland.md#hosts-and-boards) | [PS1](../sites/ps1-boards.md) | FPGA | Features |
 |-------|------|---------|-----|------|----------|
 | [Digilent Arty A7-35T](https://digilent.com/shop/arty-a7-artix-7-fpga-development-board/) | [Arty A7](arty-a7.md), [wiring to the Pi](arty-a7.md#wiring-to-the-raspberry-pi) | ×5 | ×8 | Xilinx XC7A35T | DDR3, Ethernet, PMOD, USB&nbsp;JTAG+UART |
 | [Kosagi NeTV2](https://www.crowdsupply.com/alphamax/netv2) (GPIO&nbsp;JTAG) | [Kosagi NeTV2](netv2.md), [JTAG via RPi GPIO](netv2.md#jtag-via-rpi-gpio) | ×5 | — | Xilinx XC7A35T | DDR3, Ethernet, PCIe, HDMI, GPIO&nbsp;JTAG+UART |
@@ -78,7 +78,7 @@ page is the measured source.
 
 - **TT ASIC at PS1.** The table above has a pending TT08 at PS1, so it totals
   eight pending ASIC boards there. The PS1 board summary counts seven, "one
-  each: TT02-TT09 except TT08" — see [PS1 pending](../sites/ps1.md#pending) and
+  each: TT02-TT09 except TT08" — see [PS1 pending](../sites/ps1-boards.md#pending) and
   the same disagreement recorded on
   [Tiny Tapeout ASIC demo boards](tt-asic.md#shuttles-and-boards).
 - **TT ASIC at Welland.** The table above has TT02, TT03 and TT09 pending at

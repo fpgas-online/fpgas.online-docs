@@ -16,7 +16,7 @@ for **TT03p5, TT04, TT05, TT06, TT07 and TT08**. Five of the six run TT SDK
 **2.0.4**; the TT03p5 board runs demo-board firmware **1.2.2**, the last release
 that supports that shuttle. They are the public ASIC boards on
 [tinytapeout.fpgas.online](https://tinytapeout.fpgas.online), live since
-2026-08-23. [PS1](../sites/ps1.md#pending) has none deployed — its TT ASIC
+2026-08-23. [PS1](../sites/ps1-boards.md#pending) has none deployed — its TT ASIC
 boards are still pending.
 
 The same demo PCB with a Lattice iCE40UP5K breakout in place of the ASIC is the
@@ -60,14 +60,14 @@ Two disagreements between the sources, neither resolved:
   board is deployed, so nothing has been measured either way.
 - The README's PS1 column has a pending TT08, while the PS1 board summary counts
   seven pending ASIC boards, "one each: TT02-TT09 except TT08" — which is what
-  [PS1 pending](../sites/ps1.md#pending) repeats. The PS1 column above follows
+  [PS1 pending](../sites/ps1-boards.md#pending) repeats. The PS1 column above follows
   the README, so it totals **eight** pending boards where
-  [PS1 pending](../sites/ps1.md#pending) says seven.
+  [PS1 pending](../sites/ps1-boards.md#pending) says seven.
 :::
 
 :::{todo}
 Fix the test-designs hardware README on the three points in the note above:
-TT09's controller, the pending TT08 that [PS1 pending](../sites/ps1.md#pending)
+TT09's controller, the pending TT08 that [PS1 pending](../sites/ps1-boards.md#pending)
 excludes, and its link to `tinytapeout.com/chips/tt03p5/`, which is a 404 —
 which is why the TT03p5 row has no shuttle link.
 :::
