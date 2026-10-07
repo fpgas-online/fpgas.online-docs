@@ -305,7 +305,7 @@ CM5
 
 Which module a host carries is inventory: at PS1, for example, pi14 and pi18
 are CM4 and pi16 and pi20 are CM5 Lite — see [Compute
-blades](../sites/ps1.md#compute-blades).
+blades](../sites/ps1-boards.md#compute-blades).
 
 ### Raspberry Pi 3 and 3B+
 
@@ -351,9 +351,9 @@ per second plus a 900 ms server fragment brings that to roughly 5 seconds.
 
 Which hosts have cameras is a site fact, not a platform one. At Welland the
 Arty, Fomu, Tiny Tapeout and Acorn hosts all carry an ov5647 and publish a feed — see
-the per-board tables on the [Welland page](../sites/welland.md#hosts-and-boards).
+the per-board tables on the [Welland page](../sites/welland-boards.md).
 At PS1 the Arty hosts are the ones with cameras and no compute blade has one
-([PS1 hosts and boards](../sites/ps1.md#hosts-and-boards)).
+([PS1 hosts and boards](../sites/ps1-boards.md)).
 
 ## Serial consoles
 
