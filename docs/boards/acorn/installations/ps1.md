@@ -163,8 +163,9 @@ not written**, so the card still holds the vendor's sample image and runs it aga
 comes back after a root-complex re-probe ([Bring the endpoint back after a JTAG
 load](../designs/pcie.md#bring-the-endpoint-back-after-a-jtag-load)). For this load the re-probe was run once
 the same day and failed: the bind answered "No such device" and the root port was gone too. pi20 at ps1 was
-rebooted and did not come back (7 October 2026); a power cycle of the blade is pending. The flash was never
-written.
+rebooted and since then boot-loops: it netboots every 2 to 3 minutes, reaches its ssh server and dies about
+10 seconds later (the ps1 gateway's DHCP and NFS log, read 7 October 2026). A power cycle of the blade is
+pending. The flash was never written.
 
 The Host column's (a) has no written steps and has **not been tried by us**. What is known: on pi20 at ps1
 (read 7 October 2026) the login prompt on `/dev/ttyAMA0` was there only because of the word
