@@ -14,9 +14,6 @@ peripheral, how it is programmed, and the measured
 [PMOD cable routing](#pmod-cable-routing-hat--arty). Which host carries which
 Arty is on the two site pages linked above.
 
-```{include} generated/install-arty-a7.md
-```
-
 Which do you need?
 
 (key-specifications)=
@@ -61,6 +58,9 @@ Which do you need?
 - **[The GPIO loopback test](arty-a7/loopback.md):** for you if you want to run the GPIO loopback test between an Arty and its Raspberry Pi.
 (references)=
 - **[References](arty-a7/references.md):** for you if you want the sources behind these pages.
+
+```{include} generated/install-arty-a7.md
+```
 
 ```{toctree}
 :hidden:

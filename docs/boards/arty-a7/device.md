@@ -32,9 +32,9 @@ on:
 | FPGA | Xilinx Artix-7 XC7A35T-CPG236-1 |
 | Package | CPG236 |
 
-Every FPGA pin name on this page comes from the LiteX `digilent_arty`
+Every FPGA pin name on these pages comes from the LiteX `digilent_arty`
 platform, whose two device strings are both CSG324 parts (see
-[FPGA Device Variants](../arty-a7.md#fpga-device-variants)), so CPG236 looks like a
+[FPGA Device Variants](#fpga-device-variants)), so CPG236 looks like a
 transcription error in the pin-mapping notes rather than a second board type.
 Confirm against a board and delete the loser.
 :::
