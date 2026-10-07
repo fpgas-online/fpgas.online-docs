@@ -35,7 +35,8 @@ if need be, but not below a size whose labels can still be read; a picture that
 would have to be smaller goes on the next sheet under a line naming the chapter and the step ("JTAG
 connector 1, step 3, continued: find wire 1 of the P1 cable"). After printing, every step's words and
 pictures are found in the PDF, and the run stops if any picture is on another sheet than its step's words,
-other than on a sheet the tool began with such a line.
+other than on a sheet the tool began with such a line. A step's pictures include a repeated picture with
+its own lead-in line ("The P1 cavity picture again ...") between it and the next numbered step or heading.
 --append puts existing PDFs (label sheets) after the printed pages unchanged
 and not renumbered; every page of them must already be on the chosen paper,
 either way up, or the run stops.
@@ -228,6 +229,8 @@ img { max-width: 100%%; }
 /* A picture is never cut by the end of a sheet, and leaves room for its step's words above it. */
 .picture { break-inside: avoid; text-align: center; }
 .picture img { max-height: 200mm; }
+/* A picture with its own lead-in words (own_pictures), kept with them and with the numbered step it serves. */
+.again { text-align: left; }
 .step { break-inside: avoid; }
 /* The pictures of a step too tall for one sheet (fit_steps), on the next sheet under the step's number. */
 .continued { break-before: page; }
@@ -673,6 +676,73 @@ def step_pictures(body: Tag, soup: BeautifulSoup) -> None:
             step.append(part.extract())
 
 
+def numbered_step(words: Tag) -> bool:
+    """Whether a paragraph is a numbered step's words ("3. Find wire 1 ...")."""
+    return words.name == "p" and re.match(r"\s*\d+\.", words.get_text()) is not None
+
+
+def is_picture(part: Tag) -> bool:
+    return isinstance(part, Tag) and "picture" in part.get("class", [])
+
+
+def picture_image(picture: Tag) -> Tag:
+    """The image of a picture: of a picture with lead-in words (own_pictures), that of the picture in it."""
+    if "again" in picture.get("class", []):
+        picture = picture.find(is_picture)
+    return picture.find("img")
+
+
+def own_pictures(body: Tag, soup: BeautifulSoup) -> None:
+    """Give a numbered step the pictures that serve it after its own (fpgas.online-docs issue #102).
+
+    step_pictures makes a paragraph and the picture after it a step; "The P1 cavity picture again, to read each
+    wire's cavity from:" over a picture is such a step, though it has no number. When it comes after a numbered
+    step, with nothing but that step's pictures and words between them up to it (no heading, no other step), it
+    serves that step: it becomes one picture of that step (div.picture.again, its words over its picture), so
+    fit_steps keeps it on the step's sheet or moves it under the step's "continued" line, and check_steps
+    reports it when it prints anywhere else. The words just before it that are not a step's go with it. A
+    numbered paragraph with no picture of its own becomes a step for it. A step without a number that comes
+    after no numbered step (a section's own pictures) stays a step of its own."""
+    for step in list(body.find_all("div", class_="step")):
+        parts = step.find_all(recursive=False)
+        if numbered_step(parts[0]):
+            continue
+        lead: list[Tag] = []  # words just before the step, in reverse
+        owner = None
+        node = step.find_previous_sibling()
+        while node is not None:
+            if node.name == "div" and "step" in node.get("class", []):
+                owner = node if numbered_step(node.find(recursive=False)) else None
+                break
+            if numbered_step(node):
+                owner = node
+                break
+            if is_picture(node):
+                if lead:  # words between two pictures belong to neither: leave the step alone
+                    break
+            elif node.name in ("p", "ul", "ol"):
+                lead.append(node)
+            else:
+                break
+            node = node.find_previous_sibling()
+        if owner is None:
+            continue
+        if owner.name == "p":
+            # A numbered step with no picture of its own: its words, and those after them, become its step.
+            words, lead = lead, []
+            new = soup.new_tag("div", attrs={"class": "step"})
+            owner.insert_before(new)
+            for part in (owner, *reversed(words)):
+                new.append(part.extract())
+        unit = soup.new_tag("div", attrs={"class": "picture again"})
+        step.insert_before(unit)
+        for part in (*reversed(lead), *parts):
+            unit.append(part.extract())
+        step.decompose()
+        if owner.name == "p":
+            new.append(unit.extract())
+
+
 def text_mm(text: str, width: float, size: float = 10.0, line: float = 1.4, char: float = CHAR_MM) -> float:
     """How tall text prints in a column width mm wide at size pt, as whole lines of the average character."""
     per_line = max(1, int(width / (char * size / 10)))
@@ -762,7 +832,11 @@ def lead_mm(step: Tag, body: Tag, width: float) -> float:
 def picture_mm(picture: Tag, width: float) -> tuple[float, float, float]:
     """How tall a picture's image prints at its natural size (no wider than the column, no taller than
     PICTURE_MAX_MM); how tall it would be as wide as the column; and how much its paragraph or figure adds
-    below it."""
+    below it. A picture with lead-in words (own_pictures) adds the words over it."""
+    if "again" in picture.get("class", []):
+        parts = picture.find_all(recursive=False)
+        natural, full, below = picture_mm(parts[-1], width)
+        return natural, full, below + sum(words_mm(part, width) for part in parts[:-1])
     image = picture.find("img")
     source = image.get("src", "")
     data = re.match(r"data:([^;,]+);base64,(.*)", source, re.DOTALL)
@@ -914,13 +988,16 @@ def fit_steps(body: Tag, soup: BeautifulSoup, paper: str, name: str) -> None:
                 last.insert_after(block)
                 last = block
             for picture, (height_mm, natural, full) in zip(group, placed):
-                alt = picture.find("img").get("alt") or "picture"
+                alt = picture_image(picture).get("alt") or "picture"
+                if "again" in picture.get("class", []):
+                    said = first_words(picture.find(recursive=False).get_text(" ", strip=True))
+                    say(f"{label}: \u201c{said}\u201d and its picture {alt!r} kept with the step")
                 if picture.parent is not last:
                     last.append(picture.extract())
                 if number:
                     say(f"{label}: picture {alt!r} moved to the next sheet, under \u201c{line}\u201d")
                 if height_mm < natural - 0.05:
-                    picture.find("img")["style"] = f"max-height: {height_mm:.1f}mm"
+                    picture_image(picture)["style"] = f"max-height: {height_mm:.1f}mm"
                     say(f"{label}: picture {alt!r} shrunk to {height_mm:.0f} mm from {natural:.0f} mm "
                         f"({height_mm / full:.2f} of the column's width)")
         if tail:
@@ -972,7 +1049,7 @@ def mark_steps(body: Tag, soup: BeautifulSoup, number: int, title: str) -> None:
         div["data-block"] = str(block)
         pictures = [part for part in div.find_all(recursive=False) if "picture" in part.get("class", [])]
         for count, picture in enumerate(pictures, 1):
-            mark(picture.find("img"), f"P-{number}-{step_number}-{block}-{count}")
+            mark(picture_image(picture), f"P-{number}-{step_number}-{block}-{count}")
         tail = div.find("div", class_="step-tail", recursive=False)
         for count, part in enumerate(tail.find_all(recursive=False) if tail else [], 1):
             mark(part, f"T-{number}-{step_number}-{block}-{count}")
@@ -1034,7 +1111,7 @@ def check_steps(sheets: list[str], page: str) -> list[str]:
         for count, picture in enumerate(pictures, 1):
             sheet = sheet_of(picture.find("span", class_="step-mark"))
             if sheet != home:
-                alt = picture.find("img").get("alt") or f"picture {count}"
+                alt = picture_image(picture).get("alt") or f"picture {count}"
                 problems.append(f"{name}: {where} on sheet {home} and its picture {alt!r} on sheet {sheet}")
         # What fit_steps kept after the last picture must end on that picture's sheet.
         tail = div.find("div", class_="step-tail", recursive=False)
@@ -1098,6 +1175,7 @@ def chapter(number: int, spec: str, commit: str, fetched: str, paper: str,
     heading = body.find("h1")
     title = heading.get_text(strip=True) if heading else path
     step_pictures(body, soup)
+    own_pictures(body, soup)
     fit_steps(body, soup, paper, chapter_name(title))
     mark_steps(body, soup, number, title)
     note = f"Chapter {number} · Source: {url}"

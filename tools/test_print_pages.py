@@ -592,6 +592,7 @@ class FitSteps(unittest.TestCase):
         soup = p.BeautifulSoup("", "html.parser")
         article = p.BeautifulSoup(html_text, "html.parser")
         p.step_pictures(article, soup)
+        p.own_pictures(article, soup)
         said = io.StringIO()
         with contextlib.redirect_stderr(said):
             p.fit_steps(article, soup, paper, "Fitting")
@@ -841,6 +842,7 @@ def marked(html_text, number=3, title="Compute Blade cables: fitting"):
     soup = p.BeautifulSoup("", "html.parser")
     article = p.BeautifulSoup(html_text, "html.parser")
     p.step_pictures(article, soup)
+    p.own_pictures(article, soup)
     with contextlib.redirect_stderr(io.StringIO()):
         p.fit_steps(article, soup, "Letter", p.chapter_name(title))
     p.mark_steps(article, soup, number, title)
@@ -848,6 +850,74 @@ def marked(html_text, number=3, title="Compute Blade cables: fitting"):
 
 
 TWO_SHEETS = "<p>1. Fit the cables.</p>" + picture(1560, 2116) + picture(1560, 2116) + "<h2>Next</h2>"
+
+
+def again(first=900, second=1000):
+    """A numbered step with a picture, then a repeated picture with its own lead-in line (issue #102)."""
+    return ("<section><h2>Steps</h2><p>2. Check each wire with a meter.</p>" + picture(1560, first)
+            + "<p>The P1 cavity picture again, to read each wire's cavity from:</p>" + picture(1560, second)
+            + "</section>")
+
+
+AGAIN = again()
+
+
+class OwnPictures(unittest.TestCase):
+    """A picture with its own lead-in words after a numbered step serves that step (issue #102)."""
+
+    def own(self, html_text):
+        soup = p.BeautifulSoup("", "html.parser")
+        article = p.BeautifulSoup(html_text, "html.parser")
+        p.step_pictures(article, soup)
+        p.own_pictures(article, soup)
+        return article
+
+    def test_an_again_paragraph_and_its_picture_become_a_picture_of_the_step_before(self):
+        article = self.own(AGAIN)
+        step = article.select_one("div.step")
+        self.assertEqual(len(article.select("div.step")), 1)
+        unit = step.find_next_sibling()
+        self.assertEqual(unit["class"], ["picture", "again"])
+        self.assertEqual([part.name for part in unit.find_all(recursive=False)], ["p", "p"])
+        self.assertEqual(p.picture_image(unit)["alt"], "pic 1560x1000")
+
+    def test_two_again_pictures_both_serve_the_step(self):
+        article = self.own(AGAIN.replace("</section>", "<p>The P2 cavity picture again.</p>"
+                                         + picture(1560, 1000) + "</section>"))
+        self.assertEqual(len(article.select("div.step")), 1)
+        self.assertEqual(len(article.select("div.again")), 2)
+
+    def test_a_numbered_step_with_no_picture_of_its_own_becomes_the_step_of_the_again_picture(self):
+        article = self.own("<h2>Steps</h2><p>2. Check each wire.</p><ol><li>beep</li></ol>"
+                           "<p>The P1 cavity picture again:</p>" + picture(1560, 1000))
+        step = article.select_one("div.step")
+        self.assertEqual([part.name for part in step.find_all(recursive=False)], ["p", "ol", "div"])
+        self.assertTrue(p.numbered_step(step.p))
+        self.assertIn("again", step.find_all(recursive=False)[-1]["class"])
+
+    def test_a_section_of_pictures_with_no_numbered_step_keeps_its_own_steps(self):
+        html_text = ("<h2>From a failing line to the wire</h2><p>The two cavity pictures are these.</p>"
+                     + picture(1560, 900) + "<p>The P2 one again.</p>" + picture(1560, 900))
+        article = self.own(html_text)
+        self.assertEqual(len(article.select("div.step")), 2)
+        self.assertIsNone(article.select_one("div.again"))
+
+    def test_a_heading_or_words_between_two_pictures_end_what_a_step_owns(self):
+        for between in ("<h3>Then</h3>", "<p>A note.</p>" + picture(1560, 300) + "<p>Words between.</p>"):
+            article = self.own("<p>2. Check.</p>" + picture(1560, 900) + between + "<p>Again:</p>"
+                               + picture(1560, 900))
+            last = article.find_all("img")[-1].parent.parent
+            self.assertEqual((last.name, last.get("class")), ("div", ["step"]), between)
+            self.assertFalse(p.numbered_step(last.p), between)
+
+    def test_fitting_moves_an_again_picture_that_does_not_fit_under_the_steps_continued_line(self):
+        article = marked(again(2116, 2116))
+        step, continued = article.select("div.step")
+        self.assertEqual(continued.select_one("p.continued-line").get_text(" ").split("Z", 1)[-1].strip(),
+                         "Compute Blade cables: fitting, step 2, continued: check each wire with a meter")
+        self.assertIn("again", continued.find_all(recursive=False)[-1]["class"])
+        self.assertEqual(continued.find_all(recursive=False)[-1].find("span", class_="step-mark").get_text(),
+                         "PPSTEP-P-3-1-1-1-Z")
 
 
 class MarkSteps(unittest.TestCase):
@@ -971,6 +1041,15 @@ class CheckSteps(unittest.TestCase):
         article = marked("<section><p>2. Cut.</p>" + picture(1560, 1118) + "<p>Done.</p></section>")
         where = {"PPSTEP-W-3-1-Z": 3, "PPSTEP-P-3-1-0-1-Z": 3, "PPSTEP-T-3-1-0-1-Z": 4}
         self.assertEqual(len(p.check_steps(self.sheets(article, where, 4), str(article))), 1)
+
+    def test_an_again_picture_on_another_sheet_than_its_steps_words_fails_naming_the_step(self):
+        # Issue #102: printed as a step of its own, the pair passed the check sheets away from step 2.
+        article = marked(AGAIN)
+        self.assertEqual(len(article.select("div.step")), 1)
+        problems = p.check_steps(self.sheets(article, {"PPSTEP-P-3-1-0-2-Z": 2}, 2), str(article))
+        self.assertEqual(problems, ["chapter 3, Compute Blade cables: fitting, step 2: its words are on sheet 1 and "
+                                    "its picture 'pic 1560x1000' on sheet 2"])
+        self.assertEqual(p.check_steps(self.sheets(article, {}, 1), str(article)), [])
 
     def test_a_mark_not_found_or_found_twice_cannot_be_checked(self):
         article = marked("<p>2. Cut.</p>" + picture(1560, 1118))
@@ -1446,6 +1525,18 @@ class Printing(unittest.TestCase):
             self.main()
         self.assertIn("chapter 3, Compute Blade cables: fitting, step 2: paragraph 1 kept after its last picture "
                       "(on sheet 1) ends on sheet 2: \u201ca failing line\u201d", str(stop.exception))
+        self.assertEqual(self.names(), ["x.STEPS-SPLIT.pdf"])
+
+    def test_an_again_picture_split_from_its_step_stops_the_run_with_status_1(self):
+        article = marked(AGAIN)
+        p.document = lambda *args: str(article)
+        self.sheet_texts = ["PPSTEP-W-3-1-Z\n2. Check.\nPPSTEP-P-3-1-0-1-Z\n\fThe P1 cavity picture again\n"
+                            "PPSTEP-P-3-1-0-2-Z\n"]
+        with self.assertRaises(SystemExit) as stop:
+            self.main()
+        self.assertIn("chapter 3, Compute Blade cables: fitting, step 2: its words are on sheet 1 and its picture "
+                      "'pic 1560x1000' on sheet 2", str(stop.exception))
+        self.assertIsInstance(stop.exception.code, str)  # a message, so the status is 1
         self.assertEqual(self.names(), ["x.STEPS-SPLIT.pdf"])
 
     def test_a_page_without_sheet_places_is_printed_once_and_not_read_back(self):
