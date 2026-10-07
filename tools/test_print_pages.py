@@ -660,13 +660,20 @@ class FitSteps(unittest.TestCase):
                            "<p>The two cavity pictures are the ones the cables were built from, shown again.</p>"
                            + picture(1560, 2116) + picture(1560, 2116))
         self.assertEqual(article.select_one("p.continued-line").get_text(),
-                         "Fitting, \u201cFrom a line to the wire\u201d, continued from the sheet before: the two "
-                         "cavity pictures are the ones the cables were built from")
+                         "Fitting, \u201cFrom a line to the wire\u201d, \u201cthe two cavity pictures are the ones the "
+                         "cables were built from\u201d, continued from the sheet before")
 
     def test_a_step_without_a_number_under_the_title_alone_is_named_by_the_chapter(self):
         article = self.fit("<h1>Fitting</h1><p>GND and TCK are the names.</p>" + picture(1560, 2116) * 2)
         self.assertEqual(article.select_one("p.continued-line").get_text(),
-                         "Fitting, continued from the sheet before: GND and TCK are the names")
+                         "Fitting, \u201cGND and TCK are the names\u201d, continued from the sheet before")
+
+    def test_two_steps_without_numbers_under_one_heading_have_two_names(self):
+        article = self.fit("<h2>Steps</h2><p>The P1 cavity picture again.</p>" + picture(1560, 600)
+                           + "<p>The P2 cavity picture again.</p>" + picture(1560, 600))
+        self.assertEqual([div["data-label"] for div in article.select("div.step")],
+                         ["Fitting, \u201cSteps\u201d, \u201cthe P1 cavity picture again\u201d",
+                          "Fitting, \u201cSteps\u201d, \u201cthe P2 cavity picture again\u201d"])
 
     def test_a_shrunk_picture_is_said_on_stderr(self):
         self.fit(f"<p>3. {words(1500)}</p>" + picture(1560, 1560))
@@ -753,10 +760,16 @@ class FitSteps(unittest.TestCase):
 
 
 class StepNames(unittest.TestCase):
-    def test_the_chapter_name_is_the_title_after_its_colon_and_before_its_comma(self):
-        self.assertEqual(p.chapter_name("Compute Blade cables: JTAG connector 1, prepare the wires"), "JTAG connector 1")
-        self.assertEqual(p.chapter_name("Compute Blade cables: fitting"), "Fitting")
-        self.assertEqual(p.chapter_name("Acorns at ps1"), "Acorns at ps1")
+    def test_the_chapter_name_is_the_title_up_to_the_first_comma_after_its_colon(self):
+        self.assertEqual(p.chapter_name("Compute Blade cables: JTAG connector 1, prepare the wires"),
+                         "Compute Blade cables: JTAG connector 1")
+        self.assertEqual(p.chapter_name("Compute Blade cables: fitting"), "Compute Blade cables: fitting")
+        self.assertEqual(p.chapter_name("Bootloader EEPROM on a Compute Module in a Compute Blade: does it need "
+                                        "anything?"),
+                         "Bootloader EEPROM on a Compute Module in a Compute Blade: does it need anything?")
+        self.assertEqual(p.chapter_name("Bootloader EEPROM: upgrade and lock"), "Bootloader EEPROM: upgrade and lock")
+        self.assertEqual(p.chapter_name("What fpgas.online ran on the ps1 blades, 7 October 2026"),
+                         "What fpgas.online ran on the ps1 blades")
 
     def test_first_words_are_the_first_clause_without_the_number(self):
         self.assertEqual(p.first_words("3. Find wire 1 of the P1 cable and flag the wires, before cutting."),
@@ -842,7 +855,7 @@ class MarkSteps(unittest.TestCase):
         article = marked(TWO_SHEETS)
         step, continued = article.select("div.step")
         self.assertEqual((step["data-step"], step["data-block"], step["data-label"], step["data-title"]),
-                         ("3-1", "0", "Fitting, step 1", "Compute Blade cables: fitting"))
+                         ("3-1", "0", "Compute Blade cables: fitting, step 1", "Compute Blade cables: fitting"))
         self.assertEqual((continued["data-step"], continued["data-block"]), ("3-1", "1"))
         self.assertEqual(step.p.contents[0].get_text(), "PPSTEP-W-3-1-Z")
         self.assertEqual(step.find("img").find_previous_sibling().get_text(), "PPSTEP-P-3-1-0-1-Z")
@@ -855,6 +868,16 @@ class MarkSteps(unittest.TestCase):
         article = marked("<p>1. Cut.</p>" + linked + "<p>2. Strip.</p>" + picture(1560, 600), number=5)
         self.assertEqual([div["data-step"] for div in article.select("div.step")], ["5-1", "5-2"])
         self.assertEqual(article.find("a").contents[0].get_text(), "PPSTEP-P-5-1-0-1-Z")
+
+    def test_the_end_of_each_paragraph_or_list_kept_after_the_last_picture_is_marked(self):
+        article = marked("<section><p>2. Cut.</p>" + picture(1560, 1118)
+                         + "<p>One.</p><ul><li>a</li><li><p>b</p><ul><li>c</li></ul></li></ul></section>")
+        tail = article.select_one("div.step > div.step-tail")
+        marks = tail.select("span.step-mark")
+        self.assertEqual([mark.get_text() for mark in marks], ["PPSTEP-T-3-1-0-1-Z", "PPSTEP-T-3-1-0-2-Z"])
+        self.assertIs(tail.p.contents[-1], marks[0])
+        self.assertEqual(marks[1].parent.name, "li")
+        self.assertEqual(marks[1].parent.get_text(), "c" + marks[1].get_text())
 
     def test_a_mark_is_hidden_and_takes_no_room(self):
         self.assertIn(".step-mark { display: inline-block; width: 0; overflow: visible; font-size: 0.1pt;", p.CSS)
@@ -884,7 +907,7 @@ class CheckSteps(unittest.TestCase):
     def test_a_picture_on_the_next_sheet_fails_naming_the_chapter_the_step_and_the_sheets(self):
         article = marked("<p>2. Cut.</p>" + picture(1560, 1118))
         problems = p.check_steps(self.sheets(article, {"PPSTEP-P-3-1-0-1-Z": 2}, 2), str(article))
-        self.assertEqual(problems, ["chapter 3 (Compute Blade cables: fitting), Fitting, step 2: its words are on "
+        self.assertEqual(problems, ["chapter 3, Compute Blade cables: fitting, step 2: its words are on "
                                     "sheet 1 and its picture 'pic 1560x1118' on sheet 2"])
 
     def test_the_two_sides_of_one_leaf_are_still_a_split(self):
@@ -926,6 +949,28 @@ class CheckSteps(unittest.TestCase):
         problems = p.check_steps(self.sheets(article, where, 2), str(article))
         self.assertEqual(len(problems), 1)
         self.assertIn("does not name the step", problems[0])
+
+    def tailed(self):
+        return marked("<section><p>1. Fit the cables.</p>" + picture(1560, 2116) + picture(1560, 2116)
+                      + "<p>A failing line.</p><p>Another.</p></section>")
+
+    def test_paragraphs_kept_after_the_last_picture_on_its_sheet_pass(self):
+        article = self.tailed()
+        self.assertIsNotNone(article.select_one("div.continued > div.step-tail"))
+        where = {"PPSTEP-K-3-1-1-Z": 2, "PPSTEP-P-3-1-1-1-Z": 2, "PPSTEP-T-3-1-1-1-Z": 2, "PPSTEP-T-3-1-1-2-Z": 2}
+        self.assertEqual(p.check_steps(self.sheets(article, where, 2), str(article)), [])
+
+    def test_paragraphs_kept_after_the_last_picture_ending_on_the_next_sheet_fail(self):
+        article = self.tailed()
+        where = {"PPSTEP-K-3-1-1-Z": 2, "PPSTEP-P-3-1-1-1-Z": 2, "PPSTEP-T-3-1-1-1-Z": 2, "PPSTEP-T-3-1-1-2-Z": 3}
+        self.assertEqual(p.check_steps(self.sheets(article, where, 3), str(article)),
+                         ["chapter 3, Compute Blade cables: fitting, step 1: paragraph 2 kept after its last picture "
+                          "(on sheet 2) ends on sheet 3: \u201canother\u201d"])
+
+    def test_the_two_sides_of_one_leaf_are_a_split_for_kept_paragraphs_too(self):
+        article = marked("<section><p>2. Cut.</p>" + picture(1560, 1118) + "<p>Done.</p></section>")
+        where = {"PPSTEP-W-3-1-Z": 3, "PPSTEP-P-3-1-0-1-Z": 3, "PPSTEP-T-3-1-0-1-Z": 4}
+        self.assertEqual(len(p.check_steps(self.sheets(article, where, 4), str(article))), 1)
 
     def test_a_mark_not_found_or_found_twice_cannot_be_checked(self):
         article = marked("<p>2. Cut.</p>" + picture(1560, 1118))
@@ -1388,8 +1433,19 @@ class Printing(unittest.TestCase):
         self.sheet_texts = ["PPSTEP-W-3-1-Z\n2. Cut.\n\fPPSTEP-P-3-1-0-1-Z\n"]
         with self.assertRaises(SystemExit) as stop:
             self.main()
-        self.assertIn("Fitting, step 2: its words are on sheet 1 and its picture 'pic 1560x1118' on sheet 2",
-                      str(stop.exception))
+        self.assertIn("chapter 3, Compute Blade cables: fitting, step 2: its words are on sheet 1 and its picture "
+                      "'pic 1560x1118' on sheet 2", str(stop.exception))
+        self.assertEqual(self.names(), ["x.STEPS-SPLIT.pdf"])
+
+    def test_paragraphs_kept_after_a_picture_that_run_onto_the_next_sheet_stop_the_run(self):
+        # The reviewer's harness for PR #97: a step-tail grown after fit_steps ran onto a sheet of its own.
+        article = marked("<section><p>2. Cut.</p>" + picture(1560, 1118) + "<p>A failing line.</p></section>")
+        p.document = lambda *args: str(article)
+        self.sheet_texts = ["PPSTEP-W-3-1-Z\n2. Cut.\nPPSTEP-P-3-1-0-1-Z\n\fA failing line.PPSTEP-T-3-1-0-1-Z\n"]
+        with self.assertRaises(SystemExit) as stop:
+            self.main()
+        self.assertIn("chapter 3, Compute Blade cables: fitting, step 2: paragraph 1 kept after its last picture "
+                      "(on sheet 1) ends on sheet 2: \u201ca failing line\u201d", str(stop.exception))
         self.assertEqual(self.names(), ["x.STEPS-SPLIT.pdf"])
 
     def test_a_page_without_sheet_places_is_printed_once_and_not_read_back(self):

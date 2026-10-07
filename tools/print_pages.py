@@ -139,11 +139,12 @@ TAIL_MAX_MM = 60.0
 # them; a code span's padding (0.6 mm each side) in characters; a listing's padding, border and margin in mm.
 WORD_BLOCKS = ("p", "ul", "ol", "pre", "div", "blockquote", "dl", "table", "figure")
 CODE_PAD_CHARS, PRE_EXTRA_MM = 1, 2 * 2 + 2 * 0.15 + 3
-# mark_steps' marks: W for a step's words, K for the line of a continued sheet of it, P for a picture. Then
-# the chapter and the step's number in it, for K and P the block (0 the step itself, 1 its first continued
-# block, ...), for P the picture's number in its block; Z ends the mark, so no digit after it joins it.
+# mark_steps' marks: W for a step's words, K for the line of a continued sheet of it, P for a picture, T for
+# the end of a paragraph or list kept after its last picture (tail_after). Then the chapter and the step's
+# number in it, for K, P and T the block (0 the step itself, 1 its first continued block, ...), for P and T the
+# picture's or paragraph's number in its block; Z ends the mark, so no digit after it joins it.
 STEP_MARK = "PPSTEP-%s-Z"
-STEP_MARK_RE = r"PPSTEP-([WKP])-(\d+(?:-\d+)*)-Z"
+STEP_MARK_RE = r"PPSTEP-([WKPT])-(\d+(?:-\d+)*)-Z"
 # Where a chapter's sheet number goes in the cover's list, once it is known.
 SHEET_PLACE = "<!--sheet-of-chapter-%d-->"
 SHEET_PLACE_RE = r"<!--sheet-of-chapter-(\d+)-->"
@@ -817,11 +818,12 @@ def say(message: str) -> None:
 
 
 def chapter_name(title: str) -> str:
-    """A chapter's short name for the lines that say where a step goes on: "JTAG connector 1" for the title
-    "Compute Blade cables: JTAG connector 1, prepare the wires" (after its first colon, before its first
-    comma), with a capital first letter, for it starts a line."""
-    name = title.split(": ", 1)[-1].split(", ", 1)[0].strip()
-    return name[:1].upper() + name[1:]
+    """A chapter's name for the lines that say where a step goes on: its title up to the first comma after
+    its colon, "Compute Blade cables: JTAG connector 1" for "Compute Blade cables: JTAG connector 1, prepare
+    the wires". The whole title before the colon stays, for what follows a colon is not always a name ("Bootloader
+    EEPROM on a Compute Module in a Compute Blade: does it need anything?" keeps all of it)."""
+    head, colon, rest = title.partition(": ")
+    return (head + colon + rest.split(", ", 1)[0]).strip() if colon else head.split(", ", 1)[0].strip()
 
 
 def first_words(text: str, most: int = 12) -> str:
@@ -838,15 +840,17 @@ def first_words(text: str, most: int = 12) -> str:
 def step_names(words: Tag, name: str) -> tuple[str, str]:
     """The name of the step that starts with the paragraph words, and the line over its pictures on a sheet
     after its own: "JTAG connector 1, step 3" and "JTAG connector 1, step 3, continued: find wire 1 of the P1
-    cable". A step without a number is named by the heading it is under."""
+    cable". A step without a number is named by the heading it is under and its first words, so that two such
+    steps under one heading have two names: 'Bench check, “Steps”, “the P1 cavity picture again”'."""
     number = re.match(r"\s*(\d+)\.", words.get_text())
     first = first_words(words.get_text(" ", strip=True))
     if number:
         label = f"{name}, step {number.group(1)}"
         return label, f"{label}, continued: {first}"
     heading = words.find_previous(HEADINGS)
-    label = name if heading is None or heading.name == "h1" else f"{name}, \u201c{heading.get_text(' ', strip=True)}\u201d"
-    return label, f"{label}, continued from the sheet before: {first}"
+    under = "" if heading is None or heading.name == "h1" else f", \u201c{heading.get_text(' ', strip=True)}\u201d"
+    label = f"{name}{under}, \u201c{first}\u201d"
+    return label, f"{label}, continued from the sheet before"
 
 
 def tail_after(last: Tag) -> list[Tag]:
@@ -932,8 +936,10 @@ def mark_steps(body: Tag, soup: BeautifulSoup, number: int, title: str) -> None:
 
     A mark (STEP_MARK) is hidden text: at the start of the step's words, at the start of a continued block's
     line, and just before each picture's image, so it prints on the same line, and the same sheet, as what it
-    marks. The blocks say which step they are (data-step: chapter and step number), and the step says the
-    chapter's title."""
+    marks; and at the end of each paragraph or list kept after the last picture (div.step-tail), so that the
+    whole of it is on the sheet of its mark. The blocks say which step they are (data-step: chapter and step
+    number), and the step says the chapter's title. The marks are real text in the PDF: a search or a copy of
+    the text finds "PPSTEP-...", though no one sees it on the sheet."""
     step_number, block = 0, 0
 
     def mark(at: Tag, what: str) -> None:
@@ -941,6 +947,14 @@ def mark_steps(body: Tag, soup: BeautifulSoup, number: int, title: str) -> None:
         span.string = STEP_MARK % what
         if at.name == "img":
             at.insert_before(span)
+        elif what.startswith("T-"):
+            # At the very end of the block: into the last list item, and the paragraph that ends it.
+            while at.name in ("ul", "ol", "li"):
+                ending = [child for child in at.children if isinstance(child, Tag) or str(child).strip()]
+                if not ending or not isinstance(ending[-1], Tag) or ending[-1].name not in ("p", "ul", "ol", "li"):
+                    break
+                at = ending[-1]
+            at.append(span)
         else:
             at.insert(0, span)
 
@@ -959,6 +973,9 @@ def mark_steps(body: Tag, soup: BeautifulSoup, number: int, title: str) -> None:
         pictures = [part for part in div.find_all(recursive=False) if "picture" in part.get("class", [])]
         for count, picture in enumerate(pictures, 1):
             mark(picture.find("img"), f"P-{number}-{step_number}-{block}-{count}")
+        tail = div.find("div", class_="step-tail", recursive=False)
+        for count, part in enumerate(tail.find_all(recursive=False) if tail else [], 1):
+            mark(part, f"T-{number}-{step_number}-{block}-{count}")
 
 
 def visible(text: str) -> str:
@@ -998,7 +1015,7 @@ def check_steps(sheets: list[str], page: str) -> list[str]:
             problems.append(f"continued block {div['data-step']} has no step")
             continue
         chapter = div["data-step"].split("-")[0]
-        name = f"chapter {chapter} ({step.get('data-title')}), {step.get('data-label')}"
+        name = f"chapter {chapter}, {step.get('data-label')}"
         words = sheet_of(step.find("span", class_="step-mark"))
         if div is step:
             where, home = "its words are", words
@@ -1019,6 +1036,15 @@ def check_steps(sheets: list[str], page: str) -> list[str]:
             if sheet != home:
                 alt = picture.find("img").get("alt") or f"picture {count}"
                 problems.append(f"{name}: {where} on sheet {home} and its picture {alt!r} on sheet {sheet}")
+        # What fit_steps kept after the last picture must end on that picture's sheet.
+        tail = div.find("div", class_="step-tail", recursive=False)
+        if tail is not None:
+            last = sheet_of(pictures[-1].find("span", class_="step-mark")) if pictures else home
+            for count, end in enumerate(tail.find_all("span", class_="step-mark"), 1):
+                sheet = sheet_of(end)
+                if sheet != last:
+                    problems.append(f"{name}: paragraph {count} kept after its last picture (on sheet {last}) "
+                                    f"ends on sheet {sheet}: \u201c{first_words(visible(end.parent.get_text(' ')))}\u201d")
     return problems
 
 
