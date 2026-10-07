@@ -177,8 +177,10 @@ $ sudo fpgas-verify --label --out labels.pdf
 - **The Acorn labels are not made yet.** Each waits for its card's conversion
   (above).
 - **No labels yet for pi14 at ps1 and pi18 at ps1.** Their visitor ports did not answer on 5 October 2026,
-  when the other two were read; both answered on 7 October 2026, so their labels can now be made (not done
-  yet).
+  when the other two were read. Both answered on 7 October 2026, but the label read asks the firmware
+  (`vcgencmd`), which hung on both that day; their labels wait for a reboot of the two blades.
+- **The two labels that exist were checked against the modules on 7 October 2026**: every printed field
+  matches what pi16 at ps1 and pi20 at ps1 report.
 
 The blades have no page under `https://ps1.fpgas.online/fpgas/`: pi14 at ps1, pi16 at ps1,
 pi18 at ps1 and pi20 at ps1 all return 404 there (checked 2026-09-03 and again 2026-10-06).
