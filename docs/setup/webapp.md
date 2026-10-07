@@ -128,7 +128,7 @@ or not an FPGA board and 502 when the Pi cannot be reached.
 views — read a port's state, toggle one port, toggle or turn off all of them.
 Every power change is also announced on the board's `pistat` group, so the
 status log on the page narrates the power cycle. The switch side of that is
-[PoE power control](network.md#poe-power-control).
+[PoE power control](network-power-cycle.md).
 
 Routing between the two faces of the site is done by host name. The middleware
 `ttsite.middleware.TTSiteHostMiddleware` runs first in the middleware list; it

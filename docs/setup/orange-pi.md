@@ -231,7 +231,7 @@ boards and the hub host, p21 after its second cycle.
 ## Recovery
 
 There is no remote power control other than PoE. The scripted `fpgas.online-poe`
-path is not available here: [PoE power control](network.md#poe-power-control)
+path is not available here: [PoE power control](network-power-cycle.md)
 records that **`poe.sh` does not work on tweed until `snmp.yml` is fixed**, so
 the Orange Pis are cycled with `ngsw`, the CLI from
 [`python3-netgear-switch-library`](../packages.md).
@@ -247,7 +247,7 @@ $ journalctl -u 'fpgas-felboot@*'
 The runbook spells these two lines with an explicit `--write-community` flag.
 It is left out here on purpose: the S3300's write community is a per-switch
 credential "looked up out of band with `gdoc2netcfg`", in the words of [PoE
-power control](network.md#poe-power-control), and belongs in the `ngsw`
+power control](network-power-cycle.md), and belongs in the `ngsw`
 inventory file the `--config` flag names rather than in a pasted command or in
 these pages. Run it from a host that can reach the switch management VLAN.
 
@@ -415,7 +415,7 @@ by masking p24's felboot instance, holding it in FEL and reading the links.
 
 :::{todo}
 Record the phantom-PoE lesson from the same mapping work on
-[Network](network.md#poe-power-control) or [Welland](../sites/welland.md), where
+[Network](network-power-cycle.md) or [Welland](../sites/welland.md), where
 an operator reading a port would find it: s3300-1 port `1/g16` has nothing
 connected, yet the switch reported it `delivering` 1.1–1.4 W for days
 (2026-08-28). A PoE off/on cleared the reading to `searching` and 0 mW, so it

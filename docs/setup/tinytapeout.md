@@ -200,7 +200,7 @@ carries no catalogue (`onpi/tasks/tt.yml`): see
 address for the WebSocket and API proxies, and to hand the board's switch port
 to the PoE views behind the "Power-cycle board" button — the same
 `/snmp/toggle` endpoint the classic pages use, described under
-[PoE power control](network.md#poe-power-control).
+[PoE power control](network-power-cycle.md).
 
 ## Demo bitstreams
 

@@ -119,7 +119,7 @@ This one **stays in the test-designs repository**. In
 On the PoE switch, enable PoE on the new port if it is not already enabled,
 then confirm the Pi netboots and gets an address. Power on that port is the
 only remote power control there is
-([PoE power control](network.md#poe-power-control)), and what the Pi does with
+([PoE power control](network-power-cycle.md)), and what the Pi does with
 it is [the boot chain](netboot.md#the-boot-chain).
 
 ### Verification steps

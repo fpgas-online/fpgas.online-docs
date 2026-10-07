@@ -6,26 +6,20 @@ loses everything it held (its root is read-only with a tmpfs on top, [Netboot an
 and anyone using the board loses their session. Visitors use the boards at any time; that is expected, so cut
 a port only when it is needed.
 
-## Before you cut a port
-
-A port is a place, not a board. Make sure the board you mean is the one on the port:
-
-1. Find the port. At welland the port is in the Pi's name (`pi-sw2-p46` is switch 2, port 46); at ps1 it is
-   the Pi's number (`pi20` is port `e20`).
-2. Check who is on it, on the gateway. A netbooted Pi never renews its DHCP lease, so 12 hours after it boots
-   its lease is gone while it runs on (fpgas.online-infra issue #230). Look at the gateway's neighbour table
-   as well as the leases:
-
-   ```console
-   $ grep ' 10.21.2.46 ' /var/lib/misc/dnsmasq.leases
-   $ ip -4 neigh show 10.21.2.46
-   ```
-
-   The MAC in either must be the MAC of the Pi you mean (the board pages and the site pages,
-   [Welland](../sites/welland.md) and [Hosts and boards at ps1](../sites/ps1-boards.md), list them). If
-   another MAC answers, stop: something was moved.
-
 ## At welland
+
+**First, check who is on the port.** The port is in the Pi's name: `pi-sw2-p46` is switch 2, port 46, at
+`10.21.2.46`. On the welland gateway, that address must be answered by the MAC of the Pi you mean (the board
+pages and [Welland](../sites/welland.md) list them):
+
+```console
+$ grep ' 10.21.2.46 ' /var/lib/misc/dnsmasq.leases
+$ ip -4 neigh show 10.21.2.46
+```
+
+A netbooted Pi never renews its DHCP lease, so 12 hours after it boots its lease is gone while it runs on
+(fpgas.online-infra issue #230); the neighbour entry is the better sign. If another MAC answers, stop:
+something was moved.
 
 **From the board's page.** A board page on welland.fpgas.online that has a Reset button power-cycles its
 port: off, half a second, on (`src/snmp_switch/views.py` in fpgas.online-poe, main fcb4a2a). It refuses a port
@@ -75,7 +69,6 @@ The Pi netboots again: a kernel and a root over the network, not a resume from d
 |---|---|---|
 | Pi 3B+ (NeTV2 hosts, welland) | about 48 s | 2026-09-06, five ports |
 | Pi 5 (Acorn hosts, welland) | more than 90 s | [Acorns at welland](../boards/acorn/installations/welland.md#reads-of-september-2026) |
-| Compute Blade (ps1) | about 60 s | the ps1 site notes |
 
 About two minutes from power-on to SSH is the figure the test automation uses (`docs/verify-hardware.md` in
 fpgas.online-test-designs). At welland a hung Pi 5 shows on its port as about 0.4 W instead of about 8 W

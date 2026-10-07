@@ -83,7 +83,7 @@ One line per service, with the role that installs it.
   its installer-era name.
 - **nftables** (`firewall`, `nftables.service`) carries the whole isolation
   policy; the role also installs `nmap` for probing it. See
-  [Verifying isolation](network.md#verifying-isolation).
+  [Verifying isolation](network-isolation.md).
 - **lldpd** (`lldp`, `lldpd.service`) advertises the gateway on every attached
   link and records what the switches advertise back, so the cabling can be
   confirmed rather than assumed.
@@ -93,7 +93,7 @@ One line per service, with the role that installs it.
   only on hosts that define `switches:`.
 - **switch-vlans** installs the `fpgas-switch-setup` CLI into its own venv,
   renders `/etc/fpgas/switches.yml` and converges each switch — see
-  [Switches](network.md#switches).
+  [Switches](network-switches.md).
 - **The login accounts**, all described in [Accounts and logins](access.md):
   `automation_user` keeps the `ansible` account trusting only the automation
   key (tweed only), `operators` creates the human operator accounts with
@@ -144,7 +144,7 @@ Tapeout catalogue and daemon are [The Tiny Tapeout stack](tinytapeout.md).
   sets the hub's device node to mode 0666 and chmods its per-port `disable`
   attributes so an unprivileged user can cut power to one port. This is the
   USB-side counterpart to
-  [PoE power control](network.md#poe-power-control). On the current
+  [PoE power control](network-power-cycle.md). On the current
   inventory the `uhubctl` group is empty, so it applies to no host.
 
 ## Deploying
