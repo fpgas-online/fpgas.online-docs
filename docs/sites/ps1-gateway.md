@@ -44,8 +44,9 @@ read-only](../setup/netboot.md#the-nfs-root-is-shared-and-read-only)).
 The root's own files date from 17 June 2026 (a Raspberry Pi OS image); its boot directory was updated on
 25 September 2026 to kernel `6.18.50+rpt`. The blades read it as a 32-bit userspace on kernel
 `6.18.50+rpt-rpi-v8` (pi16 and pi20 at ps1, 5 October 2026). What packages are inside the root was not read.
-How it was built is not recorded in fpgas.online-infra, whose playbook builds a different layout
-(`/srv/nfs/rpi/versions/`).
+How it was built is not recorded. fpgas.online-infra's playbook builds a bookworm root at
+`/srv/nfs/rpi/bookworm` (`dist: bookworm` in `inventory/group_vars/all/srv.yml`, main, read 2026-10-07), so
+this root did not come from it as it stands.
 
 ## PoE switch
 
