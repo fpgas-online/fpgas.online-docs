@@ -23,7 +23,7 @@ template is rendered, and gates the `vlan-ports` and `switch-vlans` roles in
 `site.yml` — without it neither role runs at all.
 
 The only production host that defines `switches:` is `fpgas.online`, the
-Welland gateway [tweed](../sites/welland.md#gateway-tweed); `ps1.fpgas.online`
+Welland gateway [tweed](../sites/welland-gateway.md#gateway-tweed); `ps1.fpgas.online`
 and `slf.sytes.net` do not. The QEMU CI VM defines one switch of a single
 access port with `switches_manage: false`, so every role runs and the address
 derivation is exercised against an emulated switch, with only the SNMP converge
@@ -284,7 +284,7 @@ So a PoE cycle at Welland today is a manual one. The
 [test-designs troubleshooting table](https://github.com/fpgas-online/fpgas.online-test-designs/blob/main/docs/hardware/acorn-pinmap.md)
 records the remedy for a wedged board: an SNMP set against the S3300, using that
 switch's write community, looked up out of band with `gdoc2netcfg`. Run it from
-[tweed](../sites/welland.md#gateway-tweed) or from any other host that can reach
+[tweed](../sites/welland-gateway.md#gateway-tweed) or from any other host that can reach
 the switch management VLAN, the same reachability `fpgas-switch-setup` needs.
 
 That row is about the Acorn hosts, and every Acorn at Welland is on switch 2,
@@ -298,7 +298,7 @@ needs that one, not the S3300's.
 Both Welland switches answer the **standard** `POWER-ETHERNET-MIB`
 (`pethPsePortAdminEnable`, OID `1.3.6.1.2.1.105.1.1.1.3.1.<port>`) over SNMPv2c,
 so a manual PoE cycle is a plain `snmpset`. Run it **from
-[tweed](../sites/welland.md#gateway-tweed)**, which reaches the switch
+[tweed](../sites/welland-gateway.md#gateway-tweed)**, which reaches the switch
 management network (10.1.5.0/24) over its default route — the
 same reachability `fpgas-switch-setup` needs. The port number is the switch
 port the Pi is plugged into (`p` in the [derivation table](#two-addressing-schemes)),
