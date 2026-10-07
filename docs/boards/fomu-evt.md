@@ -12,9 +12,6 @@ analyser inline; their addresses, MACs and analysers are in the
 itself, its iCE40 pin assignments for each on-board peripheral, how it is
 programmed and monitored, and how it is wired to its Raspberry Pi.
 
-```{include} generated/install-fomu-evt.md
-```
-
 Which do you need?
 
 (key-specifications)=
@@ -59,6 +56,9 @@ Which do you need?
 - **[The PMOD / GPIO loopback test](fomu-evt/loopback.md):** for you if you want to run the PMOD / GPIO loopback test between a Fomu and its Raspberry Pi.
 (references)=
 - **[References](fomu-evt/references.md):** for you if you want the sources behind these pages.
+
+```{include} generated/install-fomu-evt.md
+```
 
 ```{toctree}
 :hidden:
