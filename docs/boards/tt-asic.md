@@ -143,7 +143,7 @@ board is camera-only on the public site until the upstream `legacy` branch is
 ported —
 [tt-commander-app #9](https://github.com/fpgas-online/tt-commander-app/pull/9)
 and [#10](https://github.com/fpgas-online/tt-commander-app/pull/10). This is
-tracked under [Known faults](../sites/welland.md#known-faults) on the Welland
+tracked under [Known faults](../sites/welland-boards.md) on the Welland
 page.
 :::
 
@@ -164,7 +164,7 @@ All six deployed boards are at Welland, on S3300 ports 3–8, on Raspberry Pi 4
 and 3B+ hosts with Pmod HATs — the switch port number is the shuttle number, so
 port N carries TTN. The hosts, their addresses, MACs, RP2040 serial numbers,
 per-board firmware versions and old `piNN` names are in
-[Tiny Tapeout ASIC boards](../sites/welland.md#tiny-tapeout-asic-boards) on the
+[Tiny Tapeout ASIC boards](../sites/welland-tinytapeout.md#tiny-tapeout-asic-boards) on the
 Welland page, which also carries the per-port VLAN scheme those addresses come
 from. These hosts have no page under `welland.fpgas.online/fpgas/`; their public
 pages are the `tinytapeout.fpgas.online` board pages linked above.
