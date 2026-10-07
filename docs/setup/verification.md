@@ -60,7 +60,7 @@ all ([Two addressing schemes](network.md#two-addressing-schemes)). Instead:
 - For the `welland.fpgas.online` board list, update the packaged fixture. The
   fixture ships inside the `fpgas.online-site` package and is loaded by bare
   name, so it is changed in that repository and not in the infra inventory; see
-  [Deployment](webapp.md#deployment).
+  [Deployment](webapp/deployment.md).
 
 :::{todo}
 Two claims in the upstream checklist disagree with these docs.

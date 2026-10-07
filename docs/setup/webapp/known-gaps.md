@@ -69,9 +69,10 @@ app, although it is in no `INSTALLED_APPS`, routed by neither `urls.py`, and
 given no nginx include by infra — the demo buttons work by typing into the
 WebSSH iframe (`demos.js`); and it names only `TTSITE_COMMANDER_VERSION`, while
 the code and the `ttsite` role carry a second `TTSITE_COMMANDER_LEGACY_VERSION`
-bundle (see [Deployment](../webapp.md#deployment)). Either the README follows the code or
-the code follows the README. The four code faults listed above — the broken
-classic upload form, the unauthenticated `csrf_exempt` `/pistat/` views,
+bundle (see [Deployment](deployment.md)). Either the README follows the code or
+the code follows the README. The four code faults listed on these pages — the broken
+classic upload form, the unauthenticated `csrf_exempt` `/pistat/` views
+([applications](apps-urls.md#applications)),
 `pibfpgas.views.one` looking boards up by port alone, and `fpga.html`'s
 hard-coded legacy `vlc .../live/pi<N>.m3u8` URL — are open the same way: fix
 them in `fpgas.online-site` or record that the classic site is frozen.
