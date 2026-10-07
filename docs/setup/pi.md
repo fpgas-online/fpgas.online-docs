@@ -1,556 +1,96 @@
+% This page is copied from https://github.com/fpgas-online/fpgas.online-infra/blob/main/docs/pi.md
+% by tools/sync_repos.py. Do not edit it here: change it in infra.
+
 # What runs on a Pi host
 
-Every Pi in the fleet boots the same read-only NFS root over the network
-([Netboot and the NFS root](netboot.md)), so nothing on a Pi is installed at
-boot time. The root is built once on the server, in two phases: `fixpi` shapes
-the extracted tree in place — the boot files, the `pi` account, the
-hostname-to-`/etc/hosts` unit, the `timesyncd` drop-in and the `ifupdown` masks
-— and then `fpgas-apt`, `cam_pi` and `onpi` run against that same tree. Both
-phases run in CI, through Ansible's chroot connection. The gateway pulls the
-finished image, and `fixpi` applies only the site layer on top: the `pi`
-password, the `authorized_keys` and the host keys. See
-[The provisioning container](netboot.md#the-provisioning-container) and
-[Accounts and logins](access.md). A running
-Pi only adds a tmpfs upper layer over the result, which is discarded on the next
-power cycle.
+**You operate the fleet and want to know what is installed on every welland Pi, and which page has its
+services, its model differences and its camera.** Every welland Pi boots the same read-only NFS root, the one
+fpgas.online-infra builds ([Netboot and the NFS root](netboot.md)); nothing is installed at boot. ps1's
+blades boot another root, with none of these packages ([The ps1 gateway and switch](../sites/ps1-gateway.md)). CI builds that root, the gateway pulls it, and the
+gateway's `fixpi` role adds only the site layer: the `pi` password, the `authorized_keys` files and the SSH
+host keys ([Updating the NFS root](netboot/update-root.md#how-the-root-is-built), [Accounts and
+logins](access.md)).
 
-This page is the inventory of what that converge leaves behind — the packages,
-the systemd units, and the `config.txt` and `cmdline.txt` settings the firmware
-reads on the way up. Per-model quirks and per-board wiring live on the site and
-board pages and are linked rather than repeated.
+## The other pages
+
+(services)=
+- [Services and boot settings](pi/services.md): the systemd units, and what `config.txt` and `cmdline.txt` set.
+
+(boot-time-configuration)=
+- [Boot-time configuration](pi/services.md#boot-time-configuration).
+
+(model-differences)=
+- [Model differences and serial consoles](pi/models.md): Pi 3B+, Pi 4, Pi 5, CM4 and CM5, and freeing the header UART.
+
+(raspberry-pi-5)=
+- [Raspberry Pi 5](pi/models.md#the-models).
+
+(compute-module-4-versus-compute-module-5)=
+- [Compute Module 4 versus Compute Module 5](pi/models.md#the-models).
+
+(raspberry-pi-3-and-3b)=
+- [Raspberry Pi 3 and 3B+](pi/models.md#the-models).
+
+(serial-consoles)=
+- [Serial consoles](pi/models.md#freeing-the-header-uart-for-a-board).
+
+(camera)=
+- [Camera](pi/camera.md).
+
 
 ## Packages
 
-The `fpgas-apt` role adds the fpgas.online APT repository
-(`https://fpgas.online/apt bookworm main`, keyring dearmoured into
-`/usr/share/keyrings/fpgas-online.gpg`) before anything else runs. How that
-repository is built and what else it serves is on [Packages](../packages.md).
+From fpgas.online-infra main, read 2026-10-07: the roles `fpgas_apt` (the repositories), `onpi` (`tasks/apt.yml`,
+`main.yml`, `fpga_verify.yml`, `litepcie.yml`, `tt.yml`, `stale_root.yml`) and `cam_pi`. They run in the CI
+build of the root, never on a running Pi.
 
-From it:
+**The fpgas.online repositories.** `fpgas_apt` adds `https://fpgas.online/apt` (suite `bookworm`; its key is
+refused unless its fingerprint is `878EC72910E22EA0E989EAA9BEB0EC3124E538E4`), the
+[fpgas.online-fpga-tools](https://github.com/fpgas-online/fpgas.online-fpga-tools) archive, the rpi-hwid
+archive and the nfsroot-watchdog archive, through the gateway's apt cache where there is one. How the main
+repository is built is on [Packages](../packages.md).
 
-| Package | Installed by | Purpose |
+| Package | Role, task | What it is |
 | --- | --- | --- |
-| `fpgas-online-setup-pi` | `onpi/tasks/main.yml` | The pistat and Arty units, the USB gadget console, the FEL-boot host, the `.link` interface names, the `/etc/profile.d` banner scripts, the zsh/tmux skeleton and the sshd drop-in. |
-| `fpgas-online-tt` | `onpi/tasks/tt.yml` | The `fpgas-tt` daemon: it owns `/dev/ttboard` and fans it out as a WebSocket on port 8765. See [The Tiny Tapeout stack](tinytapeout.md). |
-| `fpgas-online-tt-demos` | `onpi/tasks/tt.yml` | The demo bitstream set under `/usr/share/fpgas-tt/demos` (`index.json` plus one `.bin` per design), which the daemon syncs onto an `fpga` board. |
-| `fpgas-online-cam` | `cam/pi` role | `/usr/local/bin/fpgas-gst-libcam.sh` and `fpgas-cam.service`. See [Camera](#camera). |
+| `fpgas-online-setup-pi` | `onpi`, `main.yml` | The Pi's own units and files: the USB gadget console, the `.link` interface names, the login banner scripts, the shell skeleton, the sshd drop-in. |
+| `fpgas-online-all-boards` | `onpi`, `fpga_verify.yml` | The boot check, `fpgas-verify`, for every board kind, and the test images it checks against ([Checking a board: fpgas-verify](../verify/fpgas-verify.md)). |
+| `fpgas-online-acorn-litepcie-common`, `-utils`, and the driver for each kernel in the root that a Pi 5 or CM5 boots (6.12 on) | `onpi`, `litepcie.yml` | The LitePCIe driver and tools for an Acorn on a Pi 5 or a CM5; the build stops if the root has no such kernel the driver is packaged for. |
+| `fpgas-online-tt`, `fpgas-online-tt-demos` | `onpi`, `tt.yml` | The Tiny Tapeout daemon `fpgas-tt`, which owns `/dev/ttboard` and offers it as a WebSocket on port 8765, and the demo bitstreams under `/usr/share/fpgas-tt/demos`, which the daemon keeps on the Pi and loads into an FPGA board when asked ([The Tiny Tapeout stack](tinytapeout.md)). It is installed on every Pi and runs where the site runs the Tiny Tapeout site (welland); a Pi without a board waits for one. |
+| `fpgas-online-cam` | `cam_pi` | `fpgas-cam.service`, the camera stream ([Camera](pi/camera.md)). |
+| `nfsroot-watchdog` | `onpi`, `stale_root.yml` | Reboots the Pi on its own after a root update ([Updating the NFS root](netboot/update-root.md)). |
+| `openfpgaloader-fpgasonline-git`, `openocd-fpgasonline-git` | `onpi`, `apt.yml` | openFPGALoader and OpenOCD with the fpgas.online patches: the `rp1pio` cable (JTAG through the Pi 5's and CM5's RP1 PIO), the NeTV2 and Tiny Tapeout FPGA boards, `--flash-info`, and an upstream new enough for `--read-dna`. They replace the retired `openfpgaloader-rp1pio` and `openocd-rp1pio` from mithro/rp1-jtag. |
+| `python3-rpi-hwid` | `onpi`, `apt.yml` | The hardware identity probe the boot check uses (for example to tell a Tiny Tapeout ASIC host from an FPGA one). |
 
-`fpgas-online-setup-pi` also drags in four packages that `apt.yml` never names,
-through `depends:` in its `nfpm.yaml`: `sunxi-tools` for `sunxi-fel`, `expect`
-for the Arty detection script, `zsh` for the shell it ships a skeleton for, and
-`python3`. `expect` in particular has no other route onto a Pi — the only
-explicit `apt install` of it is in the orphaned `arty_here.yml` task file. The
-other two `depends:` entries, `tmux` and `vim`, are installed by `apt.yml`
-itself and appear in the Debian table below.
+The fpgas.online packages and the two JTAG tools are installed `state: latest`: they are rolling releases, and
+a root build takes the newest. Which versions a given root holds is read in the root itself; the welland root
+of 6 October 2026 is on [The welland gateway](https://docs.fpgas.online/en/latest/sites/welland-gateway.html).
 
-Both Tiny Tapeout packages are installed with `state: latest`, deliberately —
-they are rolling releases, so re-running the Pi play picks up a newer daemon
-and demo set. Their install is gated on
-`tt_install | default(tt_boards is defined)`, so a site with TT boards gets them
-automatically and a build with none — the CI nfsroot build — can force them in
-by setting `tt_install: true`. That is the point of the split: the daemon and
-demos are generic fleet content, and a Pi with no `/dev/ttboard` simply waits
-for one. The *site catalogue* (`/etc/fpgas-online/tt-boards.yaml`) and the
-*enablement* of `fpgas-tt.service` are gated on `tt_boards` alone, because a
-service enabled without its catalogue would change behaviour on a non-TT site.
+**From Debian** (`onpi`, `tasks/apt.yml`, and `cam_pi`):
 
-From Debian, by `onpi/tasks/apt.yml`:
-
-| Package | Why it is there |
+| Packages | Why |
 | --- | --- |
-| `overlayroot` | Provides the tmpfs upper layer that makes the read-only NFS root writable at runtime (`overlayroot=tmpfs` on the kernel command line). |
-| `lldpd` | Advertises this Pi's hostname on its link, so the switch's LLDP neighbour table names which Pi is on which port — that confirms the assumed cabling instead of trusting it. A running Pi only picks this up after a reboot, because the NFS root is a read-only lower layer. |
-| `atftpd`, `atftp` | A TFTP server and client on the Pi itself. `onpi/tasks/tftpd.yml` then rewrites the port in both `atftpd.socket` and `/etc/default/atftpd` from 69 to `tftpd_port` (6069 in the inventory) and makes `/srv/tftp` writable by the `pi` user. |
-| `openfpgaloader-rp1pio` | Bitstream loading: openFPGALoader 1.1.1 with the `rp1pio` and `libgpiod` cables, from [mithro/rp1-jtag](https://github.com/mithro/rp1-jtag) — see the note below. |
-| `openocd-rp1pio` | JTAG for the boards openFPGALoader does not drive, notably the Pi 3 NeTV2 path (OpenOCD 0.12, same source). |
-| `fxload`, `openwince-jtag` | Older USB firmware-loading and JTAG tooling. |
-| `uhubctl` | Per-port USB power control. |
-| `tio`, `minicom`, `picocom`, `screen` | Serial terminals. |
-| `tmux`, `vim`, `git`, `tree`, `ack`, `rsync`, `sshfs` | Interactive shell environment for someone SSHed into a node. |
-| `nmap`, `tcpdump` | Network diagnosis from inside a per-port VLAN. |
-| `ssh-import-id` | Installed, but nothing in the root uses it any more: the site writes the `pi` and `root` `authorized_keys` from the gateway (see [Accounts and logins](access.md)). |
-| `software-properties-common` | `add-apt-repository` and friends. |
-| `python3-full`, `python3-venv`, `python3-pip`, `python3-dev`, `pipx` | The Python toolchain the test scripts run on. |
-| `python3-serial`, `python3-rpi.gpio`, `python3-numpy`, `python3-tqdm` | The libraries those scripts import: serial ports, GPIO, arrays, progress bars. |
-| `build-essential`, `dkms`, `libfreetype6-dev`, `libjpeg-dev` | Compiler and headers, so a `pip install` of something with a C extension works on the node. |
+| `overlayroot` | The tmpfs layer over the read-only root (`overlayroot=tmpfs` on the kernel command line). |
+| `lldpd` | Advertises the Pi's name on its link, so the switch's LLDP table says which Pi is on which port. |
+| `atftpd`, `atftp` | A TFTP server and client on the Pi. |
+| `fxload`, `openwince-jtag`, `uhubctl`, `i2c-tools` | USB firmware loading, older JTAG tools, USB hub port control, I²C (the identity probe uses it). |
+| `tio`, `minicom`, `picocom`, `screen`, `tmux`, `vim`, `git`, `tree`, `ack`, `rsync`, `sshfs` | Serial terminals and a shell to work in. |
+| `nmap`, `tcpdump` | Network diagnosis. |
+| `ssh-import-id`, `software-properties-common` | Installed by `apt.yml`; the Pis' keys are written by the gateway instead ([Accounts and logins](access.md)). |
+| `python3-full`, `python3-venv`, `python3-pip`, `python3-dev`, `pipx`, `python3-serial`, `python3-rpi.gpio`, `python3-numpy`, `python3-tqdm` | Python and the libraries the test scripts use. |
+| `build-essential`, `dkms`, `libfreetype6-dev`, `libjpeg-dev` | So a `pip install` with a C extension builds on the Pi. |
+| `jq`, `lm-sensors`, the GStreamer 1.0 tools and plugins, `gstreamer1.0-libcamera`, `rpicam-apps-lite` | The camera pipeline (`cam_pi`). |
 
-Two of those tasks are corrections rather than installs. `vim-tiny` is removed
-explicitly, because `dpkg-divert` refuses to rename
-`/usr/share/vim/vim82/doc/help.txt.vim-tiny` over the full `vim`'s copy. And
-`mpremote` and `uv` are installed through `pipx` with `PIPX_HOME=/opt/pipx` and
-`PIPX_BIN_DIR=/usr/local/bin` pinned in the environment: a bare `pipx install`
-puts the venv wherever the invoking environment points it and the binaries on
-no user's `PATH`, which made the chroot-built and CI-built roots disagree.
-
-:::{note}
-On the Welland Pi 5s neither openFPGALoader cable works out of the box. The
-`libgpiod` cable opens `/dev/gpiochip0`, but the header is `gpiochip15`, so it
-needs the link described under [P1: JTAG](../boards/acorn/wiring/rpi-5-host.md#jtag-from-the-pi).
-The `rp1pio` cable needs `/dev/pio0`, which the check's `rp1-pio` test opens. `rp1-pio` passed on the Pi 5 then at sw2 p47 on 2 October 2026 (on 6 October 2026 that port had acorn-holly, device DNA `0x00200c8664b04854`, on the Pi 5 2 GB `285df3f84af242d0`) and on all four welland Pi 5s that carry an Acorn on 6 October 2026 (bootloader 2026/09/25 on the two read that day); on 3 October 2026 it was recorded failing on the two Pi 5s then at sw2 p47 and p48 with bootloader 2024/11/05. Whether the bootloader decides it is not confirmed: [test-designs issue #151](https://github.com/fpgas-online/fpgas.online-test-designs/issues/151). `--read-dna`, `--read-xadc` and
-`--read-register` are all there.
-:::
-
-:::{todo}
-One decision is still open in `fpgas.online-infra`: whether `core_freq=500` is
-set. Its `TECHDEBT.md` entry leaves the PoE-versus-camera trade-off undecided,
-so one of the two failure modes stays possible either way (see
-[boot-time configuration](pi.md#boot-time-configuration)).
-:::
-
-The `cam/pi` role adds the streaming stack on top: `gstreamer1.0-tools`, the
-`base`, `good`, `bad`, `ugly`, `base-apps` and `libcamera` plugin sets,
-`rpicam-apps-lite`, `jq` (the publisher script reads the default route out of
-`ip -json route`) and `lm-sensors`.
-
-## Services
-
-One row per unit that ends up in the shared root. "Enabled by `onpi`?" means
-the current include chain in `onpi/tasks/main.yml`, which is `apt.yml`,
-`nonfs.yml`, `tt.yml`, `fleet.yml`, `tftpd.yml`, `tweeks.yml`,
-`fpga_verify.yml`, `stale_root.yml` — and nothing else. The old `sshkeys.yml`
-is gone, because the image carries no keys.
-
-| Unit | Installed by | Purpose | Enabled by `onpi`? |
-| --- | --- | --- | --- |
-| `fpgas-tt.service` | `fpgas-online-tt` | Runs `fpgas-tt --device /dev/ttboard --boards /etc/fpgas-online/tt-boards.yaml` as the `pi` user with the `dialout` group, restarting always. | Yes, by `tt.yml`, but only when the site defines `tt_boards`. |
-| `fpgas-cam.service` | `fpgas-online-cam` | Runs `/usr/local/bin/fpgas-gst-libcam.sh`, restarting always, after `network-online.target`. | No — the `cam/pi` role enables it, not `onpi`. |
-| `fpgas-usb-console.service` | `fpgas-online-setup-pi` | `dmesg --follow` onto `/dev/ttyGS0`, so a laptop on the USB-C port gets the kernel log replayed from the start of boot. | Not enabled; `70-fpgas-usb-console.rules` starts it when `ttyGS0` appears. |
-| `serial-getty@ttyGS1.service` | systemd (pulled in by the usb-console udev rule) | The login console on the second gadget port. Separate from `ttyGS0` because `agetty` flushes its tty on start, which would drop queued log data. | Not enabled; udev-started. |
-| `fpgas-usb-console-log@.service` | `fpgas-online-setup-pi` | Host side only: captures an attached board's log port to `/var/log/fpgas-usb-console/`, from the first byte, because the board's ring buffer wraps within minutes under debug logging. | Not enabled; `71-fpgas-usb-console-host.rules` starts one instance per matching `ttyACM*`. |
-| `fpgas-felboot@.service` | `fpgas-online-setup-pi` | Host side only: runs `sunxi-fel uboot` against an Allwinner board that enumerated in BROM FEL mode on this Pi's USB, so a PoE-cycled Orange Pi netboots without an operator. | Not enabled; `60-fpgas-felboot.rules` starts it on `1f3a:efe8`. |
-| `lldpd.service` | Debian `lldpd` | The LLDP advertisement described above. | Package default. |
-| `atftpd.socket`, `atftpd.service` | Debian `atftpd` | TFTP on the Pi. `tftpd.yml` rewrites `ListenDatagram=` and `--port` to `tftpd_port`. | Package default; `onpi` only changes the port. |
-| `ssh.service` | Debian `openssh-server` | Remote access. `fpgas-online-setup-pi` adds an `/etc/ssh/sshd_config.d/` drop-in. | Image default. |
-| `fpgas-hostname-hosts.service` | `fixpi` role | Appends the DHCP-assigned hostname to `/etc/hosts` on boot, so `sudo`'s per-invocation `getaddrinfo()` of the machine name is instant instead of stalling on DNS. | Not `onpi` — `fixpi` enables it by planting the `multi-user.target.wants` symlink directly in the root. |
-| `systemd-timesyncd.service` | Debian systemd | NTP, with a `fixpi`-written drop-in pointing it at the gateway. The drop-in is needed because "Pis have no internet and timesyncd does not reliably consume the DHCP ntp-server option under dhcpcd", so without it every Pi's clock sits on the fake-hwclock date. | Image default; `onpi` does not touch it. |
-| `fpgas-pistat-ssh.service` | `fpgas-online-setup-pi` | One-shot `curl` to `https://${pistat_host}/pistat/stat/%l/ssh/`, bound to `ssh.service`. | Shipped in the deb, not enabled by any included task. |
-| `fpgas-pistat-cam.service` | `fpgas-online-setup-pi` | The same for `/cam/`, but ordered after `cam.target` and bound to `cam.service` — neither exists, the camera unit having been renamed `fpgas-cam.service`. | Shipped in the deb, not enabled by any included task. |
-| `fpgas-pistat-info.service` | `fpgas-online-setup-pi` | Reports the device-tree model string, so the server knows which Pi model answered on that port. | Shipped in the deb, not enabled by any included task. |
-| `fpgas-pistat-shutdown.service` | `fpgas-online-setup-pi` | `RemainAfterExit` unit whose `ExecStop` reports `/shutdown/` on the way down. | Shipped in the deb, not enabled by any included task. |
-| `fpgas-arty-here.service` | `fpgas-online-setup-pi` | Meant to report whether an Arty is attached, but its `ExecStart` is `/usr/local/bin/arty_here.sh` and the deb installs the script as `fpgas-arty-here.sh` — which in turn calls `/usr/local/bin/arty_here.exp`, installed as `fpgas-arty-here.exp`. | Shipped in the deb, not enabled by any included task — and would not run if it were. |
-| `fpgas-arty-wire.service` | `fpgas-online-setup-pi` | Meant to check the Pi-to-Arty wiring. `ExecStart` is `/usr/local/bin/arty_wire.sh` against an installed `fpgas-arty-wire.sh`, and it orders `After=arty_here.target`, a target that does not exist. | Shipped in the deb, not enabled by any included task — and would not run if it were. |
-| `fpgas-arty-blink.service` | `fpgas-online-setup-pi` | Meant to run the Arty counter demo from `/home/pi/Demos/counter_test`. `ExecStart` is `/usr/local/bin/arty_blink.sh` against an installed `fpgas-arty-blink.sh`, and it orders `After=arty_wire.target`, also nonexistent. | Shipped in the deb, not enabled by any included task — and would not run if it were. |
-
-:::{todo}
-The `fpgas-pistat-*` and `fpgas-arty-*` families are shipped in
-`fpgas-online-setup-pi` but enabled by nothing. The role files that used to
-enable them — `onpi/tasks/pistat.yml`, `arty_here.yml`, `arty_wire.yml`,
-`arty_blink.yml` — still exist in the infra repo, still copy or template the
-units under their **old** names (`pistat_ssh.service`, `arty_here.service`)
-into `/etc/systemd/system/`, and are not in `onpi/tasks/main.yml`'s include
-list. So status reporting for the per-port fleet may not be wired up at all on
-the current roots: nothing reports SSH-ready, camera-ready, model or shutdown,
-and no Arty presence check runs.
-
-Enabling them is not a one-line fix for the Arty three. Their unit bodies were
-never updated when the package took over installation, so all three would fail
-with **203/EXEC**: each `ExecStart` names the pre-package script path
-(`/usr/local/bin/arty_here.sh`) while `nfpm.yaml` installs `fpgas-arty-here.sh`,
-and there is no postinstall script or compatibility symlink in the deb to
-bridge the two. `arty_here.sh` has the same problem one level down — it calls
-`/usr/local/bin/arty_here.exp`, installed as `fpgas-arty-here.exp`. On top of
-that, `arty_wire` and `arty_blink` order themselves after `arty_here.target`
-and `arty_wire.target`, targets that do not exist anywhere in the package. The
-unit bodies need the `fpgas-` names and those two `After=` targets removed
-before enabling them would achieve anything.
-
-The four pistat units do **not** share the path problem: their `ExecStart`
-lines invoke `/usr/bin/curl` (and `/usr/bin/bash` in the `info` case) directly,
-so enabling them is sufficient. `fpgas-pistat-cam.service` would still be inert,
-because it is bound to `cam.service`, which was renamed `fpgas-cam.service`.
-
-Decide whether the pistat path is still wanted; if it is, fix the unit bodies
-in `fpgas.online-setup-pi`, add an include that enables the `fpgas-`-prefixed
-units, and delete the four orphaned task files either way.
-:::
-
-Two smaller oddities in the same package. The `pistat-scripts/` Python files
-are installed onto the Pi as `/usr/local/bin/fpgas-pistat-*.py`, but they are
-server-side code: `send.py` imports `channels.layers`, `send_stat.py` is a
-dnsmasq `--dhcp-script` and both it and `send_ncc.py` carry the shebang
-`#!/srv/www/pib/venv/bin/python3`, a path that does not exist on a Pi. And the
-`.link` files that name the two Ethernet interfaces `eth-uplink` and
-`eth-fpga` come from this package too — they are covered under
-[interface naming](network.md#interface-naming-on-the-pi).
-
-## Boot-time configuration
-
-The firmware reads `config.txt` and `cmdline.txt` from the TFTP root, which is
-served read-only. That is what makes these settings hold: they are re-applied
-on every boot, so a user with root can change the running kernel's behaviour
-for the life of a session but never across a reboot. The `fixpi` role's
-`tasks/tweeks.yml` appends the following to the served `config.txt`:
-
-```text
-dtoverlay=disable-wifi
-dtoverlay=disable-bt
-enable_uart=1
-uart_2ndstage=1
-eeprom_write_protect=1
-
-# BEGIN ANSIBLE MANAGED BLOCK: pi5 header uart
-[pi5]
-dtoverlay=uart0-pi5
-cmdline=cmdline-pi5.txt
-[all]
-# END ANSIBLE MANAGED BLOCK: pi5 header uart
-
-# BEGIN ANSIBLE MANAGED BLOCK: usb gadget console
-[pi4]
-dtoverlay=dwc2,dr_mode=peripheral
-[pi5]
-dtoverlay=dwc2,dr_mode=peripheral
-[all]
-# END ANSIBLE MANAGED BLOCK: usb gadget console
-```
-
-`eeprom_write_protect=1`
-: The bootloader EEPROM is the one piece of per-board state a netbooted Pi does
-  *not* revert on reboot, so it is the only place a root user could leave a
-  persistent change. How effective the lock is differs by model, and updating
-  an EEPROM legitimately has its own procedure — both are on
-  [EEPROM write protect](netboot.md#eeprom-write-protect).
-
-`dtoverlay=disable-wifi`, `dtoverlay=disable-bt`
-: The onboard radios off, on both Pi 4 and Pi 5 — the per-generation overlay
-  remapping is under
-  [How the root is built](netboot.md#how-the-root-is-built).
-
-`dtoverlay=uart0-pi5` and the `[pi5]` console
-: `disable-bt` frees the 40-pin header UART as a side effect on Pi 0–4 only —
-  the Pi 5 variant of the overlay touches the `bluetooth` node and nothing
-  else, and `bcm2712-rpi-5-b.dtb` ships the RP1 header UART disabled. So Pi 5
-  hosts need `uart0-pi5` explicitly. Enabling it, though, makes the firmware
-  resolve `console=serial0` to `ttyAMA0` and put the kernel console straight
-  onto the FPGA's UART, where a design driving TX feeds the console garbage the
-  kernel reads as SysRq. That is what `cmdline=cmdline-pi5.txt` is for: it
-  swaps in a command line with `console=ttyAMA10,115200`, the dedicated debug
-  UART, leaving `ttyAMA0` unclaimed. The rest of both command lines is on
-  [the kernel command line](netboot.md#the-kernel-command-line); the Compute
-  Blades hit the SysRq failure for real, recorded under [kernel console
-  SysRq](../boards/acorn/wiring/rpi-5-host.md#kernel-console-on-the-fpga-uart).
-
-`dtoverlay=dwc2,dr_mode=peripheral`
-: Pi 4 and Pi 5 only. Their USB-C port is a dwc2 OTG controller the firmware
-  otherwise leaves in host mode; in peripheral mode it becomes the gadget
-  console described under [Serial consoles](#serial-consoles). It is safe on
-  exactly these two models because their USB-A ports hang off separate
-  controllers, whereas on a Pi 3 or Zero dwc2 *is* the only USB there is.
-  Orange Pi H3 boards need nothing here — musb autoloads.
-
-`core_freq`
-: Not set. `config.txt.j2` carries it commented out as `# core_freq=250`, and
-  the infra technical-debt notes record why the value is contested: dropping
-  the core clock to 250 was an attempt at the intermittent (roughly 1 in 50)
-  stuck-boot problem, on the theory that PoE power was marginal, and it may
-  have helped a little. But one Pi with a camera fails with a camera error at
-  250 or anything below 500, and `core_freq=500` fixed that. The note ends
-  undecided: 500 might bring the PoE boot problem back, or the PoE problem
-  might never have been real.
-
-`tweeks.yml` also edits the root itself, mostly to stop units failing where
-nobody can see them. `console-setup.service` and `profile.d/wifi-check.sh` are
-deleted (a failed console-setup, and a "Wi-Fi is blocked by rfkill" warning on
-every login); `/etc/hostname` is deleted so the DHCP-supplied name wins; and
-`networking.service` and `ifupdown-pre.service` are masked to `/dev/null`,
-because `ifupdown` is unused under `ip=dhcp` plus NetworkManager and
-`ifupdown-pre` sat through its full two-minute `udevadm settle` on an Orange Pi
-before anything else could start. It also writes `pistat_host` into
-`/etc/environment`, which is where every pistat and Arty unit reads the server
-name from. The `fpgas-hostname-hosts.service` unit and the `timesyncd` drop-in
-that pins the Pi's clock at the gateway are `fixpi`'s too, from `netboot.yml`,
-and are described under
-[How the root is built](netboot.md#how-the-root-is-built).
-
-## Model differences
-
-The fleet runs several Pi models off one root. The differences that bite are
-recorded here, or on the page where they were found.
-
-### Raspberry Pi 5
-
-`gpiochip`
-: The 40-pin header GPIOs are on **gpiochip15**, not gpiochip0. Tools that
-  hardcode `/dev/gpiochip0` — including openFPGALoader's `libgpiod` cable — fail here.
-
-`dtoverlay=disable-bt`
-: A no-op on the Pi 5. The overlay is `compatible="brcm,bcm2835"` and resolves
-  to `disable-bt-pi5.dtbo`, which only touches the `bluetooth` node; the header
-  UART stays disabled. Use `dtoverlay=uart0-pi5` instead, which is what the NFS
-  root now carries ([infra
-  PR #32](https://github.com/fpgas-online/fpgas.online-infra/pull/32)) — with
-  the console consequences described under [Boot-time
-  configuration](#boot-time-configuration).
-
-`/dev/ttyAMA0` vs `/dev/ttyAMA10`
-: `ttyAMA0` is the RP1 header UART; `ttyAMA10` is the dedicated debug UART. The
-  NFS root boots with `console=ttyAMA10` so that `ttyAMA0` is free for the FPGA.
-
-### Compute Module 4 versus Compute Module 5
-
-The two modules are not drop-in replacements for each other, whichever carrier
-they are plugged into.
-
-CM4
-: `GPIO14 = TXD0` and `GPIO15 = RXD0` at **alt0**, on BCM2711 serial blocks.
-  Only `/dev/ttyAMA0` exists. There is no mux option that makes GPIO15 a
-  transmitter, so the FPGA's TX **must** land on GPIO15. One correct wiring, no
-  software escape.
-
-CM5
-: `GPIO14/15` at **alt4** on the RP1, with `/dev/ttyAMA0` and `/dev/ttyAMA10`.
-  Like the Pi 5, the RP1 offers several UART instances plus PIO, so pins can be
-  reassigned in software. Measured on CM5 Lite modules, but this is the RP1's
-  behaviour rather than anything specific to the Lite.
-
-Which module a host carries is inventory: at PS1, for example, pi14 and pi18
-are CM4 and pi16 and pi20 are CM5 Lite — see [Compute
-blades](../sites/ps1-boards.md#compute-blades).
-
-### Raspberry Pi 3 and 3B+
-
-`disable-bt` and the header UART
-: On a Pi 3 the PL011 belongs to Bluetooth, so the 40-pin header gets the mini
-  UART unless the overlay frees it — here `disable-bt` does the job it does not
-  do on a Pi 5. The netboot image disables Bluetooth, so on the production 3B+
-  hosts `/dev/serial0` is `ttyAMA0` (measured 2026-09-06), while a stock image
-  lands on `ttyS0`. Per host: [Serial device by
-  host](../boards/netv2.md#serial-device-by-host).
-
-USB topology
-: No USB-C gadget console. On a Pi 3 or Zero the dwc2 controller *is* the only
-  USB there is, so putting it in peripheral mode would cost the board every
-  downstream USB port, which on a 3B+ includes the Ethernet; that is why `dwc2,dr_mode=peripheral` above is applied on Pi 4 and Pi 5
-  only, and why a 3B+ has one fewer way to watch a boot — [When a Pi does not
-  boot](netboot.md#when-a-pi-does-not-boot).
-
-## Camera
-
-`fpgas-cam.service` runs `/usr/local/bin/fpgas-gst-libcam.sh` on every host
-that has a camera, restarting always. The script builds one GStreamer pipeline:
-`libcamerasrc` at 6 fps, a `clockoverlay`, then H.264 — `v4l2h264enc` where the
-hardware encoder exists, `x264enc` where it does not, which on the Pi 5 means
-software. It publishes to `rtmp://<default gateway>/pib/<short hostname>`,
-finding the gateway from `ip -json route show default` rather than from a
-configured variable.
-
-The gateway's `cam/stream-server` role runs nginx-rtmp, which repackages the
-stream as HLS under `/live`, served with `Cache-Control: no-cache` because a
-cached live playlist is stale by definition. The board pages embed that
-playlist, and each one also offers the direct URL for a desktop player:
-
-```console
-$ vlc https://<site>/live/pi<N>.m3u8
-```
-
-Latency is a deliberate trade. nginx-rtmp can only cut an HLS fragment at a
-keyframe, so the GOP length is the floor on fragment length, and the player
-starts three fragments behind the newest. A 60-frame GOP at 6 fps meant 10-second
-fragments and about 40 seconds glass-to-glass, measured 2026-08-30; one keyframe
-per second plus a 900 ms server fragment brings that to roughly 5 seconds.
-
-Which hosts have cameras is a site fact, not a platform one. At Welland the
-Arty, Fomu, Tiny Tapeout and Acorn hosts all carry an ov5647 and publish a feed — see
-the per-board tables on the [Welland page](../sites/welland.md#hosts-and-boards).
-At PS1 the Arty hosts are the ones with cameras and no compute blade has one
-([PS1 hosts and boards](../sites/ps1-boards.md)).
-
-## Serial consoles
-
-A Pi host can have up to three separate serial paths, and the recurring problem
-is that more than one thing wants the same one.
-
-**The board's own USB serial.** On a Tiny Tapeout host, the demo board's
-RP2040/RP2350 CDC port gets a stable `/dev/ttboard` symlink from a udev rule in
-`fpgas-online-tt`, matching `2e8a:0005` and `2e8a:000f` with `GROUP="dialout"`.
-`fpgas-tt` holds that port open permanently and fans it out over WebSocket, so
-`mpremote` and the programming scripts cannot open it while the daemon runs —
-the full consequences are under
-[Serial port ownership](../boards/tt-fpga.md#serial-port-ownership).
-
-**The 40-pin header UART.** When the FPGA is going to drive this, the login
-console has to be out of the way first, and `stop` alone is not enough because
-systemd restarts it — it has to be masked. Which unit to mask depends on the
-model, so resolve the device rather than hardcoding `ttyAMA0`:
-
-```console
-# Stop early if there is no GPIO UART here -- otherwise the lookup below
-# resolves to nothing and the mask silently targets the wrong unit.
-$ [ -e /dev/serial0 ] || { echo "no GPIO UART on this host"; exit 1; }
-$ GETTY="serial-getty@$(basename "$(readlink -f /dev/serial0)").service"
-$ sudo systemctl mask "$GETTY"
-$ sudo systemctl stop "$GETTY"
-```
-
-The same form is spelled out with its permission and `fuser` follow-up under
-[the Fomu UART interface](../boards/fomu-evt.md#uart-interface).
-Two related pre-test steps come from the same place: `rmmod spidev spi_bcm2835`
-frees GPIO 7–11 for a PMOD loopback, since the SPI kernel modules claim them;
-and on a Pi 5 only, `pinctrl set 14 a4; pinctrl set 15 a4` puts GPIO14/15 back
-into their UART alternate function after `serial-getty` releases them and they
-revert to plain GPIO. A Pi 3 does not need that — its mini UART pins do not
-change function.
-
-Masking a getty does not survive a reboot: the root is read-only and the mask
-lives in the tmpfs layer. Anything that power-cycles a host — a PoE reset
-during a Fomu DFU recovery, for instance — has to re-run the pre-test.
-
-**The USB-C gadget console.** On a Pi 4 or Pi 5 with the peripheral-mode
-overlay above, a laptop plugged into the USB-C port sees two CDC-ACM ports:
-`ttyGS0` carrying the kernel log from the start of boot, and `ttyGS1` a login
-getty. Nothing waits for a host — the gadget enumerates only when one is
-plugged in, and boot proceeds identically either way; a board with no USB
-device controller never even loads the gadget stack. It is one of four ways the
-roles provide to watch a boot, listed under
-[When a Pi does not boot](netboot.md#when-a-pi-does-not-boot).
-
-:::{warning}
-A design that drives the serial TX line while the kernel console is on the same
-UART is not merely noisy: on a Compute Blade at PS1 a 1200-baud FPGA
-transmitting into a 115200-baud console produced garbage the kernel parsed as
-SysRq commands and eventually hit `reboot`. See [kernel console
-SysRq](../boards/acorn/wiring/rpi-5-host.md#kernel-console-on-the-fpga-uart)
-for the root cause and the fix, and the `[pi5]` console pinning above for how it
-is avoided on the Pi 5 hosts.
-:::
+`vim-tiny` is removed first: `dpkg-divert` refuses to rename its help file over the full `vim`'s. `mpremote`
+and `uv` are installed with `pipx` into `/opt/pipx`, with their commands in `/usr/local/bin`.
 
 ## Sources
 
-fpgas.online-infra, `main`:
+fpgas.online-infra main, read 2026-10-07: the roles `fpgas_apt`, `onpi` and `cam_pi`, as named in each row.
 
-- [`ansible/site.yml`](https://github.com/fpgas-online/fpgas.online-infra/blob/main/ansible/site.yml)
-  — the "Update the Pi NFS root" play: `img` pulls the CI-built root and
-  `fixpi` applies the site layer. `ansible/ci-nfsroot.yml` runs `fpgas_apt`,
-  `cam_pi` and `onpi` in CI. The old `piroot` chroot target is gone.
-- [`ansible/roles/onpi/tasks/main.yml`](https://github.com/fpgas-online/fpgas.online-infra/blob/main/ansible/roles/onpi/tasks/main.yml)
-  — the include list (`apt.yml`, `nonfs.yml`, `tt.yml`, `fleet.yml`,
-  `tftpd.yml`, `tweeks.yml`, `fpga_verify.yml`, `stale_root.yml`), the comment
-  saying the site owns the root's `authorized_keys`, and the
-  `fpgas-online-setup-pi` install; the
-  absence of `pistat.yml`, `arty_here.yml`, `arty_wire.yml`, `arty_blink.yml`
-  and `tmux.yml` from it.
-- [`ansible/roles/onpi/tasks/apt.yml`](https://github.com/fpgas-online/fpgas.online-infra/blob/main/ansible/roles/onpi/tasks/apt.yml)
-  — the Debian package list, the `lldpd` rationale, the `vim-tiny` removal, and
-  the pinned `pipx` locations for `mpremote` and `uv`.
-- [`ansible/roles/onpi/tasks/tt.yml`](https://github.com/fpgas-online/fpgas.online-infra/blob/main/ansible/roles/onpi/tasks/tt.yml)
-  — `fpgas-online-tt` and `fpgas-online-tt-demos` at `state: latest` for every
-  Pi, and `tt-boards.yaml` plus the `fpgas-tt.service` enable gated on
-  `tt_boards`.
-- [`ansible/roles/onpi/tasks/tftpd.yml`](https://github.com/fpgas-online/fpgas.online-infra/blob/main/ansible/roles/onpi/tasks/tftpd.yml)
-  and [`nonfs.yml`](https://github.com/fpgas-online/fpgas.online-infra/blob/main/ansible/roles/onpi/tasks/nonfs.yml),
-  [`tweeks.yml`](https://github.com/fpgas-online/fpgas.online-infra/blob/main/ansible/roles/onpi/tasks/tweeks.yml)
-  — the atftpd port rewrite and `/srv/tftp` ownership, the `nfsvers=4.2`
-  safety net, and the `pi` home directories.
-- [`ansible/roles/onpi/tasks/main.yml`](https://github.com/fpgas-online/fpgas.online-infra/blob/main/ansible/roles/onpi/tasks/main.yml)
-  — the `fpgas-online-setup-pi` package install, whose comment lists the pistat
-  reporter scripts and services and the arty board detection services it
-  provides; the role no longer carries separate pistat or arty enablement
-  tasks.
-- [`ansible/roles/fixpi/tasks/tweeks.yml`](https://github.com/fpgas-online/fpgas.online-infra/blob/main/ansible/roles/fixpi/tasks/tweeks.yml)
-  — every `config.txt` line quoted above and the reasoning behind each, plus
-  the `pistat_host` entry in `/etc/environment`, the deleted
-  `console-setup.service`, `wifi-check.sh` and `/etc/hostname`, and the masked
-  `networking.service` and `ifupdown-pre.service`.
-- [`ansible/roles/fixpi/tasks/netboot.yml`](https://github.com/fpgas-online/fpgas.online-infra/blob/main/ansible/roles/fixpi/tasks/netboot.yml)
-  — `fpgas-hostname-hosts.service` and its `multi-user.target.wants` symlink,
-  and the `timesyncd.conf.d/fpgas.conf` drop-in pointing at the gateway.
-- [`ansible/roles/fixpi/files/fpgas-hostname-hosts.service`](https://github.com/fpgas-online/fpgas.online-infra/blob/main/ansible/roles/fixpi/files/fpgas-hostname-hosts.service)
-  and [`fpgas-hostname-hosts.sh`](https://github.com/fpgas-online/fpgas.online-infra/blob/main/ansible/roles/fixpi/files/fpgas-hostname-hosts.sh)
-  — the `sudo`/DNS stall this exists to prevent, and why the logic is in a
-  script rather than in `ExecStart`.
-- [`ansible/roles/fixpi/templates/boot/config.txt.j2`](https://github.com/fpgas-online/fpgas.online-infra/blob/main/ansible/roles/fixpi/templates/boot/config.txt.j2)
-  — the base file, with `core_freq` commented out.
-- [`ansible/roles/fixpi/templates/boot/cmdline.txt.j2`](https://github.com/fpgas-online/fpgas.online-infra/blob/main/ansible/roles/fixpi/templates/boot/cmdline.txt.j2)
-  and [`cmdline-pi5.txt.j2`](https://github.com/fpgas-online/fpgas.online-infra/blob/main/ansible/roles/fixpi/templates/boot/cmdline-pi5.txt.j2)
-  — `console=serial0,115200` versus `console=ttyAMA10,115200`.
-- [`ansible/roles/cam_pi/tasks/main.yml`](https://github.com/fpgas-online/fpgas.online-infra/blob/main/ansible/roles/cam_pi/tasks/main.yml)
-  — the GStreamer package set and the `fpgas-cam.service` enable.
-- [`ansible/roles/stream_server/templates/live-hls.conf.j2`](https://github.com/fpgas-online/fpgas.online-infra/blob/main/ansible/roles/stream_server/templates/live-hls.conf.j2)
-  and [`nginx-rtmp.conf.j2`](https://github.com/fpgas-online/fpgas.online-infra/blob/main/ansible/roles/stream_server/templates/nginx-rtmp.conf.j2)
-  — the `/live` HLS location and its `no-cache` header.
-- [`ansible/roles/fpgas_apt/tasks/main.yml`](https://github.com/fpgas-online/fpgas.online-infra/blob/main/ansible/roles/fpgas_apt/tasks/main.yml)
-  and [`defaults/main.yml`](https://github.com/fpgas-online/fpgas.online-infra/blob/main/ansible/roles/fpgas_apt/defaults/main.yml)
-  — the repository URL, suite and dearmoured keyring.
-- [`ansible/inventory/group_vars/all/ci.yml`](https://github.com/fpgas-online/fpgas.online-infra/blob/main/ansible/inventory/group_vars/all/ci.yml)
-  — `tftpd_port: 6069`.
-- [`TECHDEBT.md`](https://github.com/fpgas-online/fpgas.online-infra/blob/main/TECHDEBT.md)
-  — items 2 and 3, the `core_freq` PoE-versus-camera trade.
+```{toctree}
+:hidden:
 
-[fpgas.online-setup-pi](https://github.com/fpgas-online/fpgas.online-setup-pi), `main`:
-
-- [`nfpm.yaml`](https://github.com/fpgas-online/fpgas.online-setup-pi/blob/main/nfpm.yaml)
-  — the authoritative list of what the deb installs and where, including the
-  `fpgas-`-prefixed script and unit names and the `pistat-scripts` destinations;
-  the `depends:` list (`sunxi-tools`, `zsh`, `tmux`, `vim`, `expect`,
-  `python3`), which is the only route by which `expect` reaches a Pi; and the
-  absence of any `scripts:` block, so there is no postinstall to symlink the
-  old script names.
-- [`README.md`](https://github.com/fpgas-online/fpgas.online-setup-pi/blob/main/README.md)
-  — the summary of what the package provides and the directory layout.
-- [`usb-console/70-fpgas-usb-console.rules`](https://github.com/fpgas-online/fpgas.online-setup-pi/blob/main/usb-console/70-fpgas-usb-console.rules),
-  [`71-fpgas-usb-console-host.rules`](https://github.com/fpgas-online/fpgas.online-setup-pi/blob/main/usb-console/71-fpgas-usb-console-host.rules),
-  [`fpgas-usb-console.service`](https://github.com/fpgas-online/fpgas.online-setup-pi/blob/main/usb-console/fpgas-usb-console.service),
-  [`fpgas-usb-console-log@.service`](https://github.com/fpgas-online/fpgas.online-setup-pi/blob/main/usb-console/fpgas-usb-console-log@.service)
-  and [`fpgas-usb-console.conf`](https://github.com/fpgas-online/fpgas.online-setup-pi/blob/main/usb-console/fpgas-usb-console.conf)
-  — the two gadget ports, why the log and the getty are separate, and the
-  host-side capture.
-- [`felboot/fpgas-felboot@.service`](https://github.com/fpgas-online/fpgas.online-setup-pi/blob/main/felboot/fpgas-felboot@.service),
-  [`60-fpgas-felboot.rules`](https://github.com/fpgas-online/fpgas.online-setup-pi/blob/main/felboot/60-fpgas-felboot.rules)
-  and [`fpgas-felboot.sh`](https://github.com/fpgas-online/fpgas.online-setup-pi/blob/main/felboot/fpgas-felboot.sh)
-  — the `1f3a:efe8` match, the `%i` escaping note, and the retry and marker
-  behaviour.
-- The `onpi/` unit files
-  ([`pistat_ssh.service`](https://github.com/fpgas-online/fpgas.online-setup-pi/blob/main/onpi/pistat_ssh.service),
-  [`pistat_cam.service`](https://github.com/fpgas-online/fpgas.online-setup-pi/blob/main/onpi/pistat_cam.service),
-  [`pistat_info.service`](https://github.com/fpgas-online/fpgas.online-setup-pi/blob/main/onpi/pistat_info.service),
-  [`pistat_shutdown.service`](https://github.com/fpgas-online/fpgas.online-setup-pi/blob/main/onpi/pistat_shutdown.service),
-  [`is_arty/arty_here.service`](https://github.com/fpgas-online/fpgas.online-setup-pi/blob/main/onpi/is_arty/arty_here.service),
-  [`is_wire/arty_wire.service`](https://github.com/fpgas-online/fpgas.online-setup-pi/blob/main/onpi/is_wire/arty_wire.service),
-  [`arty_blink/arty_blink.service`](https://github.com/fpgas-online/fpgas.online-setup-pi/blob/main/onpi/arty_blink/arty_blink.service))
-  — what each reports, the `ExecStart` paths that no longer match what
-  `nfpm.yaml` installs, the `curl`-only pistat `ExecStart` lines, the
-  `cam.target`/`cam.service` references in `pistat_cam.service`, and the
-  `arty_here.target` and `arty_wire.target` orderings.
-- [`onpi/is_arty/arty_here.sh`](https://github.com/fpgas-online/fpgas.online-setup-pi/blob/main/onpi/is_arty/arty_here.sh)
-  — its call to `/usr/local/bin/arty_here.exp`, installed as
-  `fpgas-arty-here.exp`.
-- [`pistat-scripts/send.py`](https://github.com/fpgas-online/fpgas.online-setup-pi/blob/main/pistat-scripts/send.py),
-  [`send_stat.py`](https://github.com/fpgas-online/fpgas.online-setup-pi/blob/main/pistat-scripts/send_stat.py)
-  and [`send_ncc.py`](https://github.com/fpgas-online/fpgas.online-setup-pi/blob/main/pistat-scripts/send_ncc.py)
-  — the Django/dnsmasq imports and the `/srv/www/pib/venv` shebang that make
-  these server-side code.
-
-[fpgas.online-cam](https://github.com/fpgas-online/fpgas.online-cam), `main`:
-
-- [`README.md`](https://github.com/fpgas-online/fpgas.online-cam/blob/main/README.md)
-  — the four scripts and what the deb installs.
-- [`cam.service`](https://github.com/fpgas-online/fpgas.online-cam/blob/main/cam.service)
-  — `ExecStart=/usr/local/bin/fpgas-gst-libcam.sh`, `Restart=always`.
-- [`gst-libcam.sh`](https://github.com/fpgas-online/fpgas.online-cam/blob/main/gst-libcam.sh)
-  — the pipeline, the `v4l2h264enc`-versus-`x264enc` choice, the RTMP
-  destination derived from the default route, and the latency budget with the
-  2026-08-30 measurement.
-- [`nfpm.yaml`](https://github.com/fpgas-online/fpgas.online-cam/blob/main/nfpm.yaml)
-  — the installed paths and the `fpgas-cam.service` name.
-
-[fpgas.online-tt](https://github.com/fpgas-online/fpgas.online-tt), `main`:
-
-- [`README.md`](https://github.com/fpgas-online/fpgas.online-tt/blob/main/README.md)
-  — the daemon, `/dev/ttboard`, the demo directory, and the note that every Pi
-  runs it.
-- [`debian/fpgas-tt.service`](https://github.com/fpgas-online/fpgas.online-tt/blob/main/debian/fpgas-tt.service)
-  and [`debian/60-fpgas-tt.rules`](https://github.com/fpgas-online/fpgas.online-tt/blob/main/debian/60-fpgas-tt.rules)
-  — the unit's user, group and arguments, and the `2e8a:0005` / `2e8a:000f`
-  symlink rule.
-
-[fpgas.online-site](https://github.com/fpgas-online/fpgas.online-site), `main`:
-
-- [`pibfpgas/src/pibfpgas/templates/fpga.html`](https://github.com/fpgas-online/fpgas.online-site/blob/main/pibfpgas/src/pibfpgas/templates/fpga.html)
-  — the `vlc https://<domain>/live/pi<N>.m3u8` line offered on each board page.
-
-[fpgas.online-test-designs](https://github.com/fpgas-online/fpgas.online-test-designs), `main`:
-
-- [`docs/verify-hardware.md`](https://github.com/fpgas-online/fpgas.online-test-designs/blob/main/docs/verify-hardware.md)
-  — "Pre-Test Commands": why `mask` and not `stop`, the `rmmod spidev
-  spi_bcm2835` GPIO 7–11 clash, the Pi 5 `pinctrl set 14 a4` restoration, and
-  the note that a PoE cycle loses the mask.
+Services and boot settings <pi/services>
+Models and serial consoles <pi/models>
+Camera <pi/camera>
+```
