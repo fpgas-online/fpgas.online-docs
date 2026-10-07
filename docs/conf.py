@@ -26,6 +26,7 @@ sys.path.insert(0, str(pathlib.Path(__file__).resolve().parent / "_ext"))
 
 extensions = [
     "open_items",               # {open-items}: the open items page, one line per {todo} box
+    "table_code",               # a long code span in a table cell may wrap at its spaces
     "myst_parser",              # Markdown
     "sphinx_copybutton",        # copy button on code blocks -- these docs are
                                 # full of commands meant to be pasted
