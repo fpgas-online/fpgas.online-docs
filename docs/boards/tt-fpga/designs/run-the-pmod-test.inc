@@ -1,3 +1,6 @@
+**First set every DIP switch on the demo board off** ([verifying 1](/boards/tt-fpga/building/verifying-1.md),
+step 4): a switch left on pulls its `ui_in` line up to 3.3 V through 1 kΩ, and this test drives those lines.
+
 **No command line for the wrapper `tt_pmod_wrapper.py` is recorded on these pages**, and it has not been run
 by us in a form we can show. The check's own debug tool runs one test with its output live. Its form is
 `fpgas-tt-fpga-debug [options] test TEST` (the debug tools' usage on [Checking a board:

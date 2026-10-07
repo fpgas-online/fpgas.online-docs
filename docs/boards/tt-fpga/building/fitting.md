@@ -3,8 +3,9 @@
 **You have a Tiny Tapeout FPGA demo board, a Raspberry Pi, a Digilent Pmod HAT, three Pmod cables, a USB-C
 cable and a camera, and want to join them.**
 
-**Not yet run by us on this hardware as a procedure.** Only the cabling (step 4) is recorded in any detail.
-The other steps say what is recorded and what is not.
+**Not yet run by us on this hardware as a procedure.** The plate, the HAT and the camera (steps 2, 3 and 6)
+are written from the makers' drawings and manuals; the cabling (step 4) is also measured on the boards at
+welland. Each step says where it comes from.
 
 ## 1. Power off
 
@@ -38,10 +39,16 @@ us as a procedure; every figure is from the drawings on [the mechanical page](..
 
 ## 3. The Pmod HAT on the Raspberry Pi
 
-**Not yet written, and no picture yet.** The record says only that the HAT goes on the Raspberry Pi's 40-pin
-header. Which Raspberry Pi GPIO each pin of the HAT's three ports is, and what each port's pins are for, is on
-[Raspberry Pi PMOD HAT](../../pmod/rpi-hat.md), another page, not in this set; it has no fitting steps
-either. Every wire this board uses is on the wiring pages of this set.
+1. **Find pin 1 on the Raspberry Pi's 40-pin header**: its solder pad on the underside of the board is the
+   square one.
+2. **Press the HAT's 2x20 socket (J1, on its underside) onto the Pi's 40 pins, pin 1 to pin 1**, so that the
+   HAT lies over the Pi. Its J1 pin 1 is at the corner on the JA side.
+3. **Fix it with its four corner standoffs and screws.**
+
+From Digilent's Pmod HAT Adapter Reference Manual, Rev. B, and its photographs; not yet done by us at a
+bench. Which Raspberry Pi GPIO each pin of the HAT's three ports is: [Raspberry Pi PMOD
+HAT](../../pmod/rpi-hat.md), another page, not in this set. A drawing of the HAT's ports with pin 1 marked is
+being made from the manual.
 
 ## 4. The three Pmod cables and the USB-C cable
 
@@ -49,6 +56,12 @@ either. Every wire this board uses is on the wiring pages of this set.
 cable turned round puts ground on signal pins. The cable's 3.3 V pins are expected not to be connected, so the
 two boards' 3.3 V supplies are not joined; whether it has 10 or 12 wires is not known: [the
 cables](index.md#the-cables-33-v-not-connected).
+
+**Pin 1 on the cable itself.** A ribbon cable's IDC housing usually has a small triangle moulded on it at
+pin 1's end, and wire 1 is the marked one: a coloured stripe on a grey cable, usually the brown wire on a
+rainbow one. These are the common marks, not checked on our cables. Put wire 1 on pin 1 at both ends. A
+10-wire cable goes on pins 1 to 5 and 7 to 11, the pin 1 end, and leaves the 3.3 V column (pins 6 and 12)
+free.
 
 ```{include} ../generated/tt-fpga-cables.md
 :relative-images:
@@ -96,9 +109,33 @@ loader shows here is not recorded (the check reports it as `2e8a:0003`).
 
 ## 6. The camera
 
-**Not yet written, and no picture yet.** The record says only that each host has an ov5647 camera publishing
-a live feed of the board. How it is mounted, cabled and aimed is not recorded. The software that publishes the
-feed: [Camera](../../../setup/pi.md#camera).
+The camera is a Raspberry Pi Camera Module v1.3 with its stock 65 degree lens. It hangs lens down over the
+board from a printed holder, `TT-MP-CAM65`, which bolts onto the mounting plate. The holder is a design in
+[fpgas.online-mechanical](https://github.com/fpgas-online/fpgas.online-mechanical/tree/main/tinytapeout/camera_holder); it has not yet been built or used by us. In this order:
+
+1. **The holder onto the plate.** Its two feet sit over the plate's own M4 fixings along its left and right
+   edges and are clamped by the same screws: on a plate bolted to a chassis, the plate's own screws, 5 mm
+   longer. It goes on no other way.
+2. **The camera's flat cable into the camera first.** The connector's latch is out of reach once the camera
+   is on its carrier.
+3. **The camera onto its carrier**, with four M2 × 10 screws, heads on the lens side, into nuts in the
+   carrier's hex pockets. The camera's holes may need opening with a 2.0 mm drill for an M2 to pass.
+4. **The carrier onto the holder's beam**, on its four M3 fixings, with the camera's long side along the
+   plate's left-to-right. Which way the sensor's rows run is not published, so look at the first picture: if
+   the board does not fill it side to side, turn the carrier a quarter turn. The lens does not move.
+5. **The cable up and back over the beam**, so that it does not hang into the picture.
+
+The software that publishes the camera's feed: [Camera](../../../setup/pi.md#camera).
+
+:::{todo}
+Open, 7 October 2026: the holder `TT-MP-CAM65` holds the lens face 150.00 mm above the mounting plate, which
+was worked out for the lens as sold (focused at about 1 m). With the lens refocused to 142.8 mm, as the camera
+drawing now says, seeing every board revision with its 5 mm margin needs the lens face 152.37 mm above the
+plate: the holder is 2.37 mm low, more than its 1.00 mm print allowance. The boards are still fully in the
+picture, with 3.82 mm of the 5.00 mm margin left along X and 4.11 mm along Y. Whether to raise the holder is
+Tim's decision. Source: fpgas.online-mechanical PR #46 (`raspberry_pi_camera/README.md`,
+`tinytapeout/camera_holder/README.md`).
+:::
 
 ## Next
 
