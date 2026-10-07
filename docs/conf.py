@@ -141,3 +141,6 @@ def _targets_as_slugs(app, env):
 def setup(app):
     app.connect("doctree-read", _copy_todos_for_the_list)
     app.connect("env-check-consistency", _targets_as_slugs)
+    # The environment is saved before the consistency check, so a rebuild that reads no page would load it
+    # without these slugs and skip that check: add them again on every build. Doing it twice is harmless.
+    app.connect("env-updated", lambda app, env: _targets_as_slugs(app, env) or [])
