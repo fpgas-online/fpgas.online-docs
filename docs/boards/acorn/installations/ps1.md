@@ -48,7 +48,8 @@ ports are 11422 for pi14 at ps1, 11622 for pi16 at ps1, 11822 for pi18 at ps1 an
 about three and a half minutes after a reboot (7 October 2026, 14:22, before our test of 15:52). Anything installed on it is gone (below).
 
 All four answered on their visitor ports on 7 October 2026 (pi14 at ps1 and pi18 at ps1 had not on
-5 October); pi20 at ps1 restarted every 2 to 3 minutes from 15:52 to about 18:09 that day, then stayed up
+5 October); pi20 at ps1 restarted every 2 to 3 minutes from 15:52 to about 18:09 that day (one boot, from
+about 17:06, stayed up until we rebooted it at 17:20:12), then stayed up
 ([What fpgas.online ran on the ps1 blades, 7 October 2026](ps1-ran-2026-10-07.md)). **If a blade's ssh port does not answer**, nothing can be run on it from this guide; first find out
 whether it is powered and its network link is up (its lights; the gateway's view of it): **not yet checked by
 us**. Its cables can still be made, bench-checked and fitted.
@@ -71,8 +72,8 @@ Blade** to their end: begun once on pi20 at ps1 on 7 October 2026 and stopped be
 | Card, by its label | On (last read) | Compute Module | What the card runs | PCIe | JTAG (P1) | P2 cable |
 |---|---|---|---|---|---|---|
 | Acorn CLE-101, no label yet (device DNA not read) | pi14 at ps1 (`1e24:0101` seen 2026-10-07) | CM4 Rev 1.1 4 GB | SQRL's factory image, `1e24:0101` | `0000:01` | 2026-09-20: no response, TCK floating | not known |
-| Acorn CLE-101, no label yet (device DNA not read) | pi16 at ps1 (2026-10-05) | CM5 Lite Rev 1.0 8 GB | SQRL's factory image, `1e24:0101` | `0001:01` | 2026-09-20: no response, TCK floating. 2026-10-05: cannot run (the serial driver holds GPIO14) | not known |
-| Acorn CLE-101, device DNA `0x0028e5c45e304854` | pi20 at ps1 (2026-10-07) | CM5 Lite Rev 1.0 8 GB | a vendor XDMA sample image, `10ee:7011` (the flash never written: [what we ran](ps1-ran-2026-10-07.md)) | `0001:01` | answered (2026-09-20, kernel 6.12). Under kernel 6.18 (2026-10-07): fails with the header's serial port on (it holds GPIO14); passed with the port off at boot ([what we ran](ps1-ran-2026-10-07.md)) | on the Extension Port: K2 to GPIO15, J2 to GPIO14, no resistor; J5 and H5 not wired |
+| Acorn CLE-101, no label yet (device DNA not read) | pi16 at ps1 (2026-10-07) | CM5 Lite Rev 1.0 8 GB | SQRL's factory image, `1e24:0101` | `0001:01` | 2026-09-20: no response, TCK floating. 2026-10-05: cannot run (the serial driver holds GPIO14) | not known |
+| Acorn CLE-101, device DNA `0x0028e5c45e304854` | pi20 at ps1 (2026-10-07) | CM5 Lite Rev 1.0 8 GB | a vendor XDMA sample image, `10ee:7011` (the flash never written: [what we ran](ps1-ran-2026-10-07.md)) | `0001:01` | answered (2026-09-20, kernel 6.12). Under kernel 6.18 (2026-10-07): fails with the header's serial port on (it holds GPIO14); passed with the port off at boot ([what we ran](ps1-ran-2026-10-07.md)) | K2 to GPIO15, J2 to GPIO14, no resistor (which header pins is not recorded: [the steps](ps1-pi20-old-serial.md)); J5 and H5 not wired |
 | none seen: no PCIe device (2026-10-07; the slot is empty, or a card has no link: `lspci` cannot tell) | pi18 at ps1 (2026-10-07) | CM4 Rev 1.1 4 GB | | | | |
 
 How each card was read, and what "P1 unmated" rests on, is on [Acorns at ps1: what was read on each
@@ -85,20 +86,20 @@ blade](ps1-reads.md#the-cards-as-read).
 
 **The check on the two Compute Module 4 blades (pi14 at ps1 and pi18 at ps1) has not been run by us**: it
 was run as written only on pi16 at ps1 and pi20 at ps1, both Compute Module 5 (7 October 2026). `vcgencmd`
-hung for good on the two CM4 blades that day. Until the check has been tried on a CM4 blade, make, check
-and fit pi14 at ps1's cables, and run the check on the two CM5 blades only.
+hung for good on the two CM4 blades that day. Until the check has been tried on a CM4 blade, make, bench-check
+and fit the cables of pi14 at ps1 and pi18 at ps1 as of the others, and run the check on the two CM5 blades only.
 
 **What to build.** P2: four new cables by the guide, one for each blade; pi20 at ps1's present serial wiring
-is taken off ([the steps](ps1-pi20-old-serial.md)). P1: one new cable for pi18 at ps1, certainly. On pi14 at ps1 and pi16 at ps1 TCK reads
-as if no P1 cable were mated (a cable may be fitted and loose, or not fitted at all): reseat a fitted one
-first; if none is fitted, or it still reads unmated, build a new one by the guide. Before refitting an
-existing P1 cable: with the blade off and the card out, check it as [JTAG connector
-2](../building/compute-blade/jtag-connector-2.md) step 2 does (each plug contact to its cavity, and no other),
-then run the [bench check](../building/compute-blade/bench-check.md) with it before power-on. pi20 at ps1's P1 answered
-on 2026-09-20: keep it, by [the steps for its old serial wiring](ps1-pi20-old-serial.md). So: four P2 cables, and one
-to three P1 cables. Each bought Molex cable gives one P1 half and one P2 half, so that takes four Molex cables,
-with one to three P1 halves spare. The terminals are 3 per P2 cable and 5 per P1 cable: 17 to 27 in all, and
-a few spare. pi18 at ps1 also needs a card; which card goes there is not recorded by us.
+is taken off ([the steps](ps1-pi20-old-serial.md)). P1: three new cables by the guide, for pi14 at ps1, pi16 at
+ps1 and pi18 at ps1. pi18 at ps1 has none; on pi14 at ps1 and pi16 at ps1 TCK read as if no P1 cable were mated,
+and you cannot re-read it there now (the check is not run on pi14 at ps1, a Compute Module 4, and on pi16 at ps1
+JTAG cannot run with the header's serial port on), so their old cables come off. pi20 at ps1's P1 answered on
+2026-09-20: it is kept if it passes the meter check in [the steps for its old serial
+wiring](ps1-pi20-old-serial.md), else it is built new too. Every cable that goes in, new or kept, gets the [bench
+check](../building/compute-blade/bench-check.md) with the card out before it is fitted. So: four P2 cables and
+three P1 cables (four if pi20 at ps1's fails). Each bought Molex cable gives one P1 half and one P2 half, so that
+takes four Molex cables, with one P1 half spare (for pi20 at ps1 if needed). The terminals are 3 per P2 cable
+and 5 per P1 cable: 27 in all (32 with a new P1 for pi20 at ps1), and a few spare. pi18 at ps1 also needs a card; which card goes there is not recorded by us.
 
 **Before anything is fitted, refitted or reseated: power the blade off (unplug its PoE cable, and a USB-C cable if
 one is plugged in).** `openFPGALoader --detect` and the other read-only queries are safe on a running blade.
@@ -112,10 +113,10 @@ converted a card on one yet (one conversion was begun on pi20 at ps1 and stopped
 
 | Blade | Card | P1 (JTAG) cable | P2 (serial) cable | Host |
 |-------|------|-----------------|-------------------|------|
-| pi14 at ps1 | fitted, factory image: to be converted | not mated, or its TCK wire open (TCK follows the host's pull, as on the empty pi18 at ps1: 2026-09-20 and again 2026-10-07): reseat a fitted one; if none, or still unmated, build a new one | not known: build to the UART header, 470 Ω in the J2 wire, J5 and H5 cut back | as pi16 at ps1 (read 2026-10-07: the same serial-port settings); a Compute Module 4: (b) not yet run, and `gpioinfo` names no user for line 14 there (2026-10-07) |
-| pi16 at ps1 | fitted, factory image: to be converted | not mated, or its TCK wire open (TCK follows the host's pull, as on the empty pi18 at ps1: 2026-10-07): reseat a fitted one; if none, or still unmated, build a new one | not known: build to the UART header, 470 Ω in the J2 wire, J5 and H5 cut back | (a) for the serial-pair tests: the kernel console and the getty off `/dev/ttyAMA0`; (b) only for JTAG: the serial port off at boot (run on pi20 at ps1, 7 October 2026: [what we ran](ps1-ran-2026-10-07.md)) |
+| pi14 at ps1 | fitted, factory image: to be converted | not mated, or its TCK wire open (TCK follows the host's pull, as on the empty pi18 at ps1: 2026-09-20 and again 2026-10-07): take it off and build a new one by the guide | not known: build to the UART header, 470 Ω in the J2 wire, J5 and H5 cut back | as pi16 at ps1 (read 2026-10-07: the same serial-port settings); a Compute Module 4: (b) not yet run, and `gpioinfo` names no user for line 14 there (2026-10-07) |
+| pi16 at ps1 | fitted, factory image: to be converted | not mated, or its TCK wire open (TCK follows the host's pull, as on the empty pi18 at ps1: 2026-10-07): take it off and build a new one by the guide | not known: build to the UART header, 470 Ω in the J2 wire, J5 and H5 cut back | (a) for the serial-pair tests: the kernel console and the getty off `/dev/ttyAMA0`; (b) only for JTAG: the serial port off at boot (run on pi20 at ps1, 7 October 2026: [what we ran](ps1-ran-2026-10-07.md)) |
 | pi18 at ps1 | none seen: look; if the slot is empty, fit one | fit on the Extension Port | fit on the UART header, 470 Ω in the J2 wire, J5 and H5 cut back | as pi16 at ps1 (read 2026-10-07: the same serial-port settings); a Compute Module 4: (b) not yet run, and `gpioinfo` names no user for line 14 there (2026-10-07) |
-| pi20 at ps1 | fitted, vendor sample image in flash: to be converted | answered on 2026-09-20: keep the cable, by the steps for its old serial wiring. On 2026-10-07 JTAG could not run with the header's serial port on (it holds GPIO14), and read the IDCODE and DNA with the port off at boot, the Host column's (b) ([What fpgas.online ran on the ps1 blades, 7 October 2026](ps1-ran-2026-10-07.md)) | build a new one by the guide for the UART header (470 Ω in the J2 wire) and take the old serial wiring off (its pair is wired to GPIO14 and GPIO15; which header pins is not recorded: [the steps](ps1-pi20-old-serial.md)) | as pi16 at ps1 (read 2026-10-05: the same kernel and serial-port settings): (a) for the serial-pair tests: the kernel console and the getty off `/dev/ttyAMA0`; (b) only for JTAG: the serial port off at boot (run on pi20 at ps1, 7 October 2026: [what we ran](ps1-ran-2026-10-07.md)) |
+| pi20 at ps1 | fitted, vendor sample image in flash: to be converted | answered on 2026-09-20: kept if it passes the meter check in the steps for its old serial wiring. On 2026-10-07 JTAG could not run with the header's serial port on (it holds GPIO14), and read the IDCODE and DNA with the port off at boot, the Host column's (b) ([What fpgas.online ran on the ps1 blades, 7 October 2026](ps1-ran-2026-10-07.md)) | build a new one by the guide for the UART header (470 Ω in the J2 wire) and take the old serial wiring off (its pair is wired to GPIO14 and GPIO15; which header pins is not recorded: [the steps](ps1-pi20-old-serial.md)) | as pi16 at ps1 (read 2026-10-05: the same kernel and serial-port settings): (a) for the serial-pair tests: the kernel console and the getty off `/dev/ttyAMA0`; (b) only for JTAG: the serial port off at boot (run on pi20 at ps1, 7 October 2026: [what we ran](ps1-ran-2026-10-07.md)) |
 
 **The Host column is Carl's to do, on the gateway, not on a blade.** The two files it means, `config.txt` and
 `cmdline.txt`, are in one directory on the ps1 gateway, `/srv/nfs/rpi/trixie/boot/`, which every netbooted
@@ -124,8 +125,7 @@ gateway, 6 and 7 October 2026). For (b) there are two ways, and which to take is
 ([verifying 3](../building/compute-blade/verifying-3.md) has both, with their undo):
 
 - **Change the shared directory.** At their next boot all twelve lose their console and login on the header's
-  serial pins, and the firmware's boot messages there. They include pi21 at ps1, which carries a Tiny Tapeout
-  board, and seven hosts we cannot name. Undo: put the two files back (keep a copy of both first).
+  serial pins, and the firmware's boot messages there. They include pi21 at ps1, a Tiny Tapeout host by fpgas.online-infra's inventory (not seen by us), and seven hosts we cannot name. Undo: put the two files back (keep a copy of both first).
 - **Change one blade only.** Copy the directory, make the change in the copy, and point only that blade's link
   in `/srv/tftp/` at the copy. Undo: point the link back at `/srv/nfs/rpi/trixie/boot`. This is how pi20 at
   ps1 was tested on 7 October 2026; its link points at the shared directory again (since 17:19:48 that day),
