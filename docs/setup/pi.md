@@ -80,7 +80,7 @@ generic fleet content, and a Pi with no `/dev/ttboard` waits for one. Enabling `
 Tapeout site. The daemon reads no site catalogue: the root carries no `/etc/fpgas-online/tt-boards.yaml`
 (`tt.yml` removes it, and stops if the root's `fpgas-online-tt` is older than 0.0.post64; `onpi/tasks/tt.yml`,
 read 2026-10-07). Which versions a given root holds is read in the root itself; the welland root
-of 6 October 2026 is on [The welland gateway](https://docs.fpgas.online/en/latest/sites/welland-gateway.html).
+of 6 October 2026 is on [The welland gateway](../sites/welland-gateway.md).
 
 **From Debian** (`onpi`, `tasks/apt.yml`, and `cam_pi`):
 

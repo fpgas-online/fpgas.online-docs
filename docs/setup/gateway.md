@@ -9,7 +9,7 @@ to deploy, rebuild or certify one.** Everything here is fpgas.online-infra, main
 
 Each site has one x86 gateway, and it is everything at the site that is not a Pi: it serves the boot chain,
 exports the NFS root, is the firewall for the Pi network, and runs the web tier. welland's is tweed ([The
-welland gateway](https://docs.fpgas.online/en/latest/sites/welland-gateway.html)); fpgas.online-infra deploys it. ps1's is Carl Karsten's own
+welland gateway](../sites/welland-gateway.md)); fpgas.online-infra deploys it. ps1's is Carl Karsten's own
 install, which fpgas.online-infra does not deploy as it stands ([The ps1 gateway and
 switch](../sites/ps1-gateway.md)).
 

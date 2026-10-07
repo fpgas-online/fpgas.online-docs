@@ -13,7 +13,7 @@ a port only when it is needed.
 
 **First, check who is on the port.** The port is in the Pi's name: `pi-sw2-p46` is switch 2, port 46, at
 `10.21.2.46`. On the welland gateway, that address must be answered by the MAC of the Pi you mean (the table of
-6 October 2026 on [Hosts and boards at welland](https://docs.fpgas.online/en/latest/sites/welland-boards.html#what-was-up-on-6-october-2026) gives each
+6 October 2026 on [Hosts and boards at welland](../../sites/welland-boards.md#what-was-up-on-6-october-2026) gives each
 port's MAC):
 
 ```console
