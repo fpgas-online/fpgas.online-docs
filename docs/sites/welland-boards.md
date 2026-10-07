@@ -122,6 +122,12 @@ Orange Pi PC boards on switch 2, booted over USB from a hub host; they carry no 
 four of them, pi-sw2-p19, -p21, -p22 and -p24, came back after the root update. How they boot, which is
 where, and what to do when one does not come back: [Orange Pi H3 hosts](../setup/orange-pi.md).
 
+## Cameras
+
+The earlier docs page said the Arty, Fomu, Tiny Tapeout and Acorn hosts at welland each carry an ov5647
+camera and publish a feed (not re-checked). No list is kept per Pi; on a Pi, `systemctl status fpgas-cam` says
+whether it streams ([The camera on a Pi host](https://github.com/fpgas-online/fpgas.online-cam/blob/main/docs/camera.md)).
+
 ## Retired and unlocated hosts
 
 Hosts in the 2026-03-17 survey that have not been found under the current scheme; their addresses no longer
