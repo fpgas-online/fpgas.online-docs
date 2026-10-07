@@ -5,7 +5,7 @@ The parts for **one** Raspberry Pi 5 host; for several hosts, that many of each.
 | Have it | Qty | Part | Part number | What it is for |
 |---|---|---|---|---|
 | ☐ | 1 | Raspberry Pi 5 | — | the host |
-| ☐ | 1 | M.2 M-key PCIe HAT for the Raspberry Pi 5 that leaves the 40-pin header free | — | the sheet shows a Waveshare PoE M.2 HAT+ |
+| ☐ | 1 | Waveshare PoE M.2 HAT+ (B) | — | the M.2 M-key PCIe HAT the pictures show: it takes cards up to 2280 and leaves the 40-pin header free |
 | ☐ | 1 | SQRL Acorn CLE-215+, CLE-215 or CLE-101 (the same card is sold as LiteFury and NiteFury) | — | M.2 M-key, 2280 |
 | ☐ | 1 | Molex Pico-EZmate cable assembly, 6 circuits, a plug at each end | Molex 0369200601 | cut in half: one half is the P1 cable, the other the P2 cable. All six wires are black |
 | ☐ | 1 | heat-shrink tube, about 2 mm, a few centimetres | — | over each cut-back wire end |
@@ -13,7 +13,7 @@ The parts for **one** Raspberry Pi 5 host; for several hosts, that many of each.
 | ☐ | 1 | Dupont housing, 2×4, 2.54 mm pitch | — | over 40-pin header pins 19 to 26; 3 of its 8 cavities stay empty |
 | ☐ | 10 | Dupont female crimp terminal, 2.54 mm | — | one for each connected wire: GND, TCK, TDO, TMS, TDI, GND, J2, K2, J5, H5; buy a few more than this, as spares |
 
-The tools to build its two cables, once for any number of hosts:
+The tools to build, fit and check its two cables, once for any number of hosts:
 
 | Have it | Tool | What it is for |
 |---|---|---|
@@ -23,3 +23,4 @@ The tools to build its two cables, once for any number of hosts:
 | ☐ | hot-air tool for the heat-shrink tube | to shrink the tube over each cut-back end (VCC always) |
 | ☐ | a fine probe tip for the multimeter, or a sewing pin to hold against a probe | the plug's contacts are 1.2 mm apart, and a terminal is reached through a small opening |
 | ☐ | masking tape and a fine marker pen, or a paint pen | to flag the six wires with their numbers, and to mark the pin 1 corner of each housing |
+| ☐ | a ruler marked in millimetres | the steps give lengths in millimetres: where a flag goes, how much of a wire is left, cut back or stripped |

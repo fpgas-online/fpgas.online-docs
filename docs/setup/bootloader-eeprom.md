@@ -23,8 +23,8 @@ what does not work.
 ```{toctree}
 :hidden:
 
-bootloader-eeprom-pi5
-bootloader-eeprom-compute-module
+Raspberry Pi 5: check, upgrade, lock <bootloader-eeprom-pi5>
+Compute Module in a Compute Blade <bootloader-eeprom-compute-module>
 ```
 
 ## What is behind these pages
@@ -47,7 +47,7 @@ You do not need this part to do the job.
   start there began. Neither Pi was watched between its two reads, so whether
   that was its first start on the normal port is not known. The Pi of 3 Oct
   read locked when next looked at.
-- **The times in the steps** (60 seconds for the write, two minutes for the
+- **The times in the steps** (at least 60 seconds and at most five minutes for the write, two minutes for the
   start, five minutes before calling a Pi gone) are generous round figures of
   ours, not measurements of the write. The two minutes of step 5 cover the
   40 and 100 seconds above.
@@ -67,8 +67,15 @@ You do not need this part to do the job.
 - **The LED during the write:** Raspberry Pi's documentation says a steady
   rapid blink means success and an error pattern means failure. On the run of
   3 Oct it blinked 3 long, 3 short, an error pattern, although the write had
-  succeeded (on 5 and 6 Oct the LED was not recorded). That is why step 4
-  says to ignore it.
+  succeeded (on 5 and 6 Oct the LED was not recorded). Step 4 trusts the
+  rapid flash as success (the project owner's choice, 7 Oct 2026) and, for an
+  error pattern, sends the reader on to step 6's read-back rather than back
+  to the start.
+- **How step 4 knows the write is over:** by Raspberry Pi's rapid green
+  flash, which its documentation gives as success for an image called
+  `pieeprom.bin` (quoted below); the project owner chose it on 7 Oct 2026.
+  How long the write takes has not been timed by us: step 4's "at least 60
+  seconds" is a round figure of ours. The read-back of step 6 still decides.
 - **Three rows of the step 6 chart** ("but BOOT_ORDER is not 0xf2", "but SR1
   0x0" and "no answer"): not seen by us. A Pi that is written but not locked
   can be changed by anyone with root on it, which on a public site is every

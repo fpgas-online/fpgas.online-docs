@@ -97,8 +97,10 @@ WIDE_PX = 1200
 RASTER_WIDE_PX = 2 * WIDE_PX
 # A listing with more lines than this may run over the end of a sheet.
 LONG_LINES = 18
-# A table with at most this many rows is kept on one sheet.
+# A table with at most this many rows, and at most this many characters of text, is kept on one sheet; a longer
+# one may run over between its rows, so that it does not leave the rest of a sheet blank.
 SHORT_ROWS = 12
+SHORT_CHARS = 900
 # Where a chapter's sheet number goes in the cover's list, once it is known.
 SHEET_PLACE = "<!--sheet-of-chapter-%d-->"
 SHEET_PLACE_RE = r"<!--sheet-of-chapter-(\d+)-->"
@@ -588,7 +590,7 @@ def step_pictures(body: Tag, soup: BeautifulSoup) -> None:
 def short_tables(body: Tag) -> None:
     """Keep a short table on one sheet; a long one may run over."""
     for table in body.find_all("table"):
-        if len(table.find_all("tr")) <= SHORT_ROWS:
+        if len(table.find_all("tr")) <= SHORT_ROWS and len(table.get_text(" ", strip=True)) <= SHORT_CHARS:
             table["class"] = [*table.get("class", []), "short"]
 
 

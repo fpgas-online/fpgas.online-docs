@@ -42,6 +42,7 @@ setup/index
 verify/fpgas-verify
 packages
 contributing
+open-items
 ```
 
 ## Where the code lives

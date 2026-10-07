@@ -22,6 +22,6 @@ The six steps, one page each, in this order:
 - [Step 1: make the card](bootloader-eeprom-pi5-step-1.md)
 - [Step 2: network cable out](bootloader-eeprom-pi5-step-2.md)
 - [Step 3: join the two FLASH WP pads](bootloader-eeprom-pi5-step-3.md)
-- [Step 4: card in, network cable in, wait 60 seconds](bootloader-eeprom-pi5-step-4.md)
+- [Step 4: card in, network cable in, wait for the green light](bootloader-eeprom-pi5-step-4.md)
 - [Step 5: cable out, card out, bridge off, cable in](bootloader-eeprom-pi5-step-5.md)
 - [Step 6: read it back](bootloader-eeprom-pi5-step-6.md)

@@ -2,11 +2,11 @@
 
 ## What the check is
 
-`fpgas-verify` is the program that checks an FPGA board from the machine it is attached to. For an Acorn its check doubles as a wiring test: each of its tests uses a known set of wires between the card and the blade, so which tests pass, and what a failing one says, point at the wire. An Acorn is sold as a CLE-215+ and as a CLE-101; the check covers both, and its summary names the one it found (`acorn cle-101`).
+`fpgas-verify` is the program that checks an FPGA board from the machine it is attached to. For an Acorn its check doubles as a wiring test: each of its tests uses a known set of wires between the card and the blade, so which tests pass, and what a failing one says, point at the wire. An Acorn is sold as a CLE-215+, a CLE-215 or a CLE-101, and the check's summary names the variant it found (`acorn cle-101`, for example); a CLE-215 has not been checked by us.
 
 The check never writes the card's flash and never loads a design into the FPGA. It drives the P1 and P2 wires, which is how it tests them, and puts the host's pins back as it found them.
 
-**What to expect on a Compute Blade today.** `pcie-link` passes when the card is seated, on SQRL's factory image or on the vendor's XDMA sample image (version 0.0.post1220 or newer). On a Compute Module 5 `jtag` cannot run in a boot that has the header's serial port on (kernel 6.18): the serial port holds GPIO14, which is also the JTAG TMS wire, so `jtag` fails there whatever the wiring. With the port off at boot (a change to the gateway's boot files, on the page "verifying 3"), `jtag` passes (it reads the IDCODE and device DNA): run on pi20 at ps1 on 7 October 2026. On a Compute Module 4 it has not been run by us. Every other test but `rp1-pio` is `not run` until the card is converted to the fpgas.online design, and converting a card on a blade has not been done by us. So the result today is `fail` even with perfect cables: it shows that the card is seated and its PCIe link is up, and it cannot yet show that the two cables are right. The bench check with a meter, before fitting, is what the cables rest on until then.
+**What to expect on a Compute Blade today.** `pcie-link` passes when the card is seated, on SQRL's factory image or on the vendor's XDMA sample image (version 0.0.post1220 or newer). On a Compute Module 5 `jtag` cannot run in a boot that has the header's serial port on (kernel 6.18): the serial port holds GPIO14, which is also the JTAG TMS wire, so `jtag` fails there whatever the wiring. With the port off at boot (a change to the gateway's boot files, on the page "verifying 3"), `jtag` passes (it reads the IDCODE and device DNA): run on pi20 at ps1 on 7 October 2026. On a Compute Module 4 it has not been run by us under this kernel (on pi14 at ps1 on 20 September 2026, under kernel 6.12, JTAG got no response, TCK floating). Every other test but `rp1-pio` is `not run` until the card is converted to the fpgas.online design, and converting a card on a blade is not in this guide yet: do not load a design into the card or convert it (the page "verifying 3" says why). So the result today is `fail` even with perfect cables: it shows that the card is seated and its PCIe link is up, and it cannot yet show that the two cables are right. The bench check with a meter, before fitting, is what the cables rest on until then.
 
 
 ## Install it and run it
@@ -43,7 +43,7 @@ sudo fpgas-acorn-verify --no-publish
 
 There is one result, **pass** or **fail**, and only a pass exits 0. The summary on the terminal lists every test in the order it ran with its result; for a check that did not pass it ends with `RESULT:`, a `failed:` line for each failed test, a `not run:` line for the tests that did not run and why, and `What to do:`.
 
-**No Compute Blade has passed the whole check yet.** This is what one prints today: a Compute Blade with a Compute Module 5 and an Acorn CLE-101 still on the image it was sold with (pi16 at ps1, 7 October 2026, installed by the steps above). Two things are wrong and neither is the wiring or the installation: the card has not been converted to the fpgas.online design, and in this boot the JTAG test cannot have its TMS pin, which the header's serial port holds.
+**No Compute Blade has passed the whole check yet.** This is what one prints today: a Compute Blade with a Compute Module 5 and an Acorn CLE-101 still on the image it was sold with (pi16 at ps1, 7 October 2026, installed by the steps above, version 0.0.post1216). Two things are wrong and neither is the wiring or the installation: the card has not been converted to the fpgas.online design, and in this boot the JTAG test cannot have its TMS pin, which the header's serial port holds. Its `What to do:` lines are left out here: that version's advice was for a Raspberry Pi 5. **On a Compute Blade, do not load a design into the card or convert it; that is not in this guide yet** (the page "verifying 3" says why). From version 0.0.post1284 the check says so itself, and says that changing the gateway's shared boot files or giving one blade its own copy is the gateway owner's choice.
 
 ```text
 $ sudo fpgas-acorn-verify --no-publish
@@ -73,32 +73,12 @@ RESULT: FAIL: a board did not pass.
     not run: pcie-bar0, flash, ddr, p2-serial, scratch: unconverted: runs SQRL's factory image, not the fpgas.online design
     not run: p2-uart: the board does not run a known build
     not run: p2-gpio: J5 and H5 are not wired on the Compute Blade setup
-What to do:
-  * The Acorn still runs the image it was sold with, not the fpgas.online one,
-    so only its PCIe link and its JTAG could be tested. It has to be converted
-    once (the fpgas.online image loaded over JTAG, then written to its flash
-    with fpgas-acorn-flash):
-    https://github.com/fpgas-online/fpgas.online-test-designs/blob/main/docs/hardware/acorn-pcie-programming.md
-  * The serial port has a pin JTAG needs, so the JTAG test could not run. On a
-    Compute Blade the JTAG TMS wire and the serial port's TX are the same pin
-    (GPIO14): while the serial port is on, JTAG cannot be tested there. Boot
-    with the header's serial port off: in config.txt enable_uart=0 and no
-    uart_2ndstage=1, in cmdline.txt no console=serial0 (on a netbooted blade
-    these files are on the gateway: change one blade's own copy, as several
-    hosts may share them). With all three, on one Compute Blade with a CM5,
-    the pin was free and the JTAG test passed:
-    https://github.com/fpgas-online/fpgas.online-test-designs/issues/127
-  * To look at the acorn board yourself: sudo fpgas-acorn-debug --help (sudo
-    apt install fpgas-online-acorn-debug)
-  * What each message means:
-    https://docs.fpgas.online/en/latest/verify/common-failures.html#common-failures
-The whole report, for a program to read (JSON): /run/fpgas-online/verify.json
-******************************************************************************
+What to do: (left out here; see the text above)
 ```
 
 On the blades at ps1 every `sudo` first prints `sudo: unable to resolve host pi16: Name or service not known` (with the blade's own name). It did no harm on the blades it was seen on (7 October 2026), and is left out above.
 
-**A card still on the vendor's XDMA sample image** (pi20 at ps1, 7 October 2026, version 0.0.post1220) gets the same tests as one on SQRL's image: `pcie-link` and `rp1-pio` pass, `jtag` fails on GPIO14 as above, the rest are `not run`. Its summary line reads `acorn -: fail` (no variant is named), and the first `What to do:` line says the board runs Xilinx's XDMA sample design and is to be converted. That was on pi20 at ps1, installed by the steps above; with an earlier version the check printed `acorn: fail (no test ran)` ([#155](https://github.com/fpgas-online/fpgas.online-test-designs/issues/155)).
+**A card still on the vendor's XDMA sample image** (pi20 at ps1, 7 October 2026, version 0.0.post1220) gets the same tests as one on SQRL's image: `pcie-link` and `rp1-pio` pass, `jtag` fails on GPIO14 as above, the rest are `not run`. Its summary line reads `acorn -: fail` (no variant is named), and the first `What to do:` line says the board runs Xilinx's XDMA sample design (on a Compute Blade, from version 0.0.post1284, not to convert it). That was on pi20 at ps1, installed by the steps above as version 0.0.post1216 and updated to 0.0.post1220 the same day; version 0.0.post1216 printed `acorn: fail (no test ran)` there ([fpgas.online-test-designs issue 155, a card on the vendor XDMA sample image got no test at all](https://github.com/fpgas-online/fpgas.online-test-designs/issues/155)).
 
 A pass will list every test with `pass` and end there, with no `RESULT:` part; on a Compute Blade `p2-gpio` stays `not run`, because J5 and H5 are not wired.
 
@@ -115,9 +95,10 @@ A pass will list every test with `pass` and end there, with no `RESULT:` part; o
 | `p2-uart` | P2: K2 (FPGA transmit) to the Pi's RXD (GPIO15), J2 (FPGA receive) from the Pi's TXD (GPIO14) | the serial pair, in the right direction | no |
 | `p2-serial` | the same two wires, driven and read as plain pins in both directions | each of J2 and K2 on its own, so a crossed pair or one open wire is told apart | no |
 | `p2-gpio` | none: J5 and H5 are not wired on a Compute Blade | nothing: it is listed as `not run` | never runs |
-| `rp1-pio` | no wire: `/dev/pio0` on a Pi 5 or CM5 | nothing about the wiring (not run on other hosts) | yes |
+| `rp1-pio` | no wire: `/dev/pio0` on a Pi 5 or CM5 (the test passed on a Pi 5 at welland, 2 October 2026, and on pi16 and pi20 at ps1, 7 October 2026) | nothing about the wiring (not run on other hosts) | yes |
 | `flash`, `ddr`, `scratch` | no wire of the cable, except that `scratch` also goes over the serial pair | nothing about the wiring | no |
 
 So on a card that has not been converted yet, `pcie-link` and `jtag` are the wiring tests; the P2 wires can
 only be tested once the card runs the fpgas.online design
-([converting a card](/boards/acorn/pcie-programming.md)).
+([converting a card](/boards/acorn/pcie-programming.md); on a Compute Blade that is not in this guide yet:
+do not).
