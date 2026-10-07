@@ -9,7 +9,12 @@ are on [Hosts and boards at ps1](ps1-boards.md).
 The site notes (`docs/hardware/site-ps1.md` in fpgas.online-test-designs) call the gateway val2; Ansible
 calls it `ps1.fpgas.online`. Unless a row says otherwise, the table is the read made on the gateway itself on
 6 October 2026 at 08:14 Adelaide time (5 October, 16:45 Chicago time) by the fpgas.online coordinator, with
-Tim's permission. It found an install of about 25 September 2026, last booted on 26 September 2026.
+Tim's permission. It found an install of about 25 September 2026, last booted on 26 September 2026. A second read on 7 October 2026 (12:55 Adelaide time) found
+the same boot directory, `config.txt` and `cmdline.txt`.
+
+The gateway, its switch and its tooling are Carl Karsten's own install: his
+[pici](https://github.com/CarlFK/pici) playbooks and the `pib` web application, not fpgas.online-infra.
+fpgas.online reads it; it does not deploy to it.
 
 | | |
 |---|---|
