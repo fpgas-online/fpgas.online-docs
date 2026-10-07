@@ -9,8 +9,9 @@ you have?
 (check-a-pi-5-nothing-is-changed)=
 (upgrade-a-locked-raspberry-pi-5)=
 - **A Raspberry Pi 5: [check, upgrade and lock](bootloader-eeprom-pi5.md).** Is
-  its bootloader the fleet's, and is it locked? If not, six steps for someone
-  with the Pi in hand.
+  its bootloader the fleet's, and is it locked? ([The
+  check](bootloader-eeprom-pi5-check.md).) If not, six steps for someone with
+  the Pi in hand ([the upgrade](bootloader-eeprom-pi5-upgrade.md)).
 (compute-module-4-compute-module-5-and-the-compute-blade)=
 - **A Compute Module 4 or 5 in a Compute Blade: [does it need
   anything?](bootloader-eeprom-compute-module.md)** How to tell (the two blades
