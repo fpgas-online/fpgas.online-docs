@@ -49,7 +49,8 @@ ports are 11422 for pi14 at ps1, 11622 for pi16 at ps1, 11822 for pi18 at ps1 an
 about three and a half minutes after a reboot (7 October 2026, 14:22, before our test of 15:52). Anything installed on it is gone (below).
 
 All four answered on their visitor ports on 7 October 2026 (pi14 at ps1 and pi18 at ps1 had not on
-5 October); pi20 at ps1 restarted every 2 to 3 minutes from 15:52 to about 18:09 that day (below). **If a blade's ssh port does not answer**, nothing can be run on it from this guide; first find out
+5 October); pi20 at ps1 restarted every 2 to 3 minutes from 15:52 to about 18:09 that day (one boot, from about 17:06,
+stayed up at least 12 minutes: below). **If a blade's ssh port does not answer**, nothing can be run on it from this guide; first find out
 whether it is powered and its network link is up (its lights; the gateway's view of it): **not yet checked by
 us**. Its cables can still be made, bench-checked and fitted.
 
@@ -72,7 +73,7 @@ Host column below).
 |---|---|---|---|---|---|---|
 | Acorn CLE-101, no label yet (device DNA not read) | pi14 at ps1 (`1e24:0101` seen 2026-10-07) | CM4 Rev 1.1 4 GB | SQRL's factory image, `1e24:0101` | `0000:01` | 2026-09-20: no response, TCK floating | not known |
 | Acorn CLE-101, no label yet (device DNA not read) | pi16 at ps1 (2026-10-05) | CM5 Lite Rev 1.0 8 GB | SQRL's factory image, `1e24:0101` | `0001:01` | 2026-09-20: no response, TCK floating. 2026-10-05: cannot run (the serial driver holds GPIO14) | not known |
-| Acorn CLE-101, device DNA `0x0028e5c45e304854` | pi20 at ps1 (2026-10-05) | CM5 Lite Rev 1.0 8 GB | a vendor XDMA sample image, `10ee:7011` (read 2026-10-05; on 2026-10-07 our SoC was loaded into its SRAM for a test, the flash unchanged: below) | `0001:01` | 2026-09-20 (kernel 6.12.75): answered, IDCODE `0x3631093`. 2026-10-07 (kernel 6.18, serial port on): the check's `jtag` test failed: GPIO14 is held by the serial port. 2026-10-07, the header's serial port off at boot: `jtag` passed, IDCODE `0x13631093` (the same part; the 2026-09-20 reading left out the version digit), DNA as in the first column | on the Extension Port: K2 to GPIO15, J2 to GPIO14, no resistor; J5 and H5 not wired |
+| Acorn CLE-101, device DNA `0x0028e5c45e304854` | pi20 at ps1 (2026-10-07) | CM5 Lite Rev 1.0 8 GB | a vendor XDMA sample image, `10ee:7011` (read 2026-10-05; on 2026-10-07 our SoC was loaded into its SRAM for a test, the flash unchanged: below) | `0001:01` | 2026-09-20 (kernel 6.12.75): answered, IDCODE `0x3631093`. 2026-10-07 (kernel 6.18, serial port on): the check's `jtag` test failed: GPIO14 is held by the serial port. 2026-10-07, the header's serial port off at boot: `jtag` passed, IDCODE `0x13631093` (the same part; the 2026-09-20 reading left out the version digit), DNA as in the first column | on the Extension Port: K2 to GPIO15, J2 to GPIO14, no resistor; J5 and H5 not wired |
 | none seen: no PCIe device (2026-10-07; the slot is empty, or a card has no link: `lspci` cannot tell) | pi18 at ps1 (2026-10-07) | CM4 Rev 1.1 4 GB | | | | |
 
 How each card was read, and what "P1 unmated" rests on, is on [Acorns at ps1: what was read on each
@@ -169,8 +170,9 @@ the FPGA, from the flash, which was never written.
 after it; 15:52, Adelaide time, 7 October 2026), pi20 at ps1 restarted every 2 to 3 minutes (one boot, from
 about 17:06, stayed up at least 12 minutes) until about 18:09,
 then stayed up; no power cycle was run by us; the cause is not known. It is back on Carl's shared boot files
-(above) with the card on the vendor image. The Acorn's flash was never written; Carl's boot files
-are unchanged.**
+(above) with the card on the vendor image. The Acorn's flash was never written. The files in Carl's
+shared boot directory were never changed: for the test, pi20 at ps1's link pointed at a copy, and it was put
+back at 17:19:48.**
 
 The Host column's (a) has no written steps and has **not been tried by us**. What is known: on pi20 at ps1
 (read 7 October 2026) the login prompt on `/dev/ttyAMA0` was there only because of the word
