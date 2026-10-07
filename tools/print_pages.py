@@ -115,7 +115,7 @@ CSS = """
   size: %(paper)s portrait;
   margin: 16mm 15mm 18mm 15mm;
   @bottom-left { content: "%(foot)s"; font: 8pt sans-serif; color: #444; }
-  @bottom-right { content: "Page " counter(page) " of " counter(pages);
+  @bottom-right { content: "Page " counter(page) " of " counter(pages) "%(after)s";
                   font: 8pt sans-serif; color: #444; }
 }
 @page wide { size: %(paper)s landscape; margin: 10mm 10mm 14mm 10mm; }
@@ -694,8 +694,11 @@ def css_string(text: str) -> str:
 
 
 def document(title: str, paper: str, specs: list[str], cover_notes: str | None = None,
-             last_sheet: str | None = None, link_lists: bool = True) -> str:
+             last_sheet: str | None = None, link_lists: bool = True, appended: int = 0) -> str:
     """The joined page, with a place on the cover for each chapter's sheet number.
+
+    appended: how many sheets of other PDFs follow the printed ones. They carry no foot of ours, so each
+    foot says they are there: "Page 3 of 56 + 2 unnumbered".
 
     cover_notes and last_sheet are the text of a notes file, or None when not
     given; a given one that holds no heading stops the run.
@@ -708,7 +711,8 @@ def document(title: str, paper: str, specs: list[str], cover_notes: str | None =
     fetched = datetime.date.today().isoformat()
     chapters = [chapter(number, spec, commit, fetched, link_lists) for number, spec in enumerate(specs, 1)]
     foot = css_string(f"{title} · docs.fpgas.online · commit {commit[:10]} · {fetched}")
-    css = CSS % {"paper": PAPERS[paper], "foot": foot}
+    after = f" + {appended} unnumbered" if appended else ""
+    css = CSS % {"paper": PAPERS[paper], "foot": foot, "after": after}
     contents = "".join(
         f"<li>{html.escape(name)}{SHEET_PLACE % number} <small>({html.escape(shown(spec))})</small></li>"
         for number, (spec, (name, _)) in enumerate(zip(specs, chapters), 1)
@@ -866,8 +870,8 @@ def print_pdf(page: Path, target: Path) -> None:
         raise SystemExit(f"{CHROME} wrote no PDF at {target}")
 
 
-def check_paper(path: Path, paper: str) -> None:
-    """Stop unless every page of the PDF is on the chosen paper, in either orientation."""
+def check_paper(path: Path, paper: str) -> int:
+    """How many pages the PDF has; stops unless every one is on the chosen paper, in either orientation."""
     info = run(["pdfinfo", "-f", "1", "-l", "100000", str(path)], f"pdfinfo {path}", timeout=60,
                capture_output=True, text=True).stdout
     sizes = re.findall(r"^Page\s+\d+ size:\s*([0-9.]+) x ([0-9.]+) pts", info, re.MULTILINE)
@@ -882,17 +886,26 @@ def check_paper(path: Path, paper: str) -> None:
                 f"--append {path}: page {number} is {width} x {height} pt, not {paper} "
                 f"({wide} x {high} pt, either way up); appended PDFs are not resized"
             )
+    return len(sizes)
 
 
-def append_pdfs(printed: Path, extra: list[Path], paper: str, result: Path) -> None:
-    """Write result: the printed pages, then the extra PDFs (label sheets, say) as they are."""
-    joiner = shutil.which("pdfunite")
-    if joiner is None or shutil.which("pdfinfo") is None:
+def appended_sheets(extra: list[Path], paper: str) -> int:
+    """How many sheets the PDFs to append have in all; stops on a missing file or one on other paper."""
+    if extra and (shutil.which("pdfunite") is None or shutil.which("pdfinfo") is None):
         raise SystemExit("pdfunite and pdfinfo (poppler-utils) are not installed; --append needs them")
+    total = 0
     for path in extra:
         if not path.is_file():
             raise SystemExit(f"--append {path}: no such file")
-        check_paper(path, paper)
+        total += check_paper(path, paper)
+    return total
+
+
+def append_pdfs(printed: Path, extra: list[Path], paper: str, result: Path) -> None:
+    """Write result: the printed pages, then the extra PDFs (label sheets, say) as they are.
+
+    The extra PDFs were checked by appended_sheets before anything was printed."""
+    joiner = shutil.which("pdfunite")
     run([joiner, str(printed), *map(str, extra), str(result)], "pdfunite", timeout=120)
     if not result.is_file() or result.stat().st_size == 0:
         raise SystemExit(f"pdfunite wrote no PDF at {result}")
@@ -940,7 +953,10 @@ def main() -> int:
     try:
         printed.unlink(missing_ok=True)
         united.unlink(missing_ok=True)
-        page = document(args.title, args.paper, args.pages, cover_notes, last_sheet, not args.no_link_lists)
+        # Counted before anything is fetched or printed: a wrong PDF stops the run at once.
+        appended = appended_sheets(args.append, args.paper)
+        page = document(args.title, args.paper, args.pages, cover_notes, last_sheet, not args.no_link_lists,
+                        appended)
         places = set(re.findall(SHEET_PLACE_RE, page))
         joined.write_text(without_sheets(page), encoding="utf-8")
         print_pdf(joined, printed)
