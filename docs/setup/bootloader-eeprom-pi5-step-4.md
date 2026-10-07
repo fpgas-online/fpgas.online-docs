@@ -65,6 +65,14 @@ Photo: Suyash Dwivedi, [Wikimedia Commons](https://commons.wikimedia.org/wiki/Fi
    - put one tip of the tweezers (or one end of the wire) on each pad;
    - plug the network cable in with your other hand;
    - keep the tips on both pads until the 60 seconds below are over.
-3. Wait 60 seconds by a clock. There is nothing to watch for: the Pi writes
-   its new bootloader from the card and stops. Whatever the green light does,
-   go on to [step 5](bootloader-eeprom-pi5-step-5.md) when the 60 seconds are over.
+3. Wait 60 seconds by a clock. The Pi writes its new bootloader from the card
+   and then stops by itself, so waiting longer does no harm: if you are not
+   sure the 60 seconds are over, wait another minute. Do not judge the write
+   by the green light (on one of our runs it showed an error pattern after a
+   write that had worked). Go on to [step 5](bootloader-eeprom-pi5-step-5.md)
+   when the 60 seconds are over.
+
+   Whether the write worked is checked in
+   [step 6](bootloader-eeprom-pi5-step-6.md), after the Pi has started again:
+   the new bootloader date there means it was written; the old date means
+   nothing was written, and the chart in step 6 sends you back to step 2.

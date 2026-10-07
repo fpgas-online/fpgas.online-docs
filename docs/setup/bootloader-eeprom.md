@@ -68,7 +68,15 @@ You do not need this part to do the job.
   rapid blink means success and an error pattern means failure. On the run of
   3 Oct it blinked 3 long, 3 short, an error pattern, although the write had
   succeeded (on 5 and 6 Oct the LED was not recorded). That is why step 4
-  says to ignore it.
+  says not to judge the write by it.
+- **How step 4 knows the write is over:** it does not, on the Pi. Step 4
+  waits 60 seconds (how long the write takes has not been timed by us) and
+  says waiting longer does no harm, because Raspberry Pi's documentation says
+  `recovery.bin` "will stop after the update has completed" (quoted below).
+  The check is the read-back of step 6 on the next start. That wording is our
+  default while the question of a better completion check is with the
+  project owner (7 Oct 2026); a timed watch of the LED at the next upgrade
+  would settle it.
 - **Three rows of the step 6 chart** ("but BOOT_ORDER is not 0xf2", "but SR1
   0x0" and "no answer"): not seen by us. A Pi that is written but not locked
   can be changed by anyone with root on it, which on a public site is every
