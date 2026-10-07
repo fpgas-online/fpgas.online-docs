@@ -82,6 +82,9 @@ Where the cards are, by site: which card is on which host, its state, what it st
 
 installations/welland
 installations/ps1
+installations/ps1-pi20-old-serial
+installations/ps1-ran-2026-10-07
+installations/ps1-labels
 installations/ps1-reads
 ```
 
