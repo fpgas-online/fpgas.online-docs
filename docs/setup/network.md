@@ -220,11 +220,11 @@ full 48-port converge runs for several minutes. That is not a hang.
 PS1 has no per-port provisioning at all. Its single switch is a **Netgear
 FS728TPv2** — the live PoE OID and the recorded management MAC both identify
 it, although stale comments in its `host_vars` name two other models as well,
-which the [PoE switch](../sites/ps1.md#poe-switch) section notes. It is a
+which the [PoE switch](../sites/ps1-gateway.md#poe-switch) section notes. It is a
 Plus-series unit that the design spec put explicitly out of scope, and it does
 not answer the standard PoE MIB: it uses a Netgear-private OID from a draft of
 the spec. The OID and the working command are on the PS1 page under
-[Power control](../sites/ps1.md#power-control).
+[Power control](../sites/ps1-gateway.md#power-control).
 
 ## PoE power control
 
@@ -327,7 +327,7 @@ on sw1 and watching them netboot back within ~48 s.
 
 This is the same standard PoE MIB the [test-designs `verify_hardware.py`
 harness](https://github.com/fpgas-online/fpgas.online-test-designs) `poe_reset`
-uses; it differs from the [PS1 switch](../sites/ps1.md#power-control), which
+uses; it differs from the [PS1 switch](../sites/ps1-gateway.md#power-control), which
 answers only a Netgear-private OID.
 
 :::{note}
@@ -342,7 +342,7 @@ warning and todo below). The `switch:` block in Welland's `host_vars` still poin
 The two halves also disagree about the filename. `snmp.yml` writes
 `/etc/environment` and `/etc/environment.exports`, plural; `poe.sh` sources
 `/etc/environment.export`, singular, and nothing in the infra repository creates
-that name. The [PS1 procedure](../sites/ps1.md#power-control) sources the
+that name. The [PS1 procedure](../sites/ps1-gateway.md#power-control) sources the
 singular name and works, so the file exists on val2 — but it is not one the
 roles put there, and a rebuilt gateway would not have it.
 :::
@@ -356,7 +356,7 @@ would lose the file too. Fix both and converge each gateway.
 :::
 
 Expect the board to be gone for a while. A Compute Blade at PS1 takes about
-[60 seconds](../sites/ps1.md#power-control) to come back; a Pi 5 at Welland
+[60 seconds](../sites/ps1-gateway.md#power-control) to come back; a Pi 5 at Welland
 takes [more than 90](../boards/acorn/installations/welland.md#reads-of-september-2026) — it is netbooting
 a kernel and an NFS root over the network, not resuming from disk. Roughly two
 minutes from power-on to SSH is the figure the automation uses.
@@ -569,7 +569,7 @@ Other repositories:
 
 Pages on this site: [Welland](../sites/welland.md#network) (the switches, their
 management addresses and the board-to-port map),
-[PS1](../sites/ps1.md#poe-switch) (the FS728TPv2 and its port table) and
-[Power control](../sites/ps1.md#power-control) (the private OID and the
+[PS1](../sites/ps1-gateway.md#poe-switch) (the FS728TPv2 and its port table) and
+[Power control](../sites/ps1-gateway.md#power-control) (the private OID and the
 60-second blade recovery), [Sites](../sites/index.md),
 [Netboot and the NFS root](netboot.md), [Verification](verification.md).
