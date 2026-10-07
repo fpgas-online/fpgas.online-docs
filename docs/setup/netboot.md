@@ -37,8 +37,9 @@ When a Pi does not boot <netboot-not-booting>
 
 1. The Pi powers on and its boot ROM broadcasts DHCP.
 2. dnsmasq on the gateway answers with an address and the gateway as TFTP server. It binds with
-   `bind-dynamic`, because at welland there are about 150 per-port interfaces and most have no carrier until
-   a Pi is plugged in (`roles/pxe/templates/dnsmasq-base.conf.j2`).
+   `bind-dynamic`, which starts even when one of its interfaces is missing or down and binds each as it
+   appears; with `bind-interfaces` dnsmasq aborts at start in that case (the template's comment,
+   `roles/pxe/templates/dnsmasq-base.conf.j2`). welland's gateway had 88 per-port interfaces on 6 October 2026.
 3. The Pi fetches its firmware, `config.txt`, `cmdline.txt`, the kernel, the device tree and the initramfs over
    TFTP.
 4. The kernel mounts the NFS root read-only and puts a tmpfs over it (`overlayroot=tmpfs`).
