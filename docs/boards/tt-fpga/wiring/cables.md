@@ -18,9 +18,9 @@ pins](pins-other.md). To fit the cables, follow the [building guide](../building
 ```{include} ../pin1-measured.inc
 ```
 
-**The cables** on our boards are 10-pin ribbon cables with the 3.3 V pin left out (Tim Ansell, 7 October
-2026); as we read Tim Ansell's answer of 7 October 2026, each cable sits on pins 1 to 5 and 7 to 11 and leaves the 3.3 V column (pins 6 and 12) free; not checked by us on a board. What is known about them is in one place, at the
-top of the [building overview](../building/index.md#the-cables-10-pin-ribbon-no-33-v-wire).
+**The cables** on our boards are ribbon cables whose 3.3 V pins are expected not to be connected (Tim Ansell,
+7 October 2026); whether they have 10 or 12 wires is not known. What is known about them is in one place, at the
+top of the [building overview](../building/index.md#the-cables-33-v-not-connected).
 
 ```{include} ../generated/tt-fpga-cables.md
 :start-after: "Neither the wires nor any pin 1 mark can be made out."

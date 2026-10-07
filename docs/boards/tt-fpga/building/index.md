@@ -7,14 +7,16 @@ check that the wiring is right, and know what it takes for the board to be on th
 together; nothing in it was written from an assembly we watched. Each step that has no procedure or no
 picture says so in place. Not yet run by us on this hardware as a guide.
 
-## The cables: 10-pin ribbon, no 3.3 V wire
+## The cables: 3.3 V not connected
 
-**On our boards each cable is a female-to-female 10-pin ribbon cable, joined to the 12-pin socket at each
-end through a strip of pin header, with the 3.3 V pin left out: pins 6 and 12 are not carried, so the two
-boards' 3.3 V supplies are not joined.** The boards' owner, Tim Ansell, said so on 7 October 2026. He
-believes the cables are whiteeeen 10-pin flat ribbon cables (0.1 inch pitch, about 200 mm, IDC
-connectors; Amazon product B094RGMBS9); that is his belief, not checked by us. **How the 10-pin cable sits
-on the 12-pin socket:** as we read Tim Ansell's answer of 7 October 2026, each cable sits on pins 1 to 5 and 7 to 11 and leaves the 3.3 V column (pins 6 and 12) free; not checked by us on a board. Find pin 1 on both connectors before plugging a cable in.
+**On our boards the 3.3 V pins (6 and 12) are expected not to be connected, so the two boards' 3.3 V supplies
+are not joined.** Each cable is a female-to-female ribbon cable joined to the socket at each end through a strip
+of pin header. Whether it has 10 or 12 wires is **not known**. Both are from the boards' owner, Tim Ansell, on
+7 October 2026: first that the cables are joined "with the 3v3 pin missing" (he believes they are whiteeeen
+10-pin flat ribbon cables, Amazon product B094RGMBS9), then, asked again, "The expectation is that the 3v3 pin
+is not connected. I'm unsure if we are using 10-pin or 12-pin cables?" Not checked by us on a board. A 10-wire
+cable on pins 1 to 5 and 7 to 11 would carry both grounds (pins 5 and 11) and leave only the 3.3 V pins out.
+Find pin 1 on both connectors before plugging a cable in.
 
 **The mounting plate.** Which holes of the fpgas.online mounting plate a demo board uses, and the plate's
 figures: [the mechanical page](../overview/mechanical.md). Whether the boards at welland stand on it is not
@@ -39,8 +41,8 @@ shows the Pmod cables and the USB-C cable only.
 [![Which Pmod header of the demo board goes to which port of the Pmod HAT](../generated/tt-fpga-pmod-cables.png)](../generated/tt-fpga-pmod-cables.svg){.only-light}
 [![Which Pmod header of the demo board goes to which port of the Pmod HAT](../generated/tt-fpga-pmod-cables-dark.png)](../generated/tt-fpga-pmod-cables-dark.svg){.only-dark}
 
-Three 10-pin ribbon cables, their 3.3 V pin left out, each pin 1 to pin 1 (INPUT to JA, BIDIR to JB, OUTPUT
-to JC), and one USB-C cable
+Three ribbon cables, their 3.3 V pins expected not to be connected, each pin 1 to pin 1 (INPUT to JA, BIDIR
+to JB, OUTPUT to JC), and one USB-C cable
 from the demo board to a USB port of the Raspberry Pi.
 
 ## The order of work
