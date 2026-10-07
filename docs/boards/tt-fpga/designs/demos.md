@@ -23,11 +23,13 @@ demos via the `fpgas-online-tt-demos` package), which is what the public site us
   (`--demos-dir`) and visitors' uploads (`--uploads-dir`). Loading one sends its bytes over the board's raw
   MicroPython REPL into a buffer in the RP2350's memory and has the SDK's own loader clock that buffer into
   the iCE40"
-  ([fpgas.online-tt](https://github.com/fpgas-online/fpgas.online-tt/blob/main/README.md)). Whether the
-  daemon running on each board today is that version is not verified by us here.
-- **Boards from before October 2026 still hold old copies.** The same README: until then the daemon copied
-  every demo and every upload to the board's `/bitstreams` and loaded from there; boards from that time still
-  hold those files, and the daemon neither reads nor removes them.
+  ([fpgas.online-tt](https://github.com/fpgas-online/fpgas.online-tt/blob/main/README.md)).
+  `fpgas-online-tt` 0.0.post71, which does this, is in the root deployed at welland on 6 October 2026 (the
+  coordinator's record of that deploy).
+- **History, no longer done: boards from before October 2026 still hold old copies.** The same README:
+  until then the daemon copied every demo and every upload to the board's `/bitstreams` and loaded from
+  there; boards from that time still hold those files, and the daemon neither reads nor removes them. Today
+  nothing of ours writes to a demo board: every design is streamed from the Pi.
 
 ## What the boot check leaves running
 

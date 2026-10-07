@@ -4,9 +4,9 @@
 loopback design is, what must be true before it runs and what a good result is: the Raspberry Pi drives the
 eight `ui_in` signals and reads each one back, inverted, on `uo_out`.**
 
-| Test | Bitstream | Wrapper | What it verifies |
-|------|-----------|---------|------------------|
-| PMOD loopback | [`pmod-loopback/.../tt_fpga_platform.bin`](https://github.com/fpgas-online/fpgas.online-test-designs/tree/main/designs/pmod-loopback/) | [`tt_pmod_wrapper.py`](https://github.com/fpgas-online/fpgas.online-test-designs/blob/main/designs/_host/tt_pmod_wrapper.py) | GPIO inversion across wired pin pairs |
+- **What it verifies:** GPIO inversion across wired pin pairs.
+- **Bitstream:** [`pmod-loopback/.../tt_fpga_platform.bin`](https://github.com/fpgas-online/fpgas.online-test-designs/tree/main/designs/pmod-loopback/).
+- **Wrapper:** [`tt_pmod_wrapper.py`](https://github.com/fpgas-online/fpgas.online-test-designs/blob/main/designs/_host/tt_pmod_wrapper.py).
 
 ## What it does
 
@@ -21,42 +21,40 @@ It is not one of the tests the boot check runs: it is the `pmod` test of `fpgas-
 for bit, so any permutation that is the same in the two pin lists passes. A pass confirms that the cables are
 connected, not that the bit order is right. The [pin-ID test](pmod-pin-id.md) does tell.
 
-## Before running the test
+## The shared GPIOs
+
+HAT JA pins 2-4 and HAT JB pins 2-4 are the [same RPi GPIO lines](../../pmod/rpi-hat.md) (GPIO10, GPIO9,
+GPIO11 — the shared SPI0 bus), so `ui_in[1]` to `ui_in[3]` and `uio[1]` to `uio[3]` are connected at the RPi
+side ([the shared GPIOs](../wiring/pins-uio-uart.md)). That conflict has several consequences:
+
+- **GPIO loopback test**: Works because the test only drives ui_in (JA) and reads uo_out (JC). The uio pins
+  (JB) are not driven during this test, so no conflict occurs.
+- **Bidirectional I/O test**: Cannot independently test uio[1,2,3] because they are shorted to ui_in[1,2,3]
+  respectively. If both are driven, the conflicting outputs may cause contention or incorrect readings.
+- **SPI kernel modules**: Must be unloaded (`rmmod spidev spi_bcm2835`) since GPIO7-11 overlap with HAT JA
+  pins 1-4 and JB pins 1-4.
+
+The 5 unaffected uio bits (uio[0], uio[4:7]) on JB pins 1 and 7-10 use unique RPi GPIOs and work correctly.
+
+## Running it
 
 ```{include} ../generated/tt-fpga-pins-other.md
 :start-after: "### Loading the FPGA: its configuration pins"
 :end-before: "The FPGA breakout has no SPI flash"
 ```
 
-```{include} ../serial-port.inc
+```{include} run-the-pmod-test.inc
 ```
 
-- `rmmod spidev spi_bcm2835` — SPI kernel modules claim GPIO7-11 (HAT JA pins 1-4 and JB pin 1, used by
-  `ui_in[0]` to `ui_in[3]` and `uio[0]`); the command is below this list
-- RP2350 GPIOs must be released to high-Z after FPGA programming (the
-  programming wrapper handles this automatically)
-- Driving `ui_in[1]` to `ui_in[3]` also drives `uio[1]` to `uio[3]`: HAT JA pins 2-4 and HAT JB pins 2-4 are
-  the [same RPi GPIO lines](../../pmod/rpi-hat.md) (GPIO10, GPIO9, GPIO11 — the shared SPI0 bus). The loopback
-  design does not use `uio`, so no conflict occurs. A design that drives `uio[1]` to `uio[3]` would fight the
-  Raspberry Pi on those three GPIOs: [the shared GPIOs](../wiring/pins-uio-uart.md).
-
-```{include} spi-modules.inc
+```console
+$ sudo fpgas-tt-fpga-debug --variant tt-fpga test pmod
 ```
-
-## Running it
 
 ```{include} wrappers.inc
 ```
 
-For this test the wrapper is `tt_pmod_wrapper.py`. **No command line for it is recorded on these pages.** With
-the packages installed, the record gives `sudo fpgas-tt-fpga-debug test uart` for the `uart` test; for this
-test the name is `pmod`. That form is not written down anywhere as run by us: see [verifying
-2](../building/verifying-2.md#the-failing-line) for what the check's documentation says of the tool.
-
-### From a workstation
-
-```{include} run-from-workstation.inc
-```
+For this test the wrapper is `tt_pmod_wrapper.py`. Running the test from a workstation instead, with the older
+runner: [from a workstation](from-a-workstation.md).
 
 ## What has been measured
 

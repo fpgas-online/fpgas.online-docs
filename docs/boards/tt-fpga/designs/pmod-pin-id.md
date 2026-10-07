@@ -4,9 +4,9 @@
 pin-ID design is, how it is loaded and what a good result is: each FPGA pin sending its own pin number, so
 that the far end of every wire can be read off.**
 
-| Test | Bitstream | Wrapper | What it verifies |
-|------|-----------|---------|------------------|
-| PMOD pin ID | [`pmod-pin-id/.../tt_fpga_platform.bin`](https://github.com/fpgas-online/fpgas.online-test-designs/tree/main/designs/pmod-pin-id/) | [`tt_pmod_wrapper.py`](https://github.com/fpgas-online/fpgas.online-test-designs/blob/main/designs/_host/tt_pmod_wrapper.py) | UART TX on each GPIO pin |
+- **What it verifies:** UART TX on each GPIO pin.
+- **Bitstream:** [`pmod-pin-id/.../tt_fpga_platform.bin`](https://github.com/fpgas-online/fpgas.online-test-designs/tree/main/designs/pmod-pin-id/).
+- **Wrapper:** [`tt_pmod_wrapper.py`](https://github.com/fpgas-online/fpgas.online-test-designs/blob/main/designs/_host/tt_pmod_wrapper.py).
 
 The pin ID test and how to read its output are described on
 [Pin identification](../../pin-id.md).
@@ -40,23 +40,16 @@ recorded on the wiring pages yet.
 :end-before: "The FPGA breakout has no SPI flash"
 ```
 
-```{include} ../serial-port.inc
+```{include} run-the-pmod-test.inc
+```
+
+```console
+$ sudo fpgas-tt-fpga-debug --variant tt-fpga test pin-id
 ```
 
 ```{include} wrappers.inc
 ```
 
 For this test the wrapper is `tt_pmod_wrapper.py`: it programs the FPGA, releases the RP2350's GPIOs to
-high-Z and hands off to the test on the Raspberry Pi's GPIOs. **No command line for it is recorded on these
-pages**, and it has not been run by us in a form we can show. The check's own tool runs one test with its
-output live: [verifying 2](../building/verifying-2.md#the-failing-line).
-
-Before a Pmod test:
-
-```{include} spi-modules.inc
-```
-
-## Running it from a workstation
-
-```{include} run-from-workstation.inc
-```
+high-Z and hands off to the test on the Raspberry Pi's GPIOs. Running the test from a workstation instead,
+with the older runner: [from a workstation](from-a-workstation.md).
