@@ -48,7 +48,7 @@ ports are 11422 for pi14 at ps1, 11622 for pi16 at ps1, 11822 for pi18 at ps1 an
 about three and a half minutes after a reboot (7 October 2026, 14:22, before our test of 15:52). Anything installed on it is gone (below).
 
 All four answered on their visitor ports on 7 October 2026 (pi14 at ps1 and pi18 at ps1 had not on
-5 October); pi20 at ps1 has not since our test of 15:52 that day (below). **If a blade's ssh port does not answer**, nothing can be run on it from this guide; first find out
+5 October); pi20 at ps1 restarted every 2 to 3 minutes from 15:52 to about 18:09 that day (below). **If a blade's ssh port does not answer**, nothing can be run on it from this guide; first find out
 whether it is powered and its network link is up (its lights; the gateway's view of it): **not yet checked by
 us**. Its cables can still be made, bench-checked and fitted.
 
@@ -107,8 +107,8 @@ $ BDF=0001:01:00.0           # pi16 at ps1, pi20 at ps1; 0000:01:00.0 on the CM4
 $ echo 1 | sudo tee /sys/bus/pci/devices/$BDF/remove
 ```
 
-Restore it by rebooting (on pi20 at ps1 on 7 October 2026 that did not: it restarts every two minutes since,
-below), or as described under [Bring the endpoint back after a
+Restore it by rebooting (on pi20 at ps1 on 7 October 2026 the reboot after a load was followed by restarts
+every 2 to 3 minutes for over two hours: below), or as described under [Bring the endpoint back after a
 JTAG load](../designs/pcie.md#bring-the-endpoint-back-after-a-jtag-load)
 (on a blade a LiteX design needs a root-complex re-probe, not just a rescan).
 `--detect` and the other read-only queries are safe without this; **loading a
@@ -161,9 +161,10 @@ bus rescan, a root-complex re-probe failed (the bind answered "No such device" a
 too), and the run stopped there. An `openFPGALoader --reset` at 17:19 put the vendor's sample image back in
 the FPGA, from the flash, which was never written.
 
-**pi20 at ps1 restarts every two minutes since our test of 15:52 (Adelaide time) on 7 October 2026; the cause
-is not known; a power cycle is expected to end it; the Acorn's flash was never written; Carl's boot files are
-unchanged; use pi16 at ps1 until it is back; the power cycle is ours through Tim.**
+**After test 6 was stopped at step 1b (15:52, Adelaide time, 7 October 2026), pi20 at ps1 restarted every 2 to
+3 minutes until about 18:09, then stayed up; no power cycle was run by us; the cause is not known. It is back
+on its own files with the card on the vendor image. The Acorn's flash was never written; Carl's boot files
+are unchanged.**
 
 The Host column's (a) has no written steps and has **not been tried by us**. What is known: on pi20 at ps1
 (read 7 October 2026) the login prompt on `/dev/ttyAMA0` was there only because of the word
