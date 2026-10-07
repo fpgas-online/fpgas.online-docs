@@ -101,8 +101,6 @@ LONG_LINES = 18
 # one may run over between its rows, so that it does not leave the rest of a sheet blank.
 SHORT_ROWS = 12
 SHORT_CHARS = 900
-# A step whose words run past this many characters may start on one sheet and end, with its picture, on the next.
-TALL_STEP_CHARS = 600
 # Where a chapter's sheet number goes in the cover's list, once it is known.
 SHEET_PLACE = "<!--sheet-of-chapter-%d-->"
 SHEET_PLACE_RE = r"<!--sheet-of-chapter-(\d+)-->"
@@ -186,12 +184,7 @@ img { max-width: 100%%; }
 /* A picture is never cut by the end of a sheet, and leaves room for its step's words above it. */
 .picture { break-inside: avoid; text-align: center; }
 .picture img { max-height: 200mm; }
-/* A step whose words and picture fit on what is left of the sheet stays whole. A taller one may start its words
-   there; its picture is then kept with the words just before it rather than leaving the sheet blank. */
 .step { break-inside: avoid; }
-.step.tall { break-inside: auto; }
-.step.tall > * { break-after: avoid; }
-.step.tall > .picture { break-before: avoid; break-after: auto; }
 .wide { page: wide; break-before: page; break-inside: avoid;
         margin: 0; text-align: center; }
 .wide img { width: 100%%; max-height: 172mm; object-fit: contain; }
@@ -592,8 +585,6 @@ def step_pictures(body: Tag, soup: BeautifulSoup) -> None:
         before.insert_before(step)
         for part in (before, *reversed(words), paragraph):
             step.append(part.extract())
-        if sum(len(part.get_text(" ", strip=True)) for part in (before, *words)) > TALL_STEP_CHARS:
-            step["class"] = [*step["class"], "tall"]
 
 
 def short_tables(body: Tag) -> None:
