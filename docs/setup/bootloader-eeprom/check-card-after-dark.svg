@@ -1,0 +1,31 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 950 570" width="950" height="570" font-family="DejaVu Sans, Arial, sans-serif">
+<rect width="950" height="570" fill="#131416"/>
+<text x="20" y="36" font-size="26" font-weight="bold" fill="#e3e6ea" text-anchor="start">Is this Pi 5 done? Three reads, three answers</text>
+<text x="500" y="80" font-size="22" font-weight="bold" fill="#5fd27a" text-anchor="middle">DONE</text>
+<text x="800" y="80" font-size="22" font-weight="bold" fill="#ff7b7b" text-anchor="middle">NOT DONE</text>
+<text x="20" y="136" font-size="22" font-weight="bold" fill="#e3e6ea" text-anchor="start">1  bootloader date</text>
+<text x="20" y="162" font-size="16" font-weight="normal" fill="#e3e6ea" text-anchor="start">first line of</text>
+<text x="20" y="184" font-size="15" font-weight="normal" fill="#e3e6ea" text-anchor="start" font-family="DejaVu Sans Mono, monospace">vcgencmd bootloader_version</text>
+<rect x="370" y="112" width="260" height="76" rx="8" fill="#15301b" stroke="#5fd27a" stroke-width="3"/>
+<text x="500" y="158" font-size="22" font-weight="bold" fill="#e3e6ea" text-anchor="middle" font-family="DejaVu Sans Mono, monospace">2026/09/25 ...</text>
+<rect x="670" y="112" width="260" height="76" rx="8" fill="#3d1c1c" stroke="#ff7b7b" stroke-width="3"/>
+<text x="800" y="158" font-size="22" font-weight="bold" fill="#e3e6ea" text-anchor="middle" font-family="DejaVu Sans Mono, monospace">an older date</text>
+<text x="20" y="246" font-size="22" font-weight="bold" fill="#e3e6ea" text-anchor="start">2  boot order</text>
+<text x="20" y="272" font-size="16" font-weight="normal" fill="#e3e6ea" text-anchor="start">the BOOT_ORDER line of</text>
+<text x="20" y="294" font-size="15" font-weight="normal" fill="#e3e6ea" text-anchor="start" font-family="DejaVu Sans Mono, monospace">vcgencmd bootloader_config</text>
+<rect x="370" y="222" width="260" height="76" rx="8" fill="#15301b" stroke="#5fd27a" stroke-width="3"/>
+<text x="500" y="268" font-size="22" font-weight="bold" fill="#e3e6ea" text-anchor="middle" font-family="DejaVu Sans Mono, monospace">BOOT_ORDER=0xf2</text>
+<rect x="670" y="222" width="260" height="76" rx="8" fill="#3d1c1c" stroke="#ff7b7b" stroke-width="3"/>
+<text x="800" y="268" font-size="22" font-weight="bold" fill="#e3e6ea" text-anchor="middle" font-family="DejaVu Sans Mono, monospace">anything else</text>
+<text x="20" y="356" font-size="22" font-weight="bold" fill="#e3e6ea" text-anchor="start">3  flash lock</text>
+<text x="20" y="382" font-size="16" font-weight="normal" fill="#e3e6ea" text-anchor="start">the SR1 line of the script</text>
+<text x="20" y="404" font-size="15" font-weight="normal" fill="#e3e6ea" text-anchor="start" font-family="DejaVu Sans Mono, monospace">sudo python3 read_flash_status.py</text>
+<rect x="370" y="332" width="260" height="76" rx="8" fill="#15301b" stroke="#5fd27a" stroke-width="3"/>
+<text x="500" y="378" font-size="22" font-weight="bold" fill="#e3e6ea" text-anchor="middle" font-family="DejaVu Sans Mono, monospace">SR1 0xbc</text>
+<rect x="670" y="332" width="260" height="76" rx="8" fill="#3d1c1c" stroke="#ff7b7b" stroke-width="3"/>
+<text x="800" y="378" font-size="22" font-weight="bold" fill="#e3e6ea" text-anchor="middle" font-family="DejaVu Sans Mono, monospace">SR1 0x0</text>
+<text x="20" y="458" font-size="19" font-weight="bold" fill="#5fd27a" text-anchor="start">All three DONE: finished.</text>
+<text x="20" y="485" font-size="19" font-weight="bold" fill="#e3e6ea" text-anchor="start">Anything else: the chart at the end of this step.</text>
+<text x="20" y="512" font-size="19" font-weight="bold" fill="#ff7b7b" text-anchor="start">A NEWER date, another SR1 value, or a jedec line that is not ef4015:</text>
+<text x="20" y="539" font-size="19" font-weight="bold" fill="#ff7b7b" text-anchor="start">STOP. This page does not cover that Pi; change nothing on it.</text>
+</svg>

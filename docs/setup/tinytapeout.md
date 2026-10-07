@@ -71,20 +71,24 @@ second. Internal tasks are clients of the same bridge, never a second owner of
 the port — which is why a design load and a human typing in the terminal can
 collide, and the task is the one that fails.
 
-`GET /health` answers `{"board": {"present", "device", "vid_pid"}, "kind",
-"slug", "switch", "port", "hostname", "clients", "uptime_s", "version",
-"config_error"}`. `vid_pid` is the board's USB `idVendor:idProduct` read from
-sysfs, `null` when the device is not a USB tty; `config_error` is non-null when
-the board map could not be read and the daemon fell back to a plain `asic`
-bridge instead of restart-looping. The site's `/board/<slug>/status.json` is a
-cached summary of it, with `reachable` added, which is what the status pill on a
+`GET /health` answers `{"board": {"present", "device", "vid_pid", "usb_serial", "chip"}, "kind", "kind_reason",
+"clients", "idle_display": {"design", "state"} or null, "uptime_s", "version"}`. `vid_pid` is the board's USB
+`idVendor:idProduct` and `usb_serial` its USB serial number (the value on the board's label), both read from
+sysfs and `null` when the device is not a USB tty. `chip` is what the board told the boot check it carries, and
+`kind` follows from it; `kind_reason` says where that came from, or why it is not known. The site's
+`/board/<slug>/status.json` is a cached summary of it, with `reachable` added, which is what the status pill on a
 board page reflects.
 
-The daemon works out which board it is on its own: it reads its short hostname,
-decomposes it into `(switch, port)`, and looks itself up in
-`/etc/fpgas-online/tt-boards.yaml` to get its `slug` and `kind`. A hostname that
-is not in the catalogue leaves it a plain `asic` bridge. There are no per-Pi
-configuration files and no boot-time fetches.
+**What the board is comes from the board, never from where it is plugged in.** No file the daemon reads says
+which Pi or which switch port carries which board, so to the daemon a board moved to another port keeps
+everything it had. (The site's catalogue, below, does map boards to switch ports, for the site.) The daemon reads the
+USB serial of the device behind `/dev/ttboard` and looks that board up in the boot check's report on the same Pi
+(`--report`, default `/run/fpgas-online/verify.json`, written by `fpgas-verify`). The kind is what the board
+itself told the check it carries: the FPGA breakout gives `kind: fpga`, anything else (a Tiny Tapeout chip) gives
+`other`, and until the report says it the kind is `unknown` (no boot check yet this boot, a board plugged in
+since, or a check that found the board and could not read it). The report is read at each request, so a boot
+check that finishes after the daemon has started needs no restart. The daemon never asks the board what it is.
+The serial bridge works whatever the kind.
 
 ### Serial port ownership
 
@@ -112,29 +116,57 @@ python3 process on every TT host then at welland. Consequences for the test tool
 
 ### FPGA-board routes
 
-On a `kind: fpga` board four more routes manage bitstreams over the board's raw
-MicroPython REPL, each run through the bridge like any other client:
+**Nothing writes to the demo board's filesystem.** That is the rule for every Tiny Tapeout demo board (no code of
+ours writes, replaces or deletes a file on one; an FPGA on a demo board is loaded by streaming only), and it is
+what the daemon does: every design is a file on the Pi, a packaged demo (`--demos-dir`) or a visitor's upload
+(`--uploads-dir`). Loading one sends its bytes over the board's raw MicroPython REPL into a buffer in the
+RP2350's memory and has the SDK's own loader clock that buffer into the iCE40, so the board ends in the state the
+SDK's `tt.shuttle.<design>.enable()` leaves, with no file involved. The REPL work is a task run through the
+bridge like any other client, never a second owner of the port.
 
-| Route | Description |
-|-------|-------------|
-| `GET /designs` | `{"enabled": str\|null, "designs": [{"name", "title", "author", "description", "docs_url", "repo_url", "clock_hz", "pinout", "source": "demo"\|"upload"}, ...]}` — every `.bin` under `/bitstreams`, demo metadata merged in from `index.json` when it matches a name |
-| `POST /designs/{name}/enable` | body `{"clock_hz": int}` (optional) → `{"enabled": name, "clock_hz": int\|null}`; bounded to a 25 s overall REPL deadline (below the site proxy's own 30 s/45 s read timeouts, so a stuck SPI load still gets a clean 502 from this daemon instead of the client seeing a raw connection reset) |
-| `POST /bitstream` | multipart form (`name`, `file`) → `201 {"name", "size", "evicted": [str, ...]}`; rejects names that collide with a demo, non-`[a-z0-9_]{1,40}` names, oversize (>256 KiB) or non-iCE40 files (400); evicts the oldest non-demo uploads first so at most 16 uploads remain |
-| `POST /demos/sync` | (re)writes any demo whose sha1 no longer matches a manifest kept on the board (`/bitstreams/.demos.json`) — a same-size content update is still noticed, unlike a plain size comparison → `{"synced": [str, ...], "skipped": [str, ...]}`; waits up to ~1 s for a running task before answering 409 |
+On a `kind: fpga` board three more routes list, load and accept designs:
 
-A non-`fpga` board answers `404 {"error": "not an fpga board", "detail": ""}` on
-all four. Every other failure has the same `{"error", "detail"}` shape with an
-honest status: `503` board not present, `409` another task is running (or a
-demo-name collision on upload), `404` no such design — including a name that
-could never be valid, rejected before the board is asked — `502` REPL task
-failed with the board's traceback in `detail` (non-printable bytes stripped and
-truncated), `400` for validation failures and `500` for anything unexpected.
-Nothing is swallowed and nothing returns a bare crash page.
+| Route | What it does |
+|-------|--------------|
+| `GET /designs` | Lists every demo whose `.bin` is on the Pi, with its metadata from `index.json`, and every upload; `enabled` is what the board's SDK says is loaded (`null` when the SDK is not running) |
+| `POST /designs/{name}/enable` | Sends the bitstream and loads it. If the board's SDK is not running it first does what the Commander does in that case (a soft reset from the REPL, which runs the board's own `main.py`). Bounded to 25 s overall, below the site proxy's read timeouts, so a stuck load gets a clean 502 |
+| `POST /bitstream` | Accepts an upload (multipart form `name`, `file`): kept on the Pi, the board is not involved. Rejects a name that collides with a demo or is not `[a-z0-9_]{1,40}`, a file over 256 KiB, and a file that is not an iCE40 bitstream; removes the oldest uploads first so at most 16 remain |
 
-`--demos-dir` (default `/usr/share/fpgas-tt/demos`) points at the demo bitstream
-set. On an `fpga` board the daemon runs one `/demos/sync` itself in the
-background once the board is first present, retrying every 30 s on failure, so a
-freshly baked image comes up with the demo set already on the board.
+The exact request and reply shapes of each route are in the daemon's [README](https://github.com/fpgas-online/fpgas.online-tt/blob/main/README.md).
+
+A board that told the check it carries a chip gets `404 {"error": "not an fpga board", "detail": why}` on all
+three, and one the report does not say that for yet gets `503 {"error": "board not identified yet", "detail":
+why}`. Every other failure has the same `{"error", "detail"}` shape: `503` board not present, `409` another task
+is running (or a demo-name collision on upload), `404` no such design (including a name that could never be
+valid, rejected before the board is asked), `502` REPL task failed with the board's traceback in `detail`, `400`
+for validation failures and `500` for anything unexpected.
+
+A load checks the buffer on the board against the Pi's SHA-256 before the FPGA is touched; a load that fails, or
+in which the SDK's loader did not read every byte, leaves `enabled` as `null`.
+
+`--demos-dir` (default `/usr/share/fpgas-tt/demos`) points at the demo bitstream set (`index.json` and one
+`<name>.bin` per design). `--uploads-dir` (default `/var/lib/fpgas-tt/uploads`) keeps uploads; on the fleet's Pis
+that is lost at a reboot, like everything else a visitor leaves on a Pi.
+
+**Files from before.** Until October 2026 the daemon copied every demo and every upload to the board's
+`/bitstreams` and loaded from there. Boards from that time still hold those files; the daemon neither reads nor
+removes them. The SDK on the board does not know about any of this: its own list (`tt.shuttle.projects`) is still
+the board's `/bitstreams`, so `tt.shuttle.<name>.enable()` typed at the board's prompt loads the board's old copy
+of that name, not the Pi's, and uploads are not in that list at all.
+
+**The idle display.** The display of an FPGA board nobody is using is kept moving: when no serial client is
+connected and no client, Run or upload has happened for `--idle-after` seconds (default 60), the daemon asks the board once what
+it has loaded, and if that is the SDK's start state it streams the boot check's display design again, the way a
+load from the page does. Nothing is written to the board. Nothing is typed at the board while a serial client is
+connected, and a design a visitor loaded is never replaced unless `--idle-replace-after` is given. `/health`
+says what happened in `idle_display.state`. The README has the cases in full.
+
+Not recorded: whether anything removes the old files under `/bitstreams` on a board, and what
+`tt.shuttle.projects` shows on a board that never held them.
+
+Source for this section and the one before: the daemon's [README](https://github.com/fpgas-online/fpgas.online-tt/blob/main/README.md)
+on `main`, as packaged in `fpgas-online-tt` 0.0.post71; read on 6 October 2026. This page described an earlier
+daemon until that day.
 
 ### Installation
 
@@ -151,16 +183,16 @@ how `fpgas-tt.service` is invoked are in the [package](pi.md#packages) and
 ## The board catalogue
 
 One file describes every board: `/etc/fpgas-online/tt-boards.yaml`. The infra
-`ttsite` role renders it onto the gateway for the web tier, and
-`onpi/tasks/tt.yml` bakes it into the Pi NFS root from the same template, so the
-daemon and the site always agree on what a slug means. It is a list of mappings
+`ttsite` role renders it onto the gateway for the web tier. It is the site's alone: the Pi NFS root carries
+no catalogue, and the daemon reads none ([`onpi/tasks/tt.yml`](https://github.com/fpgas-online/fpgas.online-infra/blob/main/ansible/roles/onpi/tasks/tt.yml) on `main`, read on 7 October 2026;
+the daemon's README). It is a list of mappings
 with these keys:
 
 | Key | What it carries |
 | --- | --- |
 | `slug` | The board's identity: its `/board/<slug>/` page, its `/ws/board/<slug>/serial` socket, and its `/api/board/<slug>/` proxy base. |
 | `switch`, `port` | Which switch port the Pi is plugged into. Everything on the network side is derived from the pair. A null `port` means the slot has no Pi yet. |
-| `kind` | `asic`, `kianv` or `fpga`. It selects the daemon routes that exist, the Commander behaviour, and the extras on the board page. |
+| `kind` | `asic`, `kianv` or `fpga`. It selects the Commander behaviour and the extras on the board page. The daemon's own kind (`fpga`, `other` or `unknown`) does not come from here but from the boot check's report ([The fpgas-tt daemon](#the-fpgas-tt-daemon)). |
 | `shuttle` | Which Tiny Tapeout shuttle the chip came from; blank on FPGA emulation boards. |
 | `title`, `blurb`, `description`, `pcb` | Display text for the tile and the board info card. |
 | `pmods`, `links` | Lists of `{name, url, note}` and `{label, url}` rendered on the board page. |
@@ -186,8 +218,9 @@ nothing cannot silently empty the catalogue. The path the role takes to get
 there, and the interpreter to use on the deploy host, are under
 [Deployment](webapp.md#deployment).
 
-The mapping runs both ways. The daemon uses hostname → catalogue to learn its
-own slug and kind; the site uses catalogue → `(switch, port)` to build the Pi's
+The daemon reads only the boot check's report to learn what its board is (its README), and the Pi root
+carries no catalogue (`onpi/tasks/tt.yml`): see
+[The fpgas-tt daemon](#the-fpgas-tt-daemon). The site uses catalogue → `(switch, port)` to build the Pi's
 address for the WebSocket and API proxies, and to hand the board's switch port
 to the PoE views behind the "Power-cycle board" button — the same
 `/snmp/toggle` endpoint the classic pages use, described under
@@ -199,8 +232,9 @@ FPGA emulation boards ship with a curated set of ready-to-load bitstreams so a
 visitor can run something without synthesising anything. They live in the
 `tinytapeout-fpga-demos` repository, are built in CI, and reach the Pi as the
 `fpgas-online-tt-demos` deb, which installs `index.json` and one `.bin` per
-design under `/usr/share/fpgas-tt/demos/`. Nothing is fetched at run time; the
-daemon syncs the set onto the board itself.
+design under `/usr/share/fpgas-tt/demos/`. Nothing is fetched at run time, and nothing is
+copied to the board: the daemon streams a design from that directory into the FPGA when it is
+loaded ([FPGA-board routes](#fpga-board-routes)).
 
 The current set is five designs: `tt_um_factory_test`, `tt_um_counter_7seg`,
 `tt_um_pwm_breathe`, `tt_um_uart_hello` and `tt_um_vga_pattern`. Each one is a
@@ -385,8 +419,8 @@ fpgas.online-infra, `main`:
   page, the phasing, and the not-yet-implemented list including `POST /build`,
   the PMOD HAT reservation and the open items.
 - [`ansible/roles/onpi/tasks/tt.yml`](https://github.com/fpgas-online/fpgas.online-infra/blob/main/ansible/roles/onpi/tasks/tt.yml)
-  — the two packages installed at `state: latest`, the catalogue baked from the
-  `ttsite` role's own template, and `fpgas-tt.service` enabled only where the
+  — the two packages installed at `state: latest`, that no catalogue goes into the Pi root (it was rendered from the
+  `ttsite` role's own template before), and `fpgas-tt.service` enabled only where the
   site defines Tiny Tapeout boards.
 - [`ansible/inventory/host_vars/fpgas.online.yml`](https://github.com/fpgas-online/fpgas.online-infra/blob/main/ansible/inventory/host_vars/fpgas.online.yml)
   — the shape of the `tt_boards` list only: which keys exist and what each one
@@ -396,11 +430,12 @@ fpgas.online-infra, `main`:
 fpgas.online-tt, `main`:
 
 - [`README.md`](https://github.com/fpgas-online/fpgas.online-tt/blob/main/README.md)
+  (as packaged in `fpgas-online-tt` 0.0.post71, read on 6 October 2026)
   — the device open and retry, the `WS /serial` fan-out with its 256 KiB
-  slow-client drop, the 1001 and 1011 close codes, the `/health` payload
-  including `vid_pid` and `config_error`, the hostname-to-catalogue discovery
-  and the unknown-hostname fallback, the four FPGA routes reproduced verbatim
-  above with their error shapes, `--demos-dir` and the automatic demo sync, the
+  slow-client drop, the 1001 and 1011 close codes, the `/health` payload, how the
+  daemon learns what the board is from the boot check's report, the three FPGA
+  routes with their error shapes, that nothing writes to the demo board's
+  filesystem, the files left from before October 2026, the idle display, the
   install commands, and the rolling-release description.
 
 tinytapeout-fpga-demos, `main`:

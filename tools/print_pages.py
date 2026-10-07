@@ -78,6 +78,14 @@ CHROME = "google-chrome-stable"
 WHOLE_CODE = 24
 WHOLE_ROW = 48
 PAPERS = {"A4": "A4", "Letter": "letter"}
+# A listing is printed at CODE_SIZE pt if its longest line fits the width it has, smaller down to CODE_FLOOR pt
+# if that is what it takes, and a line still too long is broken by fit_code, never by the browser. The width:
+# CODE_WIDTH pt inside a top-level listing on A4 (180 mm less the listing's padding and border, and the 1 pt the
+# body keeps from the edge), less INDENT pt for each list or definition it is in and BOX pt for each box.
+# DejaVu Sans Mono is CODE_EM wide (1233/2048 em). A little is kept spare for rounding.
+CODE_SIZE, CODE_FLOOR, CODE_EM, CODE_SPARE = 8.0, 6.5, 0.60205, 6.0
+CODE_WIDTH, INDENT, BOX = 497.1, {"ul": 17.0, "ol": 17.0, "dd": 30.0}, 19.4
+CONTINUED = "\u21aa "  # the mark at the start of a continuation line
 # Sheet sizes in points (width, height, portrait), for checking appended PDFs.
 PAPER_POINTS = {"A4": (595.28, 841.89), "Letter": (612.0, 792.0)}
 # An image drawn at least this many pixels wide (a wiring sheet) gets a
@@ -107,7 +115,7 @@ CSS = """
   size: %(paper)s portrait;
   margin: 16mm 15mm 18mm 15mm;
   @bottom-left { content: "%(foot)s"; font: 8pt sans-serif; color: #444; }
-  @bottom-right { content: "Page " counter(page) " of " counter(pages);
+  @bottom-right { content: "Page " counter(page) " of " counter(pages) "%(after)s";
                   font: 8pt sans-serif; color: #444; }
 }
 @page wide { size: %(paper)s landscape; margin: 10mm 10mm 14mm 10mm; }
@@ -139,7 +147,10 @@ pre { font-size: 8pt; line-height: 1.3; border: 0.4pt solid #888; background: #f
       padding: 2mm; margin: 0 0 3mm; white-space: pre-wrap; overflow-wrap: anywhere;
       break-inside: avoid; }
 pre.long { break-inside: auto; }
-pre code { background: none; padding: 0; }
+pre code { background: none; padding: 0; font-size: inherit; }
+/* fit_code has sized or broken every listing line to fit, so the browser never wraps one. */
+pre { white-space: pre; overflow-wrap: normal; }
+.code-note { font-size: 8pt; font-style: italic; margin-bottom: 1mm; break-after: avoid; }
 sup.ref { font-size: 6.5pt; line-height: 0; color: #333; }
 .links .together { break-inside: avoid; }
 .links ol { margin-bottom: 0; }
@@ -222,6 +233,13 @@ def article(page: str, url: str) -> Tag:
         raise SystemExit(f"{url}: no <article role=main>; is this a page of the site?")
     for junk in body.select("a.headerlink, button, script, style, .toc-drawer, .related-pages"):
         junk.decompose()
+    # Paper is white: of a picture drawn for each theme, only the light one is printed. The theme hides
+    # .only-dark in light mode; a link that held nothing but the dark picture goes with it.
+    for dark in body.select(".only-dark"):
+        holder = dark.find_parent("a")
+        dark.decompose()
+        if holder is not None and holder.find("img") is None and not holder.get_text(strip=True):
+            holder.decompose()
     # A comment of the page must never look like one of our sheet places.
     for comment in body.find_all(string=lambda text: isinstance(text, Comment)):
         comment.extract()
@@ -490,6 +508,46 @@ def link_notes(body: Tag, url: str, soup: BeautifulSoup) -> Tag | None:
     return box
 
 
+def code_chars(block: Tag) -> tuple[int, int]:
+    """How many characters of a listing fit on its line at CODE_SIZE and at CODE_FLOOR, where it sits."""
+    width = CODE_WIDTH - CODE_SPARE
+    for parent in block.parents:
+        width -= INDENT.get(parent.name, 0)
+        if "admonition" in (parent.get("class") or []):
+            width -= BOX
+    return int(width / (CODE_EM * CODE_SIZE)), int(width / (CODE_EM * CODE_FLOOR))
+
+
+def fit_code(body: Tag, soup: BeautifulSoup) -> None:
+    """Print every line of a listing as one line a reader can type: smaller if it must be, broken by hand if
+    even that is not enough, with each continuation marked and a note saying the marks are not typed."""
+    for block in body.find_all("pre"):
+        chars, floor_chars = code_chars(block)
+        lines = block.get_text().expandtabs(8).rstrip("\n").split("\n")  # Chrome's tab stops are every 8
+        longest = max((len(line) for line in lines), default=0)
+        if longest <= chars:
+            continue
+        size = max(CODE_FLOOR, CODE_SIZE * chars / longest)
+        block["style"] = f"font-size: {size:.2f}pt"
+        if longest <= floor_chars:
+            continue
+        width = floor_chars - len(CONTINUED)
+        out = []
+        for line in lines:
+            out.append(line[:floor_chars])
+            rest = line[floor_chars:]
+            while rest:
+                out.append(CONTINUED + rest[:width])
+                rest = rest[width:]
+        block.clear()
+        block.append("\n".join(out))
+        note = soup.new_tag("p", attrs={"class": "code-note"})
+        note.string = (f"A line below is too long for the sheet: where a line starts with {CONTINUED.strip()}, it "
+                       "continues the line above. Type the two as one line, leaving out the arrow and the one "
+                       "space after it.")
+        block.insert_before(note)
+
+
 def long_blocks(body: Tag) -> None:
     """Let a long listing run over a sheet's end; a short one stays whole."""
     for block in body.find_all("pre"):
@@ -569,6 +627,7 @@ def chapter(number: int, spec: str, commit: str, fetched: str, link_lists: bool 
     absolute_links(body, url)
     sheets = inline_images(body, url, soup, number)
     links = link_notes(body, url, soup) if link_lists else None
+    fit_code(body, soup)
     long_blocks(body)
     short_tables(body)
     whole_codes(body)
@@ -642,8 +701,11 @@ def css_string(text: str) -> str:
 
 
 def document(title: str, paper: str, specs: list[str], cover_notes: str | None = None,
-             last_sheet: str | None = None, link_lists: bool = True) -> str:
+             last_sheet: str | None = None, link_lists: bool = True, appended: int = 0) -> str:
     """The joined page, with a place on the cover for each chapter's sheet number.
+
+    appended: how many sheets of other PDFs follow the printed ones. They carry no foot of ours, so each
+    foot says they are there: "Page 3 of 56 + 2 unnumbered".
 
     cover_notes and last_sheet are the text of a notes file, or None when not
     given; a given one that holds no heading stops the run.
@@ -656,7 +718,8 @@ def document(title: str, paper: str, specs: list[str], cover_notes: str | None =
     fetched = datetime.date.today().isoformat()
     chapters = [chapter(number, spec, commit, fetched, link_lists) for number, spec in enumerate(specs, 1)]
     foot = css_string(f"{title} · docs.fpgas.online · commit {commit[:10]} · {fetched}")
-    css = CSS % {"paper": PAPERS[paper], "foot": foot}
+    after = f" + {appended} unnumbered" if appended else ""
+    css = CSS % {"paper": PAPERS[paper], "foot": foot, "after": after}
     contents = "".join(
         f"<li>{html.escape(name)}{SHEET_PLACE % number} <small>({html.escape(shown(spec))})</small></li>"
         for number, (spec, (name, _)) in enumerate(zip(specs, chapters), 1)
@@ -814,8 +877,8 @@ def print_pdf(page: Path, target: Path) -> None:
         raise SystemExit(f"{CHROME} wrote no PDF at {target}")
 
 
-def check_paper(path: Path, paper: str) -> None:
-    """Stop unless every page of the PDF is on the chosen paper, in either orientation."""
+def check_paper(path: Path, paper: str) -> int:
+    """How many pages the PDF has; stops unless every one is on the chosen paper, in either orientation."""
     info = run(["pdfinfo", "-f", "1", "-l", "100000", str(path)], f"pdfinfo {path}", timeout=60,
                capture_output=True, text=True).stdout
     sizes = re.findall(r"^Page\s+\d+ size:\s*([0-9.]+) x ([0-9.]+) pts", info, re.MULTILINE)
@@ -830,17 +893,26 @@ def check_paper(path: Path, paper: str) -> None:
                 f"--append {path}: page {number} is {width} x {height} pt, not {paper} "
                 f"({wide} x {high} pt, either way up); appended PDFs are not resized"
             )
+    return len(sizes)
 
 
-def append_pdfs(printed: Path, extra: list[Path], paper: str, result: Path) -> None:
-    """Write result: the printed pages, then the extra PDFs (label sheets, say) as they are."""
-    joiner = shutil.which("pdfunite")
-    if joiner is None or shutil.which("pdfinfo") is None:
+def appended_sheets(extra: list[Path], paper: str) -> int:
+    """How many sheets the PDFs to append have in all; stops on a missing file or one on other paper."""
+    if extra and (shutil.which("pdfunite") is None or shutil.which("pdfinfo") is None):
         raise SystemExit("pdfunite and pdfinfo (poppler-utils) are not installed; --append needs them")
+    total = 0
     for path in extra:
         if not path.is_file():
             raise SystemExit(f"--append {path}: no such file")
-        check_paper(path, paper)
+        total += check_paper(path, paper)
+    return total
+
+
+def append_pdfs(printed: Path, extra: list[Path], paper: str, result: Path) -> None:
+    """Write result: the printed pages, then the extra PDFs (label sheets, say) as they are.
+
+    The extra PDFs were checked by appended_sheets before anything was printed."""
+    joiner = shutil.which("pdfunite")
     run([joiner, str(printed), *map(str, extra), str(result)], "pdfunite", timeout=120)
     if not result.is_file() or result.stat().st_size == 0:
         raise SystemExit(f"pdfunite wrote no PDF at {result}")
@@ -888,7 +960,10 @@ def main() -> int:
     try:
         printed.unlink(missing_ok=True)
         united.unlink(missing_ok=True)
-        page = document(args.title, args.paper, args.pages, cover_notes, last_sheet, not args.no_link_lists)
+        # Counted before anything is fetched or printed: a wrong PDF stops the run at once.
+        appended = appended_sheets(args.append, args.paper)
+        page = document(args.title, args.paper, args.pages, cover_notes, last_sheet, not args.no_link_lists,
+                        appended)
         places = set(re.findall(SHEET_PLACE_RE, page))
         joined.write_text(without_sheets(page), encoding="utf-8")
         print_pdf(joined, printed)

@@ -97,6 +97,13 @@ the same settings as the blade shown above (pi16).
 ```{image} bootloader-eeprom/sr1-bits.svg
 :alt: Status register 1 bit by bit: 0xbc is SRP, TB, BP2, BP1 and BP0 set (locked); 0x00 (printed as 0x0) is not locked
 :width: 100%
+:class: only-light
+```
+
+```{image} bootloader-eeprom/sr1-bits-dark.svg
+:alt: Status register 1 bit by bit: 0xbc is SRP, TB, BP2, BP1 and BP0 set (locked); 0x00 (printed as 0x0) is not locked
+:width: 100%
+:class: only-dark
 ```
 
 The script prints `0x00` as `0x0`. The W25Q16JV datasheet also says that with
@@ -218,6 +225,13 @@ without a visit is open work.
 ```{image} bootloader-eeprom/blade-dev.svg
 :alt: Outline of a Dev model Compute Blade with the USB Type-C port (1), the USB switch (2), the nRPIBOOT button (3) and the DIP switches marked
 :width: 100%
+:class: only-light
+```
+
+```{image} bootloader-eeprom/blade-dev-dark.svg
+:alt: Outline of a Dev model Compute Blade with the USB Type-C port (1), the USB switch (2), the nRPIBOOT button (3) and the DIP switches marked
+:width: 100%
+:class: only-dark
 ```
 
 A Compute Module's bootloader is written over USB from another computer, and
@@ -228,6 +242,13 @@ be repaired only the same way, which is why a blade that works is left alone.
 ```{image} bootloader-eeprom/blade-dip.svg
 :alt: The three DIP switches of a Dev model Compute Blade: 1 write protection (left disabled, right enabled), 2 Wi-Fi, 3 Bluetooth
 :width: 85%
+:class: only-light
+```
+
+```{image} bootloader-eeprom/blade-dip-dark.svg
+:alt: The three DIP switches of a Dev model Compute Blade: 1 write protection (left disabled, right enabled), 2 Wi-Fi, 3 Bluetooth
+:width: 85%
+:class: only-dark
 ```
 
 The Dev model also has the switch that holds the bootloader's write protection.
