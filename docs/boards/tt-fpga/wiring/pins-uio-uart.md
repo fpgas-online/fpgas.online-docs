@@ -7,7 +7,10 @@ The RP2350 GPIO numbers on this page follow Tiny Tapeout's specification for the
 
 ## The BIDIR header and the serial port
 
+Which header goes to which port, with the picture, pin 1 and how to find the headers: [which cable goes where](cables.md).
+
 ```{include} ../generated/tt-fpga-pins-uio-uart.md
 :relative-images:
 :relative-docs: tt-fpga-
+:start-after: "How the sockets and cables are made, and what is not yet known about the cables: see [the cables page](/boards/tt-fpga/wiring/cables.md)."
 ```

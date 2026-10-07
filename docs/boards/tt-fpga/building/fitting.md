@@ -21,20 +21,34 @@ either. Every wire this board uses is on the wiring pages of this set.
 ## 3. The three Pmod cables and the USB-C cable
 
 **Before a cable goes in, find pin 1 on both connectors** (the paragraph "Pin 1 on the picture" below): a
-2x6 cable turned round puts 3.3 V on signal pins. What cable to use, and whether its 3.3 V pins may be
-connected, is not recorded (the list "The cables" below): nothing here tells you which to choose.
+2x6 cable turned round puts 3.3 V on signal pins. Which cable to use, and whether its 3.3 V pins may be
+connected, is the open question of this board: [the building
+overview](index.md#the-open-question-which-cable-and-its-33-v-pins). Nothing here tells you which to choose.
 
 ```{include} ../generated/tt-fpga-cables.md
 :relative-images:
 :relative-docs: tt-fpga-
+:start-after: "This part shows which cable goes where."
+:end-before: "**From the makers' documents"
+```
+
+```{include} ../pin1-measured.inc
+```
+
+How the sockets on both boards are made, from the makers' documents: [which cable goes
+where](../wiring/cables.md).
+
+```{include} ../generated/tt-fpga-cables.md
+:start-after: "Neither the wires nor any pin 1 mark can be made out."
+:end-before: "The USB-C cable carries"
 ```
 
 With the USB-C cable in and the demo board running its firmware, the Raspberry Pi sees the board's
-microcontroller as a USB serial device:
-
-**USB device:** `/dev/ttyACM0`, with a udev symlink **`/dev/ttboard`** that the Pi daemon opens (the
-symlink comes with the `fpgas-online-tt` package: [Serial consoles](../../../setup/pi.md#serial-consoles),
-another page, not in this set).
+microcontroller as a USB serial device: `/dev/serial/by-id/usb-MicroPython_Board_in_FS_mode_<serial>-if00`,
+where `<serial>` is its USB serial number, and `/dev/ttboard` on a Pi with the `fpgas-online-tt` package (its
+udev rule: [Serial consoles](../../../setup/pi.md#serial-consoles), another page, not in this set). The boards
+at welland were seen as `/dev/ttyACM0` (3 September 2026); that name is only what the kernel gave them, not
+the board's name.
 
 ```{include} ../usb-ids.inc
 ```
@@ -50,9 +64,9 @@ $ ls /dev/ttyACM*
 ```
 
 What to expect, from the records (the boards at welland, 3 September 2026, and [Tiny Tapeout ASIC demo
-boards](../../tt-asic.md#connection-to-the-pi)): `/dev/ttyACM0`, and in `/dev/serial/by-id/` a name of the
-form `usb-MicroPython_Board_in_FS_mode_<serial>-if00`, where `<serial>` is the microcontroller's USB serial
-number. `/dev/ttboard` appears only on a Pi with the `fpgas-online-tt` package. What a board in its boot
+boards](../../tt-asic.md#connection-to-the-pi)): in `/dev/serial/by-id/` a name of the form
+`usb-MicroPython_Board_in_FS_mode_<serial>-if00`, where `<serial>` is the microcontroller's USB serial
+number, and a `/dev/ttyACM` device (`/dev/ttyACM0` on those boards). `/dev/ttboard` appears only on a Pi with the `fpgas-online-tt` package. What a board in its boot
 loader shows here is not recorded (the check reports it as `2e8a:0003`).
 
 ## 5. The camera

@@ -11,9 +11,11 @@ documentation records.
 
 On an FPGA board the check's `pin-id` test is the wiring test: it loads the pin identification design, in
 which each FPGA pin sends its own pin number, and the Raspberry Pi reads which number arrives on which GPIO of
-the Pmod HAT. It passes when each GPIO hears the pin the expected cabling puts there: all 24 signal wires of
-the three ribbons, each on its own (the six that share three Pi pins send in turns). The design and its
+the Pmod HAT. It passes when each GPIO hears the pin the expected cabling puts there. The design and its
 reader: [the pin-ID test](../designs/pmod-pin-id.md).
+
+```{include} ../pin-id-coverage.inc
+```
 
 ## The failing line
 
@@ -47,7 +49,8 @@ here: we hold no recorded output). Find the wire in the tables of [`ui_in` and
 iCE40 pin: the row there gives the Pmod HAT port and pin and the demo board header and pin, which is the wire
 to look at. Which header goes to which port:
 
-[![Which Pmod header of the demo board goes to which port of the Pmod HAT](../generated/tt-fpga-pmod-cables.png)](../generated/tt-fpga-pmod-cables.svg)
+[![Which Pmod header of the demo board goes to which port of the Pmod HAT](../generated/tt-fpga-pmod-cables.png)](../generated/tt-fpga-pmod-cables.svg){.only-light}
+[![Which Pmod header of the demo board goes to which port of the Pmod HAT](../generated/tt-fpga-pmod-cables-dark.png)](../generated/tt-fpga-pmod-cables-dark.svg){.only-dark}
 
 What is recorded about kinds of fault:
 

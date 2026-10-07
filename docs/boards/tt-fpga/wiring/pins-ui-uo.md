@@ -10,7 +10,10 @@ layouts](../../pmod/tinytapeout.md#rp2350-gpio-mapping-demo-board-v3-tt09) gives
 
 ## The INPUT and OUTPUT headers
 
+Which header goes to which port, with the picture, pin 1 and how to find the headers: [which cable goes where](cables.md).
+
 ```{include} ../generated/tt-fpga-pins-ui-uo.md
 :relative-images:
 :relative-docs: tt-fpga-
+:start-after: "How the sockets and cables are made, and what is not yet known about the cables: see [the cables page](/boards/tt-fpga/wiring/cables.md)."
 ```

@@ -1,8 +1,11 @@
 :::{warning}
 **Only if your Pi runs the fpgas.online Tiny Tapeout daemon (the boards at welland do): the `fpgas-tt`
-daemon holds the board's serial port.** The daemon has `/dev/ttboard` (`/dev/ttyACM0`) open all the time, so
-`mpremote` and the programming script cannot open it while the daemon runs. Stop the daemon first, and start
-it again afterwards or the board drops off the public site:
+daemon holds the board's serial port.** The daemon has `/dev/ttboard` open all the time, so `mpremote` and
+the programming script cannot open it while the daemon runs. Stop the daemon before, and start it again after,
+or the board drops off the public site.
+
+```{include} ../visitor-check.inc
+```
 
 ```console
 $ sudo systemctl stop fpgas-tt

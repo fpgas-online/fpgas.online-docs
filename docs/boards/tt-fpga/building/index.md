@@ -1,11 +1,26 @@
 # Tiny Tapeout FPGA board on a Raspberry Pi: building overview
 
-**You have a Tiny Tapeout FPGA demo board, a Raspberry Pi and a Digilent Pmod HAT, and want to join them, and
-then check that the wiring is right.**
+**You have a Tiny Tapeout FPGA demo board, a Raspberry Pi and a Digilent Pmod HAT, and want to join them,
+check that the wiring is right, and know what it takes for the board to be on the public site.**
 
 **This guide is not yet a full procedure.** It holds what is recorded about how the boards at welland are put
 together; nothing in it was written from an assembly we watched. Each step that has no procedure or no
 picture says so in place. Not yet run by us on this hardware as a guide.
+
+## The open question: which cable, and its 3.3 V pins
+
+**What cable joins the demo board's headers to the Pmod HAT on our boards, and whether its pins 6 and 12
+(3.3 V on both boards) are connected, is not recorded.** The question was asked of the boards' owner on
+6 October 2026 and is not yet answered. Until it is, this guide names no cable to buy and gives no
+instruction about the 3.3 V pins; every other page that touches the cables points here.
+
+What the makers' documents and our cameras say about the cables. The second line holds only if a straight
+twelve-wire cable is used: it is not an instruction to use one.
+
+```{include} ../generated/tt-fpga-cables.md
+:start-after: "**The cables**"
+:end-before: "On a Pmod connector pins 1 to 6"
+```
 
 ## What you will have
 
@@ -15,32 +30,37 @@ ov5647 camera publishing a live feed of the board. RPis are powered and
 networked through PoE switches at each site. The camera and the power are not in the picture below, which
 shows the Pmod cables and the USB-C cable only.
 
-[![Which Pmod header of the demo board goes to which port of the Pmod HAT](../generated/tt-fpga-pmod-cables.png)](../generated/tt-fpga-pmod-cables.svg)
+[![Which Pmod header of the demo board goes to which port of the Pmod HAT](../generated/tt-fpga-pmod-cables.png)](../generated/tt-fpga-pmod-cables.svg){.only-light}
+[![Which Pmod header of the demo board goes to which port of the Pmod HAT](../generated/tt-fpga-pmod-cables-dark.png)](../generated/tt-fpga-pmod-cables-dark.svg){.only-dark}
 
 Three 12-pin Pmod cables, each pin 1 to pin 1 (INPUT to JA, BIDIR to JB, OUTPUT to JC), and one USB-C cable
 from the demo board to a USB port of the Raspberry Pi.
 
 ## The order of work
 
-1. [Parts](bom.md): what is known and not known about the parts.
-2. [Fitting](fitting.md): power off, the HAT on the Raspberry Pi, the three Pmod cables, the USB-C cable, the camera.
-3. [Verifying 1](verifying-1.md): install the packages, run the check and read its result.
-4. [Verifying 2](verifying-2.md): from a failing line of the check to the cable at fault.
-
-## The pages of this guide
-
 ```{toctree}
 :maxdepth: 1
 
 What is known about the parts <bom>
-Fitting <fitting>
+Fitting: power off, the HAT, the cables, power on, the camera <fitting>
 Verifying 1: install and run the check <verifying-1>
 Verifying 2: from a failing line to the cable <verifying-2>
 ```
 
-## What is not known about the cables
+## From a passing board to the public site
 
-What cable joins the demo board's headers to the Pmod HAT on our boards, and whether its pins 6 and 12
-(3.3 V on both boards) are connected, is not recorded. The question was asked of the boards' owner on
-6 October 2026 and is not yet answered: [which cable goes where](../wiring/cables.md). Until it is, this guide
-names no cable to buy and gives no instruction about the 3.3 V pins.
+**A board on a Pi of your own is not on tinytapeout.fpgas.online, and nothing in this guide puts it there.**
+What the records say the site needs:
+
+1. **The Pi boots the fleet's root.** The site's boards are on Pis that boot fpgas.online's shared root over
+   the network at a site of ours ([Tiny Tapeout FPGA boards at welland](../installations/welland.md)); the
+   boot check runs in it at every boot.
+2. **The boot check reports the board.** Each Pi's boot check reports which board it carries and what that
+   board is, by the board's USB serial number, in its `fpga-verified` report, and the site follows that
+   report ([Events](../../../verify/fpgas-verify.md#events), another page, not in this set).
+3. **The site's list gives it a name, if it has a row.** The site's list of Tiny Tapeout boards, `tt_boards`
+   in fpgas.online-infra, names each board by its `usb_serial` and gives it a page address, a title and a
+   description. A board that is in no row is shown all the same, at `/board/tt-<usb serial>/` (the list's own
+   comment in `ansible/inventory/host_vars/fpgas.online.yml` of fpgas.online-infra, read on 7 October 2026).
+
+Whom to ask: the operator of the site, who keeps that list and the Pis that boot the fleet's root.
