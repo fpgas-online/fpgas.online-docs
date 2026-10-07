@@ -53,7 +53,7 @@ This page has been split, by task. Each part of it is now on the page named here
 (test-infrastructure)=
 (available-tests)=
 (test-execution)=
-**Test infrastructure**: one page for each test: [Pmod pin ID](tt-fpga/designs/pmod-pin-id.md), [Pmod loopback](tt-fpga/designs/pmod-loopback.md), [UART](tt-fpga/designs/uart.md); the SPI flash ID test [does not apply](tt-fpga/designs/spi-flash-id.md). What the public site loads: [demos](tt-fpga/designs/demos.md).
+**Test infrastructure**: one page for each test: [Pmod pin ID](tt-fpga/designs/pmod-pin-id.md), [Pmod loopback](tt-fpga/designs/pmod-loopback.md), [UART](tt-fpga/designs/uart.md); the breakout has [no SPI flash](tt-fpga/overview/device-info.md#no-spi-flash), so no SPI flash ID test. Running them from a workstation: [from a workstation](tt-fpga/designs/from-a-workstation.md). What the public site loads: [demos](tt-fpga/designs/demos.md).
 
 (pin-mapping)=
 (ui_in)=
@@ -73,4 +73,4 @@ This page has been split, by task. Each part of it is now on the page named here
 **PMOD loopback**: [the Pmod loopback test](tt-fpga/designs/pmod-loopback.md).
 
 (spi-flash)=
-**SPI flash**: the breakout has none: [SPI flash ID (does not apply)](tt-fpga/designs/spi-flash-id.md).
+**SPI flash**: the breakout has none: [no SPI flash](tt-fpga/overview/device-info.md#no-spi-flash).

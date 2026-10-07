@@ -112,15 +112,6 @@ python3 process on every TT host then at welland. Consequences for the test tool
 
 ### FPGA-board routes
 
-:::{note}
-**The rule: an FPGA on a demo board is loaded by streaming only**, and no code of ours may write, replace or
-delete a file on a Tiny Tapeout demo board. The routes below are described as this page recorded them in
-September 2026, when the daemon kept bitstreams under `/bitstreams` on the board. The daemon's README on its
-`main` branch (read on 6 October 2026) says that has changed: "Nothing writes to the demo board's filesystem.
-Every design is a file on the Pi". The table below has not yet been brought up to that README:
-[fpgas.online-tt](https://github.com/fpgas-online/fpgas.online-tt/blob/main/README.md) is the record.
-:::
-
 On a `kind: fpga` board four more routes manage bitstreams over the board's raw
 MicroPython REPL, each run through the bridge like any other client:
 

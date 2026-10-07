@@ -109,7 +109,7 @@ host has an ov5647 camera pointed at the board as well.
 
 **No GPIO wiring table has been measured for the ASIC boards.** The measured
 iCE40-ball-to-PMOD-HAT-to-Pi-GPIO map on the
-[Tiny Tapeout FPGA wiring pages](tt-fpga/wiring/cables.md) was taken on a demo board
+Tiny Tapeout FPGA wiring pages ([`ui_in` and `uo_out`, wire by wire](tt-fpga/wiring/pins-ui-uo.md); the other two pin pages are [`uio` and the serial port](tt-fpga/wiring/pins-uio-uart.md) and [the loading pins, display, clock, reset and LED](tt-fpga/wiring/pins-other.md)) was taken on a demo board
 **v3** (TTDBv3) host; it applies to a v3 ASIC board only if the cabling is
 identical, and it says nothing about the v2 boards that are actually deployed
 here. Nothing on this page should be read as a verified ASIC pin map.

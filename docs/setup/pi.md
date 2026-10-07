@@ -32,7 +32,7 @@ From it:
 | --- | --- | --- |
 | `fpgas-online-setup-pi` | `onpi/tasks/main.yml` | The pistat and Arty units, the USB gadget console, the FEL-boot host, the `.link` interface names, the `/etc/profile.d` banner scripts, the zsh/tmux skeleton and the sshd drop-in. |
 | `fpgas-online-tt` | `onpi/tasks/tt.yml` | The `fpgas-tt` daemon: it owns `/dev/ttboard` and fans it out as a WebSocket on port 8765. See [The Tiny Tapeout stack](tinytapeout.md). |
-| `fpgas-online-tt-demos` | `onpi/tasks/tt.yml` | The demo bitstream set under `/usr/share/fpgas-tt/demos` (`index.json` plus one `.bin` per design), which the daemon syncs onto an `fpga` board. |
+| `fpgas-online-tt-demos` | `onpi/tasks/tt.yml` | The demo bitstream set under `/usr/share/fpgas-tt/demos` (`index.json` plus one `.bin` per design), which the daemon streams from the Pi when a design is loaded; nothing is copied to the board (record: the daemon's README on `main`). |
 | `fpgas-online-cam` | `cam/pi` role | `/usr/local/bin/fpgas-gst-libcam.sh` and `fpgas-cam.service`. See [Camera](#camera). |
 
 `fpgas-online-setup-pi` also drags in four packages that `apt.yml` never names,

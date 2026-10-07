@@ -7,7 +7,7 @@ datasheets. Several board pages defer their open wiring questions to this
 method, including the Arty A7's
 [PMOD cable routing](arty-a7.md#pmod-cable-routing-hat--arty), the Acorn's
 [P2 wiring check](acorn/designs/pin-id.md),
-and the TT FPGA's [pin mapping](tt-fpga/designs/pmod-pin-id.md).
+and the TT FPGA's pin mapping: [`ui_in` and `uo_out`, wire by wire](tt-fpga/wiring/pins-ui-uo.md); the other two pin pages are [`uio` and the serial port](tt-fpga/wiring/pins-uio-uart.md) and [the loading pins, display, clock, reset and LED](tt-fpga/wiring/pins-other.md).
 
 ## How It Works
 

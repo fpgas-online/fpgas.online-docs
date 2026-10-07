@@ -248,7 +248,7 @@ for:
 | Acorn | UART, DDR, SPI flash | `systemctl stop serial-getty@ttyAMA0` | As above. |
 | Acorn | PMOD loopback, PCIe enumeration | none | The loopback runs the NeTV2 one-bit serial path, and the PCIe test only reads the enumeration. |
 | TT FPGA | PMOD loopback | `rmmod spidev spi_bcm2835` | The loopback drives the FPGA through the PMOD HAT, over the same GPIO 7–11 the SPI modules claim. |
-| TT FPGA | UART, SPI flash | none | These go over the RP2350's USB CDC port, not the Pi's GPIO UART. |
+| TT FPGA | UART | none | It goes over the RP2350's USB CDC port, not the Pi's GPIO UART. The breakout has [no SPI flash](../boards/tt-fpga/overview/device-info.md#no-spi-flash), so this board has no SPI flash test. |
 
 A PoE cycle loses all of this: the mask, the unloaded modules and the pin
 functions are all runtime state on a read-only NFS root, so the pre-test is
@@ -318,12 +318,12 @@ on [the pins that load the FPGA](../boards/tt-fpga/wiring/pins-other.md) and the
 What the runner does differently is which of the two entry points it calls. For
 the PMOD loopback it programs in its own step, appending `--gpio-release` so
 the RP2350 drops off the shared traces before the Pi drives them. For the UART
-and SPI-flash designs it does not program separately at all: it calls
+design it does not program separately at all (the board has no SPI flash, so no SPI-flash design): it calls
 `tt_test_wrapper.py`, which programs the board, bridges its serial port and
 runs the test in one invocation, with a 240-second timeout instead of the
 120-second one that programming alone gets. Once the FPGA is configured the Pi
-reaches it through the PMOD HAT exactly as it does an Arty or a Fomu, so
-programming is the only board-specific step.
+reaches it through the PMOD HAT exactly as it does an Arty or a Fomu for the Pmod tests; the UART test goes
+through the RP2350's bridge instead ([the UART test](../boards/tt-fpga/designs/uart.md)).
 
 :::{note}
 The upstream `verify-hardware.md` carries its own iCE40 ↔ PMOD HAT ↔ Pi GPIO pin
