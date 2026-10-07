@@ -592,7 +592,10 @@ class FitSteps(unittest.TestCase):
         soup = p.BeautifulSoup("", "html.parser")
         article = p.BeautifulSoup(html_text, "html.parser")
         p.step_pictures(article, soup)
-        p.fit_steps(article, soup, paper)
+        said = io.StringIO()
+        with contextlib.redirect_stderr(said):
+            p.fit_steps(article, soup, paper, "Fitting")
+        self.said = said.getvalue().splitlines()
         return article
 
     def height(self, image):
@@ -622,10 +625,10 @@ class FitSteps(unittest.TestCase):
         self.assertIsNone(article.select_one(".continued"))
 
     def test_a_second_picture_comes_into_the_step_when_the_whole_fits(self):
-        article = self.fit("<p>5. Fill.</p>" + picture(1560, 600) + picture(1560, 600) + "<p>after</p>")
+        article = self.fit("<p>5. Fill.</p>" + picture(1560, 600) + picture(1560, 600) + "<h2>Next</h2><p>after</p>")
         step = article.select_one("div.step")
         self.assertEqual(len(step.find_all("img")), 2)
-        self.assertEqual(article.find_all("p")[-1].get_text(), "after")
+        self.assertEqual(step.find_next_sibling().get_text(), "Next")
         self.assertNotIn("style", step.find_all("img")[1].attrs)
 
     def test_two_pictures_shrink_to_one_common_scale(self):
@@ -634,25 +637,85 @@ class FitSteps(unittest.TestCase):
         self.assertAlmostEqual(self.height(first), 2 * self.height(second), delta=0.2)
 
     def test_a_second_picture_that_does_not_fit_goes_on_the_next_sheet_under_the_step_number(self):
-        article = self.fit("<p>5. Fill.</p>" + picture(1560, 2116) + picture(1560, 2116) + "<p>after</p>")
+        article = self.fit("<p>5. Fill.</p>" + picture(1560, 2116) + picture(1560, 2116) + "<h2>Next</h2>")
         step, continued = article.select("div.step")
         self.assertEqual(continued["class"], ["step", "continued"])
         self.assertEqual(continued.find_previous_sibling(), step)
-        self.assertEqual(continued.select_one("p.continued-line").get_text(), "Step 5, continued")
+        self.assertEqual(continued.select_one("p.continued-line").get_text(), "Fitting, step 5, continued: fill")
         self.assertEqual(continued.find("img")["alt"], "pic 1560x2116")
         self.assertEqual(len(step.find_all("img")), 1)
-        self.assertEqual(continued.find_next_sibling().get_text(), "after")
+        self.assertEqual(continued.find_next_sibling().get_text(), "Next")
+        self.assertIn("print_pages: Fitting, step 5: picture 'pic 1560x2116' moved to the next sheet, under "
+                      "\u201cFitting, step 5, continued: fill\u201d", self.said)
 
     def test_a_first_picture_that_cannot_fit_at_the_smallest_scale_goes_on_the_next_sheet(self):
         article = self.fit(f"<p>2. {words(2500)}</p>" + picture(1560, 2116))
         step, continued = article.select("div.step")
         self.assertIsNone(step.find("img"))
-        self.assertEqual(continued.select_one("p.continued-line").get_text(), "Step 2, continued")
+        self.assertEqual(continued.select_one("p.continued-line").get_text(), "Fitting, step 2, continued: " + " ".join(["word"] * 12) + "\u2026")
         self.assertNotIn("style", continued.find("img").attrs)
 
-    def test_a_step_without_a_number_says_it_continues(self):
-        article = self.fit("<p>The two cavity pictures:</p>" + picture(1560, 2116) + picture(1560, 2116))
-        self.assertEqual(article.select_one("p.continued-line").get_text(), "Continued from the sheet before")
+    def test_a_step_without_a_number_says_it_continues_naming_its_heading_and_first_words(self):
+        article = self.fit("<h1>Compute Blade cables: verifying 2, when a test fails</h1><h2>From a line to the wire</h2>"
+                           "<p>The two cavity pictures are the ones the cables were built from, shown again.</p>"
+                           + picture(1560, 2116) + picture(1560, 2116))
+        self.assertEqual(article.select_one("p.continued-line").get_text(),
+                         "Fitting, \u201cFrom a line to the wire\u201d, continued from the sheet before: the two "
+                         "cavity pictures are the ones the cables were built from")
+
+    def test_a_step_without_a_number_under_the_title_alone_is_named_by_the_chapter(self):
+        article = self.fit("<h1>Fitting</h1><p>GND and TCK are the names.</p>" + picture(1560, 2116) * 2)
+        self.assertEqual(article.select_one("p.continued-line").get_text(),
+                         "Fitting, continued from the sheet before: GND and TCK are the names")
+
+    def test_a_shrunk_picture_is_said_on_stderr(self):
+        self.fit(f"<p>3. {words(1500)}</p>" + picture(1560, 1560))
+        self.assertEqual(len(self.said), 1)
+        self.assertRegex(self.said[0], r"^print_pages: Fitting, step 3: picture 'pic 1560x1560' shrunk to \d+ mm "
+                         r"from \d+ mm \(0\.\d\d of the column's width\)$")
+
+    def test_a_step_that_fits_says_nothing(self):
+        self.fit("<p>1. Cut.</p>" + picture(1560, 1118))
+        self.assertEqual(self.said, [])
+
+    def test_short_paragraphs_ending_the_section_stay_on_the_sheet_of_the_last_picture(self):
+        # Verifying 2 in copy 21: the second cavity picture filled its sheet, and the last of three short
+        # paragraphs after it stood alone on the next one.
+        ending = "".join(f"<p>{words(180)}</p>" for _ in range(3))
+        article = self.fit("<section><p>The two cavity pictures:</p>" + picture(1560, 2116) + picture(1560, 2144)
+                           + ending + "</section>")
+        step, continued = article.select("div.step")
+        tail = continued.find_all(recursive=False)[-1]
+        self.assertEqual(tail["class"], ["step-tail"])
+        self.assertEqual(len(tail.find_all("p")), 3)
+        image = continued.find("img")
+        width, height = p.TEXT_MM["Letter"]
+        words_mm = sum(p.words_mm(part, width) for part in tail.find_all("p"))
+        self.assertLessEqual(self.height(image) + p.PICTURE_BELOW_MM + p.CONTINUED_MM + words_mm,
+                             height - p.STEP_SPARE_MM + 0.06)  # the style rounds to 0.1 mm
+        self.assertGreaterEqual(self.height(image), p.PICTURE_MIN_SCALE * width * 2144 / 1560)
+        self.assertTrue(any("3 paragraph(s) ending its section kept" in line for line in self.said))
+
+    def test_a_step_that_fits_keeps_its_ending_paragraphs_inside_it(self):
+        article = self.fit("<section><p>1. Cut.</p>" + picture(1560, 1118) + "<p>Done.</p></section>")
+        step = article.select_one("div.step")
+        self.assertEqual(step.select_one("div.step-tail").get_text(), "Done.")
+        self.assertNotIn("style", step.find("img").attrs)
+
+    def test_paragraphs_followed_by_anything_else_in_the_section_are_left_where_they_are(self):
+        for after in ("<h2>Next</h2>", "<table><tr><td>x</td></tr></table>", picture(1560, 600)):
+            article = self.fit("<section><p>1. Cut.</p>" + picture(1560, 1118) + "<p>Done.</p>" + after + "</section>")
+            self.assertIsNone(article.select_one("div.step-tail"), after)
+
+    def test_paragraphs_too_long_to_keep_are_left_where_they_are(self):
+        ending = "".join(f"<p>{words(900)}</p>" for _ in range(3))
+        article = self.fit("<section><p>1. Cut.</p>" + picture(1560, 1118) + ending + "</section>")
+        self.assertIsNone(article.select_one("div.step-tail"))
+
+    def test_ending_paragraphs_that_would_push_the_picture_below_the_smallest_scale_are_left(self):
+        ending = "".join(f"<p>{words(500)}</p>" for _ in range(3))  # under TAIL_MAX_MM, but no room beside it
+        article = self.fit(f"<section><p>3. {words(2000)}</p>" + picture(1560, 1560) + ending + "</section>")
+        self.assertIsNone(article.select_one("div.step-tail"))
 
     def test_more_pictures_than_one_sheet_holds_go_on_as_many_sheets_as_they_need(self):
         article = self.fit("<p>4. Look.</p>" + picture(1560, 2116) * 3)
@@ -687,6 +750,33 @@ class FitSteps(unittest.TestCase):
 
     def test_the_continued_block_starts_a_sheet(self):
         self.assertIn(".continued { break-before: page; }", p.CSS)
+
+
+class StepNames(unittest.TestCase):
+    def test_the_chapter_name_is_the_title_after_its_colon_and_before_its_comma(self):
+        self.assertEqual(p.chapter_name("Compute Blade cables: JTAG connector 1, prepare the wires"), "JTAG connector 1")
+        self.assertEqual(p.chapter_name("Compute Blade cables: fitting"), "Fitting")
+        self.assertEqual(p.chapter_name("Acorns at ps1"), "Acorns at ps1")
+
+    def test_first_words_are_the_first_clause_without_the_number(self):
+        self.assertEqual(p.first_words("3. Find wire 1 of the P1 cable and flag the wires, before cutting."),
+                         "find wire 1 of the P1 cable and flag the wires")
+        self.assertEqual(p.first_words("1. Cut. Then strip."), "cut")
+        self.assertEqual(p.first_words("Measure 2.5 mm: then cut"), "measure 2.5 mm")
+
+    def test_a_name_keeps_its_capital(self):
+        self.assertEqual(p.first_words("GND and TCK are the names"), "GND and TCK are the names")
+        self.assertEqual(p.first_words("P1 goes first"), "P1 goes first")
+
+    def test_long_first_clauses_are_cut_with_an_ellipsis(self):
+        self.assertEqual(p.first_words("a b c d e f g h i j k l m n", 3), "a b c\u2026")
+
+    def test_a_numbered_step_is_named_by_chapter_and_number(self):
+        words = p.BeautifulSoup("<p>3. Find wire 1 of the P1 cable and flag the wires, before cutting.</p>",
+                                "html.parser").p
+        self.assertEqual(p.step_names(words, "JTAG connector 1"),
+                         ("JTAG connector 1, step 3",
+                          "JTAG connector 1, step 3, continued: find wire 1 of the P1 cable and flag the wires"))
 
 
 class WordsHeight(unittest.TestCase):

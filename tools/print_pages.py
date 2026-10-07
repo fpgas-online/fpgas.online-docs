@@ -32,7 +32,10 @@ chapter where it is printed once at the full width of the paper (in vector
 form when the page links one).
 A step's words print on one sheet with its pictures, which are shrunk for that
 if need be, but not below a size whose labels can still be read; a picture that
-would have to be smaller goes on the next sheet under "Step N, continued".
+would have to be smaller goes on the next sheet under a line naming the chapter and the step ("JTAG
+connector 1, step 3, continued: find wire 1 of the P1 cable"). After printing, every step's words and
+pictures are found in the PDF, and the run stops if any picture is on another sheet than its step's words,
+other than on a sheet the tool began with such a line.
 --append puts existing PDFs (label sheets) after the printed pages unchanged
 and not renumbered; every page of them must already be on the chosen paper,
 either way up, or the run stops.
@@ -126,7 +129,9 @@ HEADING_SIZES = {"h1": (20, 4.0), "h2": (15, 9.7), "h3": (12, 7.0), "h4": (10.5,
 SOURCE_MM = 2 * 8 * 1.4 * PT_MM + 5.6
 # Below a picture's image: its paragraph's margin and the line's descent (a figure: its margin and caption).
 PICTURE_BELOW_MM, FIGURE_BELOW_MM = 5.0, 3.5
-CONTINUED_MM = 10 * 1.4 * PT_MM + 2.5  # the line "Step N, continued"
+CONTINUED_MM = 2 * 10 * 1.4 * PT_MM + 2.5  # the line naming the step whose pictures go on, up to two lines
+# The paragraphs ending a section after a step's last picture are kept on its sheet when they are no taller.
+TAIL_MAX_MM = 60.0
 # A step's words: the blocks that print on lines of their own, and so are counted apart from the text around
 # them; a code span's padding (0.6 mm each side) in characters; a listing's padding, border and margin in mm.
 WORD_BLOCKS = ("p", "ul", "ol", "pre", "div", "blockquote", "dl", "table", "figure")
@@ -777,8 +782,10 @@ def fit_pictures(naturals: list[float], fulls: list[float], room: float) -> list
     return heights(low)
 
 
-def place_pictures(pictures: list[Tag], room: float, width: float, at_least_one: bool) -> int:
-    """How many of pictures, from the first, fit room mm; each one shrunk is given its height.
+def place_pictures(pictures: list[Tag], room: float, width: float,
+                   at_least_one: bool) -> list[tuple[float, float, float]]:
+    """The pictures, from the first, that fit room mm: for each, the height to print it at, its natural height
+    and its height as wide as the column. Nothing is changed.
 
     at_least_one: the first is counted even when it does not fit; it then has a sheet to itself, as it is."""
     sizes = [picture_mm(picture, width) for picture in pictures]
@@ -786,22 +793,69 @@ def place_pictures(pictures: list[Tag], room: float, width: float, at_least_one:
         heights = fit_pictures([natural for natural, _, _ in sizes[:count]], [full for _, full, _ in sizes[:count]],
                                room - sum(below for _, _, below in sizes[:count]))
         if heights is not None:
-            break
-    else:
-        return 1 if at_least_one else 0
-    for picture, height, (natural, _, _) in zip(pictures, heights, sizes):
-        if height < natural - 0.05:
-            picture.find("img")["style"] = f"max-height: {height:.1f}mm"
-    return count
+            return [(height, natural, full) for height, (natural, full, _) in zip(heights, sizes)]
+    return [(sizes[0][0], sizes[0][0], sizes[0][1])] if at_least_one else []
 
 
-def fit_steps(body: Tag, soup: BeautifulSoup, paper: str) -> None:
+def say(message: str) -> None:
+    """Tell the person printing what was changed to fit a sheet."""
+    print(f"print_pages: {message}", file=sys.stderr)
+
+
+def chapter_name(title: str) -> str:
+    """A chapter's short name for the lines that say where a step goes on: "JTAG connector 1" for the title
+    "Compute Blade cables: JTAG connector 1, prepare the wires" (after its first colon, before its first
+    comma), with a capital first letter, for it starts a line."""
+    name = title.split(": ", 1)[-1].split(", ", 1)[0].strip()
+    return name[:1].upper() + name[1:]
+
+
+def first_words(text: str, most: int = 12) -> str:
+    """The first words of a step, to name it: its first clause without the step's number, at most most words,
+    and with a small first letter unless the first word is a name like "P1" or "GND"."""
+    text = re.sub(r"^\d+\.\s*", "", " ".join(text.split()))
+    words = re.split(r"[,;:]|\.(?:\s|$)", text, maxsplit=1)[0].split()
+    said = " ".join(words[:most]) + ("\u2026" if len(words) > most else "")
+    if words and not any(c.isupper() or c.isdigit() for c in words[0][1:]):
+        said = said[:1].lower() + said[1:]
+    return said
+
+
+def step_names(words: Tag, name: str) -> tuple[str, str]:
+    """The name of the step that starts with the paragraph words, and the line over its pictures on a sheet
+    after its own: "JTAG connector 1, step 3" and "JTAG connector 1, step 3, continued: find wire 1 of the P1
+    cable". A step without a number is named by the heading it is under."""
+    number = re.match(r"\s*(\d+)\.", words.get_text())
+    first = first_words(words.get_text(" ", strip=True))
+    if number:
+        label = f"{name}, step {number.group(1)}"
+        return label, f"{label}, continued: {first}"
+    heading = words.find_previous(HEADINGS)
+    label = name if heading is None or heading.name == "h1" else f"{name}, \u201c{heading.get_text(' ', strip=True)}\u201d"
+    return label, f"{label}, continued from the sheet before: {first}"
+
+
+def tail_after(last: Tag) -> list[Tag]:
+    """The paragraphs and lists after a step's last picture that end its section, or none if anything else
+    (a heading, a table, another picture) comes before the section ends."""
+    tail = list(last.find_next_siblings())
+    if not tail or any(part.name not in ("p", "ul", "ol") or "picture" in part.get("class", []) for part in tail):
+        return []
+    return tail
+
+
+def fit_steps(body: Tag, soup: BeautifulSoup, paper: str, name: str) -> None:
     """Print each step whole on one sheet: its words and all its pictures.
 
     A step's pictures are the one step_pictures wrapped with its words and those right after it. They are
     shrunk if the step would not fit a sheet otherwise, to no less than PICTURE_MIN_SCALE. Pictures that still
-    do not fit go on the next sheet under a line "Step N, continued" (N from the step's words), as many to
-    a sheet as fit there."""
+    do not fit go on the next sheet under a line naming the step (step_names), as many to a sheet as fit there.
+
+    A few short paragraphs that end the section after the step (tail_after) stay on the sheet of its last
+    pictures, which are shrunk a little more for them if need be: printed after a sheet the pictures fill,
+    they would stand alone on a sheet of their own. name: the chapter's short name (chapter_name).
+
+    Each picture shrunk and each moved to a later sheet is said on stderr."""
     width, height = TEXT_MM[paper]
     room = height - STEP_SPARE_MM
     for step in body.find_all("div", class_="step"):
@@ -811,24 +865,51 @@ def fit_steps(body: Tag, soup: BeautifulSoup, paper: str) -> None:
         while after is not None and "picture" in after.get("class", []):
             pictures.append(after)
             after = after.find_next_sibling()
+        label, line = step_names(parts[0], name)
         words = sum(words_mm(part, width) for part in parts[:-1])
-        kept = place_pictures(pictures, room - lead_mm(step, body, width) - words, width, False)
-        for picture in pictures[1:kept]:
-            step.append(picture.extract())
-        rest = pictures[kept:]
-        number = re.match(r"\s*(\d+)\.", parts[0].get_text())
-        line = f"Step {number.group(1)}, continued" if number else "Continued from the sheet before"
-        last = step
+        # One entry for each sheet the step takes: the room its pictures have there, and the pictures.
+        first_room = room - lead_mm(step, body, width) - words
+        placed = place_pictures(pictures, first_room, width, False)
+        sheets = [(first_room, pictures[:len(placed)], placed)]
+        rest = pictures[len(placed):]
         while rest:
-            count = place_pictures(rest, room - CONTINUED_MM, width, True)
-            block = soup.new_tag("div", attrs={"class": "step continued"})
-            said = soup.new_tag("p", attrs={"class": "continued-line"})
-            said.string = line
-            block.append(said)
-            for picture in rest[:count]:
-                block.append(picture.extract())
-            last.insert_after(block)
-            last, rest = block, rest[count:]
+            placed = place_pictures(rest, room - CONTINUED_MM, width, True)
+            sheets.append((room - CONTINUED_MM, rest[:len(placed)], placed))
+            rest = rest[len(placed):]
+        tail = tail_after(pictures[-1] if len(pictures) > 1 else step)  # the first picture is inside the step
+        if tail:
+            last_room, last_pictures, _ = sheets[-1]
+            tail_mm = sum(words_mm(part, width) for part in tail)
+            placed = place_pictures(last_pictures, last_room - tail_mm, width, False) if tail_mm <= TAIL_MAX_MM else []
+            if len(placed) == len(last_pictures):
+                sheets[-1] = (last_room, last_pictures, placed)
+            else:
+                tail = []
+        last = step
+        for number, (_, group, placed) in enumerate(sheets):
+            if number:
+                block = soup.new_tag("div", attrs={"class": "step continued"})
+                said = soup.new_tag("p", attrs={"class": "continued-line"})
+                said.string = line
+                block.append(said)
+                last.insert_after(block)
+                last = block
+            for picture, (height_mm, natural, full) in zip(group, placed):
+                alt = picture.find("img").get("alt") or "picture"
+                if picture.parent is not last:
+                    last.append(picture.extract())
+                if number:
+                    say(f"{label}: picture {alt!r} moved to the next sheet, under \u201c{line}\u201d")
+                if height_mm < natural - 0.05:
+                    picture.find("img")["style"] = f"max-height: {height_mm:.1f}mm"
+                    say(f"{label}: picture {alt!r} shrunk to {height_mm:.0f} mm from {natural:.0f} mm "
+                        f"({height_mm / full:.2f} of the column's width)")
+        if tail:
+            kept = soup.new_tag("div", attrs={"class": "step-tail"})
+            for part in tail:
+                kept.append(part.extract())
+            last.append(kept)
+            say(f"{label}: the {len(tail)} paragraph(s) ending its section kept on the sheet of its last picture")
 
 
 def short_tables(body: Tag) -> None:
@@ -878,10 +959,10 @@ def chapter(number: int, spec: str, commit: str, fetched: str, paper: str,
     long_blocks(body)
     short_tables(body)
     whole_codes(body)
-    step_pictures(body, soup)
-    fit_steps(body, soup, paper)
     heading = body.find("h1")
     title = heading.get_text(strip=True) if heading else path
+    step_pictures(body, soup)
+    fit_steps(body, soup, paper, chapter_name(title))
     note = f"Chapter {number} · Source: {url}"
     if wanted:
         note += " (sections: " + ", ".join(wanted) + ")"
