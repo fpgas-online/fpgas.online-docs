@@ -4,6 +4,8 @@ Markdown-first: pages are written in Markdown and parsed by MyST. reStructuredTe
 still works if a page ever needs it, but nothing here requires it.
 """
 
+import pathlib
+import sys
 from datetime import date
 
 # -- Project ----------------------------------------------------------------
@@ -19,7 +21,11 @@ version = ""
 
 # -- General ----------------------------------------------------------------
 
+# docs/_ext: this site's own Sphinx extensions
+sys.path.insert(0, str(pathlib.Path(__file__).resolve().parent / "_ext"))
+
 extensions = [
+    "open_items",               # {open-items}: the open items page, one line per {todo} box
     "myst_parser",              # Markdown
     "sphinx_copybutton",        # copy button on code blocks -- these docs are
                                 # full of commands meant to be pasted
@@ -105,21 +111,9 @@ intersphinx_mapping = {
 # broken link into our own repositories and sites.
 linkcheck_anchors_ignore_for_url = [r"https://github\.com/.*"]
 
-# -- todo boxes on the contributing page --------------------------------------
-# {todolist} copies every {todo} box into docs/contributing.md and re-resolves
-# its cross-references from there. But sphinx.ext.todo stores the box nodes
-# themselves, not copies, and Sphinx keeps the read documents in memory when it
-# writes. So a page written before contributing.md (everything under boards/)
-# has already resolved its boxes' links relative to itself, and the copy on the
-# contributing page inherits links such as "pin-id.html" or a bare "#anchor".
-# Storing a copy leaves the page's own document alone and the list's copy
-# unresolved, so its links are resolved from contributing.md.
-
-
-def _copy_todos_for_the_list(app, doctree):
-    todos = app.env.get_domain("todo").todos
-    docname = app.env.docname
-    todos[docname] = [todo.deepcopy() for todo in todos.get(docname, [])]
+# -- the open items page ------------------------------------------------------
+# docs/open-items.md lists every {todo} box with {open-items} (docs/_ext/open_items.py): one line
+# for each, not Sphinx's {todolist}, which copies every box whole and printed 11 A4 sheets.
 
 
 # -- old anchors kept on a landing page ---------------------------------------
@@ -139,7 +133,6 @@ def _targets_as_slugs(app, env):
 
 
 def setup(app):
-    app.connect("doctree-read", _copy_todos_for_the_list)
     app.connect("env-check-consistency", _targets_as_slugs)
     # The environment is saved before the consistency check, so a rebuild that reads no page would load it
     # without these slugs and skip that check: add them again on every build. Doing it twice is harmless.
