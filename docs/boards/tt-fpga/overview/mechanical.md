@@ -2,8 +2,9 @@
 
 **You are fitting a Tiny Tapeout demo board to the fpgas.online mounting plate and want to know which holes
 your board uses.** First the fitting guide (each revision of the demo board on the plate), then the plate
-itself, which governs every dimension. The figures a builder needs are repeated here in words. Whether the
-boards at welland stand on this plate is not recorded.
+itself, which governs every dimension. The figures a builder needs are repeated here in words. The boards
+at welland do not stand on it yet; they move onto it soon, and these pages are written for it (Tim Ansell,
+7 October 2026).
 
 ## Which board you have, and its holes
 

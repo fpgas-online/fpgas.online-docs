@@ -16,11 +16,12 @@ of pin header. Whether it has 10 or 12 wires is **not known**. Both are from the
 10-pin flat ribbon cables, Amazon product B094RGMBS9), then, asked again, "The expectation is that the 3v3 pin
 is not connected. I'm unsure if we are using 10-pin or 12-pin cables?" Not checked by us on a board. A 10-wire
 cable on pins 1 to 5 and 7 to 11 would carry both grounds (pins 5 and 11) and leave only the 3.3 V pins out.
-Find pin 1 on both connectors before plugging a cable in.
+Find pin 1 on both connectors before plugging a cable in. Every other page that touches the cables points
+here.
 
 **The mounting plate.** Which holes of the fpgas.online mounting plate a demo board uses, and the plate's
-figures: [the mechanical page](../overview/mechanical.md). Whether the boards at welland stand on it is not
-recorded. Every other page that touches the cables points here.
+figures: [the mechanical page](../overview/mechanical.md). The boards at welland move onto it soon, and these
+pages are written for it (Tim Ansell, 7 October 2026); fitting it is step 2 of [fitting](fitting.md).
 
 What the makers' documents, Tim's answer and our cameras say about the cables. The line about a straight
 twelve-wire cable says what such a cable would do: it is not an instruction to use one.

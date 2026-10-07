@@ -93,7 +93,7 @@ sudo apt install -t bookworm-backports micropython-mpremote
 ## 4. Before you run it
 
 1. **The three Pmod cables are on the right ports and the right way round**: INPUT to JA, BIDIR to JB,
-   OUTPUT to JC, pin 1 to pin 1 ([fitting](fitting.md#3-the-three-pmod-cables-and-the-usb-c-cable)). The
+   OUTPUT to JC, pin 1 to pin 1 ([fitting](fitting.md#4-the-three-pmod-cables-and-the-usb-c-cable)). The
    check drives the Pi's GPIOs into those cables.
 2. **The DIP switches: leave them as you find them.** That is how the one board that has passed was checked
    (below). Which position leaves `ui_in` undriven is **not recorded** (asked of the boards' owner on
