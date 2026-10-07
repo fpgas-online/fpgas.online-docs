@@ -23,7 +23,8 @@ and a USB-C cable if one is plugged in), take the card out of its M.2 slot, and 
    step 4): look at it, a short stub with tube over its cut end. The bench check cannot tell whether wire 6 reaches
    a header pin, so this look and the meter are what keep its 3.3 V off the host. If any of this fails, or the housing is not the guide's 2×5, build a new P1 cable.
 3. Run the [bench check](../building/compute-blade/bench-check.md) with the new P2 cable and the P1 cable, kept or
-   new, the card still out, as that page says. It is what shows that no housing is turned round.
+   new, the card still out, as that page says. Its ground beep is meant to show that no housing is turned round (that a turned housing would
+   then stay silent is not tried by us, as that page says).
 4. Then fit both cables and the card as [Fitting](../building/compute-blade/fitting.md) does. Whether P1's TMS
    works is shown only by the check's `jtag` test, in a boot with the header's serial port off ([verifying
    3](../building/compute-blade/verifying-3.md)); the meter cannot reach it with the card fitted.
