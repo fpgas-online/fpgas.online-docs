@@ -4,6 +4,7 @@
 `python -m unittest discover -s tools -p 'test_*.py'`."""
 
 import unittest
+import unittest.mock
 
 import sync_test_designs as s
 
@@ -125,6 +126,24 @@ class Tables(unittest.TestCase):
     def test_no_destination_is_written_twice(self):
         dests = [*s.PAGES.values(), *(d for d, _ in s.SECTIONS.values())]
         self.assertEqual(len(dests), len(set(dests)))
+
+    def test_an_anchor_in_any_other_form_stops_the_sync(self):
+        for line in ('<a id="Upper"></a>', '<a id="x"></a> ', '<a name="x"></a>', '<a id="x" class="y"></a>',
+                     'text <a id="x"></a>'):
+            with self.assertRaises(SystemExit, msg=line):
+                s.anchors_to_targets(line)
+
+    def test_an_indented_fence_is_still_a_fence(self):
+        text = '  ```\n<a id="kept"></a>\n  ```'
+        self.assertEqual(s.anchors_to_targets(text), text)
+
+    def test_a_link_to_a_page_this_run_writes_is_a_link_inside_the_site(self):
+        page = "verify/not-written-yet"
+        self.assertFalse((s.DOCS / "docs" / f"{page}.md").exists())
+        text = f"[x](https://docs.fpgas.online/en/latest/{page}.html#y)"
+        self.assertEqual(s.own_links(text), text)  # not a page of this site: left alone
+        with unittest.mock.patch.dict(s.PAGES, {"docs/elsewhere.md": f"docs/{page}.md"}):
+            self.assertEqual(s.own_links(text), f"[x](/{page}.md#y)")
 
     def test_an_id_anchor_line_becomes_a_myst_target_outside_fenced_code(self):
         text = '<a id="common-failures"></a>\n- x\n```\n<a id="kept"></a>\n```'

@@ -242,9 +242,12 @@ def anchors_to_targets(text):
     lets this site's links to page.md#x resolve, which a raw HTML id does not. Fenced code is left alone."""
     out, fenced = [], False
     for line in text.split("\n"):
-        if FENCE.match(line):
+        if FENCE.match(line.lstrip()):
             fenced = not fenced
         m = None if fenced else ANCHOR.match(line)
+        if not fenced and not m and re.search(r"<a\s", line, re.IGNORECASE):
+            sys.exit(f"sync: a raw <a> that is not a line of its own reading exactly <a id=\"lower-case-id\"></a>: "
+                     f"{line.strip()!r}. Only that form keeps an anchor here; write it so.")
         out.append(f"({m.group(1)})=" if m else line)
     return "\n".join(out)
 
@@ -285,11 +288,13 @@ def own_links(text):
     (`/verify/fpgas-verify.md#heading`), which MyST resolves wherever the including page is. The build then
     checks the page and the heading; by its published address the link check would test it against what is
     published, where a heading's address is not the one MyST knows it by and a new page is not there yet.
+    A page this run writes counts as here, though it is not on disk yet (FILES are written before PAGES).
     A link to a page that is not in this repository is left as it is. Fenced code is left alone."""
 
     def one(match):
         page, fragment = match.group(1), match.group(2) or ""
-        return f"/{page}.md{fragment}" if (DOCS / "docs" / f"{page}.md").exists() else match.group(0)
+        here = (DOCS / "docs" / f"{page}.md").exists() or f"docs/{page}.md" in PAGES.values()
+        return f"/{page}.md{fragment}" if here else match.group(0)
 
     out, fenced = [], False
     for line in text.split("\n"):
