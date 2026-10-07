@@ -1069,6 +1069,7 @@ def fit_steps(body: Tag, soup: BeautifulSoup, paper: str, name: str) -> None:
         with_opening = place_pictures(pictures, room - opening - words, width, False) if opening else []
         if placed and len(with_opening) == len(placed) and with_opening != placed:
             first_room, placed = room - opening - words, with_opening
+            step["data-opening"] = "1"  # check_steps: its words must be on the chapter's first sheet
             say(f"{label}: kept on the sheet of the chapter's opening")
         sheets = [(first_room, pictures[:len(placed)], placed)]
         rest = pictures[len(placed):]
@@ -1078,15 +1079,19 @@ def fit_steps(body: Tag, soup: BeautifulSoup, paper: str, name: str) -> None:
             rest = rest[len(placed):]
         anchor = pictures[-1] if len(pictures) > 1 else step  # the first picture is inside the step
         # What ends the chapter after the step, or else its section, goes on the sheet of its last picture.
-        tail = chapter_ending(anchor, body) or tail_after(anchor)
-        if tail:
+        # The first of the two that fits is kept: a chapter ending too tall to keep still leaves the
+        # paragraphs that end the step's own section.
+        tail = []
+        for candidate in (chapter_ending(anchor, body), tail_after(anchor)):
+            if not candidate:
+                continue
             last_room, last_pictures, _ = sheets[-1]
-            tail_mm = sum(block_mm(part, width) for part in tail)
+            tail_mm = sum(block_mm(part, width) for part in candidate)
             placed = place_pictures(last_pictures, last_room - tail_mm, width, False) if tail_mm <= TAIL_MAX_MM else []
             if len(placed) == len(last_pictures):
                 sheets[-1] = (last_room, last_pictures, placed)
-            else:
-                tail = []
+                tail = candidate
+                break
         last = step
         for number, (_, group, placed) in enumerate(sheets):
             if number:
@@ -1211,6 +1216,12 @@ def check_steps(sheets: list[str], page: str) -> list[str]:
         chapter = div["data-step"].split("-")[0]
         name = f"chapter {chapter}, {step.get('data-label')}"
         words = sheet_of(mark_in(step, "W"))
+        if div is step and step.get("data-opening"):
+            start = [number for number, text in enumerate(sheets, 1)
+                     if re.search(rf"(?m)^\s*Chapter {chapter} · ", text)]
+            if start != [words]:
+                problems.append(f"{name}: kept with the chapter's opening, but its words are on sheet {words} and "
+                                f"the chapter starts on sheet(s) {start}")
         if div is step:
             where, home = "its words are", words
         else:
@@ -1221,7 +1232,7 @@ def check_steps(sheets: list[str], page: str) -> list[str]:
             if not said.startswith(f"{step.get('data-label')}, continued"):
                 problems.append(f"{name}: the continued line \u201c{said}\u201d does not name the step")
             if not visible(sheets[home - 1]).startswith(said):
-                problems.append(f"{name}: the continued line \u201c{said}\u201d does not start sheet {home}")
+                problems.append(f"{name}: the continued line \u201c{said}\u201d is not whole at the top of sheet {home}")
             if home <= words:
                 problems.append(f"{name}: its continued line is on sheet {home}, not after its words on sheet {words}")
         pictures = [part for part in div.find_all(recursive=False) if "picture" in part.get("class", [])]

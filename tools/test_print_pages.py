@@ -778,6 +778,32 @@ class FitSteps(unittest.TestCase):
         self.assertTrue(any("to the end of its chapter, kept on the sheet of its last picture" in line
                             for line in self.said))
 
+    def section_then_ending(self, step_words, ending_paragraphs):
+        ending = "<section><h2>Background</h2>" + "".join(f"<p>{words(n)}</p>" for n in ending_paragraphs) + "</section>"
+        return self.fit("<section><h1>T</h1><p>0. Earlier.</p>" + picture(1560, 300) + "<section><h2>Steps</h2>"
+                        f"<p>1. Cut. {words(step_words)}</p>" + picture(1560, 2116)
+                        + "<p>Done: the last words of this section.</p></section>" + ending + "</section>")
+
+    def test_a_chapter_ending_too_tall_to_keep_still_leaves_the_sections_own_last_words_kept(self):
+        # Review of #106: the overview's "Nothing in this guide cuts a wire to length" lost its T mark when
+        # the words-only chapter ending after it was 383 mm.
+        article = self.section_then_ending(0, [500] * 8)
+        tail = article.select_one("div.step-tail")
+        self.assertEqual([part.get_text() for part in tail.find_all(recursive=False)],
+                         ["Done: the last words of this section."])
+        self.assertIsNotNone(article.find("h2", string="Background"))
+        self.assertIsNone(article.find("h2", string="Background").find_parent("div", class_="step-tail"))
+
+    def test_a_chapter_ending_that_does_not_fit_beside_the_picture_still_leaves_the_sections_own_last_words(self):
+        width = p.TEXT_MM["Letter"][0]
+        ending = p.BeautifulSoup("<section><h2>Background</h2>" + f"<p>{words(150)}</p>" * 3 + "</section>",
+                                 "html.parser").section
+        self.assertLessEqual(p.block_mm(ending, width), p.TAIL_MAX_MM)  # short enough, but no room for it
+        article = self.section_then_ending(1100, [150] * 3)
+        tail = article.select_one("div.step-tail")
+        self.assertEqual([part.get_text() for part in tail.find_all(recursive=False)],
+                         ["Done: the last words of this section."])
+
     def test_a_chapter_ending_with_a_picture_listing_or_table_after_the_step_is_not_kept_with_it(self):
         for later in (picture(1560, 300), "<pre>make</pre>", "<table><tr><td>x</td></tr></table>"):
             article = self.fit("<section><section><p>4. Check.</p>" + picture(1560, 1118) + "</section>"
@@ -1080,7 +1106,7 @@ class CheckSteps(unittest.TestCase):
     def sheets(self, article, where, count):
         """The text of count sheets with each mark on the sheet where gives it (1 if not given), and each
         continued line first on its sheet after its mark."""
-        texts = [""] * count
+        texts = ["Chapter 3 · Source: https://x/a\n"] + [""] * (count - 1)  # the chapter starts on sheet 1
         for span in article.select("span.step-mark"):
             mark = span.get_text()
             text = span.parent.get_text() if mark.startswith("PPSTEP-K") else mark
@@ -1121,7 +1147,7 @@ class CheckSteps(unittest.TestCase):
         texts[1] = "the end of a paragraph\n" + texts[1]
         problems = p.check_steps(texts, str(article))
         self.assertEqual(len(problems), 1)
-        self.assertIn("does not start sheet 2", problems[0])
+        self.assertIn("is not whole at the top of sheet 2", problems[0])
 
     def test_a_continued_line_on_the_sheet_of_its_words_fails(self):
         article = marked(TWO_SHEETS)
@@ -1181,6 +1207,16 @@ class CheckSteps(unittest.TestCase):
         self.assertEqual(len(article.select("div.step")), 1)
         where = {"PPSTEP-P-3-1-0-2-Z": 2, "PPSTEP-L-3-1-0-2-1-Z": 2, "PPSTEP-L-3-1-0-2-2-Z": 2}
         self.assertEqual(len(p.check_steps(self.sheets(article, where, 2), str(article))), 1)
+
+    def test_a_first_step_kept_with_the_opening_but_printed_after_it_is_reported(self):
+        article = marked(FitSteps.OPENING + "<p>1. Fit the plugs.</p>" + picture(1560, 1800) + "</section></section>")
+        step = article.select_one("div.step")
+        self.assertEqual(step.get("data-opening"), "1")
+        self.assertEqual(p.check_steps(self.sheets(article, {}, 1), str(article)), [])
+        where = {"PPSTEP-W-3-1-Z": 2, "PPSTEP-P-3-1-0-1-Z": 2}
+        self.assertEqual(p.check_steps(self.sheets(article, where, 2), str(article)),
+                         ["chapter 3, Compute Blade cables: fitting, step 1: kept with the chapter's opening, but its "
+                          "words are on sheet 2 and the chapter starts on sheet(s) [1]"])
 
     def test_a_mark_not_found_or_found_twice_cannot_be_checked(self):
         article = marked("<p>2. Cut.</p>" + picture(1560, 1118))
