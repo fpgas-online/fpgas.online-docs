@@ -615,6 +615,41 @@ class WholeCodesLimits(unittest.TestCase):
         self.assertIn("th code { overflow-wrap: normal; }", p.CSS)
 
 
+class FitCode(unittest.TestCase):
+    def fit(self, *lines):
+        soup = p.BeautifulSoup("<div><pre>" + "\n".join(lines) + "</pre></div>", "html.parser")
+        p.fit_code(soup.div, soup)
+        return soup.div
+
+    def test_a_listing_that_fits_is_left_alone(self):
+        body = self.fit("x" * p.CODE_CHARS)
+        self.assertIsNone(body.pre.get("style"))
+        self.assertIsNone(body.find("p"))
+
+    def test_a_longer_line_is_printed_smaller_and_not_broken(self):
+        line = "y" * (p.CODE_CHARS + 10)
+        body = self.fit(line)
+        self.assertIn("font-size:", body.pre["style"])
+        self.assertEqual(body.pre.get_text(), line)
+        self.assertIsNone(body.find("p"))
+
+    def test_a_line_too_long_even_at_the_floor_is_broken_with_marks_that_rebuild_it(self):
+        line = "".join(str(i % 10) for i in range(300))
+        body = self.fit("short", line)
+        self.assertIn(f"font-size: {p.CODE_FLOOR:.2f}pt", body.pre["style"])
+        printed = body.pre.get_text().split("\n")
+        self.assertEqual(printed[0], "short")
+        self.assertTrue(all(row.startswith(p.CONTINUED) for row in printed[2:]))
+        rebuilt = printed[1] + "".join(row[len(p.CONTINUED):] for row in printed[2:])
+        self.assertEqual(rebuilt, line)
+        floor_chars = int(p.CODE_CHARS * p.CODE_SIZE / p.CODE_FLOOR)
+        self.assertTrue(all(len(row) <= floor_chars for row in printed))
+        self.assertIn("without the arrow", body.find("p", class_="code-note").get_text())
+
+    def test_the_browser_never_wraps_a_listing(self):
+        self.assertIn("pre { white-space: pre; overflow-wrap: normal; }", p.CSS)
+
+
 class Notes(unittest.TestCase):
     def test_an_empty_file_stops_the_run(self):
         with self.assertRaises(SystemExit):
