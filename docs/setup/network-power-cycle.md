@@ -9,8 +9,9 @@ a port only when it is needed.
 ## At welland
 
 **First, check who is on the port.** The port is in the Pi's name: `pi-sw2-p46` is switch 2, port 46, at
-`10.21.2.46`. On the welland gateway, that address must be answered by the MAC of the Pi you mean (the board
-pages and [Hosts and boards at welland](../sites/welland-boards.md) list them):
+`10.21.2.46`. On the welland gateway, that address must be answered by the MAC of the Pi you mean (the table of
+6 October 2026 on [Hosts and boards at welland](../sites/welland-boards.md#what-was-up-on-6-october-2026) gives each
+port's MAC):
 
 ```console
 $ grep ' 10.21.2.46 ' /var/lib/misc/dnsmasq.leases
@@ -56,9 +57,11 @@ $ # read again: expect 1, then 3 once the Pi draws power
 $ snmpget -v2c -c "$COMMUNITY" -Ovq $SW $OID 1.3.6.1.2.1.105.1.1.1.6.1.$PORT
 ```
 
-If the line stopped after "off", run the "on" `snmpset` by itself, then read again. The port number is the
+This `snmpset` line has not been run as written by fpgas.online; the power cycles of 5 and 6 October 2026 went
+through fpgas.online-poe's `netgear_switch` library instead. If the line stopped after "off", run the "on"
+`snmpset` by itself, then read again. The port number is the
 switch port (`p` in the Pi's name), not a VLAN or an address. The Pi is back when its SSH port answers: from
-the gateway, `nc -z -w 3 10.21.1.14 22`.
+the gateway, `nc -z -w 3 10.21.<switch>.<port> 22` (`10.21.1.14` for switch 1, port 14).
 
 `poe.sh` and `allpoe.sh` from fpgas.online-poe do not work at welland: the `snmp.yml` task that writes their
 settings is skipped on a per-port gateway, by design (its comment in fpgas.online-infra, main).
@@ -71,9 +74,10 @@ settings is skipped on a per-port gateway, by design (its comment in fpgas.onlin
 ## How long the board is gone
 
 The Pi netboots again: a kernel and a root over the network, not a resume from disk. The test automation
-allows about two minutes from power-on to SSH (`docs/verify-hardware.md` in fpgas.online-test-designs). A
-Pi 5 at welland takes more than 90 seconds, and a hung one shows on its port as about 0.4 W instead of about
-8 W ([Acorns at welland](../boards/acorn/installations/welland.md#reads-of-september-2026)).
+allows about two minutes from power-on to SSH (`docs/verify-hardware.md` in fpgas.online-test-designs). [Acorns at
+welland](../boards/acorn/installations/welland.md#reads-of-september-2026) records, from its reads of September
+2026, that a Pi 5 there takes more than 90 seconds, and that a hung one draws about 0.4 W on its port instead of
+about 8 W; not measured again since.
 
 ## After an NFS root update
 
