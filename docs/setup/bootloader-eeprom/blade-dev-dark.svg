@@ -1,0 +1,63 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1200 764" width="1200" height="764" font-family="DejaVu Sans, Arial, sans-serif">
+<rect width="1200" height="764" fill="#131416"/>
+<text x="20" y="32" font-size="24" font-weight="bold" fill="#e3e6ea" text-anchor="start">Compute Blade, Dev model, component side (drawn from the maker's picture)</text>
+<rect x="20" y="70" width="1160" height="230" rx="14" fill="#1f4e8c" stroke="#e3e6ea" stroke-width="2"/>
+<rect x="30" y="190" width="110" height="100" rx="5" fill="#c9d3df" stroke="#111" stroke-width="1.5"/>
+<text x="85.0" y="235.45" font-size="17" font-weight="normal" fill="#111" text-anchor="middle">Ethernet</text>
+<text x="85.0" y="256.45" font-size="17" font-weight="normal" fill="#111" text-anchor="middle">(PoE)</text>
+<rect x="150" y="84" width="44" height="44" rx="5" fill="#ffe9a8" stroke="#b8860b" stroke-width="5"/>
+<text x="172.0" y="111.25" font-size="15" font-weight="normal" fill="#111" text-anchor="middle">DIP</text>
+<rect x="205" y="84" width="60" height="90" rx="5" fill="#c9d3df" stroke="#111" stroke-width="1.5"/>
+<text x="235.0" y="134.95" font-size="17" font-weight="normal" fill="#111" text-anchor="middle">HDMI</text>
+<rect x="150" y="232" width="110" height="58" rx="5" fill="#dfe9f5" stroke="#111" stroke-width="1.5"/>
+<text x="205.0" y="257.05" font-size="13" font-weight="normal" fill="#111" text-anchor="middle">WP WL BT</text>
+<text x="205.0" y="274.05" font-size="13" font-weight="normal" fill="#111" text-anchor="middle">(printed)</text>
+<rect x="275" y="84" width="200" height="206" rx="5" fill="#3b6fb5" stroke="#111" stroke-width="1.5"/>
+<text x="375.0" y="171.95" font-size="17" font-weight="normal" fill="#fff" text-anchor="middle">Compute Module</text>
+<text x="375.0" y="192.95" font-size="17" font-weight="normal" fill="#fff" text-anchor="middle">(under its</text>
+<text x="375.0" y="213.95" font-size="17" font-weight="normal" fill="#fff" text-anchor="middle">connectors)</text>
+<rect x="500" y="84" width="80" height="80" rx="5" fill="#c9d3df" stroke="#111" stroke-width="1.5"/>
+<text x="540.0" y="129.95" font-size="17" font-weight="normal" fill="#111" text-anchor="middle">SD card</text>
+<rect x="590" y="118" width="80" height="46" rx="5" fill="#c9d3df" stroke="#111" stroke-width="1.5"/>
+<text x="630.0" y="146.95" font-size="17" font-weight="normal" fill="#111" text-anchor="middle">USB-A</text>
+<rect x="690" y="84" width="44" height="110" rx="5" fill="#c9d3df" stroke="#111" stroke-width="1.5"/>
+<text x="712.0" y="144.95" font-size="17" font-weight="normal" fill="#111" text-anchor="middle">M.2</text>
+<rect x="760" y="84" width="400" height="100" rx="5" fill="#3b6fb5" stroke="#111" stroke-width="1.5"/>
+<text x="960.0" y="139.95" font-size="17" font-weight="normal" fill="#fff" text-anchor="middle">M.2 SSD positions</text>
+<rect x="760" y="205" width="110" height="80" rx="5" fill="#c9d3df" stroke="#111" stroke-width="1.5"/>
+<text x="815.0" y="240.45" font-size="17" font-weight="normal" fill="#111" text-anchor="middle">Extension</text>
+<text x="815.0" y="261.45" font-size="17" font-weight="normal" fill="#111" text-anchor="middle">Port</text>
+<rect x="880" y="205" width="46" height="80" rx="5" fill="#c9d3df" stroke="#111" stroke-width="1.5"/>
+<text x="903.0" y="249.9" font-size="14" font-weight="normal" fill="#111" text-anchor="middle">UART</text>
+<rect x="945" y="215" width="78" height="62" rx="5" fill="#d9f7d9" stroke="#22a022" stroke-width="5"/>
+<text x="984.0" y="255.1" font-size="26" font-weight="normal" fill="#111" text-anchor="middle">1</text>
+<rect x="1040" y="196" width="110" height="36" rx="5" fill="#f7d9f1" stroke="#c2188f" stroke-width="5"/>
+<text x="1095.0" y="222.4" font-size="24" font-weight="normal" fill="#111" text-anchor="middle">2</text>
+<rect x="1052" y="240" width="62" height="52" rx="5" fill="#f7d9d9" stroke="#c81e1e" stroke-width="5"/>
+<text x="1083.0" y="274.4" font-size="24" font-weight="normal" fill="#111" text-anchor="middle">3</text>
+<rect x="932" y="186" width="232" height="112" fill="none" stroke="#fff" stroke-width="3" stroke-dasharray="8 6"/>
+<path d="M932 298 L30 350 M1164 298 L650 350" stroke="#9aa1aa" stroke-width="2" stroke-dasharray="6 6" fill="none"/>
+<rect x="30" y="350" width="620" height="290" rx="10" fill="#1f4e8c" stroke="#e3e6ea" stroke-width="2"/>
+<rect x="60" y="420" width="210" height="170" rx="5" fill="#d9f7d9" stroke="#22a022" stroke-width="5"/>
+<text x="165.0" y="484.1" font-size="26" font-weight="normal" fill="#111" text-anchor="middle">1</text>
+<text x="165.0" y="514.1" font-size="26" font-weight="normal" fill="#111" text-anchor="middle">USB Type-C</text>
+<text x="165.0" y="544.1" font-size="26" font-weight="normal" fill="#111" text-anchor="middle">port</text>
+<rect x="320" y="372" width="300" height="96" rx="5" fill="#f7d9f1" stroke="#c2188f" stroke-width="5"/>
+<text x="470.0" y="414.1" font-size="26" font-weight="normal" fill="#111" text-anchor="middle">2</text>
+<text x="470.0" y="444.1" font-size="26" font-weight="normal" fill="#111" text-anchor="middle">USB switch</text>
+<rect x="350" y="496" width="170" height="130" rx="5" fill="#f7d9d9" stroke="#c81e1e" stroke-width="5"/>
+<text x="435.0" y="540.1" font-size="26" font-weight="normal" fill="#111" text-anchor="middle">3</text>
+<text x="435.0" y="570.1" font-size="26" font-weight="normal" fill="#111" text-anchor="middle">nRPIBOOT</text>
+<text x="435.0" y="600.1" font-size="26" font-weight="normal" fill="#111" text-anchor="middle">button</text>
+<text x="680" y="385" font-size="22" font-weight="bold" fill="#6fdc6f" text-anchor="start" xml:space="preserve">1  USB Type-C port: the cable to the</text>
+<text x="680" y="411" font-size="22" font-weight="bold" fill="#6fdc6f" text-anchor="start" xml:space="preserve">    computer that runs rpiboot</text>
+<text x="680" y="455" font-size="22" font-weight="bold" fill="#ff6fd0" text-anchor="start" xml:space="preserve">2  USB switch: moved to the</text>
+<text x="680" y="481" font-size="22" font-weight="bold" fill="#ff6fd0" text-anchor="start" xml:space="preserve">    USB Type-C position</text>
+<text x="680" y="525" font-size="22" font-weight="bold" fill="#ff7b7b" text-anchor="start" xml:space="preserve">3  nRPIBOOT button: held down while</text>
+<text x="680" y="551" font-size="22" font-weight="bold" fill="#ff7b7b" text-anchor="start" xml:space="preserve">    the cable is connected</text>
+<text x="680" y="600" font-size="22" font-weight="bold" fill="#f0c45c" text-anchor="start" xml:space="preserve">DIP (top left, beside HDMI): 1 write</text>
+<text x="680" y="626" font-size="22" font-weight="bold" fill="#f0c45c" text-anchor="start" xml:space="preserve">    protection, 2 Wi-Fi, 3 Bluetooth</text>
+<text x="30" y="682" font-size="22" font-weight="bold" fill="#e3e6ea" text-anchor="start">How to tell a Dev model: it has the USB Type-C socket and, beside it,</text>
+<text x="30" y="710" font-size="22" font-weight="bold" fill="#e3e6ea" text-anchor="start">the small nRPIBOOT button.</text>
+<text x="30" y="744" font-size="19" font-weight="normal" fill="#e3e6ea" text-anchor="start">A drawing from documentation, not from a board in hand: positions are approximate.</text>
+</svg>

@@ -71,6 +71,40 @@ class Article(unittest.TestCase):
         with self.assertRaises(SystemExit):
             p.article("<html><body><p>404</p></body></html>", URL)
 
+    # A picture drawn for each theme, as the site builds it: the light one, then its dark twin.
+    TWINS = (
+        '<p><img alt="Fitting" class="only-light" src="../_images/fit.png" />\n'
+        '<img alt="Fitting" class="only-dark" src="../_images/fit-dark.png" /></p>'
+        '<p><a class="only-light reference download internal" download="" href="../_downloads/1/sheet.svg">'
+        '<span class="xref download myst"><img alt="Sheet" src="../_images/sheet.png" />'
+        '</span></a>\n<a class="only-dark reference download internal" download="" href="../_downloads/2/sheet-dark.svg">'
+        '<span class="xref download myst"><img alt="Sheet" src="../_images/sheet-dark.png" />'
+        "</span></a></p>"
+        '<figure class="only-light align-default" id="id1"><img alt="Pads" src="../_images/pads.jpg" />'
+        '<figcaption><p>Photo: <a href="https://example.org/photo">source</a></p></figcaption></figure>'
+        '<figure class="only-dark align-default" id="id2"><img alt="Pads" src="../_images/pads-dark.jpg" />'
+        '<figcaption><p>Photo: <a href="https://example.org/photo">source</a></p></figcaption></figure>'
+    )
+
+    def test_only_the_light_picture_of_a_theme_pair_is_printed(self):
+        article = p.article(PAGE.replace("<p>parts</p>", self.TWINS), URL)
+        sources = [img["src"] for img in article.find_all("img")]
+        self.assertEqual(sources, ["../_images/fit.png", "../_images/sheet.png", "../_images/pads.jpg"])
+        self.assertEqual(len(article.find_all("figcaption")), 1)  # the dark figure goes with its caption
+        self.assertEqual(article.select(".only-dark"), [])
+
+    def test_the_link_that_held_only_the_dark_picture_goes_too(self):
+        article = p.article(PAGE.replace("<p>parts</p>", self.TWINS), URL)
+        self.assertEqual([a["href"] for a in article.select("a.download")], ["../_downloads/1/sheet.svg"])
+
+    def test_a_dark_picture_in_a_link_with_words_leaves_the_words(self):
+        page = PAGE.replace(
+            "<p>parts</p>", '<p><a href="x.svg">the sheet <img class="only-dark" src="x-dark.png" /></a></p>'
+        )
+        article = p.article(page, URL)
+        self.assertEqual(article.find("a", href="x.svg").get_text(strip=True), "the sheet")
+        self.assertIsNone(article.find("img"))
+
 
 class KeepSections(unittest.TestCase):
     def kept(self, wanted):
@@ -613,6 +647,64 @@ class WholeCodesLimits(unittest.TestCase):
 
     def test_a_heading_code_span_does_not_break(self):
         self.assertIn("th code { overflow-wrap: normal; }", p.CSS)
+
+
+class FitCode(unittest.TestCase):
+    def fit(self, *lines):
+        soup = p.BeautifulSoup("<div><pre>" + "\n".join(lines) + "</pre></div>", "html.parser")
+        p.fit_code(soup.div, soup)
+        return soup.div
+
+    def test_a_listing_that_fits_is_left_alone(self):
+        body = self.fit("x" * p.code_chars(p.BeautifulSoup("<pre></pre>", "html.parser").pre)[0])
+        self.assertIsNone(body.pre.get("style"))
+        self.assertIsNone(body.find("p"))
+
+    def test_a_longer_line_is_printed_smaller_and_not_broken(self):
+        line = "y" * (p.code_chars(p.BeautifulSoup("<pre></pre>", "html.parser").pre)[0] + 10)
+        body = self.fit(line)
+        self.assertIn("font-size:", body.pre["style"])
+        self.assertEqual(body.pre.get_text(), line)
+        self.assertIsNone(body.find("p"))
+
+    def test_a_line_too_long_even_at_the_floor_is_broken_with_marks_that_rebuild_it(self):
+        line = "".join(str(i % 10) for i in range(300))
+        body = self.fit("short", line)
+        self.assertIn(f"font-size: {p.CODE_FLOOR:.2f}pt", body.pre["style"])
+        printed = body.pre.get_text().split("\n")
+        self.assertEqual(printed[0], "short")
+        self.assertTrue(all(row.startswith(p.CONTINUED) for row in printed[2:]))
+        rebuilt = printed[1] + "".join(row[len(p.CONTINUED):] for row in printed[2:])
+        self.assertEqual(rebuilt, line)
+        floor_chars = p.code_chars(p.BeautifulSoup("<pre></pre>", "html.parser").pre)[1]
+        self.assertTrue(all(len(row) <= floor_chars for row in printed))
+        self.assertIn("leaving out the arrow and the one space after it", body.find("p", class_="code-note").get_text())
+
+    def test_a_listing_in_lists_and_a_box_has_fewer_characters_and_every_place_fits_at_the_floor(self):
+        top = p.BeautifulSoup("<pre></pre>", "html.parser").pre
+        deep = p.BeautifulSoup('<ul><li><ol><li><div class="admonition"><pre></pre></div></li></ol></li></ul>',
+                               "html.parser").pre
+        self.assertLess(p.code_chars(deep)[0], p.code_chars(top)[0])
+        for block in (top, deep):  # the widths measured in Chrome on A4 (review of PR #50): 497.1 and 443.7 pt
+            chars, floor_chars = p.code_chars(block)
+            room = 497.1 if block is top else 443.7
+            self.assertLessEqual(chars * p.CODE_EM * p.CODE_SIZE, room)
+            self.assertLessEqual(floor_chars * p.CODE_EM * p.CODE_FLOOR, room)
+
+    def test_a_tab_counts_as_the_columns_chrome_gives_it(self):
+        top = p.code_chars(p.BeautifulSoup("<pre></pre>", "html.parser").pre)[0]
+        body = self.fit("\t" * (top // 8 + 1))
+        self.assertIn("font-size:", body.pre["style"])
+
+    def test_a_chapter_fits_its_listings(self):
+        page = PAGE.replace('<article role="main">', '<article role="main"><pre>' + 'z' * 300 + '</pre>', 1)
+        with FakeFetch({URL: (page.encode(), "text/html")}):
+            _, text = p.chapter(3, "boards/acorn/wiring", "0123456789abcdef", "2026-10-05")
+        self.assertIn("code-note", text)
+        self.assertIn(p.CONTINUED.strip(), text)
+
+    def test_the_browser_never_wraps_a_listing(self):
+        self.assertIn("pre { white-space: pre; overflow-wrap: normal; }", p.CSS)
 
 
 class Notes(unittest.TestCase):
