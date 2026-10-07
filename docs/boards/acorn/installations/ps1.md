@@ -70,7 +70,7 @@ Blade**: on a blade they wait for JTAG (the Host column below).
 |---|---|---|---|---|---|---|
 | Acorn CLE-101, no label yet (device DNA not read) | pi14 at ps1 (`1e24:0101` seen 2026-10-07) | CM4 Rev 1.1 4 GB | SQRL's factory image, `1e24:0101` | `0000:01` | 2026-09-20: no response, TCK floating | not known |
 | Acorn CLE-101, no label yet (device DNA not read) | pi16 at ps1 (2026-10-05) | CM5 Lite Rev 1.0 8 GB | SQRL's factory image, `1e24:0101` | `0001:01` | 2026-09-20: no response, TCK floating. 2026-10-05: cannot run (the serial driver holds GPIO14) | not known |
-| Acorn CLE-101, device DNA `0x0028e5c45e304854` | pi20 at ps1 (2026-10-05) | CM5 Lite Rev 1.0 8 GB | a vendor XDMA sample image, `10ee:7011` | `0001:01` | 2026-09-20 (kernel 6.12.75): answered, IDCODE `0x3631093`. 2026-10-07 (kernel 6.18, serial port on): the check's `jtag` test failed: GPIO14 is held by the serial port | on the Extension Port: K2 to GPIO15, J2 to GPIO14, no resistor; J5 and H5 not wired |
+| Acorn CLE-101, device DNA `0x0028e5c45e304854` | pi20 at ps1 (2026-10-05) | CM5 Lite Rev 1.0 8 GB | a vendor XDMA sample image, `10ee:7011` | `0001:01` | 2026-09-20 (kernel 6.12.75): answered, IDCODE `0x3631093`. 2026-10-07 (kernel 6.18, serial port on): the check's `jtag` test failed: GPIO14 is held by the serial port. 2026-10-07, the header's serial port off at boot: `jtag` passed, IDCODE `0x13631093`, device DNA as in the first column (no bitstream loaded, flash not written) | on the Extension Port: K2 to GPIO15, J2 to GPIO14, no resistor; J5 and H5 not wired |
 | none seen: no PCIe device (2026-10-07; the slot is empty, or a card has no link: `lspci` cannot tell) | pi18 at ps1 (2026-10-07) | CM4 Rev 1.1 4 GB | | | | |
 
 How each card was read, and what "P1 unmated" rests on, is on [Acorns at ps1: what was read on each
@@ -120,30 +120,32 @@ converted a card on one yet: **not yet run by us on this hardware**.
 | Blade | Card | P1 (JTAG) cable | P2 (serial) cable | Host |
 |-------|------|-----------------|-------------------|------|
 | pi14 at ps1 | fitted, factory image: to be converted | not mated, or its TCK wire open (TCK follows the host's pull, as on the empty pi18 at ps1: 2026-09-20 and again 2026-10-07): reseat a fitted one; if none, or still unmated, build a new one | not known: build to the UART header, 470 Ω in the J2 wire, J5 and H5 cut back | as pi16 at ps1 (read 2026-10-07: the same serial-port settings) |
-| pi16 at ps1 | fitted, factory image: to be converted | not mated, or its TCK wire open (TCK follows the host's pull, as on the empty pi18 at ps1: 2026-10-07): reseat a fitted one; if none, or still unmated, build a new one | not known: build to the UART header, 470 Ω in the J2 wire, J5 and H5 cut back | (a) for the serial-pair tests: the kernel console and the getty off `/dev/ttyAMA0`; (b) only for JTAG: the serial port off at boot (below) |
+| pi16 at ps1 | fitted, factory image: to be converted | not mated, or its TCK wire open (TCK follows the host's pull, as on the empty pi18 at ps1: 2026-10-07): reseat a fitted one; if none, or still unmated, build a new one | not known: build to the UART header, 470 Ω in the J2 wire, J5 and H5 cut back | (a) for the serial-pair tests: the kernel console and the getty off `/dev/ttyAMA0`; (b) only for JTAG: the serial port off at boot (below; run on pi20 at ps1, 7 October 2026) |
 | pi18 at ps1 | none seen: look; if the slot is empty, fit one | fit on the Extension Port | fit on the UART header, 470 Ω in the J2 wire, J5 and H5 cut back | as pi16 at ps1 (read 2026-10-07: the same serial-port settings) |
-| pi20 at ps1 | fitted, vendor sample image in flash: to be converted | answered on 2026-09-20: leave the cable. On 2026-10-07 JTAG could not run as the blade boots now (the serial port holds GPIO14) | build a new one by the guide for the UART header (470 Ω in the J2 wire) and take the old serial wiring off Extension Port pins 9 and 10 (below) | as pi16 at ps1 (read 2026-10-05: the same kernel and serial-port settings): (a) for the serial-pair tests: the kernel console and the getty off `/dev/ttyAMA0`; (b) only for JTAG: the serial port off at boot (below) |
+| pi20 at ps1 | fitted, vendor sample image in flash: to be converted | answered on 2026-09-20: leave the cable. On 2026-10-07 JTAG could not run with the header's serial port on (it holds GPIO14), and read the IDCODE and DNA with the port off at boot, the Host column's (b) | build a new one by the guide for the UART header (470 Ω in the J2 wire) and take the old serial wiring off Extension Port pins 9 and 10 (below) | as pi16 at ps1 (read 2026-10-05: the same kernel and serial-port settings): (a) for the serial-pair tests: the kernel console and the getty off `/dev/ttyAMA0`; (b) only for JTAG: the serial port off at boot (below; run on pi20 at ps1, 7 October 2026) |
 
 **The Host column is Carl's to do, on the gateway, not on a blade.** The two files it means, `config.txt` and
 `cmdline.txt`, are in one directory on the ps1 gateway, `/srv/nfs/rpi/trixie/boot/`, which every netbooted
-host at ps1 boots from (read on the ps1 gateway, 6 October 2026): a change there reaches all of them at their
-next boot.
+host at ps1 boots from: on 7 October 2026 twelve hosts at ps1, not only the four blades (read on the ps1
+gateway, 6 and 7 October 2026). A change there reaches all of them at their next boot. For (b),
+[verifying 3](../building/compute-blade/verifying-3.md) also gives a way that changes one blade only, its own
+copy of the directory, which is how pi20 at ps1 was tested.
 
 **The order of work.** The cables come first: making them, checking them on the bench and fitting them needs
 nothing from the gateway. Then the Host column's (a), and the serial-pair checks run in a boot with the serial
 port on. Then (b), only when JTAG is to run on a blade, which is what converting a card needs: with the serial
 port off, `/dev/ttyAMA0` is not there, so the `p2-uart`, `p2-serial` and `scratch` tests cannot pass in that
-boot ([verifying 3](../building/compute-blade/verifying-3.md)). Both are changes for every netbooted host at
-ps1, so they are Carl's to decide and to time. Then, for a load over JTAG: the endpoint detached first (the
+boot ([verifying 3](../building/compute-blade/verifying-3.md)). Both are changes to the gateway's boot files,
+so they are Carl's to decide and to time; (b) can be made for one blade only (verifying 3). Then, for a load over JTAG: the endpoint detached first (the
 warning above), then the load.
 
-What the Host column's change is, as far as it is written: the two lines are in the paragraph that begins "JTAG and the serial pair share
-GPIO14" on [verifying 3](../building/compute-blade/verifying-3.md): `enable_uart=0` in `config.txt` (or, if
-the port is switched on by a `uart0` overlay or parameter line, that line taken out instead), and
-`console=serial0,115200` out of `cmdline.txt` if it is there. Raspberry Pi's documentation does not say that
-this frees GPIO14 on a Compute Module 5. **Not yet tried by us on a blade.** Taking the
-login prompt (the serial getty) off that port as well has **no written steps yet**; whether it is still
-needed once `enable_uart=0` is set has not been tried either.
+What the Host column's (b) is, as run on pi20 at ps1 on 7 October 2026 ([verifying
+3](../building/compute-blade/verifying-3.md) has the steps, both ways and their undo): in `config.txt`'s `[all]`
+section `enable_uart=1` becomes `enable_uart=0` and the line `uart_2ndstage=1` is taken out; in `cmdline.txt`
+the word `console=serial0,115200` is taken out. In that boot GPIO14 had no user, the login prompt went to the
+Compute Module 5's own debug serial port (not on the header), so nothing more had to be taken off the header's
+pins, and the check's `jtag` test read the FPGA's IDCODE and device DNA. **Not yet run on a Compute Module 4
+blade**, and no bitstream load or flash write over JTAG has been run that way.
 
 **pi20 at ps1's present P2 wiring is not the guide's.** How its cable is made was not recorded, only where
 its serial pair lands (Extension Port pins 9 and 10). The way to the guide's wiring that needs no knowledge of
