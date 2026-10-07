@@ -1,5 +1,5 @@
 % This page is copied from https://github.com/fpgas-online/fpgas.online-test-designs/blob/main/docs/verify/identity-and-labels.md
-% by tools/sync_test_designs.py. Do not edit it here: change it in test-designs.
+% by tools/sync_repos.py. Do not edit it here: change it in test-designs.
 
 # fpgas-verify: identity and labels
 
@@ -18,7 +18,7 @@ the check, publishes anything or records any state.
 
 `--identify`:
 
-* The document and every field in it are described in [identity.md](identity.md). It is printed with sorted
+* The document and every field in it are described in [Board identity](identity.md). It is printed with sorted
   keys and an indent of 1.
 * What it reads live:
 

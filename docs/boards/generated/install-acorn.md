@@ -1,5 +1,5 @@
 % This section ("Installing the Acorn Packages") is copied from https://github.com/fpgas-online/fpgas.online-test-designs/blob/main/docs/hardware/acorn.md
-% by tools/sync_test_designs.py. Do not edit it here: change it in test-designs.
+% by tools/sync_repos.py. Do not edit it here: change it in test-designs.
 
 ## Installing the Acorn Packages
 
@@ -88,4 +88,4 @@ sudo fpgas-acorn-flash id
 sudo fpgas-acorn-flash verify /usr/share/fpgas-online/acorn-pcie/images/acorn-cle-215p-sqrl_acorn_operational.bin 0x400000
 ```
 
-Writing the flash, and converting a board that still runs the factory image, are covered in [acorn-pcie-programming.md](pcie-programming.md). After writing it, run `sudo fpgas-verify --update`. `fpgas-acorn-flash` reaches the flash through the fpgas.online SoC's PCIe BAR0, so it needs that SoC to be running already. By default it expects the SoC at `0001:01:00.0`; pass `--bdf` for another address, or `--uart PORT` to use the UART bridge instead.
+Writing the flash, and converting a board that still runs the factory image, are covered in [Acorn PCIe programming and multiboot](pcie-programming.md). After writing it, run `sudo fpgas-verify --update`. `fpgas-acorn-flash` reaches the flash through the fpgas.online SoC's PCIe BAR0, so it needs that SoC to be running already. By default it expects the SoC at `0001:01:00.0`; pass `--bdf` for another address, or `--uart PORT` to use the UART bridge instead.

@@ -1,5 +1,5 @@
 % This section ("Installing the NeTV2 Packages") is copied from https://github.com/fpgas-online/fpgas.online-test-designs/blob/main/docs/hardware/netv2.md
-% by tools/sync_test_designs.py. Do not edit it here: change it in test-designs.
+% by tools/sync_repos.py. Do not edit it here: change it in test-designs.
 
 ## Installing the NeTV2 Packages
 

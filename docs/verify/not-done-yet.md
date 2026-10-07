@@ -1,14 +1,14 @@
 % This page is copied from https://github.com/fpgas-online/fpgas.online-test-designs/blob/main/docs/verify/not-done-yet.md
-% by tools/sync_test_designs.py. Do not edit it here: change it in test-designs.
+% by tools/sync_repos.py. Do not edit it here: change it in test-designs.
 
 # fpgas-verify: not done yet
 
-You want to know what the check does not do yet, of what [verify-goals.md](goals.md) asks for.
+You want to know what the check does not do yet, of what [fpgas-verify: what it must do](goals.md) asks for.
 Every fpgas-verify page is listed in [fpgas-verify](fpgas-verify.md).
 
 ## Not done yet
 
-What [verify-goals.md](goals.md) asks for that the check does not do yet:
+What [fpgas-verify: what it must do](goals.md) asks for that the check does not do yet:
 
 * The Arty, NeTV2, Fomu and TT FPGA are checked with the single-function test designs, loaded one at a time,
   not with the full test design.
