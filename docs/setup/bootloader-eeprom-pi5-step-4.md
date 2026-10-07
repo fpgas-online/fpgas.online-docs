@@ -28,9 +28,8 @@ Photo: Suyash Dwivedi, [Wikimedia Commons](https://commons.wikimedia.org/wiki/Fi
 
 1. Push the card into the slot.
 
-2. Power the Pi through its network cable, on the switch port the Pi was on. (The drawing below shows the Pi top
-   side up; yours is lying upside down. The Ethernet socket is the one beside the two USB blocks.) Which way
-   depends on what joins the pads:
+2. Next the network cable goes in, and that powers the Pi. How you do it depends
+   on what joins the pads:
 
    - **A solder bridge on the pads:** plug the network cable in.
    - **Tweezers or a short wire instead:** do these in this order, and read all three before you start.
@@ -55,7 +54,9 @@ Photo: Suyash Dwivedi, [Wikimedia Commons](https://commons.wikimedia.org/wiki/Fi
      2. Then plug the network cable in with your other hand.
      3. Keep the tips on both pads until the 60 seconds below are over.
 
-   Where the network cable goes, either way:
+   Where the network cable goes, either way: the switch port the Pi was on, into
+   the Ethernet socket, the one beside the two USB blocks. (The drawing shows the
+   Pi top side up; yours is lying upside down.)
 
    ```{image} bootloader-eeprom/cable-in.svg
    :alt: A Raspberry Pi 5, top side up, with its network cable going into the Ethernet socket
