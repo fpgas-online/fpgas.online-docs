@@ -12,7 +12,8 @@ wired differently and has [its own page](rpi-5.md). To build and fit the cables,
 The [Compute Blade](https://computeblade.com/) for a CM4 or CM5 does not have
 the 40-pin header.
 
-[![Acorn to Compute Blade wiring sheet](../generated/acorn-wiring-computeblade.png)](../generated/acorn-wiring-computeblade.svg)
+[![Acorn to Compute Blade wiring sheet](../generated/acorn-wiring-computeblade.png){.only-light}](../generated/acorn-wiring-computeblade.svg)
+[![Acorn to Compute Blade wiring sheet](../generated/acorn-wiring-computeblade-dark.png){.only-dark}](../generated/acorn-wiring-computeblade-dark.svg)
 
 Read the sheet from the card's two connectors (P2 and P1, pin 1 at the end nearest the M.2 edge) along each
 wire to the blade pin it lands on. The `--pins` numbers on the sheet are GPIO numbers, not printed pin

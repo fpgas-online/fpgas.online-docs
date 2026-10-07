@@ -4,7 +4,7 @@
 # fpgas-verify: what it must do
 
 These are the goals for `fpgas-verify`, as set by Tim Ansell on 2026-10-01. Where the code, an older plan
-(such as [plans/2026-09-26-fpgas-online-verify-design.md](https://github.com/fpgas-online/fpgas.online-test-designs/blob/main/docs/plans/2026-09-26-fpgas-online-verify-design.md)) or
+(such as [plans/2026-09-26-fpgas-online-verify-design.md](https://github.com/fpgas-online/fpgas.online-test-designs/blob/dark-variants/docs/plans/2026-09-26-fpgas-online-verify-design.md)) or
 [verify.md](fpgas-verify.md) disagrees with this page, this page is what the tool should do; change the tool, or ask
 before changing this page.
 
@@ -49,8 +49,8 @@ or fail. It passes only when all of these hold:
 * **A Pi with no board fails.** Every Pi runs the check and reports that it started; a Pi with no FPGA board
   found (an Orange Pi, a board powered off) reports that and fails.
 * **GPIO pins are checked in both directions.** Today
-  [pmod-pin-id](https://github.com/fpgas-online/fpgas.online-test-designs/tree/main/designs/pmod-pin-id) checks every pin FPGA to Pi: each FPGA pin sends its own name, and the
-  Pi reads it. [pmod-loopback](https://github.com/fpgas-online/fpgas.online-test-designs/tree/main/designs/pmod-loopback) checks pins in pairs: the Pi drives one pin of each
+  [pmod-pin-id](https://github.com/fpgas-online/fpgas.online-test-designs/tree/dark-variants/designs/pmod-pin-id) checks every pin FPGA to Pi: each FPGA pin sends its own name, and the
+  Pi reads it. [pmod-loopback](https://github.com/fpgas-online/fpgas.online-test-designs/tree/dark-variants/designs/pmod-loopback) checks pins in pairs: the Pi drives one pin of each
   pair and reads the inverted value back on the other. So each pin is checked in one direction only. The full
   test design must check every pin both ways.
 * **On the fleet, the check runs at every boot, and only then.** To check a Pi again, reboot it.

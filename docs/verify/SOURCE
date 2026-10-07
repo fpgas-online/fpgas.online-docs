@@ -1,5 +1,5 @@
 These files are copied from https://github.com/fpgas-online/fpgas.online-test-designs
 by tools/sync_test_designs.py. Do not edit them here: change them in test-designs.
 
-ref: main
-commit: f459750cd6475411d0cc1677976c23b63bb7a9da
+ref: dark-variants
+commit: f500802ac4b963245c7991b78cc72641740a0353

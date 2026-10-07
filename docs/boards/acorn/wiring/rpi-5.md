@@ -8,7 +8,8 @@ and fit the cables, follow the [Raspberry Pi 5 building guide](../building/rpi-5
 
 ## The wiring sheet
 
-[![Acorn to Raspberry Pi 5 wiring sheet](../generated/acorn-wiring-pi5.png)](../generated/acorn-wiring-pi5.svg)
+[![Acorn to Raspberry Pi 5 wiring sheet](../generated/acorn-wiring-pi5.png){.only-light}](../generated/acorn-wiring-pi5.svg)
+[![Acorn to Raspberry Pi 5 wiring sheet](../generated/acorn-wiring-pi5-dark.png){.only-dark}](../generated/acorn-wiring-pi5-dark.svg)
 
 Read it from the right: the card's two connectors (P2 above, P1 below, pin 1 at the end nearest the M.2
 edge), each wire, and the 40-pin header pin it lands on. A dashed outline is one Dupont housing and a red
