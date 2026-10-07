@@ -82,9 +82,15 @@ both, each with the theme's class for it:
 ```
 ````
 
+A picture that links to its full-size file carries the class on the link,
+`[![What it shows](sheet.png)](sheet.svg){.only-light}`, so that the hidden
+one's link is hidden too; a `{figure}` carries it as `:figclass:`, so that its
+caption goes with it. An annotated photograph (labels or a caption band drawn
+on it) is a drawing in this sense and has a dark twin too.
+
 The theme shows the one that fits its mode, and the printed booklet takes the
 light one. `tools/test_dark_twins.py` fails if a drawing on a page has no dark
-twin. Photographs are the same in both themes.
+twin. A plain photograph is the same in both themes.
 
 ## What belongs here
 
