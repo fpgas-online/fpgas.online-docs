@@ -1,13 +1,13 @@
 % This page is copied from https://github.com/fpgas-online/fpgas.online-infra/blob/main/docs/access.md
 % by tools/sync_repos.py. Do not edit it here: change it in infra.
 
-# Accounts and logins (Welland)
+# Accounts and logins at welland
 
 (accounts-and-logins)=
 
 **You look after access to the welland gateway and fleet: who can log in, how, and how to change it.** Each task has its own page, listed under [The tasks](#the-tasks).
 
-Who can log in to the Welland gateway (tweed, inventory host `fpgas.online`)
+Who can log in to the welland gateway (tweed, inventory host `fpgas.online`)
 and to the netbooted Pi fleet, with what, and which role and variable decide
 it. Everything on these pages is what `main` configures. It was deployed to tweed
 (`main` 4de0b24) and checked live on 2026-09-29:
@@ -44,7 +44,7 @@ through tweed.
 (the-gateway-tweed)=
 (tweed)=
 (sshd)=
-- [tweed](access/tweed.md): its accounts, keys, the jump account and sshd.
+- [The gateway, tweed](access/tweed.md): its accounts, keys, the jump account and sshd.
 
 (the-pis)=
 (the-pi-nfs-root)=
@@ -70,7 +70,7 @@ through tweed.
 ```{toctree}
 :hidden:
 
-tweed <access/tweed>
+The gateway, tweed <access/tweed>
 The Pi NFS root <access/pi-root>
 Logging in <access/logging-in>
 Adding or removing a person <access/people>
