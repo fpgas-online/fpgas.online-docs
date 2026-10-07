@@ -21,15 +21,15 @@ either. Every wire this board uses is on the wiring pages of this set.
 ## 3. The three Pmod cables and the USB-C cable
 
 **Before a cable goes in, find pin 1 on both connectors** (the paragraph "Pin 1 on the picture" below): a
-2x6 cable turned round puts 3.3 V on signal pins. Which cable to use, and whether its 3.3 V pins may be
-connected, is the open question of this board: [the building
-overview](index.md#the-open-question-which-cable-and-its-33-v-pins). Nothing here tells you which to choose.
+cable turned round puts ground on signal pins. The cable is a 10-pin ribbon with its 3.3 V pin left out, so
+the two boards' 3.3 V supplies are not joined; how it sits on the 12-pin socket is not recorded: [the
+cables](index.md#the-cables-10-pin-ribbon-no-33-v-wire).
 
 ```{include} ../generated/tt-fpga-cables.md
 :relative-images:
 :relative-docs: tt-fpga-
 :start-after: "This part shows which cable goes where."
-:end-before: "**From the makers' documents"
+:end-before: "**Not checked by us on a board:**"
 ```
 
 ```{include} ../pin1-measured.inc

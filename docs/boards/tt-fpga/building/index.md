@@ -7,15 +7,18 @@ check that the wiring is right, and know what it takes for the board to be on th
 together; nothing in it was written from an assembly we watched. Each step that has no procedure or no
 picture says so in place. Not yet run by us on this hardware as a guide.
 
-## The open question: which cable, and its 3.3 V pins
+## The cables: 10-pin ribbon, no 3.3 V wire
 
-**What cable joins the demo board's headers to the Pmod HAT on our boards, and whether its pins 6 and 12
-(3.3 V on both boards) are connected, is not recorded.** The question was asked of the boards' owner on
-6 October 2026 and is not yet answered. Until it is, this guide names no cable to buy and gives no
-instruction about the 3.3 V pins; every other page that touches the cables points here.
+**On our boards each cable is a female-to-female 10-pin ribbon cable, joined to the 12-pin socket at each
+end through a strip of pin header, with the 3.3 V pin left out: pins 6 and 12 are not carried, so the two
+boards' 3.3 V supplies are not joined.** The boards' owner, Tim Ansell, said so on 7 October 2026. He
+believes the cables are whiteeeen 10-pin flat ribbon cables (0.1 inch pitch, about 200 mm, IDC
+connectors; Amazon product B094RGMBS9); that is his belief, not checked by us. **How the 10-pin cable sits
+on the 12-pin socket (which end of the socket is left free) is not recorded**, so find pin 1 on both
+connectors before plugging a cable in. Every other page that touches the cables points here.
 
-What the makers' documents and our cameras say about the cables. The second line holds only if a straight
-twelve-wire cable is used: it is not an instruction to use one.
+What the makers' documents, Tim's answer and our cameras say about the cables. The line about a straight
+twelve-wire cable says what such a cable would do: it is not an instruction to use one.
 
 ```{include} ../generated/tt-fpga-cables.md
 :start-after: "**The cables**"
@@ -33,7 +36,8 @@ shows the Pmod cables and the USB-C cable only.
 [![Which Pmod header of the demo board goes to which port of the Pmod HAT](../generated/tt-fpga-pmod-cables.png)](../generated/tt-fpga-pmod-cables.svg){.only-light}
 [![Which Pmod header of the demo board goes to which port of the Pmod HAT](../generated/tt-fpga-pmod-cables-dark.png)](../generated/tt-fpga-pmod-cables-dark.svg){.only-dark}
 
-Three 12-pin Pmod cables, each pin 1 to pin 1 (INPUT to JA, BIDIR to JB, OUTPUT to JC), and one USB-C cable
+Three 10-pin ribbon cables, their 3.3 V pin left out, each pin 1 to pin 1 (INPUT to JA, BIDIR to JB, OUTPUT
+to JC), and one USB-C cable
 from the demo board to a USB port of the Raspberry Pi.
 
 ## The order of work

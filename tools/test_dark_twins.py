@@ -32,8 +32,9 @@ CODE_SPAN = re.compile(r"`[^`\n]+`")
 
 
 def dark(name):
+    """The dark twin's name: x.svg -> x-dark.svg; a drawing copied in as x-light.svg -> x-dark.svg."""
     stem, _, ext = name.rpartition(".")
-    return f"{stem}-dark.{ext}"
+    return f"{stem.removesuffix('-light')}-dark.{ext}"
 
 
 def is_dark(name):
@@ -98,10 +99,14 @@ class EveryPicture(unittest.TestCase):
                 # its twin: the next picture of that name after it
                 twins = sorted((t for t in pictures if t[0] == dark(src) and t[2].start() > m.start()), key=lambda t: t[2].start())
                 self.assertTrue(twins, f"{page}: {src} has no dark twin shown")
-                self.assertTrue((page.parent / dark(src)).exists(), f"{page}: {dark(src)} is missing")
+                where = DOCS / dark(src).lstrip("/") if src.startswith("/") else page.parent / dark(src)
+                self.assertTrue(where.exists(), f"{page}: {dark(src)} is missing")
                 twin = twins[0][2]
                 if "kind" in m.groupdict():  # a directive: the same options but the class
-                    self.assertEqual(twin["options"].replace("only-dark", "only-light"), m["options"], f"{page}: {src}")
+                    same = twin["options"].replace("only-dark", "only-light")
+                    if "-light." in src:  # a pair named -light / -dark: its target is the matching twin
+                        same = same.replace("-dark.", "-light.")
+                    self.assertEqual(same, m["options"], f"{page}: {src}")
                 else:  # Markdown: the same words, a linked picture links its own twin
                     self.assertEqual(twin["alt"], m["alt"], f"{page}: {src}")
                     if m["link"]:

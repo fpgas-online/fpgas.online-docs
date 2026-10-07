@@ -18,9 +18,9 @@ pins](pins-other.md). To fit the cables, follow the [building guide](../building
 ```{include} ../pin1-measured.inc
 ```
 
-**The cables** themselves are the open question of this board: which cable is fitted, and whether its 3.3 V
-pins are connected, is not recorded (asked on 6 October 2026, not yet answered). What is known about them is
-in one place, at the top of the [building overview](../building/index.md#the-open-question-which-cable-and-its-33-v-pins).
+**The cables** on our boards are 10-pin ribbon cables with the 3.3 V pin left out (Tim Ansell, 7 October
+2026); how one sits on the 12-pin socket is not recorded. What is known about them is in one place, at the
+top of the [building overview](../building/index.md#the-cables-10-pin-ribbon-no-33-v-wire).
 
 ```{include} ../generated/tt-fpga-cables.md
 :start-after: "Neither the wires nor any pin 1 mark can be made out."

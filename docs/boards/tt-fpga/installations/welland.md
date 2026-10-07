@@ -90,9 +90,8 @@ recorded here; the pin-mapping page of that time had JA and JC the other way rou
 
 ## What each still needs
 
-- **Each of them:** its label (none recorded); the answer about its Pmod cables and their 3.3 V pins
-  (asked on 6 October 2026): [the open
-  question](../building/index.md#the-open-question-which-cable-and-its-33-v-pins).
+- **Each of them:** its label (none recorded); how its 10-pin cables sit on the 12-pin sockets (not
+  recorded): [the cables](../building/index.md#the-cables-10-pin-ribbon-no-33-v-wire).
 - **`8c46329b33590ecb` and `a2961e5cac65b25f`:** a whole boot check recorded on these pages (only
   `4df39a7a6856f86f`'s of 5 October 2026 is).
 - **The board seen at sw2 p34 on 3 September 2026 (`fd1a167bd863a198`):** to be read. Its host was not

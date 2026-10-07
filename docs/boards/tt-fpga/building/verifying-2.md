@@ -63,7 +63,7 @@ What is recorded about kinds of fault:
   swapped with each other. The HAT joins those two wires on one Pi pin, so the Pi hears the same two pin
   numbers either way. Every other miswiring of the three ribbons changes what some Pi pin hears.
 - `pin-id` checks each Pmod pin in one direction only, FPGA to Pi.
-- **A cable turned round** (pin 1 at the wrong end) puts 3.3 V on signal pins: [which cable goes
+- **A cable turned round** (pin 1 at the wrong end) puts ground on signal pins: [which cable goes
   where](../wiring/cables.md). What the test reports for it is not recorded.
 
 ## Other failing lines on this board
