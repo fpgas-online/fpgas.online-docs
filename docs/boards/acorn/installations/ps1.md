@@ -45,10 +45,10 @@ A way that does not depend on looking, **not yet tried by us**: with every other
 blade's PoE cable and wait a minute; the name whose visitor port then stops answering is that blade. The
 ports are 11422 for pi14 at ps1, 11622 for pi16 at ps1, 11822 for pi18 at ps1 and 12022 for pi20 at ps1
 (`ssh -p 11622 pi@ps1.fpgas.online` and so on). Plug it back in and wait until its port answers again: pi20 at ps1 answered
-about three and a half minutes after a reboot (7 October 2026). Anything installed on it is gone (below).
+about three and a half minutes after a reboot (7 October 2026, 14:22, before our test of 15:52). Anything installed on it is gone (below).
 
 All four answered on their visitor ports on 7 October 2026 (pi14 at ps1 and pi18 at ps1 had not on
-5 October). **If a blade's ssh port does not answer**, nothing can be run on it from this guide; first find out
+5 October); pi20 at ps1 restarted every 2 to 3 minutes from 15:52 to about 18:09 that day (below). **If a blade's ssh port does not answer**, nothing can be run on it from this guide; first find out
 whether it is powered and its network link is up (its lights; the gateway's view of it): **not yet checked by
 us**. Its cables can still be made, bench-checked and fitted.
 
@@ -71,8 +71,7 @@ Host column below).
 |---|---|---|---|---|---|---|
 | Acorn CLE-101, no label yet (device DNA not read) | pi14 at ps1 (`1e24:0101` seen 2026-10-07) | CM4 Rev 1.1 4 GB | SQRL's factory image, `1e24:0101` | `0000:01` | 2026-09-20: no response, TCK floating | not known |
 | Acorn CLE-101, no label yet (device DNA not read) | pi16 at ps1 (2026-10-05) | CM5 Lite Rev 1.0 8 GB | SQRL's factory image, `1e24:0101` | `0001:01` | 2026-09-20: no response, TCK floating. 2026-10-05: cannot run (the serial driver holds GPIO14) | not known |
-| Acorn CLE-101, device DNA `0x0028e5c45e304854` | pi20 at ps1 (2026-10-05) | CM5 Lite Rev 1.0 8 GB | a vendor XDMA sample image, `10ee:7011` (read 2026-10-05; on 2026-10-07 our SoC was loaded into its SRAM for a test, the flash unchanged: below) | `0001:01` | 2026-09-20 (kernel 6.12.75): answered, IDCODE `0x3631093`. 2026-10-07 (kernel 6.18, serial port on): the check's `jtag` test failed: GPIO14 is held by the serial port. 2026-10-07, the header's serial port off at boot: `jtag` passed, IDCODE `0x13631093` (the same part as read on 2026-09-20: that reading left out the leading
-version digit), device DNA as in the first column (no bitstream loaded, flash not written) | on the Extension Port: K2 to GPIO15, J2 to GPIO14, no resistor; J5 and H5 not wired |
+| Acorn CLE-101, device DNA `0x0028e5c45e304854` | pi20 at ps1 (2026-10-05) | CM5 Lite Rev 1.0 8 GB | a vendor XDMA sample image, `10ee:7011` (read 2026-10-05; on 2026-10-07 our SoC was loaded into its SRAM for a test, the flash unchanged: below) | `0001:01` | 2026-09-20 (kernel 6.12.75): answered, IDCODE `0x3631093`. 2026-10-07 (kernel 6.18, serial port on): the check's `jtag` test failed: GPIO14 is held by the serial port. 2026-10-07, the header's serial port off at boot: `jtag` passed, IDCODE `0x13631093` (the same part; the 2026-09-20 reading left out the version digit), DNA as in the first column | on the Extension Port: K2 to GPIO15, J2 to GPIO14, no resistor; J5 and H5 not wired |
 | none seen: no PCIe device (2026-10-07; the slot is empty, or a card has no link: `lspci` cannot tell) | pi18 at ps1 (2026-10-07) | CM4 Rev 1.1 4 GB | | | | |
 
 How each card was read, and what "P1 unmated" rests on, is on [Acorns at ps1: what was read on each
@@ -108,7 +107,8 @@ $ BDF=0001:01:00.0           # pi16 at ps1, pi20 at ps1; 0000:01:00.0 on the CM4
 $ echo 1 | sudo tee /sys/bus/pci/devices/$BDF/remove
 ```
 
-Restore it by rebooting, or as described under [Bring the endpoint back after a
+Restore it by rebooting (on pi20 at ps1 on 7 October 2026 the reboot after a load was followed by restarts
+every 2 to 3 minutes for over two hours: below), or as described under [Bring the endpoint back after a
 JTAG load](../designs/pcie.md#bring-the-endpoint-back-after-a-jtag-load)
 (on a blade a LiteX design needs a root-complex re-probe, not just a rescan).
 `--detect` and the other read-only queries are safe without this; **loading a
@@ -155,13 +155,16 @@ the word `console=serial0,115200` is taken out. In that boot GPIO14 had no user,
 Compute Module 5's own debug serial port (not on the header), so nothing more had to be taken off the header's
 pins, and the check's `jtag` test read the FPGA's IDCODE and device DNA (after checking that GPIO14 followed
 the Pi's pull both ways, verifying 3's step for a blade with no 470 Ω in its J2 wire, as pi20 at ps1 has).
-**Not yet run on a Compute Module 4 blade.** Converting pi20 at ps1's card was begun on 7 October 2026, as
-its last record that day stands: a load of our SoC into the FPGA (its SRAM, not its flash) over JTAG worked,
-but the card's PCIe endpoint did not come back on a bus rescan, and the run stopped there. **The flash was
-not written**, so the card still holds the vendor's sample image and runs it again from its next power-on or
-`openFPGALoader --reset`. Until then it may run our SoC, or show no PCIe device. On this blade the endpoint
-comes back after a root-complex re-probe ([Bring the endpoint back after a JTAG
-load](../designs/pcie.md#bring-the-endpoint-back-after-a-jtag-load)); that was not yet run for this load.
+**Not yet run on a Compute Module 4 blade.** Converting pi20 at ps1's card was begun on 7 October 2026: a load of our SoC
+into the FPGA (its SRAM, not its flash) over JTAG worked, but the card's PCIe endpoint did not come back on a
+bus rescan, a root-complex re-probe failed (the bind answered "No such device" and the root port was gone
+too), and the run stopped there. An `openFPGALoader --reset` at 17:19 put the vendor's sample image back in
+the FPGA, from the flash, which was never written.
+
+**After test 6 was stopped at step 1b (15:52, Adelaide time, 7 October 2026), pi20 at ps1 restarted every 2 to
+3 minutes until about 18:09, then stayed up; no power cycle was run by us; the cause is not known. It is back
+on its own files with the card on the vendor image. The Acorn's flash was never written; Carl's boot files
+are unchanged.**
 
 The Host column's (a) has no written steps and has **not been tried by us**. What is known: on pi20 at ps1
 (read 7 October 2026) the login prompt on `/dev/ttyAMA0` was there only because of the word
