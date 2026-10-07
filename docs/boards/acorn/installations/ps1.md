@@ -171,8 +171,8 @@ after it; 15:52, Adelaide time, 7 October 2026), pi20 at ps1 restarted every 2 t
 about 17:06, stayed up at least 12 minutes) until about 18:09,
 then stayed up; no power cycle was run by us; the cause is not known. It is back on Carl's shared boot files
 (above) with the card on the vendor image. The Acorn's flash was never written. The files in Carl's
-shared boot directory were never changed: for the test, pi20 at ps1's link pointed at a copy, and it was put
-back at 17:19:48.**
+shared boot directory were never changed: for the test, pi20 at ps1's link pointed at a copy, and at 17:19:48 it was put
+back and the copy was removed; nothing of the test remains on the gateway.**
 
 The Host column's (a) has no written steps and has **not been tried by us**. What is known: on pi20 at ps1
 (read 7 October 2026) the login prompt on `/dev/ttyAMA0` was there only because of the word
