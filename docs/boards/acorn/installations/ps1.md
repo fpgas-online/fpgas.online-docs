@@ -41,8 +41,9 @@ been checked by eye by us):
   recorded by us ([the steps for its old serial wiring](ps1-pi20-old-serial.md)), and neither is how pi16 at ps1's cables are wired, so the wires do not tell the two
   apart: use the way below.
 
-A way that does not depend on looking, **not yet tried by us**: with every other blade running, unplug one
-blade's PoE cable and wait a minute; the name whose visitor port then stops answering is that blade. The
+A way that does not depend on looking, **not yet tried by us**. **Before you unplug a blade, ask Tim**: the blades
+are open to visitors, and unplugging one ends whatever is running on it, a visitor's session included. Then, with
+every other blade running, unplug one blade's PoE cable and wait a minute; the name whose visitor port then stops answering is that blade. The
 ports are 11422 for pi14 at ps1, 11622 for pi16 at ps1, 11822 for pi18 at ps1 and 12022 for pi20 at ps1
 (`ssh -p 11622 pi@ps1.fpgas.online` and so on). Plug it back in and wait until its port answers again: pi20 at ps1 answered
 about three and a half minutes after a reboot (7 October 2026, 14:22, before our test of 15:52). Anything installed on it is gone (below).
@@ -101,8 +102,10 @@ three P1 cables (four if pi20 at ps1's fails). Each bought Molex cable gives one
 takes four Molex cables, with one P1 half spare (for pi20 at ps1 if needed). The terminals are 3 per P2 cable
 and 5 per P1 cable: 27 in all (32 with a new P1 for pi20 at ps1), and a few spare. pi18 at ps1 also needs a card; which card goes there is not recorded by us.
 
-**Before anything is fitted, refitted or reseated: power the blade off (unplug its PoE cable, and a USB-C cable if
-one is plugged in).** `openFPGALoader --detect` and the other read-only queries are safe on a running blade.
+**Before anything is fitted, refitted or reseated: ask Tim, then power the blade off (unplug its PoE cable, and a
+USB-C cable if one is plugged in).** Over JTAG, run only the check's own `jtag` test (`sudo fpgas-acorn-verify --no-publish --test jtag`), and only as [verifying
+3](../building/compute-blade/verifying-3.md) says: in a boot with the header's serial port off, after its steps that show
+GPIO14 is free and nothing on the card drives it. Do not run `openFPGALoader` by hand on a blade.
 **Loading a bitstream on a blade is not part of this guide**: on the one blade it was tried on, the card's PCIe
 endpoint did not come back after the load and the blade restarted for over two hours ([what fpgas.online ran
 on the ps1 blades](ps1-ran-2026-10-07.md)).
