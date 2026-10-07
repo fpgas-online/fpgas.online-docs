@@ -15,7 +15,8 @@ writes nothing and exits 1 if anything would change.
 
 Each entry has these tables:
 
-FILES      copied byte for byte (the Acorn wiring sheets and pin tables), per destination directory.
+FILES      files copied per destination directory: pictures byte for byte, Markdown with its links
+           handled as below (the Acorn wiring sheets and pin tables).
 PAGES      whole Markdown documents, published as pages here.
 SECTIONS   one "## heading" section of a Markdown document, written as a fragment that a page here
            includes (each board's "Installing the ... Packages").
@@ -27,33 +28,41 @@ WRAPPERS   pages here that are only a title, a lead and includes of synced files
            exists there, the text itself (Interim, listed on every run so it does not stay).
 
 Ownership: a destination directory belongs to exactly one repository (the directories of its FILES,
-PAGES, SECTIONS and WRAPPERS; a wrapper with own_dir=False claims only its own path). Everything in an
-owned directory is written by this tool or removed. Two repositories claiming one directory, or two rows
-one destination path, is an error.
+PAGES, SECTIONS and WRAPPERS; a wrapper with own_dir=False claims only its own path), and no owned
+directory lies inside another. Everything in an owned directory is written by this tool or removed. Two
+repositories claiming one directory, or two rows one destination path, is an error. A file anywhere in
+docs/ that carries this tool's "copied"/"generated" comment, or a SOURCE of it, that no row accounts for
+stops the sync for its repository: remove it by hand, or give it its row back.
 
 Text that is synced (PAGES, SECTIONS, leads, and the Markdown among FILES) was written to be read on
-GitHub, so its links are rewritten (rewrite_links, own_links):
+GitHub, so its links are rewritten (rewrite_links). A link is resolved in its own repository: relative to
+the file, or from the repository root when it starts with "/". Then:
 - a link to a file that this tool publishes here, from ANY repository, becomes a link inside the site: a
   relative link to a file in the same repository, or an absolute
   https://github.com/fpgas-online/fpgas.online-<repo>/blob/<ref>/<path> URL to another;
 - a link to this site's published address (https://docs.fpgas.online/en/latest/...html) becomes a link
   inside the site when that page is here;
 - any other relative link becomes the file's GitHub URL in its own repository.
-Fragments are kept. A GitHub alert (a blockquote opening `> [!NOTE]`, TIP, IMPORTANT, WARNING or CAUTION)
-becomes the MyST admonition of its kind (alerts_to_admonitions). A link whose text is a file name or path
-ending in .md gets as its text the title (the first "# " heading) of the page it points at; when that cannot
-be read, the text is left and the output says so. Each synced page starts with a comment saying where to edit it.
+Fragments are kept. In a copied FILES Markdown file (included by pages at any depth) a link inside the site
+is written from the source root (/verify/fpgas-verify.md); its pictures must be files copied beside it. A
+link form that cannot be rewritten stops the sync. A link whose text is a file name or path ending in .md
+gets as its text the title (the first "# " heading) of the page the rewritten link opens; when that cannot
+be read, the text is left and the output says so. A GitHub alert (a blockquote opening `> [!NOTE]`, TIP,
+IMPORTANT, WARNING or CAUTION, in any letter case) becomes the MyST admonition of its kind
+(alerts_to_admonitions); any other `> [!...]` stops the sync. Fenced code is left alone. Each synced page
+starts with a comment saying where to edit it.
 
-If a repository does not have a listed file or section, this stops with exit status 2 and names the
-repository and the file. That means it moved or was renamed there: update the tables below to match, never
-paper over it. Only what is listed is copied; a new file there is not picked up until it is added here. The
-scheduled workflow (.github/workflows/sync-repos.yml) runs this daily for every repository and opens a pull
-request with the result.
+If a repository does not have a listed file or section, or its text cannot be synced, that repository
+stops: each such stop prints "sync: FAILED. fpgas-online/fpgas.online-<name>: <reason>". It means a file
+moved or was renamed there: update the tables below to match, never paper over it. A failing repository
+blocks no other: the others are written, and the run exits 2 naming each failing one. Only what is listed
+is copied; a new file there is not picked up until it is added here. The scheduled workflow
+(.github/workflows/sync-repos.yml) runs this daily for every repository, opens a pull request with what
+synced and an issue for what failed.
 
 fpgas.online-mechanical: its PAGES go here; its drawings are copied by tools/sync_mechanical.py, which
 pins one commit for them.
 """
-
 import argparse
 import posixpath
 import re
@@ -535,13 +544,21 @@ REPOS = {repo.name: repo for repo in (
     Repo("mechanical"),
 )}
 
-LINK = re.compile(r"(?<=\]\()([^)\s]+)(?=\))")
-# A link whose text is a file name or path ending in .md, in backticks or not.
-FILE_LABEL = re.compile(r"\[(`?)([\w./-]+\.md)\1\]\(([^)\s]+)\)")
-FENCE = re.compile(r"^(```|~~~)")
+
+# A link or a picture: "!" for a picture, the label (one level of brackets inside it), the target.
+FULL_LINK = re.compile(r"(!?)\[((?:[^\[\]]|\[[^\[\]]*\])*)\]\(([^)\s]+)\)")
+# The end of a link whose label began on an earlier line.
+LINK_END = re.compile(r"\]\(([^)\s]+)\)")
+LINK_OR_END = re.compile(FULL_LINK.pattern + "|" + LINK_END.pattern)
+IMAGE = re.compile(r"!\[[^\]]*\]\(([^)\s]+)\)")
+# A label that is a file name or path ending in .md, in backticks or not.
+FILE_LABEL = re.compile(r"(`?)([\w./-]+\.md)\1")
+OPENING_FENCE = re.compile(r"(`{3,}|~{3,})")
+CLOSING_FENCE = re.compile(r"(`{3,}|~{3,})\s*$")
 GITHUB_BLOB = re.compile(r"https://github\.com/" + ORG + r"/fpgas\.online-([\w.-]+)/blob/([^/#?]+)/([^#?]+)(?:#(.*))?$")
-# Link forms LINK does not match. None is in the documents taken today; one appearing stops the sync, because
-# a relative link left as written would be wrong on this site.
+SCHEME = re.compile(r"[a-zA-Z][a-zA-Z0-9+.-]*:")
+# Link forms rewrite_links does not handle. One appearing stops the sync, because a relative link left as
+# written would be wrong on this site.
 UNSUPPORTED = {
     "a reference-style link definition": re.compile(r"^\s{0,3}\[[^\]]+\]:\s+\S"),
     "an image": re.compile(r"!\[[^\]]*\]\("),
@@ -550,15 +567,53 @@ UNSUPPORTED = {
     # an <a id="..."></a> anchor carries no link, so it passes: it keeps an old heading's id on a landing page
     "a raw HTML link or image": re.compile(r"<(a\s[^>]*\bhref|img\s)", re.I),
 }
+ANCHOR = re.compile(r'^<a id="([a-z0-9-]+)"></a>$')
+ALERT = re.compile(r"^(\s*)>\s*\[!([A-Za-z]+)\]\s*$")
+ANY_ALERT = re.compile(r"^\s*>\s*\[!\w+\]")
+KINDS = ("note", "tip", "important", "warning", "caution")
+# The comment the sync (and its earlier name) puts at the top of what it writes, and of SOURCE.
+OUR_COMMENT = re.compile(r"by tools/sync_(?:repos|test_designs)\.py\b[^\n]*\n?[^\n]*Do not edit (?:it|them) here")
 
 
 class Missing(Exception):
     pass
 
 
+class Stop(SystemExit):
+    """Text of a repository that cannot be synced: that repository stops, with this reason."""
+
+
+def in_code(lines):
+    """For each line, whether it is fenced code (its fence lines included). A fence closes only with its own
+    character, at least as long as it opened, and nothing after it."""
+    mask, fence = [], None
+    for line in lines:
+        s = line.lstrip()
+        if fence is None:
+            m = OPENING_FENCE.match(s)
+            if m and not (m.group(1)[0] == "`" and "`" in s[len(m.group(1)):]):
+                fence = m.group(1)
+                mask.append(True)
+                continue
+            mask.append(False)
+        else:
+            mask.append(True)
+            m = CLOSING_FENCE.match(s)
+            if m and m.group(1)[0] == fence[0] and len(m.group(1)) >= len(fence):
+                fence = None
+    return mask
+
+
+def outside_code(text, fn):
+    """text with fn(line, line number) applied to every line outside fenced code."""
+    lines = text.split("\n")
+    return "\n".join(line if code else fn(line, n) for n, (line, code) in enumerate(zip(lines, in_code(lines)), 1))
+
+
 def check_tables(repos=None):
-    """Stop if two rows write one destination path, or two repositories claim one directory, or a destination
-    of one repository lies in a directory another owns, or a wrapper includes what nobody writes."""
+    """Stop if two rows write one destination path, or two repositories claim one directory, or an owned
+    directory lies in another, or a destination of one repository lies in a directory another owns, or a
+    wrapper includes what nobody writes. Returns nothing; raises Stop naming the repositories."""
     repos = REPOS if repos is None else repos
     errors, by_path, by_dir = [], {}, {}
     for repo in repos.values():
@@ -570,6 +625,10 @@ def check_tables(repos=None):
             if d in by_dir and by_dir[d] != repo.name:
                 errors.append(f"directory {d} is claimed by {by_dir[d]} and by {repo.name}")
             by_dir.setdefault(d, repo.name)
+    for d, name in by_dir.items():
+        for other, owner in by_dir.items():
+            if d != other and d.startswith(other + "/"):
+                errors.append(f"directory {d} ({name}) is inside directory {other} ({owner})")
     for dest, name in by_path.items():
         owner = by_dir.get(posixpath.dirname(dest))
         if owner and owner != name:
@@ -585,54 +644,53 @@ def check_tables(repos=None):
             if w.toctree and w.dest in repo.TOCTREES:
                 errors.append(f"{w.dest} has a toctree in its row and in TOCTREES")
     if errors:
-        raise SystemExit("sync: the tables disagree:\n  " + "\n  ".join(errors))
+        raise Stop("the tables disagree: " + "; ".join(errors))
 
 
 def anchors_to_targets(text):
     """A line that is only an id anchor, <a id="x"></a>, becomes the MyST target (x)=: on GitHub the anchor
     keeps an old heading's id on a landing page without showing anything; here the target does the same and
     lets this site's links to page.md#x resolve, which a raw HTML id does not. Fenced code is left alone."""
-    out, fenced = [], False
-    for line in text.split("\n"):
-        if FENCE.match(line.lstrip()):
-            fenced = not fenced
-        m = None if fenced else ANCHOR.match(line)
-        if not fenced and not m and re.search(r"<a\s", line, re.IGNORECASE):
-            sys.exit(f"sync: a raw <a> that is not a line of its own reading exactly <a id=\"lower-case-id\"></a>: "
-                     f"{line.strip()!r}. Only that form keeps an anchor here; write it so.")
-        out.append(f"({m.group(1)})=" if m else line)
-    return "\n".join(out)
 
+    def one(line, _):
+        m = ANCHOR.match(line)
+        if not m and re.search(r"<a\s", line, re.IGNORECASE):
+            raise Stop(f"a raw <a> that is not a line of its own reading exactly <a id=\"lower-case-id\"></a>: "
+                       f"{line.strip()!r}. Only that form keeps an anchor here; write it so.")
+        return f"({m.group(1)})=" if m else line
 
-ANCHOR = re.compile(r'^<a id="([a-z0-9-]+)"></a>$')
-ALERT = re.compile(r"^(\s*)> \[!(NOTE|TIP|IMPORTANT|WARNING|CAUTION)\]$")
+    return outside_code(text, one)
 
 
 def alerts_to_admonitions(text):
-    """A GitHub alert, a blockquote whose first line is exactly `> [!NOTE]` (or TIP, IMPORTANT, WARNING,
-    CAUTION), becomes the MyST admonition of the same kind: `:::{note}`, the quoted lines without their `> `,
-    then `:::`. A line right after the quote without its `> ` stops the sync. The fence is longer than any
-    run of colons the body starts a line with. An indented alert (in a list item) keeps its indentation on
-    every line. A plain blockquote stays one. Fenced code is left alone."""
-    lines, out, fenced, i = text.split("\n"), [], False, 0
+    """A GitHub alert, a blockquote whose first line is `> [!NOTE]` (or TIP, IMPORTANT, WARNING, CAUTION; any
+    letter case, with or without a space after the `>`), becomes the MyST admonition of the same kind:
+    `:::{note}`, the quoted lines without their `>` (and one space after it), then `:::`. Any other `> [!...]`
+    stops the sync, and so does a line right after the quote without its `>`. The fence is longer than any run
+    of colons the body starts a line with. An indented alert (in a list item) keeps its indentation on every
+    line. A plain blockquote stays one. Fenced code is left alone."""
+    lines, out, i = text.split("\n"), [], 0
+    code = in_code(lines)
     while i < len(lines):
         line = lines[i]
-        if FENCE.match(line.lstrip()):
-            fenced = not fenced
-        m = None if fenced else ALERT.match(line)
-        if not m:
+        m = None if code[i] else ALERT.match(line)
+        if not m or m.group(2).lower() not in KINDS:
+            if not code[i] and ANY_ALERT.match(line):
+                raise Stop(f"{line.strip()!r} is not an alert this tool can turn into an admonition (a line of "
+                           f"its own, one of {', '.join(k.upper() for k in KINDS)})")
             out.append(line)
             i += 1
             continue
         indent, kind = m.group(1), m.group(2).lower()
         body, i = [], i + 1
-        while i < len(lines) and (lines[i] == f"{indent}>" or lines[i].startswith(f"{indent}> ")):
-            body.append(lines[i][len(indent) + 2:])
+        while i < len(lines) and lines[i].startswith(f"{indent}>"):
+            rest = lines[i][len(indent) + 1:]
+            body.append(rest[1:] if rest.startswith(" ") else rest)
             i += 1
         if i < len(lines) and lines[i].strip():
-            # On GitHub a line right after a quote, without its "> ", still belongs to it (a lazy continuation).
-            raise SystemExit(f"sync: the line after a > [!{m.group(2)}] alert has no '> ': {lines[i].strip()!r}. "
-                             f"Give it its '> ', or a blank line before it, where it is written.")
+            # On GitHub a line right after a quote, without its ">", still belongs to it (a lazy continuation).
+            raise Stop(f"the line after a > [!{m.group(2)}] alert has no '>': {lines[i].strip()!r}. "
+                       f"Give it its '> ', or a blank line before it, where it is written.")
         runs = [len(r) for b in body for r in re.findall(r"^\s*(:{3,})", b)]
         fence = ":" * max([3, *(n + 1 for n in runs)])
         out.append(f"{indent}{fence}{{{kind}}}")
@@ -641,9 +699,9 @@ def alerts_to_admonitions(text):
     return "\n".join(out)
 
 
-def toctree(dest, repo=None):
-    """The hidden toctree TOCTREES gives the page `dest`, as Markdown to append, or nothing."""
-    entries = (repo or TEST_DESIGNS).TOCTREES.get(dest)
+def toctree(dest, repo):
+    """The hidden toctree the TOCTREES of `repo` gives the page `dest`, as Markdown to append, or nothing."""
+    entries = repo.TOCTREES.get(dest)
     if not entries:
         return ""
     lines = "".join(f"{title} <{doc}>\n" for title, doc in entries)
@@ -676,9 +734,9 @@ def published_dests():
     return {d for repo in REPOS.values() for d in [*repo.PAGES.values(), *(w.dest for w in repo.WRAPPERS)]}
 
 
-def in_site(name, path, fragment):
+def in_site(targets, name, path, fragment):
     """The page here a link to `path` of repository `name` goes to, or None."""
-    hit = link_targets().get((name, path))
+    hit = targets.get((name, path))
     if hit:
         dest, fragments = hit
         if not fragment or fragments is None or fragment in fragments:
@@ -686,198 +744,162 @@ def in_site(name, path, fragment):
     return None
 
 
-def github_target(target):
-    """(repository name, path, fragment) of a GitHub blob URL into a repository in REPOS, or None."""
-    m = GITHUB_BLOB.match(target)
-    if m and m.group(1) in REPOS:
-        return m.group(1), m.group(3), m.group(4) or ""
-    return None
+def rewrite_links(text, src, at, ref, *, repo, own_fragments=None, strict_fragments=False, files=None,
+                  titles=None, notes=None):
+    """Rewrite the links of the Markdown document src of `repo` so they work from the page `at` here.
 
-
-OWN_LINK = re.compile(r"(?<=\]\()" + re.escape(PUBLISHED) + r"([^)\s#?]+)\.html(#[^)\s]*)?(?=\))")
-ABS_LINK = re.compile(r"(?<=\]\()(https://github\.com/[^)\s]+)(?=\))")
-
-
-def lines_outside_code(text, fn):
-    out, fenced = [], False
-    for number, line in enumerate(text.split("\n"), 1):
-        if FENCE.match(line.lstrip()):
-            fenced = not fenced
-        out.append(line if fenced else fn(line, number))
-    return "\n".join(out)
-
-
-def own_links(text, titles=None, where="", notes=None):
-    """A copied Markdown file's links to pages of this site, as links inside the site.
-
-    Such a file is included by pages at any depth, so the link is written from the source root
-    (`/verify/fpgas-verify.md#heading`), which MyST resolves wherever the including page is. The build then
-    checks the page and the heading; by its published address the link check would test it against what is
-    published, where a heading's address is not the one MyST knows it by and a new page is not there yet.
-    A page this run writes counts as here, though it is not on disk yet (FILES are written before PAGES).
-    A GitHub URL to a file another row publishes here goes to that page the same way. A link to a page that
-    is not in this repository is left as it is. Fenced code is left alone."""
-
-    def one(match):
-        page, fragment = match.group(1), match.group(2) or ""
-        here = (DOCS / "docs" / f"{page}.md").exists() or f"docs/{page}.md" in published_dests()
-        return f"/{page}.md{fragment}" if here else match.group(0)
-
-    def github(match):
-        hit = github_target(match.group(1))
-        dest = hit and in_site(*hit)
-        if not dest:
-            return match.group(0)
-        return "/" + dest.removeprefix("docs/") + (f"#{hit[2]}" if hit[2] else "")
-
-    def line_fn(line, number):
-        if titles:
-            line = relabel(line, lambda t: absolute_file(t), titles, f"{where}:{number}", notes)
-        return ABS_LINK.sub(github, OWN_LINK.sub(one, line))
-
-    return lines_outside_code(text, line_fn)
-
-
-def absolute_file(target):
-    """(repository, path) a link target names by its GitHub URL, or None."""
-    hit = github_target(target)
-    return hit and hit[:2]
-
-
-def relabel(line, locate, titles, where, notes):
-    """Give each link whose text is a file name the title of the page it points at. locate(target) says which
-    (repository, path) the target is, or None; titles(repository, path) reads its title, or None."""
-
-    def one(match):
-        tick, label, target = match.groups()
-        found = locate(target)
-        if not found:
-            reason = "it does not point at a file of a repository this tool reads"
-        elif not found[1].endswith(".md"):
-            reason = "it does not point at a Markdown file"
-        else:
-            title = titles(*found)
-            if title and "[" not in title and "]" not in title:
-                return f"[{title}]({target})"
-            reason = f"the title of {found[0]} {found[1]} could not be read"
-        if notes is not None:
-            notes.append(f"{where}: label [{tick}{label}{tick}] left as it is: {reason}")
-        return match.group(0)
-
-    return FILE_LABEL.sub(one, line)
-
-
-def rewrite_links(text, src, at, ref, own_fragments=None, repo="test-designs", titles=None, notes=None):
-    """Rewrite the relative links of the Markdown document src of `repo` so they work from the page `at` here.
-
-    `at` is the page a reader sees the text on: the destination for a page, and for a section the page
-    that includes it (Sphinx resolves the links of an included file from the including page; checked by
-    building, 2026-10-05). own_fragments is given for a section: the anchors inside it; a "#fragment"
-    link to any other heading of the source goes to the source on GitHub. titles, when given, reads the title
-    of a page for a link whose text is a file name (relabel). Fenced code is left alone."""
-    full = REPOS[repo].full if repo in REPOS else f"{ORG}/fpgas.online-{repo}"
+    `at` is the page a reader sees the text on: the destination for a page, and for a section or a lead the
+    page that includes it (Sphinx resolves the links of an included file from the including page; checked by
+    building, 2026-10-05). own_fragments is given for a section: the anchors inside it; a "#fragment" link to
+    any other heading of the source goes to the source on GitHub, or, with strict_fragments, stops the sync.
+    files is given for a copied FILES file (at is then None): the names copied beside it, which its pictures
+    must be; its links inside the site are written from the source root. titles, when given, reads the title
+    of what a rewritten link opens, for a link whose text is a file name (see relabel). Fenced code is left
+    alone."""
+    targets, published, full = link_targets(), published_dests(), REPOS[repo].full
 
     def github(path, fragment):
         kind = "tree" if path.endswith("/") or "." not in posixpath.basename(path) else "blob"
-        return f"https://github.com/{full}/{kind}/{ref}/{path.rstrip('/')}" + (f"#{fragment}" if fragment else "")
+        url = f"https://github.com/{full}/{kind}/{ref}/{path.rstrip('/')}" + (f"#{fragment}" if fragment else "")
+        return url, ("repo", repo, path, ref)
 
     def here(dest, fragment):
-        return posixpath.relpath(dest, posixpath.dirname(at)) + (f"#{fragment}" if fragment else "")
+        link = "/" + dest.removeprefix("docs/") if files is not None else posixpath.relpath(dest, posixpath.dirname(at))
+        return link + (f"#{fragment}" if fragment else ""), ("page", dest)
 
-    def resolve(path):
-        resolved = posixpath.normpath(posixpath.join(posixpath.dirname(src), path))
-        if resolved.startswith(".."):
-            raise SystemExit(f"sync: {repo} {src} links outside the repository: {path}")
-        return resolved
-
-    def locate(target):
-        if target.startswith(PUBLISHED) or target.startswith("#"):
-            return None
-        if re.match(r"[a-zA-Z][a-zA-Z0-9+.-]*:", target):
-            return absolute_file(target)
-        return repo, resolve(target.partition("#")[0])
-
-    def one(match):
-        target = match.group(1)
+    def one(target):
+        """(the target rewritten, what it opens: ("page", path here) or ("repo", name, path, ref) or None)."""
         if target.startswith(PUBLISHED):
             # A link to a page of this site, written in the source by its published address: here it is a link
             # inside the site, which the build checks. (By its address it would be checked against what is
             # published, and a page added in the same change is not published yet.)
             page, _, fragment = target[len(PUBLISHED) :].partition("#")
             dest = "docs/" + page.removesuffix(".html") + ".md"
-            if page.endswith(".html") and ((DOCS / dest).exists() or dest in published_dests()):
+            if page.endswith(".html") and "?" not in page and ((DOCS / dest).exists() or dest in published):
                 return here(dest, fragment)
-            return target
-        if re.match(r"[a-zA-Z][a-zA-Z0-9+.-]*:", target):
-            hit = github_target(target)
-            dest = hit and in_site(*hit)
-            return here(dest, hit[2]) if dest else target
+            return target, None
+        if SCHEME.match(target):
+            m = GITHUB_BLOB.match(target)
+            if m and m.group(1) in REPOS:
+                name, url_ref, path, fragment = m.group(1), m.group(2), m.group(3), m.group(4) or ""
+                dest = in_site(targets, name, path, fragment)
+                return here(dest, fragment) if dest else (target, ("repo", name, path, url_ref))
+            return target, None
         path, _, fragment = target.partition("#")
         if not path:
-            if own_fragments is None or fragment in own_fragments:
-                return target
+            if own_fragments is None:
+                return target, ("page", at) if at else None
+            if fragment in own_fragments:
+                return target, ("page", at) if at else ("repo", repo, src, ref)
+            if strict_fragments:
+                raise Stop(f"{src}: #{fragment} is not a heading of its text nor of what {at} includes")
             return github(src, fragment)
-        resolved = resolve(path)
+        rooted = path.startswith("/")
+        resolved = posixpath.normpath(path.lstrip("/") if rooted else posixpath.join(posixpath.dirname(src), path))
+        if resolved.startswith("..") or resolved == ".":
+            raise Stop(f"{src} links outside the repository: {target}")
         if path.endswith("/"):
             resolved += "/"
-        dest = in_site(repo, resolved, fragment)
+        dest = in_site(targets, repo, resolved, fragment)
         return here(dest, fragment) if dest else github(resolved, fragment)
 
     def line_fn(line, number):
+        where = f"{src}:{number}"
         for what, pattern in UNSUPPORTED.items():
+            if files is not None and what == "an image":
+                continue
             if pattern.search(line):
-                raise SystemExit(f"sync: {repo} {src}:{number}: {what}, which rewrite_links does not handle. "
-                                 f"Teach it to, or write the link inline in {repo}.")
-        if titles:
-            line = relabel(line, locate, titles, f"{at} ({repo} {src}:{number})", notes)
-        return LINK.sub(one, line)
+                raise Stop(f"{where}: {what}, which rewrite_links does not handle. "
+                           f"Teach it to, or write the link inline in {repo}.")
+        if files is not None:
+            for picture in IMAGE.findall(line):
+                if picture not in files:
+                    raise Stop(f"{where}: a picture {picture} that is not copied beside it (list it in FILES)")
 
-    return lines_outside_code(text, line_fn)
+        def sub(m):
+            if m.group(4) is not None:  # the end of a link begun on an earlier line: no label to read
+                return "](" + one(m.group(4))[0] + ")"
+            bang, label, target = m.group(1), m.group(2), m.group(3)
+            if bang:
+                return m.group(0)
+            new, opens = one(target)
+            return f"[{relabel(label, opens, titles, f'{where} [{label}]', notes)}]({new})"
+
+        return LINK_OR_END.sub(sub, line)
+
+    return outside_code(text, line_fn)
+
+
+def relabel(label, opens, titles, where, notes):
+    """The label of a link: when it is a file name ending in .md, the title of what the link opens (`opens`,
+    from rewrite_links); otherwise, or when that title cannot be read (reported in notes), the label itself."""
+    m = FILE_LABEL.fullmatch(label)
+    if not m or titles is None:
+        return label
+    if opens is None:
+        reason = "it does not point at a file of a repository this tool reads, nor at a page here"
+    elif not opens[-2 if opens[0] == "repo" else 1].endswith(".md"):
+        reason = "it does not point at a Markdown file"
+    else:
+        title = titles(opens)
+        if title and "[" not in title and "]" not in title:
+            return title
+        reason = f"the title of {' '.join(opens[1:])} could not be read"
+    if notes is not None:
+        notes.append(f"{where}: label left as it is: {reason}")
+    return label
 
 
 def section(text, heading, src):
-    """The "## heading" section of text, up to the next "## " or "# " heading outside fenced code."""
-    lines, start, fenced = text.split("\n"), None, False
-    for i, line in enumerate(lines):
-        if FENCE.match(line.lstrip()):
-            fenced = not fenced
-        if fenced:
-            continue
-        if start is None:
-            if line.strip() == f"## {heading}":
-                start = i
-        elif re.match(r"#{1,2} ", line):
-            return "\n".join(lines[start:i]).rstrip() + "\n"
-    if start is None:
+    """The "## heading" section of text, up to the next "## " or "# " heading outside fenced code. A heading
+    that is there twice stops the sync."""
+    lines = text.split("\n")
+    code = in_code(lines)
+    starts = [i for i, line in enumerate(lines) if not code[i] and line.strip() == f"## {heading}"]
+    if not starts:
         raise Missing(f'{src}: no "## {heading}" section')
+    if len(starts) > 1:
+        raise Stop(f'{src}: "## {heading}" is there {len(starts)} times')
+    start = starts[0]
+    for i in range(start + 1, len(lines)):
+        if not code[i] and re.match(r"#{1,2} ", lines[i]):
+            return "\n".join(lines[start:i]).rstrip() + "\n"
     return "\n".join(lines[start:]).rstrip() + "\n"
 
 
+def headings_twice(text):
+    """The "## " headings that text has more than once, outside fenced code."""
+    lines = text.split("\n")
+    seen = [line.strip() for line, code in zip(lines, in_code(lines)) if not code and line.startswith("## ")]
+    return sorted({h for h in seen if seen.count(h) > 1})
+
+
 def fragments_in(text):
-    """The anchors of the headings in text, outside fenced code."""
-    found, fenced = set(), False
-    for line in text.split("\n"):
-        if FENCE.match(line.lstrip()):
-            fenced = not fenced
-        m = None if fenced else re.match(r"#{1,6} (.+)", line)
+    """The anchors of text: its headings and its MyST targets, outside fenced code."""
+    found, lines = set(), text.split("\n")
+    for line, code in zip(lines, in_code(lines)):
+        if code:
+            continue
+        m = re.match(r"#{1,6} (.+)", line)
         if m:
             found.add(slug(m.group(1)))
+        m = re.match(r"\(([\w-]+)\)=$", line)
+        if m:
+            found.add(m.group(1))
     return found
 
 
 def title_of(text):
     """The first "# " heading of a Markdown text, outside fenced code, or None."""
-    fenced = False
-    for line in text.split("\n"):
-        if FENCE.match(line.lstrip()):
-            fenced = not fenced
-        elif not fenced and line.startswith("# "):
+    lines = text.split("\n")
+    for line, code in zip(lines, in_code(lines)):
+        if not code and line.startswith("# "):
             return line[2:].strip()
     return None
 
 
-def marker(repo, src, what):
-    return (f"% {what} is copied from https://github.com/{repo.full}/blob/main/{src}\n"
+def marker(repo, src, what, ref):
+    return (f"% {what} is copied from https://github.com/{repo.full}/blob/{ref}/{src}\n"
             f"% by tools/sync_repos.py. Do not edit it here: change it in {repo.name}.\n\n")
 
 
@@ -887,7 +909,7 @@ def wrapper_marker(repo):
 
 
 def wrapper_text(repo, w, lead):
-    """The page a WRAPPERS row makes, given its lead's text (already link-rewritten), or None."""
+    """The page a WRAPPERS row makes, given its lead's text (already link-rewritten; None for no lead)."""
     blocks = [f"# {w.title}"]
     if lead:
         blocks.append(lead.strip("\n"))
@@ -917,7 +939,7 @@ def resolve(full, ref):
                            check=True, capture_output=True, text=True).stdout.splitlines()
     matches = [line.split()[0] for line in lines if line.split()[1] == ref_name]
     if len(matches) != 1:
-        raise SystemExit(f"sync: {full} has no branch {ref!r}")
+        raise Stop(f"{full} has no branch {ref!r}")
     return matches[0]
 
 
@@ -933,33 +955,34 @@ def fetch(full, commit, path):
 
 
 class Titles:
-    """Reads the title of a file for relabel: a page this tool publishes has its own title (as this run
-    writes it, or as it is on disk); any other Markdown file its title at the commit its repository is
-    synced from in this run, or at that repository's main."""
+    """Reads the title of what a link opens, for relabel. A page here has its own title (as this run writes
+    it, or as it is on disk); a file of a repository its title at the commit its branch points at (the commit
+    being synced, when it is that repository and branch)."""
 
     def __init__(self, commits, page_titles):
         self.commits, self.page_titles, self.cache = dict(commits), page_titles, {}
 
-    def __call__(self, name, path):
-        dest = in_site(name, path, "")
-        if dest:
+    def __call__(self, opens):
+        if opens[0] == "page":
+            dest = opens[1]
             if dest in self.page_titles:
                 return self.page_titles[dest]
-            return title_of((DOCS / dest).read_text()) if (DOCS / dest).exists() else None
-        if (name, path) not in self.cache:
+            return title_of((DOCS / dest).read_text()) if (DOCS / dest).is_file() else None
+        _, name, path, ref = opens
+        if (name, path, ref) not in self.cache:
             full = REPOS[name].full
-            if name not in self.commits:
-                self.commits[name] = resolve(full, "main")
             try:
-                self.cache[(name, path)] = title_of(fetch(full, self.commits[name], path).decode("utf-8"))
-            except Missing:
-                self.cache[(name, path)] = None
-        return self.cache[(name, path)]
+                if (name, ref) not in self.commits:
+                    self.commits[(name, ref)] = resolve(full, ref)
+                self.cache[(name, path, ref)] = title_of(fetch(full, self.commits[(name, ref)], path).decode("utf-8"))
+            except (Missing, Stop):
+                self.cache[(name, path, ref)] = None
+        return self.cache[(name, path, ref)]
 
 
 def take(repo, ref, commit, titles_for, notes):
     """{path here: bytes} for everything `repo` publishes, and [what is missing]. titles_for(page_titles)
-    gives the title reader once the pages' own titles are known."""
+    gives the title reader once the pages' own titles are known. Raises Stop when a text cannot be synced."""
     wanted, missing = {}, []
     texts = {}
     for src in sorted({*repo.PAGES, *(s for s, _ in repo.SECTIONS), *repo.lead_sources()}):
@@ -967,6 +990,9 @@ def take(repo, ref, commit, titles_for, notes):
             texts[src] = fetch(repo.full, commit, src).decode("utf-8")
         except Missing as e:
             missing.append(str(e))
+    for src in repo.lead_sources():
+        if src in texts and headings_twice(texts[src]):
+            raise Stop(f"{src} has these headings more than once: {', '.join(headings_twice(texts[src]))}")
     page_titles = {dest: title_of(texts[src]) for src, dest in repo.PAGES.items() if src in texts}
     page_titles.update({w.dest: w.title for w in repo.WRAPPERS})
     titles = titles_for(page_titles)
@@ -978,13 +1004,16 @@ def take(repo, ref, commit, titles_for, notes):
                 missing.append(str(e))
                 continue
             if name.endswith(".md"):
-                data = own_links(data.decode("utf-8"), titles, f"{dest}/{name}", notes).encode("utf-8")
+                text = data.decode("utf-8")
+                data = rewrite_links(text, f"{src}/{name}", None, ref, repo=repo.name,
+                                     own_fragments=fragments_in(text), files=set(names), titles=titles,
+                                     notes=notes).encode("utf-8")
             wanted[DOCS / dest / name] = data
     for src, dest in repo.PAGES.items():
         if src in texts:
             body = rewrite_links(texts[src], src, dest, ref, repo=repo.name, titles=titles, notes=notes)
             body = anchors_to_targets(alerts_to_admonitions(body))
-            wanted[DOCS / dest] = (marker(repo, src, "This page") + body + toctree(dest, repo)).encode("utf-8")
+            wanted[DOCS / dest] = (marker(repo, src, "This page", ref) + body + toctree(dest, repo)).encode("utf-8")
     for (src, heading), (dest, page) in repo.SECTIONS.items():
         if src in texts:
             try:
@@ -992,10 +1021,13 @@ def take(repo, ref, commit, titles_for, notes):
             except Missing as e:
                 missing.append(str(e))
                 continue
-            body = alerts_to_admonitions(rewrite_links(part, src, page, ref, own_fragments=fragments_in(part),
-                                                       repo=repo.name, titles=titles, notes=notes))
-            wanted[DOCS / dest] = (marker(repo, src, f'This section ("{heading}")') + body).encode("utf-8")
+            body = alerts_to_admonitions(rewrite_links(part, src, page, ref, repo=repo.name,
+                                                       own_fragments=fragments_in(part), titles=titles, notes=notes))
+            wanted[DOCS / dest] = (marker(repo, src, f'This section ("{heading}")', ref) + body).encode("utf-8")
     for w in repo.WRAPPERS:
+        for inc in w.includes:
+            if inc.docs_owned and not (DOCS / inc.path).is_file():
+                raise Stop(f"{w.dest} includes {inc.path}, the docs' own file, which does not exist")
         lead = None
         if isinstance(w.lead, Interim):
             lead = w.lead.text
@@ -1009,17 +1041,24 @@ def take(repo, ref, commit, titles_for, notes):
                 missing.append(str(e))
                 continue
             body = part.split("\n", 1)[1]
-            lead = alerts_to_admonitions(rewrite_links(body, w.lead.path, w.dest, ref,
-                                                       own_fragments=fragments_in(body), repo=repo.name,
+            # An anchor-only link in a lead goes to a heading of the lead or of a file the page includes.
+            fragments = fragments_in(body)
+            for inc in w.includes:
+                path = DOCS / inc.path
+                if path in wanted:
+                    fragments |= fragments_in(wanted[path].decode("utf-8"))
+                elif path.is_file():
+                    fragments |= fragments_in(path.read_text())
+            lead = alerts_to_admonitions(rewrite_links(body, w.lead.path, w.dest, ref, repo=repo.name,
+                                                       own_fragments=fragments, strict_fragments=True,
                                                        titles=titles, notes=notes))
-        for inc in w.includes:
-            if inc.docs_owned and not (DOCS / inc.path).is_file():
-                raise SystemExit(f"sync: {w.dest} includes {inc.path}, the docs' own file, which does not exist")
         wanted[DOCS / w.dest] = wrapper_text(repo, w, lead).encode("utf-8")
     return wanted, missing
 
 
 def changes_for(repo, ref, wanted):
+    """[(what, path)] that writing `wanted` makes. Raises Stop when an owned directory holds what cannot be
+    removed, before anything is written."""
     changes = []
     for path, data in wanted.items():
         if not path.exists() or path.read_bytes() != data:
@@ -1029,6 +1068,9 @@ def changes_for(repo, ref, wanted):
         if d.exists():
             for p in sorted(d.iterdir()):
                 if p.name != SOURCE and p not in wanted:
+                    if not p.is_file():
+                        raise Stop(f"{p.relative_to(DOCS)} is not a file. The directories this tool owns hold "
+                                   f"only what it writes; move it out.")
                     changes.append(("remove", p))
     # A new upstream commit alone is not a change (see below), but a different ref is: the files are
     # then vouched for by another branch, and SOURCE has to say so. So is a SOURCE naming another repository.
@@ -1043,6 +1085,27 @@ def changes_for(repo, ref, wanted):
     return changes
 
 
+def stale_files(repos=None):
+    """{repository name or "?": [paths]}: files in docs/ that carry this tool's comment, and SOURCE files of
+    it, that no row of any repository accounts for. A file in an owned directory is accounted for (the sync
+    of that directory removes what it does not list)."""
+    repos = REPOS if repos is None else repos
+    dests = {d for repo in repos.values() for d in repo.dests()}
+    owned = {d for repo in repos.values() for d in repo.owned_dirs()}
+    found = {}
+    for path in sorted((DOCS / "docs").rglob("*")):
+        rel = path.relative_to(DOCS).as_posix()
+        if rel.startswith("docs/_build/") or not path.is_file() or path.suffix not in ("", ".md", ".inc"):
+            continue
+        head = path.read_bytes()[:600].decode("utf-8", "replace")
+        if not OUR_COMMENT.search(head) or rel in dests or posixpath.dirname(rel) in owned:
+            continue
+        m = (re.search(r"change it in ([\w-]+)\.", head) or re.search(r"WRAPPERS \(([\w-]+)\)", head)
+             or re.search(r"https://github\.com/" + ORG + r"/fpgas\.online-([\w.-]+)\n", head))
+        found.setdefault(m.group(1) if m else "?", []).append(rel)
+    return found
+
+
 def main(argv=None):
     ap = argparse.ArgumentParser(description=__doc__.splitlines()[0])
     ap.add_argument("--repo", action="append", choices=list(REPOS), metavar="NAME",
@@ -1053,62 +1116,72 @@ def main(argv=None):
     names = args.repo or list(REPOS)
     if args.ref and len(names) != 1:
         ap.error("--ref needs exactly one --repo")
-    check_tables()
 
-    plan, commits = [], {}
+    def full(name):
+        return REPOS[name].full if name in REPOS else f"{ORG}/fpgas.online-{name}"
+
+    try:
+        check_tables()
+    except Stop as e:
+        print(f"sync: FAILED. tools/sync_repos.py: {e.code}", file=sys.stderr)
+        return 2
+
+    failures, results, notes = {}, [], []
     for name in names:
         repo = REPOS[name]
         if repo.empty():
             print(f"{repo.full}: nothing listed")
             continue
         ref = args.ref or "main"
-        commits[name] = resolve(repo.full, ref)
-        print(f"{repo.full} {ref} = {commits[name]}")
-        plan.append((repo, ref))
+        try:
+            commit = resolve(repo.full, ref)
+            print(f"{repo.full} {ref} = {commit}")
+            wanted, missing = take(repo, ref, commit, lambda pt: Titles({(name, ref): commit}, pt), notes)
+            if missing:
+                failures[name] = [f"{ref} ({commit[:12]}) does not have {m}" for m in missing]
+                continue
+            results.append((repo, ref, commit, wanted, changes_for(repo, ref, wanted)))
+        except Stop as e:
+            failures[name] = [str(e.code)]
+    for name, paths in stale_files().items():
+        failures.setdefault(name, []).extend(
+            f"{p} carries the sync's comment, but no row accounts for it: remove it, or give it its row back"
+            for p in paths)
+    results = [r for r in results if r[0].name not in failures]
 
-    notes, failed, all_changes = [], False, []
-    for repo, ref in plan:
-        commit = commits[repo.name]
-        wanted, missing = take(repo, ref, commit, lambda pt: Titles(commits, pt), notes)
-        if missing:
-            failed = True
-            print(f"\nsync: FAILED. {repo.full} at {commit[:12]} ({ref}) does not have:", file=sys.stderr)
-            for m in missing:
-                print(f"  {m}", file=sys.stderr)
-            print(f"It was moved, renamed or removed there (or never added). Update the {repo.name} tables in "
-                  "tools/sync_repos.py to match what it has.", file=sys.stderr)
-            continue
-        all_changes.append((repo, ref, commit, wanted, changes_for(repo, ref, wanted)))
     for note in notes:
         print(f"  note   {note}")
-    if failed:
-        return 2
-
     total = 0
-    for repo, ref, commit, wanted, changes in all_changes:
+    for repo, ref, commit, wanted, changes in results:
         for what, path in changes:
             print(f"  {what:6} {path.relative_to(DOCS)}")
         total += len(changes)
+    if not args.check:
+        for repo, ref, commit, wanted, changes in results:
+            for what, path in changes:
+                if what == "remove":
+                    path.unlink()
+                elif what != "source":  # SOURCE is rewritten below
+                    path.parent.mkdir(parents=True, exist_ok=True)
+                    path.write_bytes(wanted[path])
+            if changes:
+                # SOURCE moves only with the files or the ref, so a new upstream commit alone changes nothing
+                for dest in repo.owned_dirs():
+                    (DOCS / dest).mkdir(parents=True, exist_ok=True)
+                    (DOCS / dest / SOURCE).write_text(source_text(repo, ref, commit))
+    if failures:
+        for name, reasons in failures.items():
+            for reason in reasons:
+                print(f"sync: FAILED. {full(name)}: {reason}", file=sys.stderr)
+        print("A file was moved, renamed or removed there (or never added), or its text cannot be synced: update "
+              "that repository's tables in tools/sync_repos.py, or fix the text there. The other repositories "
+              "were synced.", file=sys.stderr)
+        return 2
     if not total:
         print("up to date")
         return 0
     if args.check:
         return 1
-    for repo, ref, commit, wanted, changes in all_changes:
-        for what, path in changes:
-            if what == "remove":
-                if not path.is_file():
-                    raise SystemExit(f"sync: {path.relative_to(DOCS)} is not a file. The directories this tool "
-                                     f"owns hold only what it writes; move it out.")
-                path.unlink()
-            elif what != "source":  # SOURCE is rewritten below
-                path.parent.mkdir(parents=True, exist_ok=True)
-                path.write_bytes(wanted[path])
-        if changes:
-            # SOURCE moves only with the files or the ref, so a new upstream commit alone changes nothing
-            for dest in repo.owned_dirs():
-                (DOCS / dest).mkdir(parents=True, exist_ok=True)
-                (DOCS / dest / SOURCE).write_text(source_text(repo, ref, commit))
     print(f"{total} file(s) changed")
     return 0
 
