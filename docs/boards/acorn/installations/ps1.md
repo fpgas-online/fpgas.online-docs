@@ -113,9 +113,9 @@ converted a card on one yet (one conversion was begun on pi20 at ps1 and stopped
 | Blade | Card | P1 (JTAG) cable | P2 (serial) cable | Host |
 |-------|------|-----------------|-------------------|------|
 | pi14 at ps1 | fitted, factory image: to be converted | not mated, or its TCK wire open (TCK follows the host's pull, as on the empty pi18 at ps1: 2026-09-20 and again 2026-10-07): reseat a fitted one; if none, or still unmated, build a new one | not known: build to the UART header, 470 Ω in the J2 wire, J5 and H5 cut back | as pi16 at ps1 (read 2026-10-07: the same serial-port settings); a Compute Module 4: (b) not yet run, and `gpioinfo` names no user for line 14 there (2026-10-07) |
-| pi16 at ps1 | fitted, factory image: to be converted | not mated, or its TCK wire open (TCK follows the host's pull, as on the empty pi18 at ps1: 2026-10-07): reseat a fitted one; if none, or still unmated, build a new one | not known: build to the UART header, 470 Ω in the J2 wire, J5 and H5 cut back | (a) for the serial-pair tests: the kernel console and the getty off `/dev/ttyAMA0`; (b) only for JTAG: the serial port off at boot (below; run on pi20 at ps1, 7 October 2026) |
+| pi16 at ps1 | fitted, factory image: to be converted | not mated, or its TCK wire open (TCK follows the host's pull, as on the empty pi18 at ps1: 2026-10-07): reseat a fitted one; if none, or still unmated, build a new one | not known: build to the UART header, 470 Ω in the J2 wire, J5 and H5 cut back | (a) for the serial-pair tests: the kernel console and the getty off `/dev/ttyAMA0`; (b) only for JTAG: the serial port off at boot (run on pi20 at ps1, 7 October 2026: [what we ran](ps1-ran-2026-10-07.md)) |
 | pi18 at ps1 | none seen: look; if the slot is empty, fit one | fit on the Extension Port | fit on the UART header, 470 Ω in the J2 wire, J5 and H5 cut back | as pi16 at ps1 (read 2026-10-07: the same serial-port settings); a Compute Module 4: (b) not yet run, and `gpioinfo` names no user for line 14 there (2026-10-07) |
-| pi20 at ps1 | fitted, vendor sample image in flash: to be converted | answered on 2026-09-20: keep the cable, by the steps for its old serial wiring. On 2026-10-07 JTAG could not run with the header's serial port on (it holds GPIO14), and read the IDCODE and DNA with the port off at boot, the Host column's (b) ([What fpgas.online ran on the ps1 blades, 7 October 2026](ps1-ran-2026-10-07.md)) | build a new one by the guide for the UART header (470 Ω in the J2 wire) and take the old serial wiring off (its pair is wired to GPIO14 and GPIO15; which header pins is not recorded: [the steps](ps1-pi20-old-serial.md)) | as pi16 at ps1 (read 2026-10-05: the same kernel and serial-port settings): (a) for the serial-pair tests: the kernel console and the getty off `/dev/ttyAMA0`; (b) only for JTAG: the serial port off at boot (below; run on pi20 at ps1, 7 October 2026) |
+| pi20 at ps1 | fitted, vendor sample image in flash: to be converted | answered on 2026-09-20: keep the cable, by the steps for its old serial wiring. On 2026-10-07 JTAG could not run with the header's serial port on (it holds GPIO14), and read the IDCODE and DNA with the port off at boot, the Host column's (b) ([What fpgas.online ran on the ps1 blades, 7 October 2026](ps1-ran-2026-10-07.md)) | build a new one by the guide for the UART header (470 Ω in the J2 wire) and take the old serial wiring off (its pair is wired to GPIO14 and GPIO15; which header pins is not recorded: [the steps](ps1-pi20-old-serial.md)) | as pi16 at ps1 (read 2026-10-05: the same kernel and serial-port settings): (a) for the serial-pair tests: the kernel console and the getty off `/dev/ttyAMA0`; (b) only for JTAG: the serial port off at boot (run on pi20 at ps1, 7 October 2026: [what we ran](ps1-ran-2026-10-07.md)) |
 
 **The Host column is Carl's to do, on the gateway, not on a blade.** The two files it means, `config.txt` and
 `cmdline.txt`, are in one directory on the ps1 gateway, `/srv/nfs/rpi/trixie/boot/`, which every netbooted
@@ -137,7 +137,7 @@ port on. Then (b), only when JTAG is to run on a blade, which is what converting
 port off, `/dev/ttyAMA0` is not there, so the `p2-uart`, `p2-serial` and `scratch` tests cannot pass in that
 boot ([verifying 3](../building/compute-blade/verifying-3.md)). Both are changes to the gateway's boot files,
 so they are Carl's to decide and to time, (b) for every host or for one blade only (above). A load over
-JTAG, which converting a card needs, is not part of this guide yet (the warning above).
+JTAG, which converting a card needs, is not part of this guide yet (the paragraph above the table).
 
 What the Host column's (b) is, as run on pi20 at ps1 on 7 October 2026, and what followed: [What fpgas.online ran on the ps1 blades, 7 October 2026](ps1-ran-2026-10-07.md).
 
@@ -154,7 +154,8 @@ The parts are on [Compute Blade cables: parts and tools](../building/compute-bla
 a blade is wired, [check it](../building/compute-blade/verifying-1.md).
 
 (labels)=
-Labels for the blades and cards at ps1, which exist and which wait, are on [Labels at ps1](ps1-labels.md).
+Labels for the blades and cards at ps1, which exist and which wait, are on [Labels at ps1](ps1-labels.md); in
+the printed booklet the label sheets are the last chapter.
 
 The blades have no page under `https://ps1.fpgas.online/fpgas/`: pi14 at ps1, pi16 at ps1,
 pi18 at ps1 and pi20 at ps1 all return 404 there (checked 2026-09-03 and again 2026-10-06).
