@@ -122,5 +122,22 @@ def _copy_todos_for_the_list(app, doctree):
     todos[docname] = [todo.deepcopy() for todo in todos.get(docname, [])]
 
 
+# -- old anchors kept on a landing page ---------------------------------------
+# When a page is split, its landing page keeps each old heading's anchor as a
+# MyST target, `(old-heading-slug)=`, so that links from elsewhere still land.
+# A Markdown link `page.md#anchor` is resolved by MyST against the page's heading
+# slugs only (myst_slugs), not its targets, so such a link to a kept anchor would
+# warn. Every explicit target of a page is added to its slugs here, once all
+# pages are read and before any link is resolved.
+
+
+def _targets_as_slugs(app, env):
+    for label, (docname, labelid) in env.get_domain("std").anonlabels.items():
+        slugs = env.metadata.get(docname, {}).get("myst_slugs")
+        if slugs is not None and label not in slugs:
+            slugs[label] = (0, labelid, env.titles[docname].astext())
+
+
 def setup(app):
     app.connect("doctree-read", _copy_todos_for_the_list)
+    app.connect("env-check-consistency", _targets_as_slugs)
