@@ -84,11 +84,11 @@ Raspberry Pi documents two ways to write a Compute Module's bootloader
 ([Compute Module EEPROM bootloader](https://www.raspberrypi.com/documentation/computers/compute-module.html#compute-module-eeprom-bootloader)):
 
 - over USB from another computer with `rpiboot`, with `EEPROM_nWP` not pulled low.
-  Raspberry Pi's bootloader page says this "is also the only option available for
-  CM4 and CM4S". On a blade it needs parts that the blade's maker says only the
+  Raspberry Pi's [bootloader page](https://www.raspberrypi.com/documentation/computers/raspberry-pi.html#raspberry-pi-boot-eeprom)
+  says this "is also the only option available for CM4 and CM4S". On a blade it needs parts that the blade's maker says only the
   Dev model of the blade has;
-- "self-update" mode, from USB mass storage or network boot, which Compute
-  Modules turn off by default. Raspberry Pi warns that it "does not update the
+- "self-update" mode, from USB mass storage or network boot, which overrides the
+  Compute Module default of the `rpi-eeprom-update` service being off. Raspberry Pi warns that it "does not update the
   bootloader atomically. If a power failure occurs during an EEPROM update, you
   could corrupt the EEPROM."
 

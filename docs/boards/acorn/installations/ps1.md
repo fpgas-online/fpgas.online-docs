@@ -189,7 +189,7 @@ JTAG until a PoE cycle, so J2 and P1's TMS share GPIO14 (fpgas.online-test-desig
 these pins the old serial wires sit on, and whether J2 shares a terminal or a housing with P1's TMS wire, is
 not recorded by us. Build a new P2 cable by the guide ([UART connector
 1](../building/compute-blade/uart-connector-1.md) and 2) first. Then, with the blade powered off (unplug its PoE
-cable, and a USB-C cable if one is plugged in), look at Extension Port pin 9 and UART header pins 3 and 4, and
+cable, and a USB-C cable if one is plugged in), look at Extension Port pins 9 and 10 and UART header pins 3 and 4, and
 note which housing sits where:
 
 1. If the serial wires are in a housing of their own, take that housing off the blade and the old cable off
