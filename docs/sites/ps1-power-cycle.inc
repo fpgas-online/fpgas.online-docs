@@ -19,8 +19,10 @@ have no page there.
 
 **This is Carl's tooling on his gateway, not run by fpgas.online.** The gateway's files date from about
 25 September 2026, when it was installed again. The gateway read of 6 October 2026 found `snmp_switch` 0.0.17
-in the web venv, `/srv/www/pib/venv`. It did not look for `poe.sh`, and did not open the settings file
-`/etc/environment.export`, because the file holds credentials. No role in fpgas.online-infra writes that name:
+in the web venv, `/srv/www/pib/venv`. A read on 7 October 2026 (00:30 Chicago time) found
+`/usr/local/bin/poe.sh`: fpgas.online-poe's script, with the same switch notes in its header, sourcing
+`/etc/environment.export` and running `snmp_switch/utils.py` from that venv. Neither read opened the settings
+file, because it holds credentials, and neither ran a power cycle. No role in fpgas.online-infra writes that name:
 its `snmp.yml` writes `/etc/environment.exports`, plural, and only on a gateway it deploys. If the settings
 file is not there, the switch settings are missing and the gateway's administrator has to put them back.
 
