@@ -232,6 +232,22 @@ is **not** protected (a new Pi, or one cleared with the card), and it is where a
 upgrade can be watched. Making it a managed feature that upgrades a locked Pi
 without a visit is open work.
 
+The gateway gives that port its own boot tree as a TFTP root of its own: a
+per-interface `tftp-root=<dir>,v22NN` line in dnsmasq, where `v22NN` is the
+VLAN of that port, while every other port keeps the shared root. The operators'
+runbook records why a per-serial directory is not enough: a netbooting Pi 5's
+bootloader looked for `pieeprom.sig` and `pieeprom.upd` at the TFTP **root**,
+not in its per-serial directory. That is an observation from the runbook, not
+re-checked by us and not found in Raspberry Pi's documentation, whose
+`TFTP_PREFIX` description covers the per-serial directory but says nothing of
+these two files. The same line pointing at an empty directory is how one Pi's
+netboot was broken on purpose for the SD-card fallback test of the hub host
+(see [Orange Pi H3 hosts](orange-pi.md)).
+
+A Pi booted from an SD card needs no TFTP for this: `rpi-eeprom-config --apply`,
+run as root on that Pi, schedules the update, and the bootloader writes it at
+the next reboot.
+
 ### Why there are no steps for a blade: what it would need
 
 ```{image} bootloader-eeprom/blade-dev.svg

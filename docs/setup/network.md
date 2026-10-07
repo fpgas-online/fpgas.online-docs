@@ -23,7 +23,7 @@ template is rendered, and gates the `vlan-ports` and `switch-vlans` roles in
 `site.yml` — without it neither role runs at all.
 
 The only production host that defines `switches:` is `fpgas.online`, the
-Welland gateway [tweed](../sites/welland.md#gateway-tweed); `ps1.fpgas.online`
+Welland gateway [tweed](../sites/welland-gateway.md#gateway-tweed); `ps1.fpgas.online`
 and `slf.sytes.net` do not. The QEMU CI VM defines one switch of a single
 access port with `switches_manage: false`, so every role runs and the address
 derivation is exercised against an emulated switch, with only the SNMP converge
@@ -220,11 +220,11 @@ full 48-port converge runs for several minutes. That is not a hang.
 PS1 has no per-port provisioning at all. Its single switch is a **Netgear
 FS728TPv2** — the live PoE OID and the recorded management MAC both identify
 it, although stale comments in its `host_vars` name two other models as well,
-which the [PoE switch](../sites/ps1.md#poe-switch) section notes. It is a
+which the [PoE switch](../sites/ps1-gateway.md#poe-switch) section notes. It is a
 Plus-series unit that the design spec put explicitly out of scope, and it does
 not answer the standard PoE MIB: it uses a Netgear-private OID from a draft of
 the spec. The OID and the working command are on the PS1 page under
-[Power control](../sites/ps1.md#power-control).
+[Power control](../sites/ps1-gateway.md#power-control).
 
 ## PoE power control
 
@@ -284,7 +284,7 @@ So a PoE cycle at Welland today is a manual one. The
 [test-designs troubleshooting table](https://github.com/fpgas-online/fpgas.online-test-designs/blob/main/docs/hardware/acorn-pinmap.md)
 records the remedy for a wedged board: an SNMP set against the S3300, using that
 switch's write community, looked up out of band with `gdoc2netcfg`. Run it from
-[tweed](../sites/welland.md#gateway-tweed) or from any other host that can reach
+[tweed](../sites/welland-gateway.md#gateway-tweed) or from any other host that can reach
 the switch management VLAN, the same reachability `fpgas-switch-setup` needs.
 
 That row is about the Acorn hosts, and every Acorn at Welland is on switch 2,
@@ -298,7 +298,7 @@ needs that one, not the S3300's.
 Both Welland switches answer the **standard** `POWER-ETHERNET-MIB`
 (`pethPsePortAdminEnable`, OID `1.3.6.1.2.1.105.1.1.1.3.1.<port>`) over SNMPv2c,
 so a manual PoE cycle is a plain `snmpset`. Run it **from
-[tweed](../sites/welland.md#gateway-tweed)**, which reaches the switch
+[tweed](../sites/welland-gateway.md#gateway-tweed)**, which reaches the switch
 management network (10.1.5.0/24) over its default route — the
 same reachability `fpgas-switch-setup` needs. The port number is the switch
 port the Pi is plugged into (`p` in the [derivation table](#two-addressing-schemes)),
@@ -327,7 +327,7 @@ on sw1 and watching them netboot back within ~48 s.
 
 This is the same standard PoE MIB the [test-designs `verify_hardware.py`
 harness](https://github.com/fpgas-online/fpgas.online-test-designs) `poe_reset`
-uses; it differs from the [PS1 switch](../sites/ps1.md#power-control), which
+uses; it differs from the [PS1 switch](../sites/ps1-gateway.md#power-control), which
 answers only a Netgear-private OID.
 
 :::{note}
@@ -342,7 +342,7 @@ warning and todo below). The `switch:` block in Welland's `host_vars` still poin
 The two halves also disagree about the filename. `snmp.yml` writes
 `/etc/environment` and `/etc/environment.exports`, plural; `poe.sh` sources
 `/etc/environment.export`, singular, and nothing in the infra repository creates
-that name. The [PS1 procedure](../sites/ps1.md#power-control) sources the
+that name. The [PS1 procedure](../sites/ps1-gateway.md#power-control) sources the
 singular name and works, so the file exists on val2 — but it is not one the
 roles put there, and a rebuilt gateway would not have it.
 :::
@@ -356,7 +356,7 @@ would lose the file too. Fix both and converge each gateway.
 :::
 
 Expect the board to be gone for a while. A Compute Blade at PS1 takes about
-[60 seconds](../sites/ps1.md#power-control) to come back; a Pi 5 at Welland
+[60 seconds](../sites/ps1-gateway.md#power-control) to come back; a Pi 5 at Welland
 takes [more than 90](../boards/acorn/installations/welland.md#reads-of-september-2026) — it is netbooting
 a kernel and an NFS root over the network, not resuming from disk. Roughly two
 minutes from power-on to SSH is the figure the automation uses.
@@ -569,7 +569,7 @@ Other repositories:
 
 Pages on this site: [Welland](../sites/welland.md#network) (the switches, their
 management addresses and the board-to-port map),
-[PS1](../sites/ps1.md#poe-switch) (the FS728TPv2 and its port table) and
-[Power control](../sites/ps1.md#power-control) (the private OID and the
+[PS1](../sites/ps1-gateway.md#poe-switch) (the FS728TPv2 and its port table) and
+[Power control](../sites/ps1-gateway.md#power-control) (the private OID and the
 60-second blade recovery), [Sites](../sites/index.md),
 [Netboot and the NFS root](netboot.md), [Verification](verification.md).

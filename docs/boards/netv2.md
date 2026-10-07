@@ -4,7 +4,7 @@ The NeTV2 is a Xilinx Artix-7 video overlay and processing board designed by
 bunnie (Andrew Huang) and produced by Alphamax/Kosagi. It stacks on a Raspberry
 Pi's 40-pin header, and the fleet runs it in two arrangements: five production
 boards on RPi 3B+ hosts driven entirely over GPIO JTAG and GPIO UART
-([NeTV2](../sites/welland.md#netv2)), and two development boards on a separate
+([NeTV2](../sites/welland-boards.md#netv2)), and two development boards on a separate
 network that is not part of the fpgas.online fleet, one of which, the RPi 5
 host, adds a PCIe Gen2 x1 link ([development hosts](#development-hosts)).
 Every NeTV2 in the fleet is at Welland. This page covers the board itself, its
@@ -51,7 +51,7 @@ The NeTV2 is designed to sit on top of a Raspberry Pi, connecting through the
 40-pin GPIO header and optionally through a PCIe link. The two hosts below are
 the [development hosts](#development-hosts), personal machines on a separate
 network rather than part of the fpgas.online fleet.
-Five production boards are installed ([NeTV2](../sites/welland.md#netv2)), of
+Five production boards are installed ([NeTV2](../sites/welland-boards.md#netv2)), of
 which four are the working fleet: pi18 was already offline at the 2026-03-17
 survey. All five are RPi 3B+ hosts without PCIe, carrying the same GPIO JTAG and
 GPIO UART wiring as rpi3-netv2 — which says nothing about the tool they are
@@ -119,7 +119,7 @@ multiple JTAG transports over the same GPIO wiring.
 #### RPi 3B+ (GPIO bitbang, current deployed hosts)
 
 On the five production RPi 3B+ hosts (pi-sw1-p10, p12, p14, p16 and p18 — all
-online and JTAG-verified 2026-09-06; see [NeTV2](../sites/welland.md#netv2)),
+online and JTAG-verified 2026-09-06; see [NeTV2](../sites/welland-boards.md#netv2)),
 openFPGALoader uses `libgpiod` to drive the JTAG signals through the Linux GPIO
 subsystem:
 
@@ -145,7 +145,7 @@ On these hosts the FPGA's serial-TX pin is the Pi's kernel-console UART. Until
 via SysRq. Boards that netbooted after that fix are safe (`kernel.sysrq` reads
 0 and the cmdline has no `console=serial0`); if you meet one that has not been
 re-cycled, set `sudo sysctl -w kernel.sysrq=0` before programming. See the
-[NeTV2 site notes](../sites/welland.md#netv2).
+[NeTV2 site notes](../sites/welland-boards.md#netv2).
 :::
 
 :::{note}
@@ -157,7 +157,7 @@ their Artix-7 XC7A35T (`idcode 0x0362d093`, IR length 6); p14 and p16 were also
 loaded with a real bitstream this way. The netboot image ships openFPGALoader
 and has no `~/netv2/` OpenOCD config, so the "programmed via OpenOCD" line in the
 2026-03-17 inventory was the stale one — the GPIO-to-JTAG wiring is identical
-either way. See [NeTV2](../sites/welland.md#netv2).
+either way. See [NeTV2](../sites/welland-boards.md#netv2).
 :::
 
 #### RPi 5 (GPIO bitbang, slow)

@@ -6,12 +6,14 @@
 
 The check never writes the card's flash and never loads a design into the FPGA. It drives the P1 and P2 wires, which is how it tests them, and puts the host's pins back as it found them.
 
-**What to expect on a Compute Blade today.** `pcie-link` passes when the card is seated, on SQRL's factory image or on the vendor's XDMA sample image (version 0.0.post1220 or newer). On a Compute Module 5 `jtag` cannot run in a boot that has the header's serial port on (kernel 6.18): the serial port holds GPIO14, which is also the JTAG TMS wire, so `jtag` fails there whatever the wiring; on a Compute Module 4 it has not been run by us. Every other test but `rp1-pio` is `not run` until the card is converted to the fpgas.online design, and converting a card on a blade has not been done by us. So the result today is `fail` even with perfect cables: it shows that the card is seated and its PCIe link is up, and it cannot yet show that the two cables are right. The bench check with a meter, before fitting, is what the cables rest on until then.
+**What to expect on a Compute Blade today.** `pcie-link` passes when the card is seated, on SQRL's factory image or on the vendor's XDMA sample image (version 0.0.post1220 or newer). On a Compute Module 5 `jtag` cannot run in a boot that has the header's serial port on (kernel 6.18): the serial port holds GPIO14, which is also the JTAG TMS wire, so `jtag` fails there whatever the wiring. With the port off at boot (a change to the gateway's boot files, on the page "verifying 3"), `jtag` passes (it reads the IDCODE and device DNA): run on pi20 at ps1 on 7 October 2026. On a Compute Module 4 it has not been run by us. Every other test but `rp1-pio` is `not run` until the card is converted to the fpgas.online design, and converting a card on a blade has not been done by us. So the result today is `fail` even with perfect cables: it shows that the card is seated and its PCIe link is up, and it cannot yet show that the two cables are right. The bench check with a meter, before fitting, is what the cables rest on until then.
 
 
 ## Install it and run it
 
-The Compute Blades at ps1 boot from the network with their root file system in memory (`overlayroot=tmpfs`): what you install is gone at the next boot, and so is the check that would run at boot. So after each boot, install and run by hand:
+The Compute Blades at ps1 boot from the network with their root file system in memory (`overlayroot=tmpfs`): what you install is gone at the next boot, and so is the check that would run at boot. So after each boot, install and run by hand.
+
+**Not on pi14 at ps1 or pi18 at ps1 yet.** Those two carry a Compute Module 4; the check has been run as written only on the two Compute Module 5 blades (pi16 and pi20 at ps1, 7 October 2026), and `vcgencmd` hung for good on both CM4 blades that day. Until the check has been tried on a CM4 blade, run it on pi16 at ps1 and pi20 at ps1 only.
 
 ```bash
 # 1. The two apt repositories the packages come from.
@@ -79,14 +81,17 @@ What to do:
     https://github.com/fpgas-online/fpgas.online-test-designs/blob/main/docs/hardware/acorn-pcie-programming.md
   * The serial port has a pin JTAG needs, so the JTAG test could not run. On a
     Compute Blade the JTAG TMS wire and the serial port's TX are the same pin
-    (GPIO14): while the serial port is on, JTAG cannot be tested there.
-    Booting with it off (enable_uart in config.txt) should free the pin; that
-    is not yet confirmed on hardware:
+    (GPIO14): while the serial port is on, JTAG cannot be tested there. Boot
+    with the header's serial port off: in config.txt enable_uart=0 and no
+    uart_2ndstage=1, in cmdline.txt no console=serial0 (on a netbooted blade
+    these files are on the gateway: change one blade's own copy, as several
+    hosts may share them). With all three, on one Compute Blade with a CM5,
+    the pin was free and the JTAG test passed:
     https://github.com/fpgas-online/fpgas.online-test-designs/issues/127
   * To look at the acorn board yourself: sudo fpgas-acorn-debug --help (sudo
     apt install fpgas-online-acorn-debug)
   * What each message means:
-    https://docs.fpgas.online/en/latest/verify/fpgas-verify.html#common-failures
+    https://docs.fpgas.online/en/latest/verify/common-failures.html#common-failures
 The whole report, for a program to read (JSON): /run/fpgas-online/verify.json
 ******************************************************************************
 ```
