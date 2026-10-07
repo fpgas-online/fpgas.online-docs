@@ -48,12 +48,12 @@ installed. First check; upgrade only if the check says NOT DONE.
 ```{toctree}
 :hidden:
 
-bootloader-eeprom-pi5-check
-bootloader-eeprom-pi5-upgrade
-bootloader-eeprom-pi5-step-1
-bootloader-eeprom-pi5-step-2
-bootloader-eeprom-pi5-step-3
-bootloader-eeprom-pi5-step-4
-bootloader-eeprom-pi5-step-5
-bootloader-eeprom-pi5-step-6
+Check it <bootloader-eeprom-pi5-check>
+Upgrade: what you need <bootloader-eeprom-pi5-upgrade>
+Step 1: make the card <bootloader-eeprom-pi5-step-1>
+Step 2: network cable out <bootloader-eeprom-pi5-step-2>
+Step 3: join the WP pads <bootloader-eeprom-pi5-step-3>
+Step 4: card in, wait 60 s <bootloader-eeprom-pi5-step-4>
+Step 5: bridge off <bootloader-eeprom-pi5-step-5>
+Step 6: read it back <bootloader-eeprom-pi5-step-6>
 ```

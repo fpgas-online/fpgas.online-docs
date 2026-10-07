@@ -23,8 +23,8 @@ what does not work.
 ```{toctree}
 :hidden:
 
-bootloader-eeprom-pi5
-bootloader-eeprom-compute-module
+Raspberry Pi 5: check, upgrade, lock <bootloader-eeprom-pi5>
+Compute Module in a Compute Blade <bootloader-eeprom-compute-module>
 ```
 
 ## What is behind these pages
