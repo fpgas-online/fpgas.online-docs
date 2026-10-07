@@ -23,7 +23,7 @@ nothing and need no root.
 7 October 2026, `vcgencmd get_config enable_uart` hung in the firmware and did not return: it could not be
 stopped, and `timeout 10` in front of it did not help (it was still waiting 15 minutes later). A reboot is
 expected to clear it; not tried. Why it hangs is not known. So for those two blades the answer to this
-page's question is **not known**; nothing else in this booklet needs it. On a Compute Module 5 blade run
+page's question is **not known**, and so are their labels, which wait on the same read (Labels). On a Compute Module 5 blade run
 them as written (they answered on one; `timeout 10` in front does no harm, and whether it would help there
 is not known).
 
@@ -61,7 +61,8 @@ running from the network. The Compute Module 4 blades at ps1 did not answer `vcg
 **What to do**
 
 - Your blade starts from the network, and its `BOOT_ORDER` has a `2` in it (as
-  `0xf2461` has): **do nothing.** Its bootloader is fine as it is.
+  `0xf2461` has; `2` is network boot in Raspberry Pi's
+  [`BOOT_ORDER` table](https://www.raspberrypi.com/documentation/computers/raspberry-pi.html#BOOT_ORDER)): **do nothing.** Its bootloader is fine as it is.
 - Your blade does not start from the network, or its `BOOT_ORDER` has no `2`
   in it: **do not try to change it from this page.** If the blade is part of
   fpgas.online, open an issue at
@@ -79,7 +80,17 @@ reason to act, and neither is "UPDATE AVAILABLE" from `rpi-eeprom-update`.
 
 ## Why there are no upgrade steps
 
-A Compute Module's bootloader is written over USB from another computer, with
-parts that the blade's maker says only the Dev model of the blade has. A failed
-write can be repaired only the same way. That is why a blade that works is left
+Raspberry Pi documents two ways to write a Compute Module's bootloader
+([Compute Module EEPROM bootloader](https://www.raspberrypi.com/documentation/computers/compute-module.html#compute-module-eeprom-bootloader)):
+
+- over USB from another computer with `rpiboot`, with `EEPROM_nWP` not pulled low.
+  Raspberry Pi's bootloader page says this "is also the only option available for
+  CM4 and CM4S". On a blade it needs parts that the blade's maker says only the
+  Dev model of the blade has;
+- "self-update" mode, from USB mass storage or network boot, which Compute
+  Modules turn off by default. Raspberry Pi warns that it "does not update the
+  bootloader atomically. If a power failure occurs during an EEPROM update, you
+  could corrupt the EEPROM."
+
+Neither has been tried by us on a blade. That is why a blade that works is left
 alone.
