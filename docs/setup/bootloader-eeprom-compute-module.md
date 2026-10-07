@@ -10,8 +10,8 @@ for a blade.
 :::{warning}
 **There are no upgrade steps for a Compute Module in a Compute Blade, because
 we have not done one.** What this page gives you is how to tell
-whether your blade needs anything. Both blades we read are fine as they are
-and need nothing.
+whether your blade needs anything. The one blade we read (a Compute Module 5 Lite)
+is fine as it is and needs nothing.
 :::
 
 ## Does this blade need anything?

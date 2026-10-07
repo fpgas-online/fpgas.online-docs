@@ -22,6 +22,9 @@ note which housing sits where:
    as [JTAG connector 2](../building/compute-blade/jtag-connector-2.md) step 2 does, that the plug's contact 4
    (TMS) beeps to the housing cavity over Extension Port pin 9 and to no other cavity. If it does not, or the
    housing is not the guide's 2×5, build a new P1 cable.
-4. Fit the new P2 cable on the UART header. Whether P1's TMS works is shown only by the check's `jtag` test, in
+4. Fit the new P2 cable as [Fitting](../building/compute-blade/fitting.md) does: with the card out, its plug into
+   the card's socket P2, the card back in, its housing on the UART header. Then run the [bench
+   check](../building/compute-blade/bench-check.md) before power-on: it is what shows the P2 housing is not
+   turned round. Whether P1's TMS works is shown only by the check's `jtag` test, in
    a boot with the header's serial port off ([verifying 3](../building/compute-blade/verifying-3.md)); the meter
    cannot reach it with the card fitted.
