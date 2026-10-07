@@ -5,7 +5,6 @@
 
 **You operate the fleet and found `fpgas.online-netboot-pi` or `fpgas.online-tools` and want to know whether they describe what the fleet runs.** They do not: they are the hand-run predecessors of the Ansible roles. Sources for the live system: [Sources for netboot](sources.md).
 
-(historical-tooling)=
 ## What came before the roles
 
 Before the Ansible roles, the netboot root was built and switched by hand from two repositories:
