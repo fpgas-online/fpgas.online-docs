@@ -143,9 +143,10 @@ CODE_PAD_CHARS, PRE_EXTRA_MM = 1, 2 * 2 + 2 * 0.15 + 3
 # mark_steps' marks: W for a step's words, K for the line of a continued sheet of it, P for a picture, T for
 # the end of a paragraph or list kept after its last picture (tail_after). Then the chapter and the step's
 # number in it, for K, P and T the block (0 the step itself, 1 its first continued block, ...), for P and T the
-# picture's or paragraph's number in its block; Z ends the mark, so no digit after it joins it.
+# picture's or paragraph's number in its block; Z ends the mark, so no digit after it joins it. L marks the end
+# of each block over a picture with lead-in words (own_pictures): block, picture's number, the block's number.
 STEP_MARK = "PPSTEP-%s-Z"
-STEP_MARK_RE = r"PPSTEP-([WKPT])-(\d+(?:-\d+)*)-Z"
+STEP_MARK_RE = r"PPSTEP-([WKPTL])-(\d+(?:-\d+)*)-Z"
 # Where a chapter's sheet number goes in the cover's list, once it is known.
 SHEET_PLACE = "<!--sheet-of-chapter-%d-->"
 SHEET_PLACE_RE = r"<!--sheet-of-chapter-(\d+)-->"
@@ -156,6 +157,8 @@ WIDE_SHEET_RE = r'<figure class="wide" data-wide="([0-9a-f]+)">'
 # This many addresses stay on the sheet of the "Links in this chapter" heading.
 LINKS_WITH_HEADING = 4
 HEADINGS = ("h1", "h2", "h3", "h4", "h5", "h6")
+# The blocks an end-of-block mark goes into, to the last of what they hold.
+INTO = ("ul", "ol", "li", "div", "table", "thead", "tbody", "tr", "td", "th", "blockquote", "dl", "dd", "dt")
 
 CSS = """
 @page {
@@ -677,70 +680,95 @@ def step_pictures(body: Tag, soup: BeautifulSoup) -> None:
 
 
 def numbered_step(words: Tag) -> bool:
-    """Whether a paragraph is a numbered step's words ("3. Find wire 1 ...")."""
-    return words.name == "p" and re.match(r"\s*\d+\.", words.get_text()) is not None
+    """Whether a paragraph is a numbered step's words: "3. Find wire 1 ...", a number, a full stop and a space
+    ("3.3 V comes from the Acorn." is not step 3). Steps are such paragraphs; the items of an <ol> are not seen
+    as numbered steps."""
+    return isinstance(words, Tag) and words.name == "p" and re.match(r"\s*\d+\.\s", words.get_text()) is not None
 
 
 def is_picture(part: Tag) -> bool:
     return isinstance(part, Tag) and "picture" in part.get("class", [])
 
 
+def is_step(part: Tag) -> bool:
+    return isinstance(part, Tag) and part.name == "div" and "step" in part.get("class", [])
+
+
 def picture_image(picture: Tag) -> Tag:
     """The image of a picture: of a picture with lead-in words (own_pictures), that of the picture in it."""
     if "again" in picture.get("class", []):
-        picture = picture.find(is_picture)
+        picture = picture.find(is_picture, recursive=False)
     return picture.find("img")
 
 
+def owns(part: Tag) -> bool:
+    """Whether part starts a numbered step: a step whose words are numbered, or a numbered paragraph that is
+    not already the words of a step."""
+    if is_step(part):
+        return numbered_step(part.find(recursive=False))
+    return numbered_step(part) and not is_step(part.parent)
+
+
 def own_pictures(body: Tag, soup: BeautifulSoup) -> None:
-    """Give a numbered step the pictures that serve it after its own (fpgas.online-docs issue #102).
+    """Give a numbered step every picture after it up to the next numbered step or heading (issue #102).
 
     step_pictures makes a paragraph and the picture after it a step; "The P1 cavity picture again, to read each
-    wire's cavity from:" over a picture is such a step, though it has no number. When it comes after a numbered
-    step, with nothing but that step's pictures and words between them up to it (no heading, no other step), it
-    serves that step: it becomes one picture of that step (div.picture.again, its words over its picture), so
-    fit_steps keeps it on the step's sheet or moves it under the step's "continued" line, and check_steps
-    reports it when it prints anywhere else. The words just before it that are not a step's go with it. A
-    numbered paragraph with no picture of its own becomes a step for it. A step without a number that comes
-    after no numbered step (a section's own pictures) stays a step of its own."""
-    for step in list(body.find_all("div", class_="step")):
-        parts = step.find_all(recursive=False)
-        if numbered_step(parts[0]):
-            continue
-        lead: list[Tag] = []  # words just before the step, in reverse
-        owner = None
-        node = step.find_previous_sibling()
-        while node is not None:
-            if node.name == "div" and "step" in node.get("class", []):
-                owner = node if numbered_step(node.find(recursive=False)) else None
-                break
-            if numbered_step(node):
-                owner = node
-                break
-            if is_picture(node):
-                if lead:  # words between two pictures belong to neither: leave the step alone
+    wire's cavity from:" over a picture is such a step, though it has no number, and would be checked as a step
+    of its own however far it printed from the step it serves. So everything after a numbered step, up to the
+    next numbered step, heading or end of its section, is the step's: each picture there, with whatever comes
+    between it and the picture before (words, a listing, a table, a note box), is one picture of the step
+    (div.picture.again, those blocks over the picture; a picture with nothing before it stays as it is), and
+    fit_steps and check_steps treat it as the step's own. What comes after the last picture stays where it is.
+    A numbered paragraph with no picture of its own becomes a step, with the blocks up to its first picture as
+    its words. A step without a number that follows no numbered step (a section's own pictures) stays a step."""
+    parents = {id(part.parent): part.parent for part in body.find_all(owns)}
+    for parent in parents.values():
+        children = [child for child in parent.children if isinstance(child, Tag)]
+        for index, owner in enumerate(children):
+            if not owns(owner):
+                continue
+            span = []
+            for part in children[index + 1:]:
+                if part.name in HEADINGS or part.name == "section" or owns(part):
                     break
-            elif node.name in ("p", "ul", "ol"):
-                lead.append(node)
-            else:
-                break
-            node = node.find_previous_sibling()
-        if owner is None:
-            continue
-        if owner.name == "p":
-            # A numbered step with no picture of its own: its words, and those after them, become its step.
-            words, lead = lead, []
-            new = soup.new_tag("div", attrs={"class": "step"})
-            owner.insert_before(new)
-            for part in (owner, *reversed(words)):
-                new.append(part.extract())
-        unit = soup.new_tag("div", attrs={"class": "picture again"})
-        step.insert_before(unit)
-        for part in (*reversed(lead), *parts):
-            unit.append(part.extract())
-        step.decompose()
-        if owner.name == "p":
-            new.append(unit.extract())
+                span.append(part)
+            if not any(is_picture(part) or is_step(part) for part in span):
+                continue
+            # The blocks of the span in order, a step without a number opened up into its words and picture.
+            flat = []
+            for part in span:
+                flat.extend(part.find_all(recursive=False) if is_step(part) else [part])
+            units, lead = [], []
+            for part in flat:
+                if is_picture(part):
+                    units.append((lead, part))
+                    lead = []
+                else:
+                    lead.append(part)
+            for part in flat:
+                part.extract()
+            for part in span:
+                if is_step(part):
+                    part.decompose()
+            last = owner
+            if owner.name == "p":
+                words, picture = units.pop(0)
+                step = soup.new_tag("div", attrs={"class": "step"})
+                owner.insert_before(step)
+                for part in (owner.extract(), *words, picture):
+                    step.append(part)
+                last = step
+            for words, picture in units:
+                if words:
+                    unit = soup.new_tag("div", attrs={"class": "picture again"})
+                    for part in (*words, picture):
+                        unit.append(part)
+                    picture = unit
+                last.insert_after(picture)
+                last = picture
+            for part in lead:  # after the last picture
+                last.insert_after(part)
+                last = part
 
 
 def text_mm(text: str, width: float, size: float = 10.0, line: float = 1.4, char: float = CHAR_MM) -> float:
@@ -903,7 +931,7 @@ def chapter_name(title: str) -> str:
 def first_words(text: str, most: int = 12) -> str:
     """The first words of a step, to name it: its first clause without the step's number, at most most words,
     and with a small first letter unless the first word is a name like "P1" or "GND"."""
-    text = re.sub(r"^\d+\.\s*", "", " ".join(text.split()))
+    text = re.sub(r"^\d+\.\s+", "", " ".join(text.split()))
     words = re.split(r"[,;:]|\.(?:\s|$)", text, maxsplit=1)[0].split()
     said = " ".join(words[:most]) + ("\u2026" if len(words) > most else "")
     if words and not any(c.isupper() or c.isdigit() for c in words[0][1:]):
@@ -916,7 +944,7 @@ def step_names(words: Tag, name: str) -> tuple[str, str]:
     after its own: "JTAG connector 1, step 3" and "JTAG connector 1, step 3, continued: find wire 1 of the P1
     cable". A step without a number is named by the heading it is under and its first words, so that two such
     steps under one heading have two names: 'Bench check, “Steps”, “the P1 cavity picture again”'."""
-    number = re.match(r"\s*(\d+)\.", words.get_text())
+    number = re.match(r"\s*(\d+)\.\s", words.get_text())
     first = first_words(words.get_text(" ", strip=True))
     if number:
         label = f"{name}, step {number.group(1)}"
@@ -1024,11 +1052,11 @@ def mark_steps(body: Tag, soup: BeautifulSoup, number: int, title: str) -> None:
         span.string = STEP_MARK % what
         if at.name == "img":
             at.insert_before(span)
-        elif what.startswith("T-"):
-            # At the very end of the block: into the last list item, and the paragraph that ends it.
-            while at.name in ("ul", "ol", "li"):
+        elif what[0] in "TL":
+            # At the very end of the block: into the last list item, cell or box, and the paragraph ending it.
+            while at.name in INTO:
                 ending = [child for child in at.children if isinstance(child, Tag) or str(child).strip()]
-                if not ending or not isinstance(ending[-1], Tag) or ending[-1].name not in ("p", "ul", "ol", "li"):
+                if not ending or not isinstance(ending[-1], Tag) or ending[-1].name not in (*INTO, "p"):
                     break
                 at = ending[-1]
             at.append(span)
@@ -1050,6 +1078,9 @@ def mark_steps(body: Tag, soup: BeautifulSoup, number: int, title: str) -> None:
         pictures = [part for part in div.find_all(recursive=False) if "picture" in part.get("class", [])]
         for count, picture in enumerate(pictures, 1):
             mark(picture_image(picture), f"P-{number}-{step_number}-{block}-{count}")
+            if "again" in picture.get("class", []):
+                for lead, part in enumerate(picture.find_all(recursive=False)[:-1], 1):
+                    mark(part, f"L-{number}-{step_number}-{block}-{count}-{lead}")
         tail = div.find("div", class_="step-tail", recursive=False)
         for count, part in enumerate(tail.find_all(recursive=False) if tail else [], 1):
             mark(part, f"T-{number}-{step_number}-{block}-{count}")
@@ -1085,6 +1116,9 @@ def check_steps(sheets: list[str], page: str) -> list[str]:
     def sheet_of(mark: Tag) -> int:
         return found[mark.get_text()][0]
 
+    def mark_in(part: Tag, kind: str) -> Tag:
+        return part.find(lambda tag: tag.name == "span" and tag.get_text().startswith(f"PPSTEP-{kind}-"))
+
     steps = {div["data-step"]: div for div in soup.select("div.step[data-step]") if div.get("data-block") == "0"}
     for div in soup.select("div.step[data-step]"):
         step = steps.get(div["data-step"])
@@ -1093,12 +1127,12 @@ def check_steps(sheets: list[str], page: str) -> list[str]:
             continue
         chapter = div["data-step"].split("-")[0]
         name = f"chapter {chapter}, {step.get('data-label')}"
-        words = sheet_of(step.find("span", class_="step-mark"))
+        words = sheet_of(mark_in(step, "W"))
         if div is step:
             where, home = "its words are", words
         else:
             line = div.find("p", class_="continued-line")
-            home = sheet_of(line.find("span", class_="step-mark"))
+            home = sheet_of(mark_in(line, "K"))
             where = f"its continued line (block {div['data-block']}) is"
             said = visible(line.get_text())
             if not said.startswith(f"{step.get('data-label')}, continued"):
@@ -1109,14 +1143,19 @@ def check_steps(sheets: list[str], page: str) -> list[str]:
                 problems.append(f"{name}: its continued line is on sheet {home}, not after its words on sheet {words}")
         pictures = [part for part in div.find_all(recursive=False) if "picture" in part.get("class", [])]
         for count, picture in enumerate(pictures, 1):
-            sheet = sheet_of(picture.find("span", class_="step-mark"))
+            sheet = sheet_of(mark_in(picture, "P"))
+            alt = picture_image(picture).get("alt") or f"picture {count}"
             if sheet != home:
-                alt = picture_image(picture).get("alt") or f"picture {count}"
                 problems.append(f"{name}: {where} on sheet {home} and its picture {alt!r} on sheet {sheet}")
+            # The words over a picture with lead-in words (own_pictures) must end on the picture's sheet.
+            for end in picture.find_all(lambda tag: tag.name == "span" and tag.get_text().startswith("PPSTEP-L-")):
+                if sheet_of(end) != sheet:
+                    problems.append(f"{name}: the words over its picture {alt!r} (on sheet {sheet}) end on sheet "
+                                    f"{sheet_of(end)}: \u201c{first_words(visible(end.parent.get_text(' ')))}\u201d")
         # What fit_steps kept after the last picture must end on that picture's sheet.
         tail = div.find("div", class_="step-tail", recursive=False)
         if tail is not None:
-            last = sheet_of(pictures[-1].find("span", class_="step-mark")) if pictures else home
+            last = sheet_of(mark_in(pictures[-1], "P")) if pictures else home
             for count, end in enumerate(tail.find_all("span", class_="step-mark"), 1):
                 sheet = sheet_of(end)
                 if sheet != last:
