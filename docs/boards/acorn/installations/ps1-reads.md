@@ -40,8 +40,9 @@ Acorn](../index.md).
 wiring](../building/compute-blade/index.md) yet.** That wiring puts P1 on
 the Extension Port and P2 on the 4-pin UART header, with a 470 Ω resistor in the
 J2 wire. pi20 at ps1, the one blade whose wiring has been read, has its P2 serial pair
-on Extension Port pins 9 and 10 instead, sharing pin 9 (GPIO14) directly with
-TMS and with no resistor, so a design that drives J2 costs JTAG until a PoE
+wired straight to GPIO14 (J2) and GPIO15 (K2) instead (pin-ID read, 31 August
+2026; on which header pins the wires sit is not recorded by us), so J2 shares
+GPIO14 directly with TMS, with no resistor, so a design that drives J2 costs JTAG until a PoE
 cycle ([why](../wiring/compute-blade-host.md#the-shared-line-and-the-470-ω-resistor)),
 and its J5 and H5 are not wired. How pi14 at ps1's and pi16 at ps1's P2 cables are wired is
 not known: pi14 at ps1's P1 did not answer on 2026-09-20 and pi16 at ps1's JTAG cannot run

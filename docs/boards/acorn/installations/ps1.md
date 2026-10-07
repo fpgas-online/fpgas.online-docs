@@ -36,11 +36,9 @@ been checked by eye by us):
 - pi18 at ps1: no card seen in its M.2 slot (no PCIe device on 7 October 2026).
 - pi14 at ps1 and pi18 at ps1 carry a Compute Module 4; pi16 at ps1 and pi20 at ps1 a Compute Module 5
   Lite. Which marking on the module tells the two apart is not recorded by us.
-- Between the two Compute Module 5 blades: pi20 at ps1's serial pair was recorded (5 October 2026) on
-  Extension Port pins 9 and 10, so it is the one with a wire on pin 10 (GPIO15); the guide's P1 cable uses
-  no pin 10. How the Extension Port's pins are numbered is on [the blade's
-  pins](../wiring/compute-blade-host.md). If no wire is on pin 10 of either, the two cannot be told apart
-  by eye: use the way below.
+- Between the two Compute Module 5 blades: which header pins pi20 at ps1's old serial wires sit on is not
+  recorded by us (below), and neither is how pi16 at ps1's cables are wired, so the wires do not tell the two
+  apart: use the way below.
 
 A way that does not depend on looking, **not yet tried by us**: with every other blade running, unplug one
 blade's PoE cable and wait a minute; the name whose visitor port then stops answering is that blade. The
@@ -92,9 +90,14 @@ and fit pi14 at ps1's cables, and run the check on the two CM5 blades only.
 **What to build.** P2: four new cables by the guide, one for each blade; pi20 at ps1's present serial wiring
 is taken off (below). P1: one new cable for pi18 at ps1, certainly. On pi14 at ps1 and pi16 at ps1 TCK reads
 as if no P1 cable were mated (a cable may be fitted and loose, or not fitted at all): reseat a fitted one
-first; if none is fitted, or it still reads unmated, build a new one by the guide. pi20 at ps1's P1 answered
-on 2026-09-20: leave it, unless taking its old serial wiring off disturbs it. So: four P2 cables, and one
-to three P1 cables. pi18 at ps1 also needs a card; which card goes there is not recorded by us.
+first; if none is fitted, or it still reads unmated, build a new one by the guide. Before refitting an
+existing P1 cable: with the blade off and the card out, check it as [JTAG connector
+2](../building/compute-blade/jtag-connector-2.md) step 2 does (each plug contact to its cavity, and no other),
+then run the [bench check](../building/compute-blade/bench-check.md) with it before power-on. pi20 at ps1's P1 answered
+on 2026-09-20: keep it, by the steps for its old serial wiring (below). So: four P2 cables, and one
+to three P1 cables. Each bought Molex cable gives one P1 half and one P2 half, so that takes four Molex cables,
+with one to three P1 halves spare. The terminals are 3 per P2 cable and 5 per P1 cable: 17 to 27 in all, and
+a few spare. pi18 at ps1 also needs a card; which card goes there is not recorded by us.
 
 **Before anything is fitted, refitted or reseated: power the blade off (unplug its PoE cable, and a USB-C cable if
 one is plugged in).** And before any design is loaded over JTAG:
@@ -127,7 +130,7 @@ converted a card on one yet (one conversion was begun on pi20 at ps1 and stopped
 | pi14 at ps1 | fitted, factory image: to be converted | not mated, or its TCK wire open (TCK follows the host's pull, as on the empty pi18 at ps1: 2026-09-20 and again 2026-10-07): reseat a fitted one; if none, or still unmated, build a new one | not known: build to the UART header, 470 Ω in the J2 wire, J5 and H5 cut back | as pi16 at ps1 (read 2026-10-07: the same serial-port settings); a Compute Module 4: (b) not yet run, and `gpioinfo` names no user for line 14 there (2026-10-07) |
 | pi16 at ps1 | fitted, factory image: to be converted | not mated, or its TCK wire open (TCK follows the host's pull, as on the empty pi18 at ps1: 2026-10-07): reseat a fitted one; if none, or still unmated, build a new one | not known: build to the UART header, 470 Ω in the J2 wire, J5 and H5 cut back | (a) for the serial-pair tests: the kernel console and the getty off `/dev/ttyAMA0`; (b) only for JTAG: the serial port off at boot (below; run on pi20 at ps1, 7 October 2026) |
 | pi18 at ps1 | none seen: look; if the slot is empty, fit one | fit on the Extension Port | fit on the UART header, 470 Ω in the J2 wire, J5 and H5 cut back | as pi16 at ps1 (read 2026-10-07: the same serial-port settings); a Compute Module 4: (b) not yet run, and `gpioinfo` names no user for line 14 there (2026-10-07) |
-| pi20 at ps1 | fitted, vendor sample image in flash: to be converted | answered on 2026-09-20: leave the cable. On 2026-10-07 JTAG could not run with the header's serial port on (it holds GPIO14), and read the IDCODE and DNA with the port off at boot, the Host column's (b) | build a new one by the guide for the UART header (470 Ω in the J2 wire) and take the old serial wiring off Extension Port pins 9 and 10 (below) | as pi16 at ps1 (read 2026-10-05: the same kernel and serial-port settings): (a) for the serial-pair tests: the kernel console and the getty off `/dev/ttyAMA0`; (b) only for JTAG: the serial port off at boot (below; run on pi20 at ps1, 7 October 2026) |
+| pi20 at ps1 | fitted, vendor sample image in flash: to be converted | answered on 2026-09-20: keep the cable, by the steps below. On 2026-10-07 JTAG could not run with the header's serial port on (it holds GPIO14), and read the IDCODE and DNA with the port off at boot, the Host column's (b) | build a new one by the guide for the UART header (470 Ω in the J2 wire) and take the old serial wiring off (its pair is wired to GPIO14 and GPIO15; which header pins is not recorded: below) | as pi16 at ps1 (read 2026-10-05: the same kernel and serial-port settings): (a) for the serial-pair tests: the kernel console and the getty off `/dev/ttyAMA0`; (b) only for JTAG: the serial port off at boot (below; run on pi20 at ps1, 7 October 2026) |
 
 **The Host column is Carl's to do, on the gateway, not on a blade.** The two files it means, `config.txt` and
 `cmdline.txt`, are in one directory on the ps1 gateway, `/srv/nfs/rpi/trixie/boot/`, which every netbooted
@@ -179,12 +182,28 @@ The Host column's (a) has no written steps and has **not been tried by us**. Wha
 `console=serial0,115200` in `cmdline.txt`; with that word out and `enable_uart=1` kept, the header's serial
 port would stay on for the serial-pair tests with nothing else using it. That is the expectation, not a run.
 
-**pi20 at ps1's present P2 wiring is not the guide's.** How its cable is made was not recorded, only where
-its serial pair lands (Extension Port pins 9 and 10). The way to the guide's wiring that needs no knowledge of
-the old cable: build a new P2 cable by the guide ([UART connector
-1](../building/compute-blade/uart-connector-1.md) and 2), take the old P2 cable off the card and the blade, and
-fit the new one on the UART header. Whether the P1 cable's housing then matches the guide's has to be looked
-at against [JTAG connector 2](../building/compute-blade/jtag-connector-2.md): **not yet done by us.**
+**pi20 at ps1's present P2 wiring is not the guide's.** Its serial pair is wired straight to GPIO14 (J2) and
+GPIO15 (K2), with no resistor: read with the pin-ID design on 31 August 2026, when a design driving J2 stopped
+JTAG until a PoE cycle, so J2 and P1's TMS share GPIO14 (fpgas.online-test-designs issue 4, the comment of
+2026-08-31). GPIO14 is on Extension Port pin 9 and on UART header pin 3 (Uptime Lab's GPIO guide). Which of
+these pins the old serial wires sit on, and whether J2 shares a terminal or a housing with P1's TMS wire, is
+not recorded by us. Build a new P2 cable by the guide ([UART connector
+1](../building/compute-blade/uart-connector-1.md) and 2) first. Then, with the blade powered off (unplug its PoE
+cable, and a USB-C cable if one is plugged in), look at Extension Port pin 9 and UART header pins 3 and 4, and
+note which housing sits where:
+
+1. If the serial wires are in a housing of their own, take that housing off the blade and the old cable off
+   the card, and leave P1's housing in place.
+2. If a serial wire shares a housing, a terminal or a splice with P1's TMS wire, do not cut or pull it: take
+   P1's cable off too, and build a new P1 cable by the guide ([JTAG connector
+   1](../building/compute-blade/jtag-connector-1.md) and 2).
+3. If P1's housing came off or moved, take the card out and the P1 plug out of its socket. Check with the meter,
+   as [JTAG connector 2](../building/compute-blade/jtag-connector-2.md) step 2 does, that the plug's contact 4
+   (TMS) beeps to the housing cavity over Extension Port pin 9 and to no other cavity. If it does not, or the
+   housing is not the guide's 2×5, build a new P1 cable.
+4. Fit the new P2 cable on the UART header. Whether P1's TMS works is shown only by the check's `jtag` test, in
+   a boot with the header's serial port off ([verifying 3](../building/compute-blade/verifying-3.md)); the meter
+   cannot reach it with the card fitted.
 
 The parts are on [Compute Blade cables: parts and tools](../building/compute-blade/bom.md). Once
 a blade is wired, [check it](../building/compute-blade/verifying-1.md).
