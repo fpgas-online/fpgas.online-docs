@@ -1,4 +1,4 @@
-# Bootloader EEPROM on a Raspberry Pi 5: step 4, card in, network cable in, wait 60 seconds
+# Bootloader EEPROM on a Raspberry Pi 5: step 4, card in, network cable in, wait for the green light
 
 **You are upgrading a locked Raspberry Pi 5, its FLASH WP pads joined
 ([step 3](bootloader-eeprom-pi5-step-3.md)) or tweezers or a short wire ready
@@ -64,15 +64,20 @@ Photo: Suyash Dwivedi, [Wikimedia Commons](https://commons.wikimedia.org/wiki/Fi
 
    - put one tip of the tweezers (or one end of the wire) on each pad;
    - plug the network cable in with your other hand;
-   - keep the tips on both pads for at least the 60 seconds below, and until
-     you pull the network cable in step 5.
-3. Wait 60 seconds by a clock. The Pi writes its new bootloader from the card
-   and then stops by itself (Raspberry Pi's documentation, for a card whose
-   image is called `pieeprom.bin`, as step 1's is), so a longer wait does not
-   cut a write short: if you lost count, start the 60 seconds again. Do not
-   judge the write by the green light (on one of our runs it showed an error
-   pattern after a write that had worked). Go on to
-   [step 5](bootloader-eeprom-pi5-step-5.md) when the 60 seconds are over.
+   - keep the tips on both pads until you pull the network cable in step 5.
+3. Watch the Pi's green activity light. When it flashes rapidly, the new
+   bootloader is written and the Pi has stopped: go on to
+   [step 5](bootloader-eeprom-pi5-step-5.md). (Raspberry Pi's documentation:
+   "On success ... the green activity LED is flashed rapidly", for a card whose
+   image is called `pieeprom.bin`, as step 1's is.)
+
+   Give it at least 60 seconds before you decide it is not going to: until it
+   flashes rapidly, leave the cable in. If instead it blinks a repeating
+   pattern of long and short flashes, Raspberry Pi calls that an error code.
+   Write down the pattern and still go on to step 5: on one of our runs a
+   pattern of 3 long and 3 short came after a write that had worked, and step 6
+   tells which it was. If after two minutes it does neither, go on to step 5
+   as well, and let step 6 tell.
 
    Whether the write worked is checked in
    [step 6](bootloader-eeprom-pi5-step-6.md), after the Pi has started again:

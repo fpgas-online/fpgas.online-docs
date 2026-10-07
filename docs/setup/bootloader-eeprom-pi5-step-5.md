@@ -1,7 +1,7 @@
 # Bootloader EEPROM on a Raspberry Pi 5: step 5, cable out, card out, bridge off, cable in
 
-**You are upgrading a locked Raspberry Pi 5, and the 60 seconds of
-[step 4](bootloader-eeprom-pi5-step-4.md) are over: now you take the card and
+**You are upgrading a locked Raspberry Pi 5, and the green light of
+[step 4](bootloader-eeprom-pi5-step-4.md) has flashed rapidly (or you noted its pattern): now you take the card and
 the bridge off and put the Pi back on its port.**
 
 ```{image} bootloader-eeprom/cable-out.svg
