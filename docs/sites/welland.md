@@ -41,8 +41,8 @@ Internet ── upstream ─────│  tweed (the welland gateway)       �
                       └───────────────────────────────┘
 ```
 
-Every Pi netboots from tweed. Since 2026-08-23 the site has run one VLAN per switch port (fpgas.online-infra
-PR #10): a Pi's name and address come from the port it is plugged into, `pi-sw<switch>-p<port>` at
+Every Pi netboots from tweed. Since late August 2026 the site has run one VLAN per switch port (fpgas.online-infra
+PR #10, merged 2026-08-24): a Pi's name and address come from the port it is plugged into, `pi-sw<switch>-p<port>` at
 `10.21.<switch>.<port>`, and tweed's firewall stops one Pi reaching another. The formulas, and which switch
 port is which, are on [Network and power](../setup/network.md). Moving a Pi to another port renames and
 re-addresses it.
