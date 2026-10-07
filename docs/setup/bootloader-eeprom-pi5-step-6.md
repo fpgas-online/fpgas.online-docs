@@ -24,13 +24,13 @@ this step.
 Your result:
 
 ```{image} bootloader-eeprom/outcomes.svg
-:alt: What step 6 can read and what to do: all three as wanted, done; the old date, nothing was written, go back to step 2; the new date but another boot order, make the card again; the new date and boot order but SR1 0x0, power the Pi off and on and read again; no answer after five minutes, go back to step 2 with a checked card
+:alt: What step 6 can read and what to do: all three as wanted, done; the old date, nothing was written, go back to step 2; the new date but another boot order, make the card again; the new date and boot order but SR1 0x0, not locked: pull the network cable, plug it in again on the Pi's normal port, wait 2 minutes and read again, and if still 0x0 unplug the Pi and tell whoever runs the site; no answer after five minutes, go back to step 2 with a checked card
 :width: 100%
 :class: only-light
 ```
 
 ```{image} bootloader-eeprom/outcomes-dark.svg
-:alt: What step 6 can read and what to do: all three as wanted, done; the old date, nothing was written, go back to step 2; the new date but another boot order, make the card again; the new date and boot order but SR1 0x0, power the Pi off and on and read again; no answer after five minutes, go back to step 2 with a checked card
+:alt: What step 6 can read and what to do: all three as wanted, done; the old date, nothing was written, go back to step 2; the new date but another boot order, make the card again; the new date and boot order but SR1 0x0, not locked: pull the network cable, plug it in again on the Pi's normal port, wait 2 minutes and read again, and if still 0x0 unplug the Pi and tell whoever runs the site; no answer after five minutes, go back to step 2 with a checked card
 :width: 100%
 :class: only-dark
 ```

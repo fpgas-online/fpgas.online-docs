@@ -164,7 +164,7 @@ def closeup(what, theme):
             d.polygon([(q[0] - 16, q[1] + 10), (q[0] + 16, q[1] + 10), (916 + (q[0] - 916) // 6 + 26, 0),
                        (916 + (q[0] - 916) // 6 - 26, 0)], fill=SILVER, outline=BLACK)
         note(d, (900, y0 + 60), "Without an iron: one tip of the tweezers on each pad", 38, good)
-        note(d, (900, y0 + 120), "Hold them there for the whole 60 seconds of step 4.", 30, plain)
+        note(d, (900, y0 + 120), "Hold them there until the network cable comes out (step 5).", 30, plain)
         note(d, (900, y0 + 164), "A drawing on the photo.", 30, plain)
     else:  # clear: the pads separate again
         for c in (tp14, tp1):
