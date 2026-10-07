@@ -2,4 +2,4 @@ These files are copied from https://github.com/fpgas-online/fpgas.online-infra
 by tools/sync_repos.py. Do not edit them here: change them in infra.
 
 ref: main
-commit: 0cf1d1579d7784fe1e3f5e19ab06f55d34f09035
+commit: 911abaeab4dfbb0d85f34bf74ff3f118e1c6f4bc

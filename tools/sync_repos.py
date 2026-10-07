@@ -574,6 +574,7 @@ INFRA = Repo(
         "docs/orange-pi/recover.md": "docs/setup/orange-pi/recover.md",
         "docs/orange-pi/add.md": "docs/setup/orange-pi/add.md",
         "docs/access.md": Page("docs/setup/access.md", **_SHARED),
+        "docs/upstream-gateway.md": Page("docs/setup/upstream-gateway.md", **_SHARED),
     },
     # in each landing page's order of its pages
     TOCTREES={
