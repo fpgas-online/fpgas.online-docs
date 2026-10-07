@@ -575,6 +575,12 @@ class ShortTables(unittest.TestCase):
         self.assertIn("short", short_one["class"])
         self.assertNotIn("class", long_one.attrs)
 
+    def test_a_table_of_few_rows_but_much_text_may_run_over(self):
+        cell = "y" * (p.SHORT_CHARS + 1)
+        article = p.BeautifulSoup(f"<table><tr><td>{cell}</td></tr></table>", "html.parser")
+        p.short_tables(article)
+        self.assertNotIn("class", article.find("table").attrs)
+
     def test_a_table_with_a_class_keeps_it(self):
         article = p.BeautifulSoup('<table class="docutils"><tr><td>1</td></tr></table>', "html.parser")
         p.short_tables(article)
