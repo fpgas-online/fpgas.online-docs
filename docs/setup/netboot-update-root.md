@@ -43,7 +43,7 @@ Deploy the image the rolling tag `bookworm-armhf` points to: CI has netbooted a 
 the one tagged `bookworm-armhf`:
 
 ```console
-$ gh api "orgs/fpgas-online/packages/container/nfsroot/versions?per_page=10" \
+$ gh api "orgs/fpgas-online/packages/container/nfsroot/versions?per_page=40" \
     --jq '.[] | "\(.name) \(.metadata.container.tags | join(","))"' | grep bookworm-armhf
 ```
 
@@ -75,7 +75,7 @@ terminal too) and in the journal. A two-switch site is through in about 40 minut
 
 To have a board back sooner, power-cycle its port ([Power-cycling a board](network-power-cycle.md)). After
 the update of 6 October 2026 at welland, the 12 boards that were power-cycled were all back within 9 minutes,
-and the Orange Pis, left to the watchdog, by 08:57, 36 minutes after the 08:21 swap (the deploy record of that day).
+and the Orange Pis, left to the watchdog, by 08:57 Adelaide time, 36 minutes after the 08:21 swap (the deploy record of that day).
 
 To keep one board from rebooting (a JTAG session, say): `sudo nfsroot-watchdog inhibit` on the board, until it
 next reboots or `nfsroot-watchdog release`. `nfsroot-watchdog status` on a board says what it plans.

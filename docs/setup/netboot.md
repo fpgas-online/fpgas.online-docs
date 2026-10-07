@@ -4,8 +4,7 @@
 so that you can reason about a boot problem or a change to the root.** To put a new root on a gateway, or to
 find out why a Pi does not boot, go to the pages listed under [The tasks](#the-tasks).
 
-A fleet Pi boots from the network, not from an SD card. (The one exception at welland is the Orange Pis' hub
-host, `pi-sw2-p30`, which boots its own card: [Orange Pi H3 hosts](orange-pi.md).) Its boot ROM asks for DHCP,
+A fleet Pi boots from the network, not from an SD card. (The Orange Pis boot the same root by another route, through a hub host: [Orange Pi H3 hosts](orange-pi.md).) Its boot ROM asks for DHCP,
 fetches its firmware and kernel over TFTP, and mounts one shared, read-only NFS root from the site's gateway,
 with a tmpfs on top that is thrown away at every reboot. This page describes what fpgas.online-infra builds
 (main, read 2026-10-07). ps1's gateway was not built by it as it stands: [The ps1 gateway and
@@ -83,10 +82,10 @@ systemd.log_level=debug systemd.log_target=kmsg log_buf_len=1M printk.devkmsg=on
 ```
 
 `nfsvers=3,tcp`
-: The welland gateway's NFS server (Debian 13) serves version 3 over TCP only, while the initramfs's mount
-  tool defaults to UDP; without `tcp` the root mount hangs. Found on real hardware at the gateway's rebuild of
-  2026-08-25 (entry C1-3c of `docs/rebuilds/2026-08-25-tweed-rebuild.md` in fpgas.online-infra); the CI VM
-  did not show it.
+: the welland gateway's rebuild record (`docs/rebuilds/2026-08-25-tweed-rebuild.md` in fpgas.online-infra,
+  entry C1-3c) found its NFS server (Debian 13) serving version 3 over TCP only, while the initramfs's mount
+  tool defaults to UDP, so the command line asks for TCP. The root mount still failed after that; the cause
+  the record names (C1-4) was an empty export table on the gateway, since fixed in the `nfs` role (fpgas.online-infra commit 7c353ec).
 
 `overlayroot=tmpfs`
 : the writable layer ([below](#the-nfs-root-is-shared-and-read-only)).
@@ -145,8 +144,9 @@ documentation, section `eeprom_write_protect`):
   the hardware; clearing it needs the `TP14` and `TP1` pads joined.
 - **Raspberry Pi 4:** `/WP` (`TP5`) is not pulled low by default, so the setting stops the standard tools,
   but a root user could clear the register; pulling `TP5` low makes it a hardware lock.
-- **Compute Module 4 or 5:** `/WP` is the module's `EEPROM_nWP` pin, and what it is tied to depends on the
-  carrier board.
+- **Compute Module 4:** `/WP` is the module's `EEPROM_nWP` pin (Raspberry Pi's documentation), and what it is
+  tied to depends on the carrier board. For a Compute Module 5 no source is recorded here: [Compute
+  Module](bootloader-eeprom-compute-module.md) has what was measured.
 
 Values: `1` protects the whole flash, `0` clears the protection, `-1` (the default) does nothing. How to check
 a board and how to upgrade a locked one: [a Raspberry Pi 5](bootloader-eeprom-pi5.md), [a Compute
