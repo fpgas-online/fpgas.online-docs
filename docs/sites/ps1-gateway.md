@@ -21,7 +21,7 @@ Tim's permission. It found an install of about 25 September 2026, last booted on
 | Root service | NFS, two read-only exports (below) |
 | Web | nginx in front of the board pages, the web SSH terminal and the video feeds |
 | Switch | Netgear FS728TPv2 at 10.21.0.200 ([below](#poe-switch)) |
-| Administrator login | `ssh root@ps1.fpgas.online`, with a key the gateway's administrator has installed; no password |
+| Administrator login | `ssh root@ps1.fpgas.online`, with a key the gateway's administrator has installed |
 
 The Pi network is one flat `/24`. A Pi is recognised by its MAC and handed a reserved address
 (`10.21.0.1NN` for the host on port `eNN`, from `/etc/dnsmasq.d/pibs.conf`, which held 12 hosts on

@@ -102,7 +102,7 @@ From the site notes (undated), with the gateway read of 6 October 2026.
 |---|---|---|---|---|---|---|
 | pi19 | e19 | 10.21.0.119 | b8:27:eb:0c:f8:43 | 3B | dead hardware (site notes) | no; not in `pibs.conf` |
 | [pi21](https://ps1.fpgas.online/fpgas/pi21.html) | e21 | 10.21.0.121 | 2c:cf:67:39:18:66 | 5 Rev 1.0, 4 GB (site notes) | no FPGA; a development host | no (in `pibs.conf`) |
-| pi24 | none | 10.21.0.124 | b8:27:eb:85:ab:d9 | not recorded | registered in an older `pibs.conf`, on no port | no; not in `pibs.conf` |
+| pi24 | none | 10.21.0.124 | b8:27:eb:85:ab:d9 | not recorded | registered, on no port (site notes) | no; not in `pibs.conf` |
 
 **Known wrong:** pi21's model disagrees between sources: the site notes say a Raspberry Pi 5, while the
 `switch.nos` entry for port 21 in `host_vars/ps1.fpgas.online.yml` (fpgas.online-infra) says `pi4 tt06`. Nobody
