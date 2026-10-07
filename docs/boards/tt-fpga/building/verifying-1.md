@@ -3,8 +3,8 @@
 **You have a Tiny Tapeout FPGA demo board fitted to a Raspberry Pi with a Pmod HAT, and want to install the
 fpgas.online packages for it, run the check and know whether the board and its wiring pass.**
 
-**What this page cannot give you:** how the demo board's DIP switches must be set while the check drives
-`ui_in` (step 4); it is not recorded. The commands are written for Raspberry Pi OS or Debian **trixie**; on
+**What this page cannot give you:** which position of the demo board's DIP switches is safe while the check
+drives `ui_in` (step 4); it is not recorded, so the page says to leave them as you find them. The commands are written for Raspberry Pi OS or Debian **trixie**; on
 **bookworm** one more line is needed (step 3).
 
 The steps, each a section of this page:
@@ -95,10 +95,11 @@ sudo apt install -t bookworm-backports micropython-mpremote
 1. **The three Pmod cables are on the right ports and the right way round**: INPUT to JA, BIDIR to JB,
    OUTPUT to JC, pin 1 to pin 1 ([fitting](fitting.md#3-the-three-pmod-cables-and-the-usb-c-cable)). The
    check drives the Pi's GPIOs into those cables.
-2. **The DIP switches.** Set every DIP switch to the position that leaves `ui_in` undriven: **that position
-   is not recorded.** The switches are on the `ui_in` signals (Tiny Tapeout's specification; not verified by
-   us), the check drives those same signals from the Pi, and two drivers on one signal fight. Until the
-   position is recorded, this page cannot tell you a safe setting. What is recorded: on 5 October 2026 the
+2. **The DIP switches: leave them as you find them.** That is how the one board that has passed was checked
+   (below). Which position leaves `ui_in` undriven is **not recorded** (asked of the boards' owner on
+   7 October 2026). The switches are on the `ui_in` signals (Tiny Tapeout's specification; not verified by
+   us), the check drives those same signals from the Pi, and two drivers on one signal fight. What is
+   recorded: on 5 October 2026 the
    board with USB serial `4df39a7a6856f86f` passed `pin-id` with its switches as they were found, and with
    its SDK running and the microcontroller not driving `ui_in`, `ui_in` read `00001001`: `ui_in[0]` and
    `ui_in[3]` held high, by the switches or by the Pi, not decided (read on 5 October 2026). A camera still of

@@ -26,8 +26,8 @@ demos via the `fpgas-online-tt-demos` package), which is what the public site us
   deploy record of that day); which version each Tiny Tapeout Pi runs now is not verified by us.
 - **History, no longer done: boards from before October 2026 still hold old copies.** The same README:
   until then the daemon copied every demo and every upload to the board's `/bitstreams` and loaded from
-  there; boards from that time still hold those files, and the daemon neither reads nor removes them. Today
-  nothing of ours writes to a demo board: every design is streamed from the Pi.
+  there; boards from that time still hold those files, and the daemon neither reads nor removes them. Since
+  then nothing of ours writes to a demo board: every design is streamed from the Pi.
 
 ## What the boot check leaves running
 

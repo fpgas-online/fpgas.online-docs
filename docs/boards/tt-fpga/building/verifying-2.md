@@ -26,6 +26,9 @@ failures](../../../verify/fpgas-verify.md#common-failures)):
 > table above that line shows each wire, what was expected on it and what was heard. The line after it says how
 > many of the cabling's signal wires the test covers: all 24 on a TT FPGA board.
 
+That "all 24" is for builds after 0.0.post1151. The build that passed on 5 October 2026 judged 18 of the 24
+(the paragraph "How many wires pin-ID covers" on this page says which six it could not tell apart).
+
 The summary keeps only a failed test's last 8 output lines. To see the whole table, run the test on its own
 with its output live. `fpgas-tt-fpga-debug program` and `test` do not ask the board what it is, so they need
 `--variant tt-fpga` said out loud ([Which Tiny Tapeout board it

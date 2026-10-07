@@ -79,8 +79,8 @@ clk = PWM(Pin(16))  # Second call oscillates correctly
 
 ## History
 
-None of this is done now, and none of it needs doing. Today no code of ours writes to a demo board's
-firmware or files.
+None of this has been done since October 2026, and none of it needs doing: no code of ours writes to a demo
+board's firmware or files.
 
 - **`main.py`.** Until October 2026 the
   [UART test wrapper](https://github.com/fpgas-online/fpgas.online-test-designs/blob/main/designs/_host/tt_test_wrapper.py)

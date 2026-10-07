@@ -28,8 +28,11 @@ boards at welland stand on this plate is not recorded.
 - **Pmod host positions:** DB mpw uses positions 2 and 3; every other revision uses 1, 2 and 3.
 - Revisions in one group share their mounting holes and Pmod positions exactly, but may differ elsewhere:
   v2.1.2's USB-C connector, for one, is 0.9 mm from v2.0.1's.
-- The boards on these pages are demo boards **version 3** ([variants](variants.md)); the maker's drawings
-  we used are of v3.2. Which of v3.2 and v3.3 is on our boards has not been read off them.
+- The boards on these pages are demo boards **version 3** ([variants](variants.md)). One of them,
+  `4df39a7a6856f86f` at welland, reported itself as demo board `TTDBv3 [3.2]` in its boot check of
+  5 October 2026 ([the boards at welland](../installations/welland.md)); we take that to be **DB ETR v3.2**
+  here (holes A1 and D1), matching the two names, not checked on the board. The other boards' revision has
+  not been read.
 
 ```{image} /_static/mechanical/tt-generic-mounting-plate-fitting-guide-views-b-light.svg
 :alt: Tables of each board's placement on the plate (dX, dY, Pmod positions, holes used) and of its USB-C connector's extent, with the notes

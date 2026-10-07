@@ -14,8 +14,11 @@ end through a strip of pin header, with the 3.3 V pin left out: pins 6 and 12 ar
 boards' 3.3 V supplies are not joined.** The boards' owner, Tim Ansell, said so on 7 October 2026. He
 believes the cables are whiteeeen 10-pin flat ribbon cables (0.1 inch pitch, about 200 mm, IDC
 connectors; Amazon product B094RGMBS9); that is his belief, not checked by us. **How the 10-pin cable sits
-on the 12-pin socket (which end of the socket is left free) is not recorded**, so find pin 1 on both
-connectors before plugging a cable in. Every other page that touches the cables points here.
+on the 12-pin socket:** as we read Tim Ansell's answer of 7 October 2026, each cable sits on pins 1 to 5 and 7 to 11 and leaves the 3.3 V column (pins 6 and 12) free; not checked by us on a board. Find pin 1 on both connectors before plugging a cable in.
+
+**The mounting plate.** Which holes of the fpgas.online mounting plate a demo board uses, and the plate's
+figures: [the mechanical page](../overview/mechanical.md). Whether the boards at welland stand on it is not
+recorded. Every other page that touches the cables points here.
 
 What the makers' documents, Tim's answer and our cameras say about the cables. The line about a straight
 twelve-wire cable says what such a cable would do: it is not an instruction to use one.
