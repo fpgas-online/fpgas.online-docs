@@ -1,6 +1,6 @@
 # Hosts and boards at welland
 
-**You want to know which board is on which host at welland, what was last seen on each, and what is known
+**You look after welland and want to know which board is on which host, what was last seen on each, and what is known
 wrong with it.** Each section says when its table was read and from where. Logging in through the gateway is
 on [The welland gateway](welland-gateway.md); the name and address rules are on [Network and
 power](../setup/network.md).
@@ -13,12 +13,13 @@ update (08:21 to 08:57 Adelaide time):
 
 | Host | Board, as its check reported it | Check |
 |---|---|---|
-| pi-sw1-p10, -p12, -p14, -p16, -p18 | NeTV2 (Artix-7 XC7A35T) | fail: 2 of 3 tests passed, on all five |
+| pi-sw1-p10, -p12, -p14, -p16, -p18 | NeTV2 (Artix-7 XC7A35T) | fail on all five: the `ddr` test failed, the other two passed |
 | pi-sw1-p17 | Fomu host | pass |
-| pi-sw1-p38 | Acorn carrying a PCIe Screamer (PCILeech) image | fail: fpgas.online has no test design for that image |
+| pi-sw1-p38 | Acorn carrying a PCIe Screamer (PCILeech) image; MAC `88:a2:9e:45:dd:81` | fail: fpgas.online has no test design for that image |
 | pi-sw2-p33, -p35, -p36 | Tiny Tapeout FPGA demo board | pass |
 | pi-sw2-p46, -p47 | Acorn CLE-215+ | pass |
-| pi-sw2-p19, -p21, -p22, -p24 | Orange Pi, no FPGA | came back by themselves 31 to 33 minutes after the update |
+| pi-sw2-p19, -p21, -p22, -p24 | Orange Pi, no FPGA | back by themselves by 08:57; `verify-pi.yml` failed on each: no HAT ID EEPROM read over the kernel's TWI1 bus |
+| pi-sw2-p30 | the Orange Pis' USB hub host (a Raspberry Pi) | answered the gateway's ping; not checked |
 
 Not among the boards up that morning (the gateway's neighbour table): the Tiny Tapeout ASIC hosts (switch 2, ports 3 to 8), pi-sw2-p34 (Tiny Tapeout FPGA
 board 2), and the Arty hosts. Boards are moved and visitors use them; this table is that morning's, not
@@ -29,9 +30,6 @@ today's.
 Re-verified live 2026-09-06 under the VLAN-per-port scheme. **Five** boards on
 RPi 3B+ hosts with GPIO JTAG, all five online. Each is on switch 1 at the port in its name,
 `10.21.1.<port>`, and all five netbooted the shared NFS root.
-
-```{rst-class} nowrap
-```
 
 | Host | Switch Port | IP | RPi MAC | FPGA | FPGA DNA | JTAG detect | Old name |
 | ---- | ----------- | -- | ------- | ---- | -------- | ----------- | -------- |
@@ -61,9 +59,6 @@ welland.fpgas.online.
 
 Surveyed 2026-03-17. Two boards, on RPi 3B+ hosts.
 
-```{rst-class} nowrap
-```
-
 | Host | Switch Port | IP (retired) | RPi MAC           | RPi Model   | Fomu USB VID:PID | DFU Version | USB Analyzer             |
 | ---- | ----------- | ------------ | ----------------- | --------------- | ---------------- | ----------- | ------------------------ |
 | pi17 | p17         | 10.21.0.117  | b8:27:eb:47:9f:d1 | RPi 3B+ 1 GB     | 1209:5bf0        | v2.0.4      | OpenVizsla (1d50:607c)   |
@@ -81,16 +76,15 @@ been read since.
 
 ## Acorn CLE-215+
 
-Acorn CLE-215+ cards, each on a Raspberry Pi 5 with an M.2 HAT. Which card is on which Pi, its state, what it
-still needs and what was read from it: [Acorns at welland](../boards/acorn/installations/welland.md),
-including the cards' cable faults.
+Acorn cards, each on a Raspberry Pi 5 with an M.2 HAT. On 6 October 2026 the Acorn hosts up were
+pi-sw2-p46 and pi-sw2-p47 (both passed their check) and pi-sw1-p38 (a card with a PCILeech image, which the
+check cannot test) (above). An Acorn is known by its label, not its port: which labelled card is on which
+host, its state, what it still needs and its cable faults are on [Acorns at
+welland](../boards/acorn/installations/welland.md), the one place that list is kept.
 
 ## Arty A7-35T
 
 Surveyed 2026-03-17. Five boards, on RPi 4 / 3B+ hosts with PMOD HATs.
-
-```{rst-class} nowrap
-```
 
 | Host | Switch Port | IP (retired) | RPi MAC           | RPi Model   | Arty Serial         | Arty DNA           | USB Ethernet                     | Serial Devices   |
 | ---- | ----------- | ------------ | ----------------- | --------------- | ------------------- | ------------------ | -------------------------------- | ---------------- |
@@ -118,9 +112,6 @@ PMOD HATs. These carry **real fabricated TT ASIC silicon** on a TT demo board
 2026-08-23): S3300 port N carries TTN, the board page is
 `https://tinytapeout.fpgas.online/board/<slug>/` and its `status.json` is the
 liveness check.
-
-```{rst-class} nowrap
-```
 
 | Host      | Slug     | Switch Port | IP        | RPi MAC           | RPi Model (rev)               | Chip / firmware                          | RP2040 serial      | Old name |
 | --------- | -------- | ----------- | --------- | ----------------- | ----------------------------- | ---------------------------------------- | ------------------ | -------- |
@@ -169,9 +160,6 @@ Tapeout designs, on a TT demo board **v3 (RP2350B)** running TT SDK **3.1.0**
 `fpga-4` on tinytapeout.fpgas.online since 2026-08-24, where users can run
 bundled demos or upload their own bitstream.
 
-```{rst-class} nowrap
-```
-
 | Host       | Slug   | Switch Port | IP         | RPi MAC           | RPi Model (rev)              | USB VID:PID | RP2350 Serial    | Old name |
 | ---------- | ------ | ----------- | ---------- | ----------------- | ---------------------------- | ----------- | ---------------- | -------- |
 | [pi-sw2-p33](https://welland.fpgas.online/fpgas/pi-sw2-p33.html) | [fpga-1](https://tinytapeout.fpgas.online/board/fpga-1/) | sw2 p33 | 10.21.2.33 | e4:5f:01:97:0e:77 | RPi 4 2 GB Rev 1.5 (b03115) | 2e8a:0005 | 4df39a7a6856f86f | pi27 |
@@ -185,11 +173,12 @@ feed. Like the ASIC boards they appear as "MicroPython Board in FS mode" with
 the `/dev/ttboard` symlink, and the `fpgas-tt` daemon owns the port. Each
 board's `status.json` (for example
 `https://tinytapeout.fpgas.online/board/fpga-1/status.json`) reports the daemon's
-`/health` plus `reachable`, and is the quickest liveness check. Each board
-carries its own custom bitstreams, and tweed holds a backup of them. See
+`/health` plus `reachable`, and is the quickest liveness check. See
 [Tiny Tapeout FPGA demo board](../boards/tt-fpga.md) for the firmware.
 
-Source: live probe 2026-09-03 (`lsusb`, `/dev/serial/by-id`, daemon `/health`).
+Source: live probe 2026-09-03 (`lsusb`, `/dev/serial/by-id`, daemon `/health`). On 6 October 2026 the gateway saw
+port 35 answer from `e4:5f:01:8e:02:27` and port 36 from `e4:5f:01:97:0c:e3`, the other way round from this
+table: the two Pis have changed ports since, or the table had them swapped. Not resolved.
 
 **Known wrong:** pi-sw2-p34 (fpga-2) was not up on 6 October 2026.
 

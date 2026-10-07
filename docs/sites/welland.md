@@ -1,6 +1,6 @@
 # Welland
 
-**You want to know what is at welland, how its network is laid out, and which page has the rest.** This page
+**You look after welland and want to know what is there, how its network is laid out, and which page has the rest.** This page
 chooses; the detail is on the two pages it links.
 
 welland is the private test lab in South Australia behind
@@ -29,12 +29,15 @@ Internet ── upstream ─────│  tweed (the welland gateway)       �
                                       │ trunk
                       ┌───────────────┴───────────────┐
                       │ switch 1, Netgear GSM7252PS   │
-                      │ NeTV2 hosts, Fomu host, p38   │
+                      │ NeTV2 p10-18, Fomu p17, Acorn │
+                      │ p38                           │
                       └───────────────┬───────────────┘
                                       │ trunk
                       ┌───────────────┴───────────────┐
                       │ switch 2, Netgear S3300       │
-                      │ Tiny Tapeout, Acorn, Orange Pi│
+                      │ Tiny Tapeout p3-8 and p33-36, │
+                      │ Acorns, Orange Pis and their  │
+                      │ hub host p30                  │
                       └───────────────────────────────┘
 ```
 
@@ -59,7 +62,7 @@ The sections of this page moved on 7 October 2026. Links to the old sections lan
 - [Hosts and boards](welland-boards.md).
 
 (infrastructure-host)=
-- [Infrastructure host](welland-boards.md#retired-and-unlocated-hosts).
+- Infrastructure host (pi1, the old NFS maintenance host, now unlocated): [Retired and unlocated hosts](welland-boards.md#retired-and-unlocated-hosts).
 
 (arty-a7-35t)=
 - [Arty A7-35T](welland-boards.md#arty-a7-35t).

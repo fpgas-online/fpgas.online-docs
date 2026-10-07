@@ -1,6 +1,6 @@
 # The welland gateway
 
-**You want to know what tweed, the welland gateway, is and serves, and how to reach a Pi at welland through
+**You look after welland and want to know what tweed, its gateway, is and serves, and how to reach a Pi at welland through
 it.** Deploying to it is [The gateway host](../setup/gateway.md); who may log in, with which keys, is
 [Accounts and logins](../setup/access.md).
 
