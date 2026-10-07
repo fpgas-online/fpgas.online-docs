@@ -9,8 +9,9 @@ JTAG until a PoE cycle, so J2 and P1's TMS share GPIO14 (fpgas.online-test-desig
 2026-08-31). GPIO14 is on Extension Port pin 9 and on UART header pin 3 (Uptime Lab's GPIO guide). Which of
 these pins the old serial wires sit on, and whether J2 shares a terminal or a housing with P1's TMS wire, is
 not recorded by us. Build a new P2 cable by the guide ([UART connector
-1](../building/compute-blade/uart-connector-1.md) and 2) first. Then power the blade off (unplug its PoE cable,
-and a USB-C cable if one is plugged in), take the card out of its M.2 slot, and look at Extension Port pins 9 and
+1](../building/compute-blade/uart-connector-1.md) and 2) first. Then ask Tim, and power the blade off (unplug its PoE cable,
+and a USB-C cable if one is plugged in), take the card out of its M.2 slot (touch bare metal of the unplugged blade first, and hold the card by its
+edges, as on the cable pages), and look at Extension Port pins 9 and
 10 and UART header pins 3 and 4: note which housing sits where.
 
 1. Take the old serial wiring off the blade and the card. If a serial wire shares a housing, a terminal or a

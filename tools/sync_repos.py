@@ -17,7 +17,9 @@ Each entry has these tables:
 
 FILES      files copied per destination directory: pictures byte for byte, Markdown with its links
            handled as below (the Acorn wiring sheets and pin tables).
-PAGES      whole Markdown documents, published as pages here.
+PAGES      whole Markdown documents, published as pages here. A value is the destination, or
+           Page(destination, own_dir=False) for a page among pages these docs (or another repository) keep
+           in that directory: it claims only its own path.
 SECTIONS   one "## heading" section of a Markdown document, written as a fragment that a page here
            includes (each board's "Installing the ... Packages").
 ALSO_HERE  documents not taken whole that have a page here on the same subject (a link to one goes there).
@@ -28,9 +30,11 @@ WRAPPERS   pages here that are only a title, a lead and includes of synced files
            exists there, the text itself (Interim, listed on every run so it does not stay).
 
 Ownership: a destination directory belongs to exactly one repository (the directories of its FILES,
-PAGES, SECTIONS and WRAPPERS; a wrapper with own_dir=False claims only its own path), and no owned
-directory lies inside another. Everything in an owned directory is written by this tool or removed. Two
-repositories claiming one directory, or two rows one destination path, is an error. A file anywhere in
+PAGES, SECTIONS and WRAPPERS; a page or wrapper with own_dir=False claims only its own path), and no
+owned directory lies inside another. Everything in an owned directory is written by this tool or removed. Two
+repositories claiming one directory, two rows one destination path, or a path claimed in a directory
+another repository owns, is an error. A path claimed alone is written and nothing beside it is touched;
+the files of these docs next to it stay theirs. A file anywhere in
 docs/ that carries this tool's "copied"/"generated" comment, or a SOURCE of it, that no row accounts for
 stops the sync for its repository: remove it by hand, or give it its row back.
 
@@ -64,6 +68,7 @@ fpgas.online-mechanical: its PAGES go here; its drawings are copied by tools/syn
 pins one commit for them.
 """
 import argparse
+import collections
 import posixpath
 import re
 import subprocess
@@ -111,6 +116,13 @@ class Toctree:
 
 
 @dataclass(frozen=True)
+class Page:
+    """A PAGES destination given with its ownership (a plain string is Page(dest), owning its directory)."""
+    dest: str
+    own_dir: bool = True  # False: the page sits among pages of these docs and claims only its own path
+
+
+@dataclass(frozen=True)
 class Wrapper:
     dest: str
     title: str
@@ -124,7 +136,7 @@ class Wrapper:
 class Repo:
     name: str
     FILES: dict = field(default_factory=dict)      # destination directory: (source directory, [file names])
-    PAGES: dict = field(default_factory=dict)      # source document: the page it becomes here
+    PAGES: dict = field(default_factory=dict)      # source document: the page it becomes here (or a Page)
     # (source document, "## " heading): (fragment here, page including it)
     SECTIONS: dict = field(default_factory=dict)
     ALSO_HERE: dict = field(default_factory=dict)  # source document: the page here on the same subject
@@ -138,14 +150,19 @@ class Repo:
     def empty(self):
         return not (self.FILES or self.PAGES or self.SECTIONS or self.WRAPPERS)
 
+    def pages(self):
+        """{source document: Page} of PAGES."""
+        return {src: v if isinstance(v, Page) else Page(v) for src, v in self.PAGES.items()}
+
     def dests(self):
         """Every path this repository's rows write here."""
         out = [f"{d}/{n}" for d, (_, names) in self.FILES.items() for n in names]
-        out += [*self.PAGES.values(), *(d for d, _ in self.SECTIONS.values()), *(w.dest for w in self.WRAPPERS)]
+        out += [*(p.dest for p in self.pages().values()), *(d for d, _ in self.SECTIONS.values()),
+                *(w.dest for w in self.WRAPPERS)]
         return out
 
     def owned_dirs(self):
-        return sorted({*self.FILES, *(posixpath.dirname(d) for d in self.PAGES.values()),
+        return sorted({*self.FILES, *(posixpath.dirname(p.dest) for p in self.pages().values() if p.own_dir),
                        *(posixpath.dirname(d) for d, _ in self.SECTIONS.values()),
                        *(posixpath.dirname(w.dest) for w in self.WRAPPERS if w.own_dir)})
 
@@ -537,14 +554,123 @@ TEST_DESIGNS = Repo(
     ],
 )
 
+# The operator pages. Each landing page keeps the URL its hand-written copy had in these docs, so it sits in
+# docs/setup/ among the docs' own pages and claims only its path; its split pages own their directory, but
+# for docs/setup/pi/, which also holds the camera page of fpgas.online-cam.
+_SHARED = dict(own_dir=False)
+INFRA = Repo(
+    "infra",
+    PAGES={
+        "docs/network.md": Page("docs/setup/network.md", **_SHARED),
+        "docs/network/power-cycle.md": "docs/setup/network/power-cycle.md",
+        "docs/network/switches.md": "docs/setup/network/switches.md",
+        "docs/network/isolation.md": "docs/setup/network/isolation.md",
+        "docs/network/poe-scripts.md": "docs/setup/network/poe-scripts.md",
+        "docs/network/sources.md": "docs/setup/network/sources.md",
+        "docs/netboot.md": Page("docs/setup/netboot.md", **_SHARED),
+        "docs/netboot/update-root.md": "docs/setup/netboot/update-root.md",
+        "docs/netboot/not-booting.md": "docs/setup/netboot/not-booting.md",
+        "docs/netboot/root.md": "docs/setup/netboot/root.md",
+        "docs/netboot/eeprom.md": "docs/setup/netboot/eeprom.md",
+        "docs/netboot/history.md": "docs/setup/netboot/history.md",
+        "docs/netboot/sources.md": "docs/setup/netboot/sources.md",
+        "docs/gateway.md": Page("docs/setup/gateway.md", **_SHARED),
+        "docs/gateway/deploy.md": "docs/setup/gateway/deploy.md",
+        "docs/gateway/rebuild.md": "docs/setup/gateway/rebuild.md",
+        "docs/gateway/certificates.md": "docs/setup/gateway/certificates.md",
+        "docs/gateway/services.md": "docs/setup/gateway/services.md",
+        "docs/gateway/sources.md": "docs/setup/gateway/sources.md",
+        "docs/pi.md": Page("docs/setup/pi.md", **_SHARED),
+        "docs/pi/services.md": Page("docs/setup/pi/services.md", **_SHARED),
+        "docs/pi/setup-pi-units.md": Page("docs/setup/pi/setup-pi-units.md", **_SHARED),
+        "docs/pi/boot-config.md": Page("docs/setup/pi/boot-config.md", **_SHARED),
+        "docs/pi/models.md": Page("docs/setup/pi/models.md", **_SHARED),
+        "docs/pi/sources.md": Page("docs/setup/pi/sources.md", **_SHARED),
+        "docs/orange-pi.md": Page("docs/setup/orange-pi.md", **_SHARED),
+        "docs/orange-pi/recover.md": "docs/setup/orange-pi/recover.md",
+        "docs/orange-pi/add.md": "docs/setup/orange-pi/add.md",
+        "docs/orange-pi/hub-host.md": "docs/setup/orange-pi/hub-host.md",
+        "docs/orange-pi/design.md": "docs/setup/orange-pi/design.md",
+        "docs/access.md": Page("docs/setup/access.md", **_SHARED),
+        "docs/access/tweed.md": "docs/setup/access/tweed.md",
+        "docs/access/pi-root.md": "docs/setup/access/pi-root.md",
+        "docs/access/logging-in.md": "docs/setup/access/logging-in.md",
+        "docs/access/people.md": "docs/setup/access/people.md",
+        "docs/access/keys.md": "docs/setup/access/keys.md",
+        "docs/access/verifying.md": "docs/setup/access/verifying.md",
+        "docs/upstream-gateway.md": Page("docs/setup/upstream-gateway.md", **_SHARED),
+        "docs/upstream-gateway/ipv4.md": "docs/setup/upstream-gateway/ipv4.md",
+        "docs/upstream-gateway/ipv6-dns.md": "docs/setup/upstream-gateway/ipv6-dns.md",
+        "docs/upstream-gateway/outbound.md": "docs/setup/upstream-gateway/outbound.md",
+    },
+    # in each landing page's order of its pages
+    TOCTREES={
+        "docs/setup/network.md": [
+            ("Power-cycling a board", "network/power-cycle"),
+            ("Converging the switches", "network/switches"),
+            ("Checking isolation", "network/isolation"),
+            ("The PoE scripts", "network/poe-scripts"),
+            ("Sources", "network/sources"),
+        ],
+        "docs/setup/netboot.md": [
+            ("Updating the NFS root", "netboot/update-root"),
+            ("A Pi not booting", "netboot/not-booting"),
+            ("What is in the NFS root", "netboot/root"),
+            ("The EEPROM lock", "netboot/eeprom"),
+            ("Historical tooling", "netboot/history"),
+            ("Sources", "netboot/sources"),
+        ],
+        "docs/setup/gateway.md": [
+            ("Deploying a gateway", "gateway/deploy"),
+            ("Rebuilding a gateway", "gateway/rebuild"),
+            ("Certificates at welland", "gateway/certificates"),
+            ("Services", "gateway/services"),
+            ("Sources", "gateway/sources"),
+        ],
+        "docs/setup/pi.md": [
+            ("Services", "pi/services"),
+            ("Units shipped by fpgas-online-setup-pi", "pi/setup-pi-units"),
+            ("Boot-time configuration", "pi/boot-config"),
+            ("Models and serial consoles", "pi/models"),
+            ("Camera", "pi/camera"),
+            ("Sources", "pi/sources"),
+        ],
+        "docs/setup/access.md": [
+            ("tweed", "access/tweed"),
+            ("The Pi NFS root", "access/pi-root"),
+            ("Logging in", "access/logging-in"),
+            ("Adding or removing a person", "access/people"),
+            ("Where the keys come from", "access/keys"),
+            ("Verifying access", "access/verifying"),
+        ],
+        "docs/setup/upstream-gateway.md": [
+            ("The uplink and inbound IPv4", "upstream-gateway/ipv4"),
+            ("IPv6 and DNS", "upstream-gateway/ipv6-dns"),
+            ("Outbound, from the gateway", "upstream-gateway/outbound"),
+        ],
+        "docs/setup/orange-pi.md": [
+            ("Reading and recovering", "orange-pi/recover"),
+            ("Adding and deploying", "orange-pi/add"),
+            ("The hub host", "orange-pi/hub-host"),
+            ("Why they boot this way", "orange-pi/design"),
+        ],
+    },
+)
+
+CAM = Repo(
+    "cam",
+    # beside infra's split pages of setup/pi.md, whose toctree lists it
+    PAGES={"docs/camera.md": Page("docs/setup/pi/camera.md", **_SHARED)},
+)
+
 REPOS = {repo.name: repo for repo in (
     TEST_DESIGNS,
-    Repo("infra"),
+    INFRA,
     Repo("site"),
     Repo("tt"),
     Repo("setup-pi"),
     Repo("poe"),
-    Repo("cam"),
+    CAM,
     Repo("mechanical"),
 )}
 
@@ -571,7 +697,7 @@ UNSUPPORTED = {
     # an <a id="..."></a> anchor carries no link, so it passes: it keeps an old heading's id on a landing page
     "a raw HTML link or image": re.compile(r"<(a\s[^>]*\bhref|img\s)", re.I),
 }
-ANCHOR = re.compile(r'^<a id="([a-z0-9-]+)"></a>$')
+ANCHOR = re.compile(r'^<a id="([a-z0-9_-]+)"></a>$')  # a GitHub heading slug keeps "_"
 ALERT = re.compile(r"^(\s*)>\s*\[!([A-Za-z]+)\]\s*$")
 ANY_ALERT = re.compile(r"^\s*>\s*\[!\w+\]")
 KINDS = ("note", "tip", "important", "warning", "caution")
@@ -617,7 +743,8 @@ def outside_code(text, fn):
 def check_tables(repos=None):
     """Stop if two rows write one destination path, or two repositories claim one directory, or an owned
     directory lies in another, or a destination of one repository lies in a directory another owns, or a
-    wrapper includes what nobody writes. Returns nothing; raises Stop naming the repositories."""
+    wrapper includes what nobody writes, or a toctree lists what nobody writes. Returns nothing; raises Stop
+    naming the repositories."""
     repos = REPOS if repos is None else repos
     errors, by_path, by_dir = [], {}, {}
     for repo in repos.values():
@@ -647,21 +774,39 @@ def check_tables(repos=None):
                     errors.append(f"{w.dest} includes {inc.path}, which no row writes (or name it docs_owned)")
             if w.toctree and w.dest in repo.TOCTREES:
                 errors.append(f"{w.dest} has a toctree in its row and in TOCTREES")
+        for page, entries in repo.TOCTREES.items():
+            if page not in repo.dests():
+                errors.append(f"TOCTREES of {repo.name} names {page}, which none of its rows writes")
+            for _, doc in entries:
+                target = posixpath.normpath(posixpath.join(posixpath.dirname(page), doc)) + ".md"
+                if target not in by_path:
+                    errors.append(f"the toctree of {page} lists {doc}, which no row writes")
     if errors:
         raise Stop("the tables disagree: " + "; ".join(errors))
 
 
-def anchors_to_targets(text):
+def anchor_ids(text):
+    """The ids of the lines of `text` that are only an id anchor, <a id="x"></a>, outside fenced code."""
+    lines = text.split("\n")
+    return {m.group(1) for line, code in zip(lines, in_code(lines)) if not code and (m := ANCHOR.match(line))}
+
+
+def anchors_to_targets(text, shared=frozenset()):
     """A line that is only an id anchor, <a id="x"></a>, becomes the MyST target (x)=: on GitHub the anchor
     keeps an old heading's id on a landing page without showing anything; here the target does the same and
-    lets this site's links to page.md#x resolve, which a raw HTML id does not. Fenced code is left alone."""
+    lets this site's links to page.md#x resolve, which a raw HTML id does not. A MyST target is a label of the
+    whole site, so an id in `shared` (anchored on more than one page of the repository, as "sources" can be)
+    stays the raw anchor: the page keeps the id, and a link here to page.md#x, which needs the label, fails
+    the build rather than going to the wrong page. Fenced code is left alone."""
 
     def one(line, _):
         m = ANCHOR.match(line)
         if not m and re.search(r"<a\s", line, re.IGNORECASE):
             raise Stop(f"a raw <a> that is not a line of its own reading exactly <a id=\"lower-case-id\"></a>: "
                        f"{line.strip()!r}. Only that form keeps an anchor here; write it so.")
-        return f"({m.group(1)})=" if m else line
+        if not m or m.group(1) in shared:
+            return line
+        return f"({m.group(1)})="
 
     return outside_code(text, one)
 
@@ -724,8 +869,8 @@ def link_targets():
     own'), over every repository: what a link to a file of any of them can go to here."""
     targets = {}
     for repo in REPOS.values():
-        for src, dest in repo.PAGES.items():
-            targets[(repo.name, src)] = (dest, None)
+        for src, page in repo.pages().items():
+            targets[(repo.name, src)] = (page.dest, None)
         for (src, heading), (_, page) in repo.SECTIONS.items():
             targets.setdefault((repo.name, src), (page, set()))[1].add(slug(heading))
         for src, dest in repo.ALSO_HERE.items():
@@ -735,7 +880,8 @@ def link_targets():
 
 def published_dests():
     """Every page some row writes here (it counts as here before it is on disk)."""
-    return {d for repo in REPOS.values() for d in [*repo.PAGES.values(), *(w.dest for w in repo.WRAPPERS)]}
+    return {d for repo in REPOS.values()
+            for d in [*(p.dest for p in repo.pages().values()), *(w.dest for w in repo.WRAPPERS)]}
 
 
 def in_site(targets, name, path, fragment):
@@ -997,7 +1143,8 @@ def take(repo, ref, commit, titles_for, notes):
     for src in repo.lead_sources():
         if src in texts and headings_twice(texts[src]):
             raise Stop(f"{src} has these headings more than once: {', '.join(headings_twice(texts[src]))}")
-    page_titles = {dest: title_of(texts[src]) for src, dest in repo.PAGES.items() if src in texts}
+    pages = {src: p.dest for src, p in repo.pages().items()}
+    page_titles = {dest: title_of(texts[src]) for src, dest in pages.items() if src in texts}
     page_titles.update({w.dest: w.title for w in repo.WRAPPERS})
     titles = titles_for(page_titles)
     for dest, (src, names) in repo.FILES.items():
@@ -1013,10 +1160,12 @@ def take(repo, ref, commit, titles_for, notes):
                                      own_fragments=fragments_in(text), files=set(names), titles=titles,
                                      notes=notes).encode("utf-8")
             wanted[DOCS / dest / name] = data
-    for src, dest in repo.PAGES.items():
+    seen = collections.Counter(i for src in pages if src in texts for i in anchor_ids(texts[src]))
+    shared = {i for i, n in seen.items() if n > 1}
+    for src, dest in pages.items():
         if src in texts:
             body = rewrite_links(texts[src], src, dest, ref, repo=repo.name, titles=titles, notes=notes)
-            body = anchors_to_targets(alerts_to_admonitions(body))
+            body = anchors_to_targets(alerts_to_admonitions(body), shared)
             wanted[DOCS / dest] = (marker(repo, src, "This page", ref) + body + toctree(dest, repo)).encode("utf-8")
     for (src, heading), (dest, page) in repo.SECTIONS.items():
         if src in texts:

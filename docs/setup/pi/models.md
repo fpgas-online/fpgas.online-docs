@@ -1,0 +1,91 @@
+% This page is copied from https://github.com/fpgas-online/fpgas.online-infra/blob/main/docs/pi/models.md
+% by tools/sync_repos.py. Do not edit it here: change it in infra.
+
+# Pi models and serial consoles
+
+**You operate the fleet and want to know how the Raspberry Pi models in it differ where it matters (the
+serial port on the 40-pin header, the console, the USB-C port), and how to free that serial port for a board,
+before you wire a board to one or debug its UART.** Each row says where it is from.
+
+## The models
+
+| | Pi 3B+ | Pi 4 | Pi 5 | Compute Module 4 | Compute Module 5 |
+|---|---|---|---|---|---|
+| Where in the fleet (the site pages' tables) | welland: NeTV2 and Fomu hosts, Tiny Tapeout ASIC hosts on switch 2 ports 6 to 8; ps1: Arty pi7, pi9 | welland: Tiny Tapeout ASIC hosts on ports 3 to 5 and the FPGA hosts on 33 to 36; ps1: Arty pi3 | welland: the Acorn hosts on switch 2 | ps1: pi14, pi18 (Compute Blades) | ps1: pi16, pi20 (Compute Blades) |
+| Header UART (GPIO14/15) | `ttyAMA0` once `disable-bt` frees it | `ttyAMA0` once `disable-bt` frees it | `ttyAMA0` (RP1), enabled by `dtoverlay=uart0-pi5` | `ttyAMA0`, GPIO14/15 at alt0 (read 2026-10-07) | `ttyAMA0`, GPIO14/15 at alt4 (read 2026-10-07) |
+| Kernel console in welland's root | `tty1` | `tty1` | `ttyAMA10`, the Pi 5's debug UART | not booted from it | not booted from it |
+| USB-C console (gadget mode) in welland's root | no: its only USB controller is the gadget one | yes (`[pi4]`) | yes (`[pi5]`) | not booted from it | not booted from it |
+
+Sources: the 40-pin and console rows for welland are `roles/fixpi/tasks/tweeks.yml` and the two command-line
+templates in fpgas.online-infra (main, read 2026-10-07); the Compute Module rows are the `pinctrl` reads of the
+four ps1 blades on 2026-10-07 ([Acorns at ps1: what was read on each
+blade](../../boards/acorn/installations/ps1-reads.md)). The ps1 blades boot ps1's own root, with the kernel
+console on `ttyAMA0` and a login on it; that is why JTAG and the FPGA's UART cannot be used there as they are.
+
+**Compute Module 4.** `GPIO14 = TXD0` and `GPIO15 = RXD0` at alt0, on the BCM2711 serial blocks, and only
+`/dev/ttyAMA0` exists. There is no mux option that makes GPIO15 a transmitter, so an FPGA's TX must land on
+GPIO15: one correct wiring, no software escape (from the earlier docs page, not re-checked). The `pinctrl set
+14,15 a0` step for a CM4 is on [Compute Blade JTAG](../../boards/acorn/wiring/compute-blade-jtag.md).
+
+**Compute Module 5.** `GPIO14/15` at alt4 on the RP1 (read on the four ps1 blades on 2026-10-07, above). Like the
+Pi 5, the RP1 offers several UART instances plus PIO, so pins can be reassigned in software. Measured on CM5
+Lite modules, but this is the RP1's behaviour, not something specific to the Lite (from the earlier docs page,
+not re-checked; it also named `/dev/ttyAMA10` on the CM5).
+
+Why the Pi 5 differs: `dtoverlay=disable-bt` frees the header UART on a Pi 0 to 4 as a side effect, because
+`disable-bt.dtbo` is `compatible="brcm,bcm2835"` and one of its fragments turns `uart0` on. On a Pi 5 the
+firmware resolves the same line to `disable-bt-pi5.dtbo` (`compatible="brcm,bcm2712"`), whose only fragment
+targets `bluetooth`, and the Pi 5 device tree ships the RP1 header UART disabled; so it stays off until
+`uart0-pi5` turns it on. Source: the comment in `ansible/roles/fixpi/tasks/tweeks.yml` (read 2026-10-07),
+added with `uart0-pi5` by fpgas.online-infra PR #32, merged 2026-08-31. Turning it on would put a `console=serial0` console onto
+the FPGA's UART; the Pi 5's command line therefore names `ttyAMA10`. These console rows are what the templates
+serve; a `/proc/cmdline` read on each model at welland is still to do.
+
+Which GPIO chip carries the header, for `libgpiod` tools such as openFPGALoader's `libgpiod` cable, depends on
+the model and the kernel: [Acorn on a Raspberry Pi 5: the Pi's settings](../../boards/acorn/wiring/rpi-5-host.md)
+has what was read on the welland Pi 5s.
+
+## Freeing the header UART for a board
+
+When an FPGA board will drive the header UART, nothing else may hold it. In welland's root no console or
+login is on it, so check that the Pi has the port and that nothing has it open. `fuser` is in the `psmisc`
+package; if the root lacks it, `sudo apt install psmisc` puts it in this boot's tmpfs.
+
+```console
+$ if [ -e /dev/serial0 ]; then sudo fuser -v "$(readlink -f /dev/serial0)"; else echo "no header UART on this Pi"; fi
+```
+
+If it printed "no header UART on this Pi", stop here: there is nothing to free.
+
+If a login is on it (a Pi booted from another root, such as a ps1 blade), stop it for this boot. `stop` alone
+is not enough, because systemd starts it again; mask it, then stop it:
+
+```console
+$ GETTY="serial-getty@$(basename "$(readlink -f /dev/serial0)").service"
+$ sudo systemctl mask "$GETTY"
+$ sudo systemctl stop "$GETTY"
+$ sudo fuser -v "$(readlink -f /dev/serial0)"   # expect nothing
+```
+
+The mask lives in the tmpfs layer, so it is gone at the next reboot. A kernel console on that UART cannot be
+moved without a reboot; on ps1's blades that is the change [Acorns at
+ps1](../../boards/acorn/installations/ps1.md) asks for.
+
+:::{warning}
+A design that transmits on the UART while the kernel console is on it does more than print noise: on a
+Compute Blade at ps1 it produced bytes the kernel read as SysRq commands, ending in a reboot ([the kernel
+console on the FPGA UART](../../boards/acorn/wiring/rpi-5-host.md#kernel-console-on-the-fpga-uart)). welland's
+root sets `kernel.sysrq = 0` as well as keeping the console off that UART.
+:::
+
+## Other serial ports on a Pi
+
+- **A Tiny Tapeout board's own USB serial** is `/dev/ttboard`: a udev rule in `fpgas-online-tt`
+  (`debian/60-fpgas-tt.rules`, main, read 2026-10-07) gives the demo board's RP2040/RP2350 CDC port that
+  symlink, matching `2e8a:0005` and `2e8a:000f`, `GROUP="dialout"`, mode 0660. The `fpgas-tt` daemon holds the
+  port open permanently and fans it out over WebSocket, so `mpremote` and the programming scripts cannot open
+  it while the daemon runs ([The Tiny Tapeout stack](../tinytapeout.md);
+  the consequences are under [Serial port
+  ownership](../../boards/tt-fpga.md#serial-port-ownership)).
+- **The USB-C console** on a Pi 4 or Pi 5, and **the kernel log over the network** (`netconsole` to the
+  gateway, 10.21.0.1): [When a Pi does not boot](../netboot/not-booting.md).

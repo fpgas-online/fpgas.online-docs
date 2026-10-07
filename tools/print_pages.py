@@ -30,12 +30,20 @@ PNGs are rendered at double size) stays in the text at the column's width as
 an overview; the line under it names the landscape sheet at the end of the
 chapter where it is printed once at the full width of the paper (in vector
 form when the page links one).
+A step's words print on one sheet with its pictures, which are shrunk for that
+if need be, but not below a size whose labels can still be read; a picture that
+would have to be smaller goes on the next sheet under a line naming the chapter and the step ("JTAG
+connector 1, step 3, continued: find wire 1 of the P1 cable"). After printing, every step's words and
+pictures are found in the PDF, and the run stops if any picture is on another sheet than its step's words,
+other than on a sheet the tool began with such a line.
 --append puts existing PDFs (label sheets) after the printed pages unchanged
 and not renumbered; every page of them must already be on the chosen paper,
 either way up, or the run stops.
 
 The PDF is printed beside the output under a ".part" name and takes the output's
-name only after it is checked, so a failed run leaves no PDF that looks new.
+name only after it is checked, so a failed run leaves no PDF that looks new. A
+print that failed only the check of its steps is left as OUTPUT.STEPS-SPLIT.pdf
+(x.STEPS-SPLIT.pdf for x.pdf), to look at the sheets the message names.
 
 Needs google-chrome-stable, which does the printing, and from poppler-utils:
 pdftotext and pdfinfo to read the sheet numbers back, and pdfunite for --append.
@@ -50,6 +58,7 @@ import hashlib
 import html
 import http.client
 import json
+import math
 import mimetypes
 import os
 import re
@@ -58,6 +67,7 @@ import subprocess
 import sys
 import tempfile
 import time
+import unicodedata
 import urllib.parse
 import urllib.request
 from pathlib import Path
@@ -101,6 +111,40 @@ LONG_LINES = 18
 # one may run over between its rows, so that it does not leave the rest of a sheet blank.
 SHORT_ROWS = 12
 SHORT_CHARS = 900
+# A step (its words, any list, and its pictures) is printed on one sheet: fit_steps estimates how tall its
+# words print and shrinks its pictures to one common scale if that is what it takes. The scale is that of a
+# picture as wide as the column: the site's drawings are drawn for it, with labels of 9 to 11 pt there. No
+# picture is printed below PICTURE_MIN_SCALE of that (labels of 5.5 to 6.5 pt), the smallest that can still
+# be read at the bench; a picture that would have to be smaller goes on the next sheet under a line "Step N,
+# continued". The estimate errs on the tall side, and STEP_SPARE_MM of the sheet is left over for what it
+# misses. A picture is at most PICTURE_MAX_MM tall, as the stylesheet says.
+# TEXT_MM: the width and height of a sheet's text area (the paper less the @page margins, and the 1 pt the
+# body keeps from the right edge). At 10 pt DejaVu Sans a character of text is CHAR_MM wide on average (a
+# little wider than measured, to err on the tall side); a heading's bold is BOLD times as wide. A line of
+# text is 1.4 times its size; a heading's, 1.2.
+PICTURE_MIN_SCALE, PICTURE_MAX_MM, STEP_SPARE_MM = 0.6, 200.0, 10.0
+TEXT_MM = {"A4": (210 - 30 - 0.35, 297 - 34), "Letter": (215.9 - 30 - 0.35, 279.4 - 34)}
+CHAR_MM, BOLD, PT_MM = 2.0, 1.1, 25.4 / 72
+# Each heading's size in pt and its margins, top and bottom, in mm (h2 with its rule).
+HEADING_SIZES = {"h1": (20, 4.0), "h2": (15, 9.7), "h3": (12, 7.0), "h4": (10.5, 5.5), "h5": (10, 4.5),
+                 "h6": (10, 4.5)}
+# The chapter's source line (8 pt, up to two lines with its rule and margins) is above a step at its top.
+SOURCE_MM = 2 * 8 * 1.4 * PT_MM + 5.6
+# Below a picture's image: its paragraph's margin and the line's descent (a figure: its margin and caption).
+PICTURE_BELOW_MM, FIGURE_BELOW_MM = 5.0, 3.5
+CONTINUED_MM = 2 * 10 * 1.4 * PT_MM + 2.5  # the line naming the step whose pictures go on, up to two lines
+# The paragraphs ending a section after a step's last picture are kept on its sheet when they are no taller.
+TAIL_MAX_MM = 60.0
+# A step's words: the blocks that print on lines of their own, and so are counted apart from the text around
+# them; a code span's padding (0.6 mm each side) in characters; a listing's padding, border and margin in mm.
+WORD_BLOCKS = ("p", "ul", "ol", "pre", "div", "blockquote", "dl", "table", "figure")
+CODE_PAD_CHARS, PRE_EXTRA_MM = 1, 2 * 2 + 2 * 0.15 + 3
+# mark_steps' marks: W for a step's words, K for the line of a continued sheet of it, P for a picture, T for
+# the end of a paragraph or list kept after its last picture (tail_after). Then the chapter and the step's
+# number in it, for K, P and T the block (0 the step itself, 1 its first continued block, ...), for P and T the
+# picture's or paragraph's number in its block; Z ends the mark, so no digit after it joins it.
+STEP_MARK = "PPSTEP-%s-Z"
+STEP_MARK_RE = r"PPSTEP-([WKPT])-(\d+(?:-\d+)*)-Z"
 # Where a chapter's sheet number goes in the cover's list, once it is known.
 SHEET_PLACE = "<!--sheet-of-chapter-%d-->"
 SHEET_PLACE_RE = r"<!--sheet-of-chapter-(\d+)-->"
@@ -185,6 +229,15 @@ img { max-width: 100%%; }
 .picture { break-inside: avoid; text-align: center; }
 .picture img { max-height: 200mm; }
 .step { break-inside: avoid; }
+/* The pictures of a step too tall for one sheet (fit_steps), on the next sheet under the step's number. */
+.continued { break-before: page; }
+.continued-line { font-weight: bold; break-after: avoid; }
+/* mark_steps: text the PDF holds, for check_steps to find each step's sheet, but too small to see and taking
+   no room: 0.1 pt, white, in a box of no width in the line it marks (with any width at all, it pushed a
+   picture as wide as the column onto a line of its own). Chrome leaves out text of 0.01 pt or of opacity 0,
+   and printed a mark positioned absolutely on no sheet at all when a break came before it. */
+.step-mark { display: inline-block; width: 0; overflow: visible; font-size: 0.1pt; line-height: 1;
+             color: #fff; white-space: nowrap; }
 .wide { page: wide; break-before: page; break-inside: avoid;
         margin: 0; text-align: center; }
 .wide img { width: 100%%; max-height: 172mm; object-fit: contain; }
@@ -311,14 +364,14 @@ def data_uri(url: str) -> str:
     return as_data_uri(content, content_kind(url, kind))
 
 
-def png_width(content: bytes) -> int | None:
-    if content[:8] == b"\x89PNG\r\n\x1a\n":
-        return int.from_bytes(content[16:20], "big")
+def png_size(content: bytes) -> tuple[int, int] | None:
+    if content[:8] == b"\x89PNG\r\n\x1a\n" and len(content) >= 24:
+        return int.from_bytes(content[16:20], "big"), int.from_bytes(content[20:24], "big")
     return None
 
 
-def jpeg_width(content: bytes) -> int | None:
-    """The width in the first start-of-frame marker of a JPEG."""
+def jpeg_size(content: bytes) -> tuple[int, int] | None:
+    """The width and height in the first start-of-frame marker of a JPEG."""
     if content[:2] != b"\xff\xd8":
         return None
     position = 2
@@ -336,37 +389,70 @@ def jpeg_width(content: bytes) -> int | None:
         if marker in range(0xC0, 0xD0) and marker not in (0xC4, 0xC8, 0xCC):
             if position + 9 > len(content):
                 return None
-            return int.from_bytes(content[position + 7:position + 9], "big")
+            return (int.from_bytes(content[position + 7:position + 9], "big"),
+                    int.from_bytes(content[position + 5:position + 7], "big"))
         position += 2 + length
     return None
 
 
-def gif_width(content: bytes) -> int | None:
+def gif_size(content: bytes) -> tuple[int, int] | None:
     if content[:6] in (b"GIF87a", b"GIF89a") and len(content) >= 10:
-        return int.from_bytes(content[6:8], "little")
+        return int.from_bytes(content[6:8], "little"), int.from_bytes(content[8:10], "little")
     return None
 
 
-def svg_width(content: bytes) -> int | None:
-    """The width an SVG states: its width attribute, else its viewBox."""
+def svg_size(content: bytes) -> tuple[int, int] | None:
+    """The size an SVG states: its width and height attributes, else its viewBox.
+
+    A width without a height takes the height from the viewBox's proportions."""
     root = re.search(rb"<svg\b[^>]*>", content)
     if root is None:
         return None
     tag = root.group(0).decode("utf-8", "replace")
     width = re.search(r"""\swidth\s*=\s*["']\s*([0-9.]+)\s*(px)?\s*["']""", tag)
+    height = re.search(r"""\sheight\s*=\s*["']\s*([0-9.]+)\s*(px)?\s*["']""", tag)
+    box = re.search(r"""\sviewBox\s*=\s*["']\s*[-0-9.]+[\s,]+[-0-9.]+[\s,]+([0-9.]+)[\s,]+([0-9.]+)\s*["']""", tag)
+    if width and height:
+        return round(float(width.group(1))), round(float(height.group(1)))
+    if box and float(box.group(1)) > 0:
+        box_width, box_height = float(box.group(1)), float(box.group(2))
+        if width:
+            return round(float(width.group(1))), round(float(width.group(1)) * box_height / box_width)
+        return round(box_width), round(box_height)
     if width:
-        return round(float(width.group(1)))
-    box = re.search(r"""\sviewBox\s*=\s*["']\s*[-0-9.]+[\s,]+[-0-9.]+[\s,]+([0-9.]+)[\s,]+[0-9.]+\s*["']""", tag)
-    if box:
-        return round(float(box.group(1)))
+        return round(float(width.group(1))), 0
     return None
+
+
+def image_size(content: bytes, kind: str) -> tuple[int, int] | None:
+    """The pixel width and height of a PNG, JPEG, GIF or SVG; None when they cannot be read.
+
+    An SVG that states only its width has height 0."""
+    if kind == "image/svg+xml":
+        return svg_size(content)
+    return png_size(content) or jpeg_size(content) or gif_size(content)
+
+
+def png_width(content: bytes) -> int | None:
+    return (png_size(content) or (None,))[0]
+
+
+def jpeg_width(content: bytes) -> int | None:
+    return (jpeg_size(content) or (None,))[0]
+
+
+def gif_width(content: bytes) -> int | None:
+    return (gif_size(content) or (None,))[0]
+
+
+def svg_width(content: bytes) -> int | None:
+    """The width an SVG states: its width attribute, else its viewBox."""
+    return (svg_size(content) or (None,))[0]
 
 
 def image_width(content: bytes, kind: str) -> int | None:
     """The pixel width of a PNG, JPEG, GIF or SVG; None when it cannot be read."""
-    if kind == "image/svg+xml":
-        return svg_width(content)
-    return png_width(content) or jpeg_width(content) or gif_width(content)
+    return (image_size(content, kind) or (None,))[0]
 
 
 def place_figure(movable: Tag, figure: Tag, lifted: dict[int, Tag]) -> None:
@@ -563,8 +649,8 @@ def step_pictures(body: Tag, soup: BeautifulSoup) -> None:
     A paragraph that holds only an image, or the small copy of a wide picture
     over its line, is the picture of what comes just
     before it: the paragraph of a step, or that paragraph and its list. They
-    are wrapped together so the sheet does not end between them. A second
-    picture of the same step stays whole but may start the next sheet.
+    are wrapped together so the sheet does not end between them; fit_steps
+    then sizes the step to one sheet and takes in the pictures after it.
     """
     for paragraph in body.find_all(["p", "figure"]):
         overview = paragraph.name == "figure" and "inflow" in paragraph.get("class", [])
@@ -585,6 +671,381 @@ def step_pictures(body: Tag, soup: BeautifulSoup) -> None:
         before.insert_before(step)
         for part in (before, *reversed(words), paragraph):
             step.append(part.extract())
+
+
+def text_mm(text: str, width: float, size: float = 10.0, line: float = 1.4, char: float = CHAR_MM) -> float:
+    """How tall text prints in a column width mm wide at size pt, as whole lines of the average character."""
+    per_line = max(1, int(width / (char * size / 10)))
+    return max(1, math.ceil(len(" ".join(text.split())) / per_line)) * size * line * PT_MM
+
+
+def line_runs(node: Tag) -> list[int]:
+    """How many average characters each line run of node's own text holds: a <br> starts a new run, and a
+    block inside node (a list in a list item, say) is left out, for words_mm counts it on its own. A code span
+    counts its characters as text (DejaVu Sans Mono is no wider) and one more for its padding."""
+    runs = [0]
+    text = [""]
+
+    def close() -> None:
+        runs[-1] += len(" ".join(text[0].split()))
+        text[0] = ""
+
+    def walk(element: Tag) -> None:
+        for child in element.children:
+            if isinstance(child, Comment):
+                continue
+            if not isinstance(child, Tag):
+                text[0] += str(child)
+            elif child.name == "br":
+                close()
+                runs.append(0)
+                walk(child)  # html.parser may hang what follows a <br> on it
+            elif child.name in WORD_BLOCKS:
+                text[0] += " "
+            elif child.name == "code":
+                # The padding counts as characters that are not spaces, so that it is not folded away.
+                text[0] += " " + " ".join(child.get_text().split()) + "\0" * CODE_PAD_CHARS
+            else:
+                walk(child)
+
+    walk(node)
+    close()
+    if len(runs) > 1 and runs[-1] == 0:
+        runs.pop()  # a <br> at the end starts no line
+    return runs
+
+
+def lines_mm(node: Tag, width: float) -> float:
+    """How tall node's own text prints at 10 pt, each run between <br>s on whole lines of its own."""
+    per_line = max(1, int(width / CHAR_MM))
+    return sum(max(1, math.ceil(chars / per_line)) for chars in line_runs(node)) * 10 * 1.4 * PT_MM
+
+
+def words_mm(block: Tag, width: float) -> float:
+    """How tall a step's paragraph, list or listing prints, with its margin below (and that of each paragraph,
+    list and listing inside it). A list item is indented, and a list inside it again."""
+    if block.name in ("ol", "ul"):
+        items = block.find_all("li", recursive=False) or [block]
+        return sum(words_mm(item, width - 6) for item in items) + 2.5
+    if block.name == "pre":
+        size = re.search(r"font-size:\s*([0-9.]+)pt", block.get("style", ""))
+        lines = block.get_text().rstrip("\n").count("\n") + 1
+        return lines * (float(size.group(1)) if size else CODE_SIZE) * 1.3 * PT_MM + PRE_EXTRA_MM
+    inner = [child for child in block.find_all(recursive=False) if child.name in WORD_BLOCKS]
+    own = lines_mm(block, width) if block.name == "p" or line_runs(block) != [0] else 0.0
+    return own + sum(words_mm(child, width) for child in inner) + (2.5 if block.name == "p" else 0.0)
+
+
+def heading_mm(heading: Tag, width: float) -> float:
+    size, margins = HEADING_SIZES[heading.name]
+    return text_mm(heading.get_text(" ", strip=True), width, size, 1.2, CHAR_MM * BOLD) + margins
+
+
+def lead_mm(step: Tag, body: Tag, width: float) -> float:
+    """How tall the headings print that go to a new sheet with the step, since none is a sheet's last line.
+
+    A step at the top of its chapter brings the chapter's source line too."""
+    total, node = 0.0, step
+    while True:
+        before = node.find_previous_sibling()
+        if before is None:
+            if node.parent is body or node.parent is None:
+                return total + SOURCE_MM
+            node = node.parent
+        elif before.name in HEADING_SIZES:
+            total += heading_mm(before, width)
+            node = before
+        else:
+            return total
+
+
+def picture_mm(picture: Tag, width: float) -> tuple[float, float, float]:
+    """How tall a picture's image prints at its natural size (no wider than the column, no taller than
+    PICTURE_MAX_MM); how tall it would be as wide as the column; and how much its paragraph or figure adds
+    below it."""
+    image = picture.find("img")
+    source = image.get("src", "")
+    data = re.match(r"data:([^;,]+);base64,(.*)", source, re.DOTALL)
+    size = image_size(base64.b64decode(data.group(2)), data.group(1)) if data else None
+    if not size or not size[0] or not size[1]:
+        raise SystemExit(f"cannot read the size of a step's picture: {image.get('alt') or source[:80]!r}")
+    shown = min(width, size[0] * 25.4 / 96)  # 96 image pixels to the inch
+    below = PICTURE_BELOW_MM
+    if picture.name == "figure":
+        caption = picture.find("figcaption")
+        below = FIGURE_BELOW_MM + (text_mm(caption.get_text(" ", strip=True), width) if caption else 0)
+    return min(PICTURE_MAX_MM, shown * size[1] / size[0]), width * size[1] / size[0], below
+
+
+def fit_pictures(naturals: list[float], fulls: list[float], room: float) -> list[float] | None:
+    """The heights at which pictures fit room mm together, or None when they do not even at PICTURE_MIN_SCALE.
+
+    naturals: each picture's height at its natural size; fulls: its height as wide as the column. Each is
+    printed at one common scale of its full height, the largest that fits, and never above its natural."""
+    if sum(naturals) <= room:
+        return list(naturals)
+
+    def heights(scale: float) -> list[float]:
+        return [min(natural, scale * full) for natural, full in zip(naturals, fulls)]
+
+    if sum(heights(PICTURE_MIN_SCALE)) > room:
+        return None
+    low, high = PICTURE_MIN_SCALE, 1.0
+    for _ in range(40):
+        middle = (low + high) / 2
+        low, high = (middle, high) if sum(heights(middle)) <= room else (low, middle)
+    return heights(low)
+
+
+def place_pictures(pictures: list[Tag], room: float, width: float,
+                   at_least_one: bool) -> list[tuple[float, float, float]]:
+    """The pictures, from the first, that fit room mm: for each, the height to print it at, its natural height
+    and its height as wide as the column. Nothing is changed.
+
+    at_least_one: the first is counted even when it does not fit; it then has a sheet to itself, as it is."""
+    sizes = [picture_mm(picture, width) for picture in pictures]
+    for count in range(len(pictures), 0, -1):
+        heights = fit_pictures([natural for natural, _, _ in sizes[:count]], [full for _, full, _ in sizes[:count]],
+                               room - sum(below for _, _, below in sizes[:count]))
+        if heights is not None:
+            return [(height, natural, full) for height, (natural, full, _) in zip(heights, sizes)]
+    return [(sizes[0][0], sizes[0][0], sizes[0][1])] if at_least_one else []
+
+
+def say(message: str) -> None:
+    """Tell the person printing what was changed to fit a sheet."""
+    print(f"print_pages: {message}", file=sys.stderr)
+
+
+def chapter_name(title: str) -> str:
+    """A chapter's name for the lines that say where a step goes on: its title up to the first comma after
+    its colon, "Compute Blade cables: JTAG connector 1" for "Compute Blade cables: JTAG connector 1, prepare
+    the wires". The whole title before the colon stays, for what follows a colon is not always a name ("Bootloader
+    EEPROM on a Compute Module in a Compute Blade: does it need anything?" keeps all of it)."""
+    head, colon, rest = title.partition(": ")
+    return (head + colon + rest.split(", ", 1)[0]).strip() if colon else head.split(", ", 1)[0].strip()
+
+
+def first_words(text: str, most: int = 12) -> str:
+    """The first words of a step, to name it: its first clause without the step's number, at most most words,
+    and with a small first letter unless the first word is a name like "P1" or "GND"."""
+    text = re.sub(r"^\d+\.\s*", "", " ".join(text.split()))
+    words = re.split(r"[,;:]|\.(?:\s|$)", text, maxsplit=1)[0].split()
+    said = " ".join(words[:most]) + ("\u2026" if len(words) > most else "")
+    if words and not any(c.isupper() or c.isdigit() for c in words[0][1:]):
+        said = said[:1].lower() + said[1:]
+    return said
+
+
+def step_names(words: Tag, name: str) -> tuple[str, str]:
+    """The name of the step that starts with the paragraph words, and the line over its pictures on a sheet
+    after its own: "JTAG connector 1, step 3" and "JTAG connector 1, step 3, continued: find wire 1 of the P1
+    cable". A step without a number is named by the heading it is under and its first words, so that two such
+    steps under one heading have two names: 'Bench check, “Steps”, “the P1 cavity picture again”'."""
+    number = re.match(r"\s*(\d+)\.", words.get_text())
+    first = first_words(words.get_text(" ", strip=True))
+    if number:
+        label = f"{name}, step {number.group(1)}"
+        return label, f"{label}, continued: {first}"
+    heading = words.find_previous(HEADINGS)
+    under = "" if heading is None or heading.name == "h1" else f", \u201c{heading.get_text(' ', strip=True)}\u201d"
+    label = f"{name}{under}, \u201c{first}\u201d"
+    return label, f"{label}, continued from the sheet before"
+
+
+def tail_after(last: Tag) -> list[Tag]:
+    """The paragraphs and lists after a step's last picture that end its section, or none if anything else
+    (a heading, a table, another picture) comes before the section ends."""
+    tail = list(last.find_next_siblings())
+    if not tail or any(part.name not in ("p", "ul", "ol") or "picture" in part.get("class", []) for part in tail):
+        return []
+    return tail
+
+
+def fit_steps(body: Tag, soup: BeautifulSoup, paper: str, name: str) -> None:
+    """Print each step whole on one sheet: its words and all its pictures.
+
+    A step's pictures are the one step_pictures wrapped with its words and those right after it. They are
+    shrunk if the step would not fit a sheet otherwise, to no less than PICTURE_MIN_SCALE. Pictures that still
+    do not fit go on the next sheet under a line naming the step (step_names), as many to a sheet as fit there.
+
+    A few short paragraphs that end the section after the step (tail_after) stay on the sheet of its last
+    pictures, which are shrunk a little more for them if need be: printed after a sheet the pictures fill,
+    they would stand alone on a sheet of their own. name: the chapter's short name (chapter_name).
+
+    Each picture shrunk and each moved to a later sheet is said on stderr."""
+    width, height = TEXT_MM[paper]
+    room = height - STEP_SPARE_MM
+    for step in body.find_all("div", class_="step"):
+        parts = step.find_all(recursive=False)
+        pictures = [parts[-1]]
+        after = step.find_next_sibling()
+        while after is not None and "picture" in after.get("class", []):
+            pictures.append(after)
+            after = after.find_next_sibling()
+        label, line = step_names(parts[0], name)
+        step["data-label"] = label
+        words = sum(words_mm(part, width) for part in parts[:-1])
+        # One entry for each sheet the step takes: the room its pictures have there, and the pictures.
+        first_room = room - lead_mm(step, body, width) - words
+        placed = place_pictures(pictures, first_room, width, False)
+        sheets = [(first_room, pictures[:len(placed)], placed)]
+        rest = pictures[len(placed):]
+        while rest:
+            placed = place_pictures(rest, room - CONTINUED_MM, width, True)
+            sheets.append((room - CONTINUED_MM, rest[:len(placed)], placed))
+            rest = rest[len(placed):]
+        tail = tail_after(pictures[-1] if len(pictures) > 1 else step)  # the first picture is inside the step
+        if tail:
+            last_room, last_pictures, _ = sheets[-1]
+            tail_mm = sum(words_mm(part, width) for part in tail)
+            placed = place_pictures(last_pictures, last_room - tail_mm, width, False) if tail_mm <= TAIL_MAX_MM else []
+            if len(placed) == len(last_pictures):
+                sheets[-1] = (last_room, last_pictures, placed)
+            else:
+                tail = []
+        last = step
+        for number, (_, group, placed) in enumerate(sheets):
+            if number:
+                block = soup.new_tag("div", attrs={"class": "step continued"})
+                said = soup.new_tag("p", attrs={"class": "continued-line"})
+                said.string = line
+                block.append(said)
+                last.insert_after(block)
+                last = block
+            for picture, (height_mm, natural, full) in zip(group, placed):
+                alt = picture.find("img").get("alt") or "picture"
+                if picture.parent is not last:
+                    last.append(picture.extract())
+                if number:
+                    say(f"{label}: picture {alt!r} moved to the next sheet, under \u201c{line}\u201d")
+                if height_mm < natural - 0.05:
+                    picture.find("img")["style"] = f"max-height: {height_mm:.1f}mm"
+                    say(f"{label}: picture {alt!r} shrunk to {height_mm:.0f} mm from {natural:.0f} mm "
+                        f"({height_mm / full:.2f} of the column's width)")
+        if tail:
+            kept = soup.new_tag("div", attrs={"class": "step-tail"})
+            for part in tail:
+                kept.append(part.extract())
+            last.append(kept)
+            say(f"{label}: the {len(tail)} paragraph(s) ending its section kept on the sheet of its last picture")
+
+
+def mark_steps(body: Tag, soup: BeautifulSoup, number: int, title: str) -> None:
+    """Mark each step and each of its continued blocks, for check_steps to find in the printed PDF.
+
+    A mark (STEP_MARK) is hidden text: at the start of the step's words, at the start of a continued block's
+    line, and just before each picture's image, so it prints on the same line, and the same sheet, as what it
+    marks; and at the end of each paragraph or list kept after the last picture (div.step-tail), so that the
+    whole of it is on the sheet of its mark. The blocks say which step they are (data-step: chapter and step
+    number), and the step says the chapter's title. The marks are real text in the PDF: a search or a copy of
+    the text finds "PPSTEP-...", though no one sees it on the sheet."""
+    step_number, block = 0, 0
+
+    def mark(at: Tag, what: str) -> None:
+        span = soup.new_tag("span", attrs={"class": "step-mark"})
+        span.string = STEP_MARK % what
+        if at.name == "img":
+            at.insert_before(span)
+        elif what.startswith("T-"):
+            # At the very end of the block: into the last list item, and the paragraph that ends it.
+            while at.name in ("ul", "ol", "li"):
+                ending = [child for child in at.children if isinstance(child, Tag) or str(child).strip()]
+                if not ending or not isinstance(ending[-1], Tag) or ending[-1].name not in ("p", "ul", "ol", "li"):
+                    break
+                at = ending[-1]
+            at.append(span)
+        else:
+            at.insert(0, span)
+
+    for div in body.find_all("div", class_="step"):
+        if "continued" in div.get("class", []):
+            if not step_number:
+                raise SystemExit(f"chapter {number}: a continued block comes before any step")
+            block += 1
+            mark(div.find("p", class_="continued-line"), f"K-{number}-{step_number}-{block}")
+        else:
+            step_number, block = step_number + 1, 0
+            div["data-title"] = title
+            mark(div.find(recursive=False), f"W-{number}-{step_number}")
+        div["data-step"] = f"{number}-{step_number}"
+        div["data-block"] = str(block)
+        pictures = [part for part in div.find_all(recursive=False) if "picture" in part.get("class", [])]
+        for count, picture in enumerate(pictures, 1):
+            mark(picture.find("img"), f"P-{number}-{step_number}-{block}-{count}")
+        tail = div.find("div", class_="step-tail", recursive=False)
+        for count, part in enumerate(tail.find_all(recursive=False) if tail else [], 1):
+            mark(part, f"T-{number}-{step_number}-{block}-{count}")
+
+
+def visible(text: str) -> str:
+    """Printed text as a reader sees it: without the marks, in one form of each character, spaces folded."""
+    return " ".join(unicodedata.normalize("NFKC", re.sub(STEP_MARK_RE, " ", text)).split())
+
+
+def check_steps(sheets: list[str], page: str) -> list[str]:
+    """What is wrong with where the steps of page printed, given each sheet's text (sheets[0] is sheet 1).
+
+    Every step's words and each of its pictures must be on one sheet: the same sheet, not the two sides of one
+    leaf. A picture fit_steps put on a later sheet must be on the sheet of its continued block's line, and that
+    line must be the first thing on its sheet and name the step. Each mark of page must be found once; a mark
+    not found, or found twice, means the PDF cannot be checked, and is said too."""
+    soup = BeautifulSoup(page, "html.parser")
+    declared = [span.get_text() for span in soup.select("span.step-mark")]
+    found: dict[str, list[int]] = {}
+    for sheet, text in enumerate(sheets, 1):
+        for mark in re.finditer(STEP_MARK_RE, text):
+            found.setdefault(mark.group(0), []).append(sheet)
+    problems = []
+    for mark in declared:
+        if len(found.get(mark, [])) != 1:
+            problems.append(f"mark {mark} is on sheets {found.get(mark, [])}, not on exactly one: cannot check it")
+    for mark in sorted(set(found) - set(declared)):
+        problems.append(f"mark {mark} is in the PDF but not in the page")
+    if problems:
+        return problems
+
+    def sheet_of(mark: Tag) -> int:
+        return found[mark.get_text()][0]
+
+    steps = {div["data-step"]: div for div in soup.select("div.step[data-step]") if div.get("data-block") == "0"}
+    for div in soup.select("div.step[data-step]"):
+        step = steps.get(div["data-step"])
+        if step is None:
+            problems.append(f"continued block {div['data-step']} has no step")
+            continue
+        chapter = div["data-step"].split("-")[0]
+        name = f"chapter {chapter}, {step.get('data-label')}"
+        words = sheet_of(step.find("span", class_="step-mark"))
+        if div is step:
+            where, home = "its words are", words
+        else:
+            line = div.find("p", class_="continued-line")
+            home = sheet_of(line.find("span", class_="step-mark"))
+            where = f"its continued line (block {div['data-block']}) is"
+            said = visible(line.get_text())
+            if not said.startswith(f"{step.get('data-label')}, continued"):
+                problems.append(f"{name}: the continued line \u201c{said}\u201d does not name the step")
+            if not visible(sheets[home - 1]).startswith(said):
+                problems.append(f"{name}: the continued line \u201c{said}\u201d does not start sheet {home}")
+            if home <= words:
+                problems.append(f"{name}: its continued line is on sheet {home}, not after its words on sheet {words}")
+        pictures = [part for part in div.find_all(recursive=False) if "picture" in part.get("class", [])]
+        for count, picture in enumerate(pictures, 1):
+            sheet = sheet_of(picture.find("span", class_="step-mark"))
+            if sheet != home:
+                alt = picture.find("img").get("alt") or f"picture {count}"
+                problems.append(f"{name}: {where} on sheet {home} and its picture {alt!r} on sheet {sheet}")
+        # What fit_steps kept after the last picture must end on that picture's sheet.
+        tail = div.find("div", class_="step-tail", recursive=False)
+        if tail is not None:
+            last = sheet_of(pictures[-1].find("span", class_="step-mark")) if pictures else home
+            for count, end in enumerate(tail.find_all("span", class_="step-mark"), 1):
+                sheet = sheet_of(end)
+                if sheet != last:
+                    problems.append(f"{name}: paragraph {count} kept after its last picture (on sheet {last}) "
+                                    f"ends on sheet {sheet}: \u201c{first_words(visible(end.parent.get_text(' ')))}\u201d")
+    return problems
 
 
 def short_tables(body: Tag) -> None:
@@ -614,7 +1075,8 @@ def whole_codes(body: Tag) -> None:
             code["class"] = [*code.get("class", []), "whole"]
 
 
-def chapter(number: int, spec: str, commit: str, fetched: str, link_lists: bool = True) -> tuple[str, str]:
+def chapter(number: int, spec: str, commit: str, fetched: str, paper: str,
+            link_lists: bool = True) -> tuple[str, str]:
     """The title and the printable HTML of one page, as chapter number of the PDF.
 
     link_lists: number each link and list the addresses at the chapter's end. Without it a link is printed
@@ -633,9 +1095,11 @@ def chapter(number: int, spec: str, commit: str, fetched: str, link_lists: bool 
     long_blocks(body)
     short_tables(body)
     whole_codes(body)
-    step_pictures(body, soup)
     heading = body.find("h1")
     title = heading.get_text(strip=True) if heading else path
+    step_pictures(body, soup)
+    fit_steps(body, soup, paper, chapter_name(title))
+    mark_steps(body, soup, number, title)
     note = f"Chapter {number} · Source: {url}"
     if wanted:
         note += " (sections: " + ", ".join(wanted) + ")"
@@ -718,7 +1182,7 @@ def document(title: str, paper: str, specs: list[str], cover_notes: str | None =
             note_boxes(text)
     commit = built_commit()
     fetched = datetime.date.today().isoformat()
-    chapters = [chapter(number, spec, commit, fetched, link_lists) for number, spec in enumerate(specs, 1)]
+    chapters = [chapter(number, spec, commit, fetched, paper, link_lists) for number, spec in enumerate(specs, 1)]
     foot = css_string(f"{title} · docs.fpgas.online · commit {commit[:10]} · {fetched}")
     after = f" + {appended} unnumbered" if appended else ""
     css = CSS % {"paper": PAPERS[paper], "foot": foot, "after": after}
@@ -957,11 +1421,13 @@ def main() -> int:
     kept = output.with_name(output.name + ".html")
     printed = output.with_name(output.name + ".part")
     united = output.with_name(output.name + ".united.part")
+    split = output.with_name(output.stem + ".STEPS-SPLIT.pdf")
     cover_notes = None if args.cover_notes is None else args.cover_notes.read_text(encoding="utf-8")
     last_sheet = None if args.last_sheet is None else args.last_sheet.read_text(encoding="utf-8")
     try:
         printed.unlink(missing_ok=True)
         united.unlink(missing_ok=True)
+        split.unlink(missing_ok=True)
         # Counted before anything is fetched or printed: a wrong PDF stops the run at once.
         appended = appended_sheets(args.append, args.paper)
         page = document(args.title, args.paper, args.pages, cover_notes, last_sheet, not args.no_link_lists,
@@ -979,6 +1445,18 @@ def main() -> int:
             print_pdf(joined, printed)
             if chapter_sheets(printed, len(places)) != sheets or wide_sheets(printed, page) != wide:
                 raise SystemExit("the sheets moved when their numbers were put in")
+        if re.search(STEP_MARK_RE, page):
+            sheet_texts = run(["pdftotext", str(printed), "-"], f"pdftotext {printed}", timeout=120,
+                              capture_output=True, text=True).stdout.split("\f")
+            problems = check_steps(sheet_texts, page)
+            if problems:
+                # Kept under a name no one takes for the output, to look at the sheets named.
+                printed.replace(split)
+                if args.keep_html:
+                    joined.replace(kept)
+                raise SystemExit(
+                    f"a step's words and its pictures did not print on one sheet; {output.name} was not written, "
+                    f"and the print is {split} for a look:\n  " + "\n  ".join(problems))
         if args.append:
             append_pdfs(printed, args.append, args.paper, united)
             united.replace(output)
