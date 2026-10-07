@@ -5,8 +5,9 @@
 # fpgas-verify pages and each board's install section; the other repositories as their tables fill) and open
 # a pull request if any changed. The docs build itself never reaches out to another repository.
 #
-# If a repository no longer has a listed file, the sync fails, this run goes red, and an issue is opened (or
-# commented on) naming the repository and the file, so the tables get updated instead of the copy going stale.
+# A repository that no longer has a listed file, or whose text cannot be synced, fails on its own: the others
+# are still synced and proposed in the pull request, and an issue is opened (or commented on) naming each
+# failing repository and why, so the tables get updated instead of the copy going stale. The run then goes red.
 name: Sync from the fpgas.online repositories
 
 on:
@@ -38,12 +39,15 @@ jobs:
           cache: pip
           cache-dependency-path: docs/requirements.txt
 
+      # A failing repository does not stop the others (exit 2 after writing theirs), so this step records the
+      # status instead of failing: the pull request is still opened for what synced, and "Fail the run" below
+      # turns the run red.
       - name: Copy from every repository's main
         id: sync
-        # pipefail: without it the step takes tee's exit status, and a failed sync would pass.
         run: |
-          set -o pipefail
+          set +e
           python -u tools/sync_repos.py 2>&1 | tee sync.log
+          echo "status=${PIPESTATUS[0]}" >> "$GITHUB_OUTPUT"
 
       # Only the sync has written anything under docs/ in this run.
       - name: Changed?
@@ -64,7 +68,7 @@ jobs:
       - name: Describe the change
         if: steps.diff.outputs.changed == 'true'
         run: |
-          { echo "Synced by tools/sync_repos.py from:"; echo; grep -E '^fpgas-online/' sync.log | sed 's/^/- /'; echo; echo '```'; grep -E '^  (add|update|remove|source|note) ' sync.log; echo '```'; } > pr-body.md
+          { echo "Synced by tools/sync_repos.py from:"; echo; grep -E '^fpgas-online/' sync.log | sed 's/^/- /'; echo; echo '```'; grep -E '^  (add|update|remove|source|note) ' sync.log || true; echo '```'; } > pr-body.md
 
       # Needs "Allow GitHub Actions to create and approve pull requests" in the repository's Actions settings.
       - name: Open or update the pull request
@@ -80,21 +84,32 @@ jobs:
           body-path: pr-body.md
 
       - name: Report a failed sync
-        if: failure()
+        if: failure() || steps.sync.outputs.status != '0'
         env:
           GH_TOKEN: ${{ github.token }}
           RUN_URL: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
-          SYNC: ${{ steps.sync.outcome }}
+          SYNC: ${{ steps.sync.outputs.status }}
           BUILD: ${{ steps.build.outcome }}
           PR: ${{ steps.pr.outcome }}
         run: |
-          # The repositories the sync names as failing ("sync: FAILED. fpgas-online/fpgas.online-x at ...").
-          repos=$(grep -oE '^sync: FAILED\. fpgas-online/[^ ]+' sync.log 2>&1 | sed 's/^sync: FAILED\. //' | sort -u | paste -sd, - || true)
+          # The repositories the sync names as failing: every stop prints "sync: FAILED. <repository>: <reason>".
+          repos=""
+          if [ -f sync.log ]; then
+            repos=$(grep -oE '^sync: FAILED\. fpgas-online/[^: ]+' sync.log | sed 's/^sync: FAILED\. //' | sort -u | paste -sd, - || true)
+          fi
           if [ -n "$repos" ]; then title="Sync from $repos is failing"; else title="Sync from the fpgas.online repositories is failing"; fi
-          if [ "$SYNC" = failure ]; then what="Copying the files failed${repos:+ for $repos}: a listed file is missing there, or a repository could not be reached."
+          if [ "$SYNC" != 0 ]; then what="Copying failed${repos:+ for $repos} (the reasons are the 'sync: FAILED.' lines below); the other repositories were synced. Or the sync did not run to its end (exit status ${SYNC:-none})."
           elif [ "$BUILD" = failure ]; then what="The files copied, but the docs do not build with them."
           elif [ "$PR" = failure ]; then what="The files copied and the docs build, but the pull request could not be opened (is 'Allow GitHub Actions to create and approve pull requests' on?)."
           else what="A step failed."; fi
-          { echo "$what"; echo; echo "Run: $RUN_URL"; echo; echo '```'; if [ -f sync.log ]; then tail -40 sync.log; fi; echo '```'; } > body.md
+          { echo "$what"; echo; echo "Run: $RUN_URL"; echo; echo '```'; if [ -f sync.log ]; then grep -E '^sync: FAILED\. ' sync.log || true; echo; tail -40 sync.log; fi; echo '```'; } > body.md
           number=$(gh issue list --state open --search "in:title \"$title\"" --json number --jq '.[0].number')
           if [ -n "$number" ]; then gh issue comment "$number" --body-file body.md; else gh issue create --title "$title" --body-file body.md; fi
+
+      - name: Fail the run when a repository failed
+        if: steps.sync.outputs.status != '0'
+        env:
+          SYNC: ${{ steps.sync.outputs.status }}
+        run: |
+          echo "tools/sync_repos.py exited $SYNC: see the 'sync: FAILED.' lines in the sync step"
+          exit 1
