@@ -55,7 +55,7 @@ take that picture apart:
   was measured and what is not known](bootloader-eeprom.md) is behind both.
 - [What runs on a Pi host](pi.md) — the packages, systemd units and boot-time
   settings that building the root leaves behind on every host.
-- [Orange Pi H3 hosts](orange-pi.md) — how five non-Raspberry boards boot the
+- [Orange Pi H3 hosts](orange-pi.md) — how seven non-Raspberry boards boot the
   same NFS root after being loaded with U-Boot over USB FEL, and what to do
   when one of them does not come back.
 - [The gateway host](gateway.md) — what the one x86 machine per site runs, how
