@@ -33,9 +33,9 @@ which wire a failing line points at.
 
 ## Public site
 
-`https://ps1.fpgas.online/fpgas/` serves a page per Arty host: a web SSH terminal, a reset button, a
-bitstream upload, a PoE power cycle, and a video feed at `/live/piN.m3u8`, all behind nginx on val2. The blades
-have no page of their own there (read on 6 October 2026, `ps1-login.inc` above).
+`https://ps1.fpgas.online/fpgas/` lists a page per Arty host. Each has a web terminal, a bitstream upload,
+"Turn it off and on again: Reset", a "Check PoE" button and a video feed at `/live/piN.m3u8` (read on
+`pi3.html` on 7 October 2026). The Compute Blades have no page there.
 
 ## Where each part of the old page went
 
