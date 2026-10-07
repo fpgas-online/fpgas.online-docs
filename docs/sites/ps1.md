@@ -43,7 +43,7 @@ The sections of this page moved to the two pages above on 7 October 2026. Links 
 here:
 
 (gateway-val2)=
-- [Gateway: val2](ps1-gateway.md#gateway-val2): its system, its two NFS roots, its addresses.
+- [Gateway: val2](ps1-gateway.md#gateway-val2): its system, its NFS root, its addresses.
 
 (poe-switch)=
 - [PoE switch](ps1-gateway.md#poe-switch): the port table.

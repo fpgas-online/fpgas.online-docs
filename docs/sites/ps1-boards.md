@@ -24,7 +24,7 @@ hardware on site.
 
 ## Arty A7 hosts
 
-From `/etc/dnsmasq.d/pibs.conf` on val2, as copied into the site notes; not probed by us. The site notes give
+From `/etc/dnsmasq.d/pibs.conf` on the gateway, as copied into the site notes; not probed by us. The site notes give
 no date or source for the `Status` column. Board pages: `https://ps1.fpgas.online/fpgas/piN.html`.
 
 ```{rst-class} nowrap
@@ -48,6 +48,11 @@ carry live feeds of their LEDs. Which Pi holds which camera is not recorded.
 
 **Known wrong with an Arty host:**
 
+- **On 6 October 2026 the gateway saw only one Arty host.** Its read (on [The ps1 gateway and
+  switch](ps1-gateway.md#gateway-val2)) found a lease for pi3 and none for the others; pi2, pi5, pi7, pi9,
+  pi11 and pi13 did not answer the gateway's ARP, and pi17's entry was incomplete. Whether they were off,
+  unplugged or failing to boot from the one trixie root was not read.
+
 - **pi2**: recorded Offline. The switch read of 2026-08-31 shows its port e2 with link up and PoE delivering,
   so "offline" is the host, not the cable. It is the only host with an Apple A1277 adapter, and that
   adapter's MAC was never recorded.
@@ -60,7 +65,7 @@ camera is fitted.
 ## Compute blades
 
 Four [Compute Blades](https://computeblade.com/), each with a Raspberry Pi Compute Module, netbooted from
-val2's trixie root. Which Acorn card is in which blade, its state and what each still needs: [Acorns at
+the gateway's trixie root. Which Acorn card is in which blade, its state and what each still needs: [Acorns at
 ps1](../boards/acorn/installations/ps1.md). Every read on each blade, with its date: [Acorns at ps1: what
 was read on each blade](../boards/acorn/installations/ps1-reads.md).
 
@@ -101,7 +106,7 @@ From `pibs.conf` and the switch read of 2026-08-31, via the site notes.
 | Host | Port | Address | Pi MAC | Pi model | What it is | Status |
 |---|---|---|---|---|---|---|
 | pi19 | e19 | 10.21.0.119 | b8:27:eb:0c:f8:43 | 3B | no board | Dead |
-| [pi21](https://ps1.fpgas.online/fpgas/pi21.html) | e21 | 10.21.0.121 | 2c:cf:67:39:18:66 | 5 Rev 1.0, 4 GB | no FPGA; a development host | Online |
+| [pi21](https://ps1.fpgas.online/fpgas/pi21.html) | e21 | 10.21.0.121 | 2c:cf:67:39:18:66 | 5 Rev 1.0, 4 GB | no FPGA; a development host | Online (site notes); did not answer the gateway's ARP on 2026-10-06 |
 | pi24 | — | 10.21.0.124 | b8:27:eb:85:ab:d9 | not recorded | registered, on no port | Offline |
 
 **Known wrong:**
