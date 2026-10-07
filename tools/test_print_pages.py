@@ -689,6 +689,50 @@ class FitSteps(unittest.TestCase):
         self.assertIn(".continued { break-before: page; }", p.CSS)
 
 
+class WordsHeight(unittest.TestCase):
+    """words_mm: how tall a step's words print, counting what the flat text alone would miss."""
+
+    WIDTH = p.TEXT_MM["Letter"][0]
+    LINE = 10 * 1.4 * p.PT_MM
+
+    def mm(self, html_text):
+        return p.words_mm(p.BeautifulSoup(html_text, "html.parser").find(), self.WIDTH)
+
+    def test_a_short_paragraph_is_one_line_and_its_margin(self):
+        self.assertAlmostEqual(self.mm("<p>Cut.</p>"), self.LINE + 2.5)
+
+    def test_each_br_starts_a_line(self):
+        self.assertAlmostEqual(self.mm("<p>a<br>b<br/>c</p>"), 3 * self.LINE + 2.5)
+        self.assertAlmostEqual(self.mm("<p>a<br></p>"), self.LINE + 2.5)
+
+    def test_a_nested_list_counts_its_items_its_indent_and_its_margin(self):
+        flat = self.mm("<ol><li>a b c</li></ol>")
+        nested = self.mm("<ol><li>a<ul><li>b</li><li>c</li></ul></li></ol>")
+        self.assertAlmostEqual(flat, self.LINE + 2.5)
+        self.assertAlmostEqual(nested, 3 * self.LINE + 2 * 2.5)
+
+    def test_a_nested_list_is_narrower(self):
+        text = "word " * 35  # 174 characters: two lines of 89 at the list's width, three of 86 indented again
+        self.assertAlmostEqual(self.mm(f"<ul><li>{text}</li></ul>"), 2 * self.LINE + 2.5)
+        self.assertAlmostEqual(self.mm(f"<ul><li><ul><li>{text}</li></ul></li></ul>"), 3 * self.LINE + 2 * 2.5)
+
+    def test_code_spans_count_their_padding(self):
+        plain = " ".join(["ab"] * 30)  # 89 characters: one line of 92
+        coded = " ".join(["<code>ab</code>"] * 30)
+        self.assertAlmostEqual(self.mm(f"<p>{plain}</p>"), self.LINE + 2.5)
+        self.assertAlmostEqual(self.mm(f"<p>{coded}</p>"), 2 * self.LINE + 2.5)
+
+    def test_a_listing_in_a_step_counts_its_lines(self):
+        listing = "<pre>" + "\n".join(["x"] * 10) + "\n</pre>"
+        self.assertAlmostEqual(self.mm(listing), 10 * p.CODE_SIZE * 1.3 * p.PT_MM + p.PRE_EXTRA_MM)
+        self.assertAlmostEqual(self.mm(f"<ol><li><p>Run:</p>{listing}</li></ol>"),
+                               self.LINE + 2.5 + 10 * p.CODE_SIZE * 1.3 * p.PT_MM + p.PRE_EXTRA_MM + 2.5)
+
+    def test_a_listing_printed_smaller_is_shorter(self):
+        listing = "\n".join(["x"] * 10)
+        self.assertLess(self.mm(f'<pre style="font-size: 6.50pt">{listing}</pre>'), self.mm(f"<pre>{listing}</pre>"))
+
+
 class ShortTables(unittest.TestCase):
     def table(self, rows):
         return "<table>%s</table>" % "".join("<tr><td>%d</td></tr>" % n for n in range(rows))

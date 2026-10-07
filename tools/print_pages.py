@@ -127,6 +127,10 @@ SOURCE_MM = 2 * 8 * 1.4 * PT_MM + 5.6
 # Below a picture's image: its paragraph's margin and the line's descent (a figure: its margin and caption).
 PICTURE_BELOW_MM, FIGURE_BELOW_MM = 5.0, 3.5
 CONTINUED_MM = 10 * 1.4 * PT_MM + 2.5  # the line "Step N, continued"
+# A step's words: the blocks that print on lines of their own, and so are counted apart from the text around
+# them; a code span's padding (0.6 mm each side) in characters; a listing's padding, border and margin in mm.
+WORD_BLOCKS = ("p", "ul", "ol", "pre", "div", "blockquote", "dl", "table", "figure")
+CODE_PAD_CHARS, PRE_EXTRA_MM = 1, 2 * 2 + 2 * 0.15 + 3
 # Where a chapter's sheet number goes in the cover's list, once it is known.
 SHEET_PLACE = "<!--sheet-of-chapter-%d-->"
 SHEET_PLACE_RE = r"<!--sheet-of-chapter-(\d+)-->"
@@ -655,13 +659,61 @@ def text_mm(text: str, width: float, size: float = 10.0, line: float = 1.4, char
     return max(1, math.ceil(len(" ".join(text.split())) / per_line)) * size * line * PT_MM
 
 
+def line_runs(node: Tag) -> list[int]:
+    """How many average characters each line run of node's own text holds: a <br> starts a new run, and a
+    block inside node (a list in a list item, say) is left out, for words_mm counts it on its own. A code span
+    counts its characters as text (DejaVu Sans Mono is no wider) and one more for its padding."""
+    runs = [0]
+    text = [""]
+
+    def close() -> None:
+        runs[-1] += len(" ".join(text[0].split()))
+        text[0] = ""
+
+    def walk(element: Tag) -> None:
+        for child in element.children:
+            if isinstance(child, Comment):
+                continue
+            if not isinstance(child, Tag):
+                text[0] += str(child)
+            elif child.name == "br":
+                close()
+                runs.append(0)
+                walk(child)  # html.parser may hang what follows a <br> on it
+            elif child.name in WORD_BLOCKS:
+                text[0] += " "
+            elif child.name == "code":
+                # The padding counts as characters that are not spaces, so that it is not folded away.
+                text[0] += " " + " ".join(child.get_text().split()) + "\0" * CODE_PAD_CHARS
+            else:
+                walk(child)
+
+    walk(node)
+    close()
+    if len(runs) > 1 and runs[-1] == 0:
+        runs.pop()  # a <br> at the end starts no line
+    return runs
+
+
+def lines_mm(node: Tag, width: float) -> float:
+    """How tall node's own text prints at 10 pt, each run between <br>s on whole lines of its own."""
+    per_line = max(1, int(width / CHAR_MM))
+    return sum(max(1, math.ceil(chars / per_line)) for chars in line_runs(node)) * 10 * 1.4 * PT_MM
+
+
 def words_mm(block: Tag, width: float) -> float:
-    """How tall a step's paragraph or list prints, with its margin below (and each paragraph's in the list)."""
+    """How tall a step's paragraph, list or listing prints, with its margin below (and that of each paragraph,
+    list and listing inside it). A list item is indented, and a list inside it again."""
     if block.name in ("ol", "ul"):
         items = block.find_all("li", recursive=False) or [block]
-        return sum(text_mm(item.get_text(" ", strip=True), width - 6) + 2.5 * len(item.find_all("p"))
-                   for item in items) + 2.5
-    return text_mm(block.get_text(" ", strip=True), width) + 2.5
+        return sum(words_mm(item, width - 6) for item in items) + 2.5
+    if block.name == "pre":
+        size = re.search(r"font-size:\s*([0-9.]+)pt", block.get("style", ""))
+        lines = block.get_text().rstrip("\n").count("\n") + 1
+        return lines * (float(size.group(1)) if size else CODE_SIZE) * 1.3 * PT_MM + PRE_EXTRA_MM
+    inner = [child for child in block.find_all(recursive=False) if child.name in WORD_BLOCKS]
+    own = lines_mm(block, width) if block.name == "p" or line_runs(block) != [0] else 0.0
+    return own + sum(words_mm(child, width) for child in inner) + (2.5 if block.name == "p" else 0.0)
 
 
 def heading_mm(heading: Tag, width: float) -> float:
