@@ -40,6 +40,13 @@ the same fields (not read by us on one).
 ```{image} bootloader-eeprom/boot-order-blade.svg
 :alt: 0xf2461 read from its last digit: SD card, NVMe, USB, then the network, then round again
 :width: 100%
+:class: only-light
+```
+
+```{image} bootloader-eeprom/boot-order-blade-dark.svg
+:alt: 0xf2461 read from its last digit: SD card, NVMe, USB, then the network, then round again
+:width: 100%
+:class: only-dark
 ```
 
 :::{important}

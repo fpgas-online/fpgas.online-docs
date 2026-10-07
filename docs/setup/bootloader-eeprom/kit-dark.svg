@@ -1,0 +1,25 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 950 504" width="950" height="504" font-family="DejaVu Sans, Arial, sans-serif">
+<rect width="950" height="504" fill="#131416"/>
+<text x="20" y="36" font-size="26" font-weight="bold" fill="#e3e6ea" text-anchor="start">What you need on the bench</text>
+<rect x="20" y="60" width="910" height="52" rx="8" fill="#1c2631" stroke="#e3e6ea" stroke-width="2"/>
+<text x="36" y="93" font-size="21" font-weight="bold" fill="#e3e6ea" text-anchor="start">1  The Pi 5</text>
+<text x="420" y="93" font-size="18" font-weight="normal" fill="#e3e6ea" text-anchor="start">out of its case, underside reachable</text>
+<rect x="20" y="122" width="910" height="52" rx="8" fill="#1c2631" stroke="#e3e6ea" stroke-width="2"/>
+<text x="36" y="155" font-size="21" font-weight="bold" fill="#e3e6ea" text-anchor="start">2  A microSD card</text>
+<text x="420" y="155" font-size="18" font-weight="normal" fill="#e3e6ea" text-anchor="start">any size; everything on it is erased</text>
+<rect x="20" y="184" width="910" height="52" rx="8" fill="#1c2631" stroke="#e3e6ea" stroke-width="2"/>
+<text x="36" y="217" font-size="21" font-weight="bold" fill="#e3e6ea" text-anchor="start">3  A Linux computer</text>
+<text x="420" y="217" font-size="18" font-weight="normal" fill="#e3e6ea" text-anchor="start">card reader, internet, git, python3, sha256sum</text>
+<rect x="20" y="246" width="910" height="52" rx="8" fill="#1c2631" stroke="#e3e6ea" stroke-width="2"/>
+<text x="36" y="279" font-size="21" font-weight="bold" fill="#e3e6ea" text-anchor="start">4  A soldering iron and solder</text>
+<text x="420" y="279" font-size="18" font-weight="normal" fill="#e3e6ea" text-anchor="start">OR fine tweezers or a short wire to hold</text>
+<rect x="20" y="308" width="910" height="52" rx="8" fill="#1c2631" stroke="#e3e6ea" stroke-width="2"/>
+<text x="36" y="341" font-size="21" font-weight="bold" fill="#e3e6ea" text-anchor="start">5  Desoldering braid</text>
+<text x="420" y="341" font-size="18" font-weight="normal" fill="#e3e6ea" text-anchor="start">if you solder: to take the bridge off again</text>
+<rect x="20" y="370" width="910" height="52" rx="8" fill="#1c2631" stroke="#e3e6ea" stroke-width="2"/>
+<text x="36" y="403" font-size="21" font-weight="bold" fill="#e3e6ea" text-anchor="start">6  The Pi's own network cable</text>
+<text x="420" y="403" font-size="18" font-weight="normal" fill="#e3e6ea" text-anchor="start">on its switch port; it also powers the Pi</text>
+<rect x="20" y="432" width="910" height="52" rx="8" fill="#1c2631" stroke="#e3e6ea" stroke-width="2"/>
+<text x="36" y="465" font-size="21" font-weight="bold" fill="#e3e6ea" text-anchor="start">7  A multimeter</text>
+<text x="420" y="465" font-size="18" font-weight="normal" fill="#e3e6ea" text-anchor="start">optional: to check the bridge</text>
+</svg>

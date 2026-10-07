@@ -1,56 +1,56 @@
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 910 430" width="910" height="430" font-family="DejaVu Sans, Arial, sans-serif">
 <rect width="910" height="430" fill="#ffffff"/>
-<text x="20" y="34" font-size="22" font-weight="bold">Status register 1 of the boot flash (Winbond W25Q16)</text>
-<text x="20" y="90" font-size="20" font-weight="bold">locked: reads 0xbc</text>
-<rect x="20" y="102" width="104" height="70" fill="#fde3e3" stroke="#111"/>
-<text x="72" y="130" font-size="17" text-anchor="middle">bit 7: SRP</text>
-<text x="72" y="162" font-size="26" font-weight="bold" text-anchor="middle">1</text>
-<rect x="130" y="102" width="104" height="70" fill="#f4f4f4" stroke="#111"/>
-<text x="182" y="130" font-size="17" text-anchor="middle">bit 6: SEC</text>
-<text x="182" y="162" font-size="26" font-weight="bold" text-anchor="middle">0</text>
-<rect x="240" y="102" width="104" height="70" fill="#fde3e3" stroke="#111"/>
-<text x="292" y="130" font-size="17" text-anchor="middle">bit 5: TB</text>
-<text x="292" y="162" font-size="26" font-weight="bold" text-anchor="middle">1</text>
-<rect x="350" y="102" width="104" height="70" fill="#fde3e3" stroke="#111"/>
-<text x="402" y="130" font-size="17" text-anchor="middle">bit 4: BP2</text>
-<text x="402" y="162" font-size="26" font-weight="bold" text-anchor="middle">1</text>
-<rect x="460" y="102" width="104" height="70" fill="#fde3e3" stroke="#111"/>
-<text x="512" y="130" font-size="17" text-anchor="middle">bit 3: BP1</text>
-<text x="512" y="162" font-size="26" font-weight="bold" text-anchor="middle">1</text>
-<rect x="570" y="102" width="104" height="70" fill="#fde3e3" stroke="#111"/>
-<text x="622" y="130" font-size="17" text-anchor="middle">bit 2: BP0</text>
-<text x="622" y="162" font-size="26" font-weight="bold" text-anchor="middle">1</text>
-<rect x="680" y="102" width="104" height="70" fill="#f4f4f4" stroke="#111"/>
-<text x="732" y="130" font-size="17" text-anchor="middle">bit 1: WEL</text>
-<text x="732" y="162" font-size="26" font-weight="bold" text-anchor="middle">0</text>
-<rect x="790" y="102" width="104" height="70" fill="#f4f4f4" stroke="#111"/>
-<text x="842" y="130" font-size="17" text-anchor="middle">bit 0: BUSY</text>
-<text x="842" y="162" font-size="26" font-weight="bold" text-anchor="middle">0</text>
-<text x="20" y="240" font-size="20" font-weight="bold">not locked: reads 0x00</text>
-<rect x="20" y="252" width="104" height="70" fill="#f4f4f4" stroke="#111"/>
-<text x="72" y="280" font-size="17" text-anchor="middle">bit 7: SRP</text>
-<text x="72" y="312" font-size="26" font-weight="bold" text-anchor="middle">0</text>
-<rect x="130" y="252" width="104" height="70" fill="#f4f4f4" stroke="#111"/>
-<text x="182" y="280" font-size="17" text-anchor="middle">bit 6: SEC</text>
-<text x="182" y="312" font-size="26" font-weight="bold" text-anchor="middle">0</text>
-<rect x="240" y="252" width="104" height="70" fill="#f4f4f4" stroke="#111"/>
-<text x="292" y="280" font-size="17" text-anchor="middle">bit 5: TB</text>
-<text x="292" y="312" font-size="26" font-weight="bold" text-anchor="middle">0</text>
-<rect x="350" y="252" width="104" height="70" fill="#f4f4f4" stroke="#111"/>
-<text x="402" y="280" font-size="17" text-anchor="middle">bit 4: BP2</text>
-<text x="402" y="312" font-size="26" font-weight="bold" text-anchor="middle">0</text>
-<rect x="460" y="252" width="104" height="70" fill="#f4f4f4" stroke="#111"/>
-<text x="512" y="280" font-size="17" text-anchor="middle">bit 3: BP1</text>
-<text x="512" y="312" font-size="26" font-weight="bold" text-anchor="middle">0</text>
-<rect x="570" y="252" width="104" height="70" fill="#f4f4f4" stroke="#111"/>
-<text x="622" y="280" font-size="17" text-anchor="middle">bit 2: BP0</text>
-<text x="622" y="312" font-size="26" font-weight="bold" text-anchor="middle">0</text>
-<rect x="680" y="252" width="104" height="70" fill="#f4f4f4" stroke="#111"/>
-<text x="732" y="280" font-size="17" text-anchor="middle">bit 1: WEL</text>
-<text x="732" y="312" font-size="26" font-weight="bold" text-anchor="middle">0</text>
-<rect x="790" y="252" width="104" height="70" fill="#f4f4f4" stroke="#111"/>
-<text x="842" y="280" font-size="17" text-anchor="middle">bit 0: BUSY</text>
-<text x="842" y="312" font-size="26" font-weight="bold" text-anchor="middle">0</text>
-<text x="20" y="366" font-size="19">SRP = 1: the register itself is protected while /WP is low.</text>
-<text x="20" y="390" font-size="19">TB = 1 with BP2 BP1 BP0 = 111: the whole chip is protected.</text>
+<text x="20" y="34" font-size="22" font-weight="bold" fill="#111" text-anchor="start">Status register 1 of the boot flash (Winbond W25Q16)</text>
+<text x="20" y="90" font-size="20" font-weight="bold" fill="#111" text-anchor="start">locked: reads 0xbc</text>
+<rect x="20" y="102" width="104" height="70" rx="0" fill="#fde3e3" stroke="#111" stroke-width="1"/>
+<text x="72" y="130" font-size="17" font-weight="normal" fill="#111" text-anchor="middle">bit 7: SRP</text>
+<text x="72" y="162" font-size="26" font-weight="bold" fill="#111" text-anchor="middle">1</text>
+<rect x="130" y="102" width="104" height="70" rx="0" fill="#f4f4f4" stroke="#111" stroke-width="1"/>
+<text x="182" y="130" font-size="17" font-weight="normal" fill="#111" text-anchor="middle">bit 6: SEC</text>
+<text x="182" y="162" font-size="26" font-weight="bold" fill="#111" text-anchor="middle">0</text>
+<rect x="240" y="102" width="104" height="70" rx="0" fill="#fde3e3" stroke="#111" stroke-width="1"/>
+<text x="292" y="130" font-size="17" font-weight="normal" fill="#111" text-anchor="middle">bit 5: TB</text>
+<text x="292" y="162" font-size="26" font-weight="bold" fill="#111" text-anchor="middle">1</text>
+<rect x="350" y="102" width="104" height="70" rx="0" fill="#fde3e3" stroke="#111" stroke-width="1"/>
+<text x="402" y="130" font-size="17" font-weight="normal" fill="#111" text-anchor="middle">bit 4: BP2</text>
+<text x="402" y="162" font-size="26" font-weight="bold" fill="#111" text-anchor="middle">1</text>
+<rect x="460" y="102" width="104" height="70" rx="0" fill="#fde3e3" stroke="#111" stroke-width="1"/>
+<text x="512" y="130" font-size="17" font-weight="normal" fill="#111" text-anchor="middle">bit 3: BP1</text>
+<text x="512" y="162" font-size="26" font-weight="bold" fill="#111" text-anchor="middle">1</text>
+<rect x="570" y="102" width="104" height="70" rx="0" fill="#fde3e3" stroke="#111" stroke-width="1"/>
+<text x="622" y="130" font-size="17" font-weight="normal" fill="#111" text-anchor="middle">bit 2: BP0</text>
+<text x="622" y="162" font-size="26" font-weight="bold" fill="#111" text-anchor="middle">1</text>
+<rect x="680" y="102" width="104" height="70" rx="0" fill="#f4f4f4" stroke="#111" stroke-width="1"/>
+<text x="732" y="130" font-size="17" font-weight="normal" fill="#111" text-anchor="middle">bit 1: WEL</text>
+<text x="732" y="162" font-size="26" font-weight="bold" fill="#111" text-anchor="middle">0</text>
+<rect x="790" y="102" width="104" height="70" rx="0" fill="#f4f4f4" stroke="#111" stroke-width="1"/>
+<text x="842" y="130" font-size="17" font-weight="normal" fill="#111" text-anchor="middle">bit 0: BUSY</text>
+<text x="842" y="162" font-size="26" font-weight="bold" fill="#111" text-anchor="middle">0</text>
+<text x="20" y="240" font-size="20" font-weight="bold" fill="#111" text-anchor="start">not locked: reads 0x00</text>
+<rect x="20" y="252" width="104" height="70" rx="0" fill="#f4f4f4" stroke="#111" stroke-width="1"/>
+<text x="72" y="280" font-size="17" font-weight="normal" fill="#111" text-anchor="middle">bit 7: SRP</text>
+<text x="72" y="312" font-size="26" font-weight="bold" fill="#111" text-anchor="middle">0</text>
+<rect x="130" y="252" width="104" height="70" rx="0" fill="#f4f4f4" stroke="#111" stroke-width="1"/>
+<text x="182" y="280" font-size="17" font-weight="normal" fill="#111" text-anchor="middle">bit 6: SEC</text>
+<text x="182" y="312" font-size="26" font-weight="bold" fill="#111" text-anchor="middle">0</text>
+<rect x="240" y="252" width="104" height="70" rx="0" fill="#f4f4f4" stroke="#111" stroke-width="1"/>
+<text x="292" y="280" font-size="17" font-weight="normal" fill="#111" text-anchor="middle">bit 5: TB</text>
+<text x="292" y="312" font-size="26" font-weight="bold" fill="#111" text-anchor="middle">0</text>
+<rect x="350" y="252" width="104" height="70" rx="0" fill="#f4f4f4" stroke="#111" stroke-width="1"/>
+<text x="402" y="280" font-size="17" font-weight="normal" fill="#111" text-anchor="middle">bit 4: BP2</text>
+<text x="402" y="312" font-size="26" font-weight="bold" fill="#111" text-anchor="middle">0</text>
+<rect x="460" y="252" width="104" height="70" rx="0" fill="#f4f4f4" stroke="#111" stroke-width="1"/>
+<text x="512" y="280" font-size="17" font-weight="normal" fill="#111" text-anchor="middle">bit 3: BP1</text>
+<text x="512" y="312" font-size="26" font-weight="bold" fill="#111" text-anchor="middle">0</text>
+<rect x="570" y="252" width="104" height="70" rx="0" fill="#f4f4f4" stroke="#111" stroke-width="1"/>
+<text x="622" y="280" font-size="17" font-weight="normal" fill="#111" text-anchor="middle">bit 2: BP0</text>
+<text x="622" y="312" font-size="26" font-weight="bold" fill="#111" text-anchor="middle">0</text>
+<rect x="680" y="252" width="104" height="70" rx="0" fill="#f4f4f4" stroke="#111" stroke-width="1"/>
+<text x="732" y="280" font-size="17" font-weight="normal" fill="#111" text-anchor="middle">bit 1: WEL</text>
+<text x="732" y="312" font-size="26" font-weight="bold" fill="#111" text-anchor="middle">0</text>
+<rect x="790" y="252" width="104" height="70" rx="0" fill="#f4f4f4" stroke="#111" stroke-width="1"/>
+<text x="842" y="280" font-size="17" font-weight="normal" fill="#111" text-anchor="middle">bit 0: BUSY</text>
+<text x="842" y="312" font-size="26" font-weight="bold" fill="#111" text-anchor="middle">0</text>
+<text x="20" y="366" font-size="19" font-weight="normal" fill="#111" text-anchor="start">SRP = 1: the register itself is protected while /WP is low.</text>
+<text x="20" y="390" font-size="19" font-weight="normal" fill="#111" text-anchor="start">TB = 1 with BP2 BP1 BP0 = 111: the whole chip is protected.</text>
 </svg>
