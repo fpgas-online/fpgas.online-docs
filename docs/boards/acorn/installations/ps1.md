@@ -42,7 +42,7 @@ is pi14 at ps1, pi16 at ps1, pi18 at ps1 or pi20 at ps1 by looking at it, and we
   stuck on its blade is not recorded by us. If you find one on a module, its MAC against the table above
   names the blade. pi14 at ps1 and pi18 at ps1 have no label.
 - **Looking:** the list below is all the records say each blade has (none of it checked by eye by us), and it
-  does not separate the blades fully.
+  splits the blades into two pairs only (pi14 at ps1 and pi18 at ps1 carry a Compute Module 4, pi16 at ps1 and pi20 at ps1 a Compute Module 5 Lite); nothing we hold separates the two blades within each pair.
 - **Unplugging one blade:** the way after the list, not yet tried by us, and it needs Tim first.
 
 What the records say each one has, to look for (none of these has
@@ -93,7 +93,7 @@ Blade** to their end: begun once on pi20 at ps1 on 7 October 2026 and stopped be
 
 What "P1 unmated" rests on: it is read off the TCK wire. The Acorn pulls TCK up; on pi20 at ps1 the Pi's
 pull-down cannot move it, while on pi14 at ps1 and pi16 at ps1 it floats, exactly as on pi18 at ps1, which has
-no card. (Reads of 2026-09-20, repeated 2026-10-07.) Reseating P1 is the first thing to try.
+no card. (Read on 2026-09-20; on 2026-10-07 the TCK read was repeated on pi16 at ps1 only: a pull test was also run on pi14 at ps1 and pi18 at ps1 that day, with no result recorded by us.) Reseating P1 is the first thing to try.
 
 **No blade is wired to the guide yet.** Only pi20 at ps1's wiring has been read: its P2 serial pair goes
 straight to GPIO14 (J2) and GPIO15 (K2), no resistor, and J5 and H5 are not wired (pin-ID read, 31 August

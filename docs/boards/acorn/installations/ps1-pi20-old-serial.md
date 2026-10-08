@@ -9,20 +9,20 @@ JTAG until a PoE cycle, so J2 and P1's TMS share GPIO14 (fpgas.online-test-desig
 2026-08-31). GPIO14 is on Extension Port pin 9 and on UART header pin 3 (Uptime Lab's GPIO guide).
 
 **Which numbering these are.** "Extension Port pin 9" and "UART header pin 3" are the Compute Blade's own
-numbers, the ones printed on the blade beside its two headers (the silkscreen), and drawn on the right of the
+numbers, the ones printed on the blade beside its two headers (the silkscreen, seen in the picture below), and drawn on the right of the
 picture captioned "Compute Blade: the card, then the housings" on the Fitting sheet (headed "Compute Blade
 cables: fitting"; it is reproduced below). They are not the Raspberry Pi's 40-pin numbers: on the Raspberry
 Pi's 40-pin header GPIO14 is pin 8, and the blade's pin 9 is that header's pin 8. If you know the Pi's
 numbers, do not count by them here. On the Extension Port, pin 1 is at the top of the left column and pin 6
 at the top of the right, so pins 1 to 5 run down the left column and 6 to 10 down the right; pin 9 is the
 fourth from the top in the right column, and pin 10 the last. On the UART header pin 1 is the top one and
-pin 4 the bottom one, with pin 3 the third.
+pin 4 the bottom one, with pin 3 the third. Which GPIO each pin carries (pin 9 and GPIO14, for one) is from Uptime Lab's GPIO guide, not measured by us.
 
 ![Compute Blade: the card, then the housings: the Extension Port (pins 1 to 10) and the UART header (pins 1 to 4) with their printed numbers](../generated/acorn-cable-blade-fit-2.png){.only-light}
 ![Compute Blade: the card, then the housings: the Extension Port (pins 1 to 10) and the UART header (pins 1 to 4) with their printed numbers](../generated/acorn-cable-blade-fit-2-dark.png){.only-dark}
 
-Which of
-these pins the old serial wires sit on, and whether J2 shares a terminal or a housing with P1's TMS wire, is
+Which Extension Port and UART pins
+the old serial wires sit on, and whether J2 shares a terminal or a housing with P1's TMS wire, is
 not recorded by us. Build a new P2 cable by the guide ([UART connector
 1](../building/compute-blade/uart-connector-1.md) and 2) first. Then ask Tim, and power the blade off (unplug its PoE cable,
 and a USB-C cable if one is plugged in), take the card out of its M.2 slot (touch bare metal of the unplugged blade first, and hold the card by its
