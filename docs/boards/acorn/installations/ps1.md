@@ -2,9 +2,10 @@
 
 **You look after the Acorns at ps1 (Pumping Station: One, Chicago) and want to
 know which card is where, what state it is in, and what it still needs.** The
-hosts as hosts (addresses, switch ports, power) are on the [PS1 site
-page](../../../sites/ps1-boards.md#compute-blades); what was read on each blade, with
-its date, is on [Acorns at ps1: what was read on each blade](ps1-reads.md); what we ran on the blades on
+hosts as hosts (addresses, switch ports, power) are on a site page that is not in this booklet; none of
+that is needed at the bench, because the visitor ports you need are listed below. What was read on each
+blade, with its date, is in the tables below (the longer record behind them is not in this booklet and is not
+needed at the bench); what we ran on the blades on
 7 October 2026, and what followed, is on [What fpgas.online ran on the ps1 blades, 7 October 2026](ps1-ran-2026-10-07.md).
 
 ## The cards
@@ -31,7 +32,20 @@ On a blade that is running, `ip link` prints its MAC (the `link/ether` line of `
 the serial number off a blade in the hand, without running it (a sticker on the module or on the blade), is
 **not verified by us**.
 
-**Telling the blades apart on the bench.** What the records say each one has, to look for (none of these has
+**Telling the blades apart on the bench: the plain answer.** With what you hold, you cannot tell which blade
+is pi14 at ps1, pi16 at ps1, pi18 at ps1 or pi20 at ps1 by looking at it, and we hold no record that says.
+**Ask Tim which blade is which.** What we do hold:
+
+- **Labels:** the only labels that name a blade are the two Compute Module labels of pi16 at ps1 and pi20 at
+  ps1 (label sheets, last chapter of this booklet). They carry the MAC address, not a host name: the one with
+  `2c:cf:67:fb:91:e5` is pi16 at ps1's, the one with `2c:cf:67:fd:1e:be` is pi20 at ps1's. Whether either is
+  stuck on its blade is not recorded by us. If you find one on a module, its MAC against the table above
+  names the blade. pi14 at ps1 and pi18 at ps1 have no label.
+- **Looking:** the list below is all the records say each blade has (none of it checked by eye by us), and it
+  splits the blades into two pairs only (pi14 at ps1 and pi18 at ps1 carry a Compute Module 4, pi16 at ps1 and pi20 at ps1 a Compute Module 5 Lite); nothing we hold separates the two blades within each pair.
+- **Unplugging one blade:** the way after the list, not yet tried by us, and it needs Tim first.
+
+What the records say each one has, to look for (none of these has
 been checked by eye by us):
 
 - pi18 at ps1: no card seen in its M.2 slot (no PCIe device on 7 October 2026).
@@ -62,8 +76,8 @@ installed on a blade are gone after it reboots: an install of 5 October on pi16 
 written here.
 
 **Converting a card** means loading the fpgas.online design into it over JTAG and writing that design to the
-card's flash, once; after that the card runs it from every power-on. The steps are [written for a Raspberry Pi
-5](../designs/install-images.md) and have **not yet been run by us on a Compute
+card's flash, once; after that the card runs it from every power-on. The steps are written for a Raspberry Pi
+5 (on a page that is not in this booklet; converting is not part of this booklet's work) and have **not yet been run by us on a Compute
 Blade** to their end: begun once on pi20 at ps1 on 7 October 2026 and stopped before the flash write
 ([What fpgas.online ran on the ps1 blades, 7 October 2026](ps1-ran-2026-10-07.md)).
 
@@ -77,11 +91,14 @@ Blade** to their end: begun once on pi20 at ps1 on 7 October 2026 and stopped be
 | Acorn CLE-101, device DNA `0x0028e5c45e304854` | pi20 at ps1 (2026-10-07) | CM5 Lite Rev 1.0 8 GB | a vendor XDMA sample image, `10ee:7011` (the flash never written: [what we ran](ps1-ran-2026-10-07.md)) | `0001:01` | answered (2026-09-20, kernel 6.12). Under kernel 6.18 (2026-10-07): fails with the header's serial port on (it holds GPIO14); passed with the port off at boot ([what we ran](ps1-ran-2026-10-07.md)) | K2 to GPIO15, J2 to GPIO14, no resistor (which header pins is not recorded: [the steps](ps1-pi20-old-serial.md)); J5 and H5 not wired |
 | none seen: no PCIe device (2026-10-07; the slot is empty, or a card has no link: `lspci` cannot tell) | pi18 at ps1 (2026-10-07) | CM4 Rev 1.1 4 GB | | | | |
 
-How each card was read, and what "P1 unmated" rests on, is on [Acorns at ps1: what was read on each
-blade](ps1-reads.md#the-cards-as-read).
+What "P1 unmated" rests on: it is read off the TCK wire. The Acorn pulls TCK up; on pi20 at ps1 the Pi's
+pull-down cannot move it, while on pi14 at ps1 and pi16 at ps1 it floats, exactly as on pi18 at ps1, which has
+no card. (Read on 2026-09-20; on 2026-10-07 the TCK read was repeated on pi16 at ps1 only: a pull test was also run on pi14 at ps1 and pi18 at ps1 that day, with no result recorded by us.) Reseating P1 is the first thing to try.
 
-**No blade is wired to the guide yet**; how each is wired today is on [what was read on each
-blade](ps1-reads.md#the-cards-as-read).
+**No blade is wired to the guide yet.** Only pi20 at ps1's wiring has been read: its P2 serial pair goes
+straight to GPIO14 (J2) and GPIO15 (K2), no resistor, and J5 and H5 are not wired (pin-ID read, 31 August
+2026). How pi14 at ps1's and pi16 at ps1's P2 cables are wired is not known, because nothing can be loaded
+to read them.
 
 ## What each blade still needs
 
