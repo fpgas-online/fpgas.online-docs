@@ -41,6 +41,9 @@ No short part of a chapter takes a sheet to itself when it can share one: a chap
 "What you need") goes with its first step when the step's pictures fit after it at no less than the smallest
 size, and a short closing section ("If a terminal is in the wrong cavity", "Next") goes on the sheet of the
 last step's last picture. Every chapter still starts a sheet of its own.
+A closing section the estimate says is a few lines too tall to keep is tried with the pictures at the smallest
+size; if the printed sheets show it did not fit, it is taken off and the pages are printed again (the check below
+is never relaxed). A table that runs over a sheet's end keeps at least three rows on each side of the cut.
 --append puts existing PDFs (label sheets) after the printed pages unchanged
 and not renumbered; every page of them must already be on the chosen paper,
 either way up, or the run stops.
@@ -116,6 +119,11 @@ LONG_LINES = 18
 # one may run over between its rows, so that it does not leave the rest of a sheet blank.
 SHORT_ROWS = 12
 SHORT_CHARS = 900
+# A longer table that runs over a sheet's end keeps at least this many of its rows (beside its header, which
+# repeats) at the end of the sheet it starts on and at the top of the sheet it ends on: a table never leaves
+# a lone row, or two, at the foot of one sheet or the head of the next. A table of fewer than KEEP_EDGE_ROWS * 2
+# rows is left as it is (it could not satisfy both ends).
+KEEP_EDGE_ROWS = 3
 # A step (its words, any list, and its pictures) is printed on one sheet: fit_steps estimates how tall its
 # words print and shrinks its pictures to one common scale if that is what it takes. The scale is that of a
 # picture as wide as the column: the site's drawings are drawn for it, with labels of 9 to 11 pt there. No
@@ -133,6 +141,8 @@ CHAR_MM, BOLD, PT_MM = 2.0, 1.1, 25.4 / 72
 # Each heading's size in pt and its margins, top and bottom, in mm (h2 with its rule).
 HEADING_SIZES = {"h1": (20, 4.0), "h2": (15, 9.7), "h3": (12, 7.0), "h4": (10.5, 5.5), "h5": (10, 4.5),
                  "h6": (10, 4.5)}
+# The margin above a heading, in mm, where the stylesheet gives it one of its own.
+HEADING_TOP_MM = {"h2": 7.0}
 # The chapter's source line (8 pt, up to two lines with its rule and margins) is above a step at its top.
 SOURCE_MM = 2 * 8 * 1.4 * PT_MM + 5.6
 # Below a picture's image: its paragraph's margin and the line's descent (a figure: its margin and caption).
@@ -140,6 +150,18 @@ PICTURE_BELOW_MM, FIGURE_BELOW_MM = 5.0, 3.5
 CONTINUED_MM = 2 * 10 * 1.4 * PT_MM + 2.5  # the line naming the step whose pictures go on, up to two lines
 # The paragraphs ending a section after a step's last picture are kept on its sheet when they are no taller.
 TAIL_MAX_MM = 60.0
+# The estimate errs tall, and for a step with a tail it does so by more than STEP_SPARE_MM: the words over a
+# step's picture and the tail under it are each estimated a whole line too tall at times. Measured on the
+# Compute Blade booklet on Letter (UART connector 2, step 4), the words printed 5 mm shorter than estimated
+# and the closing section with the picture's foot 9 mm shorter, with the spare still unspent: the picture and
+# the section fitted at the smallest size by 6 mm, the estimate said they were 19 mm over. So a tail that the
+# estimate says does not fit, but would with the spare and TAIL_TRY_MM more room, is tried (fit_steps): its
+# pictures are printed at the smallest size allowed, and the printed sheets say whether it fitted. A tail that
+# did not is taken off, and the booklet printed again (main), never left split.
+TAIL_TRY_MM = 10.0
+# A section's heading that opens a step's tail sits this close to the picture over it, in place of its usual
+# margin above (7 mm for an h2): a picture and the section ending under it are not two parts of a page.
+TAIL_OPEN_MM = 3.0
 # A step's words: the blocks that print on lines of their own, and so are counted apart from the text around
 # them; a code span's padding (0.6 mm each side) in characters; a listing's padding, border and margin in mm.
 WORD_BLOCKS = ("p", "ul", "ol", "pre", "div", "blockquote", "dl", "table", "figure")
@@ -229,6 +251,9 @@ td code.whole { white-space: nowrap; overflow-wrap: normal; }
 th code { overflow-wrap: normal; }
 thead { display: table-header-group; }
 tr { break-inside: avoid; }
+/* keep_table_ends: the first rows of a long table go with the row after them, the last rows with the row before. */
+tr.keep-with-next { break-after: avoid; }
+tr.keep-with-prev { break-before: avoid; }
 .admonition { border: 1.2pt solid #000; padding: 2mm 3mm; margin: 0 0 3.5mm; break-inside: avoid; }
 .admonition-title { font-weight: bold; text-transform: uppercase; margin-bottom: 1mm; }
 .admonition p:last-child { margin-bottom: 0; }
@@ -242,6 +267,8 @@ img { max-width: 100%%; }
 /* The pictures of a step too tall for one sheet (fit_steps), on the next sheet under the step's number. */
 .continued { break-before: page; }
 .continued-line { font-weight: bold; break-after: avoid; }
+/* The heading opening a step's tail (fit_steps), close under the picture it ends. */
+.tail-open { margin-top: 3mm; }
 /* mark_steps: text the PDF holds, for check_steps to find each step's sheet, but too small to see and taking
    no room: 0.1 pt, white, in a box of no width in the line it marks (with any width at all, it pushed a
    picture as wide as the column onto a line of its own). Chrome leaves out text of 0.01 pt or of opacity 0,
@@ -1031,7 +1058,31 @@ def tail_after(last: Tag) -> list[Tag]:
     return tail
 
 
-def fit_steps(body: Tag, soup: BeautifulSoup, paper: str, name: str) -> None:
+def tail_heading(tail: list[Tag]) -> Tag | None:
+    """The h2 that opens a step's tail, if the tail begins with one (inside a section or not)."""
+    node = tail[0]
+    while isinstance(node, Tag) and node.name == "section":
+        node = node.find(recursive=False)
+    return node if isinstance(node, Tag) and node.name == "h2" else None
+
+
+def tail_height(tail: list[Tag], width: float) -> float:
+    """How tall a step's tail prints under its last picture: its blocks, the heading that opens it (tail_heading)
+    sitting TAIL_OPEN_MM below the picture, not the 7 mm of an h2's usual margin above."""
+    total = sum(block_mm(part, width) for part in tail)
+    return total - (HEADING_TOP_MM["h2"] - TAIL_OPEN_MM if tail_heading(tail) is not None else 0.0)
+
+
+def floor_mm(pictures: list[Tag], width: float) -> float:
+    """How much room pictures take together, with what is below each, at the smallest size allowed."""
+    total = 0.0
+    for picture in pictures:
+        natural, full, below = picture_mm(picture, width)
+        total += min(natural, PICTURE_MIN_SCALE * full) + below
+    return total
+
+
+def fit_steps(body: Tag, soup: BeautifulSoup, paper: str, name: str, no_trial: frozenset[str] = frozenset()) -> None:
     """Print each step whole on one sheet: its words and all its pictures.
 
     A step's pictures are the one step_pictures wrapped with its words and those right after it. They are
@@ -1040,7 +1091,10 @@ def fit_steps(body: Tag, soup: BeautifulSoup, paper: str, name: str) -> None:
 
     A few short paragraphs that end the section after the step (tail_after) stay on the sheet of its last
     pictures, which are shrunk a little more for them if need be: printed after a sheet the pictures fill,
-    they would stand alone on a sheet of their own. name: the chapter's short name (chapter_name).
+    they would stand alone on a sheet of their own. A tail that the estimate does not fit even so, but would
+    with TAIL_TRY_MM more room, is tried at the smallest size of its pictures (div.step-tail data-trial): main
+    drops it, by its step's label in no_trial, if the printed sheets show it did not fit.
+    name: the chapter's short name (chapter_name).
 
     Each picture shrunk and each moved to a later sheet is said on stderr."""
     width, height = TEXT_MM[paper]
@@ -1086,16 +1140,26 @@ def fit_steps(body: Tag, soup: BeautifulSoup, paper: str, name: str) -> None:
         # What ends the chapter after the step, or else its section, goes on the sheet of its last picture.
         # The first of the two that fits is kept: a chapter ending too tall to keep still leaves the
         # paragraphs that end the step's own section.
-        tail = []
+        tail, trial = [], False
         for candidate in (chapter_ending(anchor, body), tail_after(anchor)):
             if not candidate:
                 continue
             last_room, last_pictures, _ = sheets[-1]
-            tail_mm = sum(block_mm(part, width) for part in candidate)
-            placed = place_pictures(last_pictures, last_room - tail_mm, width, False) if tail_mm <= TAIL_MAX_MM else []
+            tail_mm = tail_height(candidate, width)
+            if tail_mm > TAIL_MAX_MM:
+                continue
+            placed = place_pictures(last_pictures, last_room - tail_mm, width, False)
+            tried = False
+            if len(placed) != len(last_pictures) and label not in no_trial:
+                # Not by the estimate: tried at the smallest size, if the estimate is short by no more than
+                # the spare it keeps and TAIL_TRY_MM.
+                smallest = floor_mm(last_pictures, width)
+                if smallest + tail_mm <= last_room + STEP_SPARE_MM + TAIL_TRY_MM:
+                    placed = place_pictures(last_pictures, smallest + 0.01, width, False)
+                    tried = len(placed) == len(last_pictures)
             if len(placed) == len(last_pictures):
                 sheets[-1] = (last_room, last_pictures, placed)
-                tail = candidate
+                tail, trial = candidate, tried
                 break
         last = step
         for number, (_, group, placed) in enumerate(sheets):
@@ -1121,6 +1185,13 @@ def fit_steps(body: Tag, soup: BeautifulSoup, paper: str, name: str) -> None:
                         f"({height_mm / full:.2f} of the column's width)")
         if tail:
             kept = soup.new_tag("div", attrs={"class": "step-tail"})
+            if trial:
+                kept["data-trial"] = "1"
+                say(f"{label}: its tail is tried at the smallest size of the pictures; the printed sheets "
+                    "say whether it fits, and it is taken off if not")
+            opener = tail_heading(tail)
+            if opener is not None:
+                opener["class"] = [*opener.get("class", []), "tail-open"]
             for part in tail:
                 kept.append(part.extract())
             last.append(kept)
@@ -1263,11 +1334,62 @@ def check_steps(sheets: list[str], page: str) -> list[str]:
     return problems
 
 
+def split_tails(sheets: list[str], page: str) -> dict[str, int]:
+    """For each step whose tail was only tried (fit_steps, data-trial), how many of its paragraphs printed on
+    another sheet than its last picture: the step's label, and the number. Only steps with such a paragraph are
+    in the answer. Marks not found exactly once are left out, so that check_steps's problems outnumber these."""
+    soup = BeautifulSoup(page, "html.parser")
+    found: dict[str, list[int]] = {}
+    for sheet, text in enumerate(sheets, 1):
+        for mark in re.finditer(STEP_MARK_RE, text):
+            found.setdefault(mark.group(0), []).append(sheet)
+    steps = {div["data-step"]: div for div in soup.select("div.step[data-step]") if div.get("data-block") == "0"}
+    split: dict[str, int] = {}
+    for div in soup.select("div.step[data-step]"):
+        tail = div.find("div", class_="step-tail", recursive=False)
+        if tail is None or not tail.get("data-trial") or div["data-step"] not in steps:
+            continue
+        pictures = [part for part in div.find_all(recursive=False) if "picture" in part.get("class", [])]
+        if not pictures:
+            continue
+        where = found.get(next(iter(span.get_text() for span in pictures[-1].select("span.step-mark")
+                                    if span.get_text().startswith("PPSTEP-P-")), ""), [])
+        ends = [found.get(span.get_text(), []) for span in tail.find_all("span", class_="step-mark")]
+        late = sum(1 for sheet in ends if len(sheet) == 1 and len(where) == 1 and sheet != where)
+        if late:
+            label = steps[div["data-step"]].get("data-label")
+            split[label] = split.get(label, 0) + late
+    return split
+
+
 def short_tables(body: Tag) -> None:
     """Keep a short table on one sheet; a long one may run over."""
     for table in body.find_all("table"):
         if len(table.find_all("tr")) <= SHORT_ROWS and len(table.get_text(" ", strip=True)) <= SHORT_CHARS:
             table["class"] = [*table.get("class", []), "short"]
+
+
+def keep_table_ends(body: Tag) -> None:
+    """Keep the first and the last rows of a table that may run over a sheet's end with their neighbours.
+
+    A table is cut between its rows (tr never breaks inside), and a cut after its first row, or before its last,
+    leaves one row on a sheet of its own or at the foot of a sheet: a reader who turns the page can take it for
+    the end of the table, or miss it. The first KEEP_EDGE_ROWS - 1 rows of the body are each kept with the row
+    after, and the last KEEP_EDGE_ROWS - 1 with the row before, so that every sheet a table is cut on holds at
+    least KEEP_EDGE_ROWS of its rows. The header is not counted: it is repeated on each sheet (CSS thead). A
+    short table (short_tables) is kept whole and left as it is."""
+    for table in body.find_all("table"):
+        if "short" in table.get("class", []):
+            continue
+        rows = [row for row in table.find_all("tr")
+                if row.find_parent("table") is table and row.find_parent("thead") is None
+                and row.find("td") is not None]
+        if len(rows) < 2 * KEEP_EDGE_ROWS:
+            continue
+        for row in rows[:KEEP_EDGE_ROWS - 1]:
+            row["class"] = [*row.get("class", []), "keep-with-next"]
+        for row in rows[-(KEEP_EDGE_ROWS - 1):]:
+            row["class"] = [*row.get("class", []), "keep-with-prev"]
 
 
 def whole_codes(body: Tag) -> None:
@@ -1291,11 +1413,12 @@ def whole_codes(body: Tag) -> None:
 
 
 def chapter(number: int, spec: str, commit: str, fetched: str, paper: str,
-            link_lists: bool = True) -> tuple[str, str]:
+            link_lists: bool = True, no_trial: frozenset[str] = frozenset()) -> tuple[str, str]:
     """The title and the printable HTML of one page, as chapter number of the PDF.
 
     link_lists: number each link and list the addresses at the chapter's end. Without it a link is printed
-    as its words alone, for a reader who has the paper and nothing to follow an address with."""
+    as its words alone, for a reader who has the paper and nothing to follow an address with.
+    no_trial: the labels of the steps whose tail is not tried (fit_steps)."""
     path, wanted = parse_spec(spec)
     url = page_url(path)
     page, _ = fetch(url)
@@ -1309,12 +1432,13 @@ def chapter(number: int, spec: str, commit: str, fetched: str, paper: str,
     fit_code(body, soup)
     long_blocks(body)
     short_tables(body)
+    keep_table_ends(body)
     whole_codes(body)
     heading = body.find("h1")
     title = heading.get_text(strip=True) if heading else path
     step_pictures(body, soup)
     own_pictures(body, soup)
-    fit_steps(body, soup, paper, chapter_name(title))
+    fit_steps(body, soup, paper, chapter_name(title), no_trial)
     mark_steps(body, soup, number, title)
     note = f"Chapter {number} · Source: {url}"
     if wanted:
@@ -1383,7 +1507,8 @@ def css_string(text: str) -> str:
 
 
 def document(title: str, paper: str, specs: list[str], cover_notes: str | None = None,
-             last_sheet: str | None = None, link_lists: bool = True, appended: int = 0) -> str:
+             last_sheet: str | None = None, link_lists: bool = True, appended: int = 0,
+             no_trial: frozenset[str] = frozenset()) -> str:
     """The joined page, with a place on the cover for each chapter's sheet number.
 
     appended: how many sheets of other PDFs follow the printed ones. They carry no foot of ours, so each
@@ -1398,7 +1523,8 @@ def document(title: str, paper: str, specs: list[str], cover_notes: str | None =
             note_boxes(text)
     commit = built_commit()
     fetched = datetime.date.today().isoformat()
-    chapters = [chapter(number, spec, commit, fetched, paper, link_lists) for number, spec in enumerate(specs, 1)]
+    chapters = [chapter(number, spec, commit, fetched, paper, link_lists, no_trial=no_trial)
+                for number, spec in enumerate(specs, 1)]
     foot = css_string(f"{title} · docs.fpgas.online · commit {commit[:10]} · {fetched}")
     after = f" + {appended} unnumbered" if appended else ""
     css = CSS % {"paper": PAPERS[paper], "foot": foot, "after": after}
@@ -1640,39 +1766,52 @@ def main() -> int:
     split = output.with_name(output.stem + ".STEPS-SPLIT.pdf")
     cover_notes = None if args.cover_notes is None else args.cover_notes.read_text(encoding="utf-8")
     last_sheet = None if args.last_sheet is None else args.last_sheet.read_text(encoding="utf-8")
+    dropped: frozenset[str] = frozenset()
     try:
         printed.unlink(missing_ok=True)
         united.unlink(missing_ok=True)
         split.unlink(missing_ok=True)
         # Counted before anything is fetched or printed: a wrong PDF stops the run at once.
         appended = appended_sheets(args.append, args.paper)
-        page = document(args.title, args.paper, args.pages, cover_notes, last_sheet, not args.no_link_lists,
-                        appended)
-        places = set(re.findall(SHEET_PLACE_RE, page))
-        joined.write_text(without_sheets(page), encoding="utf-8")
-        print_pdf(joined, printed)
-        if places:
-            # Printed once to learn which sheet each chapter starts on, and again
-            # with those numbers on the cover; they must not have moved.
-            sheets = chapter_sheets(printed, len(places))
-            wide = wide_sheets(printed, page)
-            printed.unlink()
-            joined.write_text(with_sheets(page, sheets, wide), encoding="utf-8")
+        while True:
+            page = document(args.title, args.paper, args.pages, cover_notes, last_sheet, not args.no_link_lists,
+                            appended, no_trial=dropped)
+            places = set(re.findall(SHEET_PLACE_RE, page))
+            joined.write_text(without_sheets(page), encoding="utf-8")
             print_pdf(joined, printed)
-            if chapter_sheets(printed, len(places)) != sheets or wide_sheets(printed, page) != wide:
-                raise SystemExit("the sheets moved when their numbers were put in")
-        if re.search(STEP_MARK_RE, page):
+            if places:
+                # Printed once to learn which sheet each chapter starts on, and again
+                # with those numbers on the cover; they must not have moved.
+                sheets = chapter_sheets(printed, len(places))
+                wide = wide_sheets(printed, page)
+                printed.unlink()
+                joined.write_text(with_sheets(page, sheets, wide), encoding="utf-8")
+                print_pdf(joined, printed)
+                if chapter_sheets(printed, len(places)) != sheets or wide_sheets(printed, page) != wide:
+                    raise SystemExit("the sheets moved when their numbers were put in")
+            if not re.search(STEP_MARK_RE, page):
+                break
             sheet_texts = run(["pdftotext", str(printed), "-"], f"pdftotext {printed}", timeout=120,
                               capture_output=True, text=True).stdout.split("\f")
             problems = check_steps(sheet_texts, page)
-            if problems:
-                # Kept under a name no one takes for the output, to look at the sheets named.
-                printed.replace(split)
-                if args.keep_html:
-                    joined.replace(kept)
-                raise SystemExit(
-                    f"a step's words and its pictures did not print on one sheet; {output.name} was not written, "
-                    f"and the print is {split} for a look:\n  " + "\n  ".join(problems))
+            if not problems:
+                break
+            # A tail only tried (fit_steps) that did not fit is the one thing taken off and printed again; any
+            # other problem, or a tail that was not tried, stops the run.
+            late = split_tails(sheet_texts, page)
+            if late and sum(late.values()) == len(problems):
+                say("the tail of " + "; ".join(late) + " did not fit on the sheet of its last picture: "
+                    "printing again without it")
+                dropped |= frozenset(late)
+                printed.unlink(missing_ok=True)
+                continue
+            # Kept under a name no one takes for the output, to look at the sheets named.
+            printed.replace(split)
+            if args.keep_html:
+                joined.replace(kept)
+            raise SystemExit(
+                f"a step's words and its pictures did not print on one sheet; {output.name} was not written, "
+                f"and the print is {split} for a look:\n  " + "\n  ".join(problems))
         if args.append:
             append_pdfs(printed, args.append, args.paper, united)
             united.replace(output)
