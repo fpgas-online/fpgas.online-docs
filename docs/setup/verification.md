@@ -77,27 +77,7 @@ run alone leaves the Pi copy stale until the `onpi` play runs. Confirm which,
 and fix the checklist.
 :::
 
-### 2. Site host table
-
-These pages keep no table of hosts, so the new host needs no row here.
-
-Give hostname, switch port, IP, Pi model, board type or serial, and status.
-The tables carry more columns than that (MAC, board serial, revision), so fill
-what the section's own header row asks for.
-
-The old checklist had a separate step for the board's own document — "if the
-device doc has a host inventory section, add the new host". That step is gone,
-not skipped: board pages no longer carry host inventories. Each one links to
-the site page instead, so the site table is the only host list to edit.
-
-### 3. Board counts
-
-Update the deployed and pending counts in
-[Boards at a glance](../boards/index.md#boards-at-a-glance) for that board type
-and site. Deploying something that was pending means decrementing the pending
-count and incrementing the deployed one.
-
-### 4. Test runner configuration
+### 2. Test runner configuration
 
 This one **stays in the test-designs repository**. In
 [`verify_hardware.py`](https://github.com/fpgas-online/fpgas.online-test-designs/blob/main/verify_hardware.py):
@@ -108,7 +88,7 @@ This one **stays in the test-designs repository**. In
   `PROGRAM_CMD` (or `HOST_PROGRAM_CMD`, for a host that programs differently
   from others of the same board type) covers it.
 
-### 5. PoE switch, physical
+### 3. PoE switch, physical
 
 On the PoE switch, enable PoE on the new port if it is not already enabled,
 then confirm the Pi netboots and gets an address. Power on that port is the
@@ -145,10 +125,9 @@ the serial port, parse the result — is under
 
 ```
 1. On val2: Add dhcp-host line to /etc/dnsmasq.d/pibs.conf
-2. Edit docs/boards/index.md: Increment PS1 (deployed) count for Arty A7
-3. Edit verify_hardware.py: Add "ps1-piNN" to HOSTS dict
-4. Power on the RPi, verify PXE boot, run verify_hardware.py
-5. Commit and push
+2. Edit verify_hardware.py: Add "ps1-piNN" to HOSTS dict
+3. Power on the RPi, verify PXE boot, run verify_hardware.py
+4. Commit and push
 ```
 
 The original checklist suggests a commit message of the form "Add pi42 Arty A7

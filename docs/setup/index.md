@@ -72,20 +72,3 @@ take that picture apart:
   `tinytapeout.fpgas.online`.
 - [Verifying a deployment](verification.md) — what to change when adding
   another device of a type the fleet already has, and how to prove it works.
-
-```{toctree}
-:maxdepth: 1
-
-netboot
-bootloader-eeprom
-network
-pi
-orange-pi
-gateway
-upstream-gateway
-access
-ps1-login
-webapp
-tinytapeout
-verification
-```

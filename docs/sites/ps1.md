@@ -35,9 +35,3 @@ next boot.
 - A card for the blade that has none: [test-designs issue #217](https://github.com/fpgas-online/fpgas.online-test-designs/issues/217).
 - Tiny Tapeout chip boards and FPGA demo boards: [tt issue #19](https://github.com/fpgas-online/fpgas.online-tt/issues/19).
 - A page for each host that stays when its board changes: [site issue #65](https://github.com/fpgas-online/fpgas.online-site/issues/65).
-
-```{toctree}
-:hidden:
-
-Gateway and switch <ps1-gateway>
-```

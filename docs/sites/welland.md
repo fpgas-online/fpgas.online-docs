@@ -43,9 +43,3 @@ own bitstream. Each board has a camera feed.
 - The Tiny Tapeout boards whose hosts are down, back in service: [infra issue #274](https://github.com/fpgas-online/fpgas.online-infra/issues/274).
 - The Tiny Tapeout chip boards tt09 and tt10: [tt issue #20](https://github.com/fpgas-online/fpgas.online-tt/issues/20).
 - Driving the oldest chip board from the browser, which shows a camera feed only: [tt-commander-app issue #9](https://github.com/fpgas-online/tt-commander-app/issues/9).
-
-```{toctree}
-:hidden:
-
-Gateway <welland-gateway>
-```

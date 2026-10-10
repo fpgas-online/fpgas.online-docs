@@ -238,10 +238,3 @@ Source: [High Speed PMOD Spreadsheet](https://docs.google.com/spreadsheets/d/1D-
 ## Board-specific pinouts
 
 How the PMOD signals map onto the Raspberry Pi HAT and onto Tiny Tapeout demo boards:
-
-```{toctree}
-:maxdepth: 1
-
-rpi-hat
-tinytapeout
-```
