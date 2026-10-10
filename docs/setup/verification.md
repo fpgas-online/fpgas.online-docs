@@ -26,9 +26,7 @@ none of which this procedure produces.
 
 ## Adding a device of an existing type
 
-Five things change, and a sixth from the original checklist has collapsed into
-the second. Three of them still live in repositories rather than in these docs,
-and are called out as such.
+Three things change. Each lives in a repository or on the gateway, not in these docs, and is called out as such.
 
 ### 1. Gateway network configuration
 
@@ -77,27 +75,7 @@ run alone leaves the Pi copy stale until the `onpi` play runs. Confirm which,
 and fix the checklist.
 :::
 
-### 2. Site host table
-
-These pages keep no table of hosts, so the new host needs no row here.
-
-Give hostname, switch port, IP, Pi model, board type or serial, and status.
-The tables carry more columns than that (MAC, board serial, revision), so fill
-what the section's own header row asks for.
-
-The old checklist had a separate step for the board's own document — "if the
-device doc has a host inventory section, add the new host". That step is gone,
-not skipped: board pages no longer carry host inventories. Each one links to
-the site page instead, so the site table is the only host list to edit.
-
-### 3. Board counts
-
-Update the deployed and pending counts in
-[Boards at a glance](../boards/index.md#boards-at-a-glance) for that board type
-and site. Deploying something that was pending means decrementing the pending
-count and incrementing the deployed one.
-
-### 4. Test runner configuration
+### 2. Test runner configuration
 
 This one **stays in the test-designs repository**. In
 [`verify_hardware.py`](https://github.com/fpgas-online/fpgas.online-test-designs/blob/main/verify_hardware.py):
@@ -108,7 +86,7 @@ This one **stays in the test-designs repository**. In
   `PROGRAM_CMD` (or `HOST_PROGRAM_CMD`, for a host that programs differently
   from others of the same board type) covers it.
 
-### 5. PoE switch, physical
+### 3. PoE switch, physical
 
 On the PoE switch, enable PoE on the new port if it is not already enabled,
 then confirm the Pi netboots and gets an address. Power on that port is the
@@ -135,7 +113,7 @@ After all of the above:
    whichever tool that board needs; the per-board commands are in
    [Programming commands](#programming-commands) below.
 5. **Test.** Run `verify_hardware.py --host <new-host>` for the full suite.
-6. **Commit.** Commit the documentation changes.
+6. **Commit.** Commit the change to `verify_hardware.py`.
 
 The order in which a test actually exercises the board — boot, program, open
 the serial port, parse the result — is under
@@ -145,14 +123,12 @@ the serial port, parse the result — is under
 
 ```
 1. On val2: Add dhcp-host line to /etc/dnsmasq.d/pibs.conf
-2. Edit docs/boards/index.md: Increment PS1 (deployed) count for Arty A7
-3. Edit verify_hardware.py: Add "ps1-piNN" to HOSTS dict
-4. Power on the RPi, verify PXE boot, run verify_hardware.py
-5. Commit and push
+2. Edit verify_hardware.py: Add "ps1-piNN" to HOSTS dict
+3. Power on the RPi, verify PXE boot, run verify_hardware.py
+4. Commit and push
 ```
 
-The original checklist suggests a commit message of the form "Add pi42 Arty A7
-to Welland site".
+The commit message says which host was added, in the form "Add pi42 Arty A7 to Welland site".
 
 :::{note}
 `pi42` is the legacy naming form. It is still correct at PS1, where a host is

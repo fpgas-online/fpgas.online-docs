@@ -1,78 +1,36 @@
+---
+type: landing
+owner: documentation maintainers
+reader: anyone arriving at docs.fpgas.online
+review: 2026-11-10
+---
+
 # fpgas.online
 
-FPGA hardware you can reach over the internet: Raspberry Pi hosts with FPGA
-boards attached, wired up so a design can be built, loaded and driven remotely.
+fpgas.online is FPGA boards you can reach over the internet. Each board sits on a Raspberry Pi at a site, wired so
+that a design can be loaded, driven and watched from anywhere.
 
-This site documents how that hardware is put together and how the
-infrastructure behind it runs. It is written for whoever has to fix it next.
+## The four sections
 
-:::{note}
-These pages describe live infrastructure, so they track the current state
-rather than a released version. Where a page records a measurement, it says
-when it was taken.
-:::
+- [User documentation](user/index.md): for someone using a board through a site.
+- [Admin documentation](admin/index.md): for someone running a site.
+- [Developer documentation](developer/index.md): for someone changing the software or these pages.
+- [Resources](resources/index.md): pinouts, standards and outside documents.
 
-## Finding your way
+## I want to
 
-[Sites](sites/index.md)
-: Where the hardware is: Welland (South Australia) and PS1 (Chicago). Network,
-  gateway, switches, which host carries which board, and the faults known on
-  each host.
-
-[Boards](boards/index.md)
-: Each FPGA board type: specification, wiring to its Raspberry Pi, how to
-  program it, and how to check the wiring.
-
-[Checking a board: fpgas-verify](verify/fpgas-verify.md)
-: Install `fpgas-verify` on any Raspberry Pi with a supported board, run it,
-  read the result, update the record after a change, and debug a failure. It
-  needs no fpgas.online infrastructure.
-
-[Setup](setup/index.md)
-: How the platform works: netboot and the NFS root, the network, what runs on
-  the Pi hosts and on the gateway, and the web application.
-
-```{toctree}
-:maxdepth: 2
-:caption: Contents
-
-sites/index
-boards/index
-setup/index
-verify/fpgas-verify
-packages
-developer/index
-contributing
-open-items
-```
-
-## Where the code lives
-
-The systems described here have their own repositories under the
-[fpgas-online](https://github.com/fpgas-online) organisation. The main ones:
-
-`fpgas.online-infra`
-: Ansible for the gateway servers and the Raspberry Pi NFS root.
-
-`fpgas.online-test-designs`
-: FPGA designs that verify a board is wired up correctly.
-
-`fpgas.online-site`
-: The Django web application, including the Tiny Tapeout catalogue.
-
-`fpgas.online-tt`, `tinytapeout-fpga-demos`, `tt-commander-app`
-: The Pi-side Tiny Tapeout bridge daemon, the demo bitstreams, and the
-  browser Commander it serves.
-
-`fpgas.online-setup-pi`, `fpgas.online-cam`, `fpgas.online-poe`
-: Packages installed on the Pi hosts and the PoE switch control library.
-
-`apt`
-: The package repository at <https://apt.fpgas.online>. See [Packages](packages.md).
+- Use a board from a website: [Sites](sites/index.md) says what each site offers.
+- Know what is coming: [Roadmap](roadmap.md).
+- Set up a board on a Raspberry Pi at my bench: [Boards](boards/index.md), then the board's own pages.
+- Check that a board on a Raspberry Pi works: [Checking a board: fpgas-verify](verify/fpgas-verify.md).
+- Know what a repository is for: [Repositories](repositories.md).
+- Keep a site running: [Admin documentation](admin/index.md).
 
 ```{toctree}
 :hidden:
 
-verify/identity
-verify/goals
+user/index
+admin/index
+developer/index
+resources/index
 ```
