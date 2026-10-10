@@ -45,7 +45,7 @@ wiki](https://github.com/enjoy-digital/litex/wiki/Use-LiteX-on-the-Acorn-CLE-215
   the same pair as its PCI subsystem ID ([the fpgas.online LiteX SoC](overview/design.md#images)).
 - **By the JTAG IDCODE**: `0x3636093` is an XC7A200T (CLE-215+, CLE-215, NiteFury) and `0x3631093` an
   XC7A100T (CLE-101, LiteFury) (the `--detect` blocks of [JTAG by hand](checks/jtag-by-hand.md); `0x3631093`
-  was read on pi20 at ps1 on 2026-09-20, [Acorns at ps1](installations/ps1.md#the-cards)).
+  was read on pi20 at ps1 on 2026-09-20).
 
 Neither tells a CLE-215+ from a CLE-215 or a NiteFury: not on these pages.
 

@@ -27,9 +27,7 @@ out — not on the site:
   `--pins 2:3:4:14`. P2's serial pair goes to the 4-pin UART header, and J5 and
   H5 are not connected. The UART header's TX pin is the same GPIO14 as TMS, so
   the J2 wire has a 470 Ω resistor in it so that JTAG should win (designed so,
-  not yet measured). Whether a ps1 blade is wired this way,
-  and how each one is wired, is on [Acorns at
-  ps1](../installations/ps1.md#the-cards).
+  not yet measured). No ps1 blade is wired this way yet: [test-designs issue #216](https://github.com/fpgas-online/fpgas.online-test-designs/issues/216).
 
 On both carriers the serial pair lands on the same GPIOs — K2 (FPGA TX) on
 GPIO15, J2 (FPGA RX) on GPIO14 — so one set of FPGA pin constraints and one set
@@ -58,8 +56,7 @@ $ openFPGALoader --cable libgpiod --pins 10:9:11:8 <bitstream.bit>
 
 **On a Compute Blade do not make this `gpiochip0` link and do not use these commands.** There the JTAG pins are
 `2:3:4:14` (P1 lands on GPIO2, 3, 4 and 14: the I²C pair, GPIO4 and the UART TX
-line), and the PCIe bus address differs per blade; see [JTAG on a
-blade](../checks/compute-blade-jtag-by-hand.md#jtag-on-a-blade) and [Acorns at ps1](../installations/ps1.md#the-cards).
+line), and the PCIe bus address differs per blade; see [JTAG on a blade](../checks/compute-blade-jtag-by-hand.md#jtag-on-a-blade).
 
 :::{warning}
 Detach the PCIe endpoint before loading a bitstream. Reconfiguring the FPGA
@@ -90,8 +87,7 @@ with `spi_flash.py`, which is how a board is moved onto the golden and
 operational images and how the operational image is updated; see [Acorn PCIe
 programming and multiboot](../setup/install-images.md). A board on the SQRL factory
 firmware or the vendor XDMA image first needs the design loaded into SRAM over
-JTAG. Which image each card boots is on [Acorns at welland](../installations/welland.md) and [Acorns at
-ps1](../installations/ps1.md).
+JTAG.
 
 ## The programming paths compared
 

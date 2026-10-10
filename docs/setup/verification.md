@@ -46,9 +46,7 @@ all ([Two addressing schemes](network.md#two-addressing-schemes)). Instead:
 
 - Plug the board into the right port. The allocation rule on the S3300 is that
   port `N` carries Tiny Tapeout `N` for ports 1–10, the TT FPGA demo boards sit
-  on 33–36, and the Acorns on 29 and 43–48. Which of those ports are actually
-  occupied today is the
-  [Welland host tables](../sites/welland-boards.md), not this rule.
+  on 33–36, and the Acorns on 29 and 43–48. Which of those ports are occupied today is what each host's check reports, not this rule.
 - For a Tiny Tapeout board, add or enable its row in the `tt_boards` catalogue.
   That catalogue **stays in the infra repository**, in
   [`ansible/inventory/host_vars/fpgas.online.yml`](https://github.com/fpgas-online/fpgas.online-infra/blob/main/ansible/inventory/host_vars/fpgas.online.yml).
@@ -65,8 +63,7 @@ all ([Two addressing schemes](network.md#two-addressing-schemes)). Instead:
 :::{todo}
 Two claims in the upstream checklist disagree with these docs.
 
-Its port ranges are wider than the measured occupancy. The
-[Welland host tables](../sites/welland-boards.md) put TT ASIC boards
+Its port ranges are wider than the measured occupancy. The welland host records put TT ASIC boards
 on ports 3–8 only, with 9 and 10 reserved in the catalogue and nothing recorded
 on 1 or 2; and the Acorns on p29, p43, p44, p46, p47 and p48, with no p45. Is
 1–10 the standing allocation with four slots free, or has the range shrunk, and
@@ -82,10 +79,7 @@ and fix the checklist.
 
 ### 2. Site host table
 
-Add the new host to the right table on its site page —
-[Welland hosts and boards](../sites/welland-boards.md) or
-[PS1 hosts and boards](../sites/ps1-boards.md) — under the section
-for that board type (Arty, NeTV2, Fomu, TT FPGA, Acorn, and so on).
+These pages keep no table of hosts, so the new host needs no row here.
 
 Give hostname, switch port, IP, Pi model, board type or serial, and status.
 The tables carry more columns than that (MAC, board serial, revision), so fill
@@ -151,11 +145,10 @@ the serial port, parse the result — is under
 
 ```
 1. On val2: Add dhcp-host line to /etc/dnsmasq.d/pibs.conf
-2. Edit docs/sites/ps1-boards.md: Add row to the Arty A7 hosts table
-3. Edit docs/boards/index.md: Increment PS1 (deployed) count for Arty A7
-4. Edit verify_hardware.py: Add "ps1-piNN" to HOSTS dict
-5. Power on the RPi, verify PXE boot, run verify_hardware.py
-6. Commit and push
+2. Edit docs/boards/index.md: Increment PS1 (deployed) count for Arty A7
+3. Edit verify_hardware.py: Add "ps1-piNN" to HOSTS dict
+4. Power on the RPi, verify PXE boot, run verify_hardware.py
+5. Commit and push
 ```
 
 The original checklist suggests a commit message of the form "Add pi42 Arty A7

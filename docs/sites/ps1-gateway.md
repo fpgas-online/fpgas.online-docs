@@ -1,8 +1,7 @@
 # The ps1 gateway and switch
 
 **You look after the ps1 gateway and want to know what it serves, which switch port carries which host, and
-how to power-cycle one host.** You need root on the gateway. Which board is on which host, and its faults,
-are on [Hosts and boards at ps1](ps1-boards.md).
+how to power-cycle one host.** You need root on the gateway.
 
 ## Gateway: val2
 
@@ -38,11 +37,9 @@ lease. Welland's one-network-per-port scheme is not used here.
 On 6 October 2026 the gateway served ONE root, `/srv/nfs/rpi/trixie/{boot,root}`, exported read-only to
 `10.21.0.1/24` (the Pi network); there was no `bookworm` root, though older versions of this page list one for the Arty hosts.
 Every Pi's TFTP directory (`/srv/tftp/<serial>`, 12 of them) was a link to the same `boot/`, so a change
-there changes every host at once ([Where a blade's boot configuration
-is](../boards/acorn/installations/ps1-reads.md#where-a-blades-boot-configuration-is)). Its kernel command line
+there changes every host at once. Its kernel command line
 mounts `nfsroot=10.21.0.1:/srv/nfs/rpi/trixie/root` and asks for a tmpfs overlay (`overlayroot=tmpfs`); the
-blades were seen running with that overlay on 2026-09-20 ([Acorns at ps1: what was
-read](../boards/acorn/installations/ps1-reads.md)). With it, anything a host writes, `/home/pi` included, is
+blades were seen running with that overlay on 2026-09-20. With it, anything a host writes, `/home/pi` included, is
 gone after a reboot or a power cycle ([The NFS root is shared and
 read-only](../setup/netboot.md#the-nfs-root-is-shared-and-read-only)).
 

@@ -42,8 +42,7 @@ then named pi-sw2-p48, last checked 2026-09-21.
 
 :::{danger}
 Only on a board whose JTAG answers `--detect`. If writing the golden slot goes
-wrong, JTAG is the only way back. Check the card's row on [Acorns at welland](../installations/welland.md#the-cards) or [Acorns at
-ps1](../installations/ps1.md#the-cards) first, and prove it on the card itself (read-only, safe on a live
+wrong, JTAG is the only way back. Prove it on the card itself first (read-only, safe on a live
 endpoint):
 
 ```console
@@ -115,8 +114,7 @@ $ litepcie_util flash_reload        # ICAP warm boot from flash
 ## On a Compute Blade
 
 Converting a card on a Compute Blade is **not yet run by us on this hardware**; the steps above are as run
-on a Raspberry Pi 5. What each blade's card still needs is on [Acorns at
-ps1](../installations/ps1.md#what-each-blade-still-needs).
+on a Raspberry Pi 5. The work that is left: [test-designs issue #213](https://github.com/fpgas-online/fpgas.online-test-designs/issues/213).
 
 ## Generating multiboot bitstreams by hand
 

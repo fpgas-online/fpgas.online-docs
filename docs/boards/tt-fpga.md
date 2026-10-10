@@ -27,11 +27,7 @@ S3300 ports 33–36 (Tim's rule for that switch: port N carries Tiny Tapeout boa
 N; the FPGA emulation boards take the 33–36 block). The Welland four are the
 public **fpga-1 … fpga-4** boards on
 [tinytapeout.fpgas.online](https://tinytapeout.fpgas.online), live since
-2026-08-24 and probed live 2026-09-03. Their hosts, IP addresses, MACs, RP2350
-serials, switch ports and old `piNN` names are in
-[Tiny Tapeout FPGA demo boards](../sites/welland-tinytapeout.md#tiny-tapeout-fpga-demo-boards)
-on the Welland page, which also carries the gateway and the per-port VLAN scheme
-that gives each Pi `10.21.<switch>.<port>`.
+2026-08-24 and probed live 2026-09-03. The per-port VLAN scheme that gives each Pi `10.21.<switch>.<port>` is on [Network and power](../setup/network.md).
 
 The other four are pending deployment at [PS1](../sites/ps1.md), whose flat
 `10.21.0.0/24` network and gateway are on that page. See the

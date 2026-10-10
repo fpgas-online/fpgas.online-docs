@@ -52,7 +52,7 @@ $ openFPGALoader --cable libgpiod --pins 10:9:11:8 $PINID
 Not yet run by us on a blade wired as on [Acorn wiring on a Compute Blade](../setup/compute-blade/wiring.md).
 
 :::{warning}
-**Not on a blade whose J2 wire has no 470 Ω resistor**, which is how pi20 at ps1 is recorded on [Acorns at ps1](../installations/ps1.md#the-cards). The moment
+**Not on a blade whose J2 wire has no 470 Ω resistor**, which is how pi20 at ps1 was wired when read on 31 August 2026. The moment
 the load finishes, the pin-ID design drives J2, and J2 is on GPIO14, which
 openFPGALoader has just left an output. With the resistor that is about 7 mA
 for a moment; without it, it is two outputs shorted together, which costs JTAG
