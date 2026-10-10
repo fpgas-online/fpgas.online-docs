@@ -18,7 +18,6 @@ under [Sites](sites/index.md).
 - More Fomu hosts: [infra issue #280](https://github.com/fpgas-online/fpgas.online-infra/issues/280).
 - HDMI, HDCP and USB on the NeTV2 boards: [test-designs issue #234](https://github.com/fpgas-online/fpgas.online-test-designs/issues/234).
 - Designs to use from a board's page, with nothing to build: [test-designs issue #236](https://github.com/fpgas-online/fpgas.online-test-designs/issues/236).
-- A check for the Tiny Tapeout chip boards: [test-designs issue #235](https://github.com/fpgas-online/fpgas.online-test-designs/issues/235).
 - A check for other PCIe Xilinx cards: [test-designs issue #238](https://github.com/fpgas-online/fpgas.online-test-designs/issues/238).
 - A check of every function of each board type: [test-designs issue #87](https://github.com/fpgas-online/fpgas.online-test-designs/issues/87).
 
