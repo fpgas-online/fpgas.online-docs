@@ -133,7 +133,7 @@ cable before trusting the mapping on a host that has not been scanned.
 The full RPi GPIO → PMOD pin → FPGA pin mappings for each board are documented in:
 
 - [Digilent Arty A7](../arty-a7.md)
-- [Tiny Tapeout FPGA demo board](../tt-fpga.md)
+- [Tiny Tapeout FPGA demo board](../tt-fpga/index.md)
 
 ### Development hosts
 

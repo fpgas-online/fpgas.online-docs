@@ -20,7 +20,7 @@ that supports that shuttle. They are the public ASIC boards on
 boards are still pending.
 
 The same demo PCB with a Lattice iCE40UP5K breakout in place of the ASIC is the
-[Tiny Tapeout FPGA demo board](tt-fpga.md); everything below about the USB
+[Tiny Tapeout FPGA demo board](tt-fpga/index.md); everything below about the USB
 bridge and the MicroPython SDK is shared between the two, and the FPGA page
 carries the deeper detail.
 
@@ -90,7 +90,7 @@ $ sudo systemctl start fpgas-tt
 ```
 
 The mechanics are the same as for the FPGA boards; see
-[Serial port ownership](tt-fpga.md#serial-port-ownership) for the endpoints and
+[Serial port ownership](tt-fpga/overview/serial-port.md) for the endpoints and
 the stop/start rule, and [The Tiny Tapeout stack](../setup/tinytapeout.md) for
 how the daemon is installed. Each board's
 `https://tinytapeout.fpgas.online/board/<slug>/status.json` reports the daemon's
@@ -105,7 +105,7 @@ host has an ov5647 camera pointed at the board as well.
 
 **No GPIO wiring table has been measured for the ASIC boards.** The measured
 iCE40-ball-to-PMOD-HAT-to-Pi-GPIO map on
-[Tiny Tapeout FPGA demo board](tt-fpga.md#pin-mapping) was taken on a demo board
+[Tiny Tapeout FPGA demo board pin mapping](tt-fpga/overview/pin-mapping.md) was taken on a demo board
 **v3** (TTDBv3) host; it applies to a v3 ASIC board only if the cabling is
 identical, and it says nothing about the v2 boards that are actually deployed
 here. Nothing on this page should be read as a verified ASIC pin map.
@@ -124,7 +124,7 @@ the shuttle:
 
 - **TT SDK 2.0.4** is the last RP2040 build; the 3.x series is RP2350-only.
   That is why the six deployed ASIC boards stop at 2.0.4 while the
-  [FPGA boards](tt-fpga.md#board-firmware), which are RP2350 v3 boards, run
+  [FPGA boards](tt-fpga/overview/firmware.md), which are RP2350 v3 boards, run
   3.1.0.
 - On **2026-08-23/24** the tt04, tt05 and tt07 boards were reflashed to
   2.0.4; tt06 and tt08 already had it.
@@ -147,8 +147,8 @@ every 35 s, so flash those boards over PICOBOOT instead of MSC and run the flash
 detached (`setsid nohup … &`). The reflash history and the SDK-level workarounds
 — the `DemoBoard()` boot hang, and the rule against leaving a no-op `main.py` on
 a board that is on the public site — are written up for the FPGA boards under
-[Board firmware](tt-fpga.md#board-firmware) and
-[Known Workarounds](tt-fpga.md#known-workarounds); the sources describe both as
+[The firmware on a Tiny Tapeout FPGA demo board](tt-fpga/overview/firmware.md) and
+[Tiny Tapeout FPGA demo board faults](tt-fpga/troubleshooting/board-faults.md); the sources describe both as
 properties of the shared MicroPython SDK rather than of the FPGA breakout, but
 neither has been re-verified on an ASIC board.
 
@@ -175,4 +175,4 @@ pages are the `tinytapeout.fpgas.online` board pages linked above.
   and the
   [RP2350 map (v3, TT09+)](pmod/tinytapeout.md#rp2350-gpio-mapping-demo-board-v3-tt09)
 - PMOD HAT adapter: [Raspberry Pi PMOD HAT](pmod/rpi-hat.md)
-- The FPGA sibling: [Tiny Tapeout FPGA demo board](tt-fpga.md)
+- The FPGA sibling: [Tiny Tapeout FPGA demo board](tt-fpga/index.md)

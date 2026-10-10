@@ -29,7 +29,7 @@ the package for the board, which brings `fpgas-verify` with it:
 [Arty](boards/arty-a7.md#installing-the-arty-packages),
 [NeTV2](boards/netv2.md#installing-the-netv2-packages),
 [Fomu](boards/fomu-evt.md#installing-the-fomu-packages),
-[Tiny Tapeout FPGA](boards/tt-fpga.md#installing-the-tt-fpga-packages).
+[Tiny Tapeout FPGA](boards/tt-fpga/setup/packages.md#installing-the-tt-fpga-packages).
 [Checking a board: fpgas-verify](verify/fpgas-verify.md) covers running it and
 reading the result.
 
