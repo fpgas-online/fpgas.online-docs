@@ -114,20 +114,20 @@ and you cannot re-read it there now (the check is not run on pi14 at ps1, a Comp
 JTAG cannot run with the header's serial port on), so their old cables come off. pi20 at ps1's P1 answered on
 2026-09-20: it is kept if it passes the meter check in [the steps for its old serial
 wiring](ps1-pi20-old-serial.md), else it is built new too. Every cable that goes in, new or kept, gets the [bench
-check](../building/compute-blade/bench-check.md) with the card out before it is fitted. So: four P2 cables and
+check](../setup/compute-blade/bench-check.md) with the card out before it is fitted. So: four P2 cables and
 three P1 cables (four if pi20 at ps1's fails). Each bought Molex cable gives one P1 half and one P2 half, so that
 takes four Molex cables, with one P1 half spare (for pi20 at ps1 if needed). The terminals are 3 per P2 cable
 and 5 per P1 cable: 27 in all (32 with a new P1 for pi20 at ps1), and a few spare. pi18 at ps1 also needs a card; which card goes there is not recorded by us.
 
 **Before anything is fitted, refitted or reseated: ask Tim, then power the blade off (unplug its PoE cable, and a
 USB-C cable if one is plugged in).** Over JTAG, run only the check's own `jtag` test (`sudo fpgas-acorn-verify --no-publish --test jtag`), and only as [verifying
-3](../building/compute-blade/verifying-3.md) says: in a boot with the header's serial port off, after its steps that show
+3](../checks/compute-blade-jtag.md) says: in a boot with the header's serial port off, after its steps that show
 GPIO14 is free and nothing on the card drives it. Do not run `openFPGALoader` by hand on a blade.
 **Loading a bitstream on a blade is not part of this guide**: on the one blade it was tried on, the card's PCIe
 endpoint did not come back after the load and the blade restarted for over two hours ([what fpgas.online ran
 on the ps1 blades](ps1-ran-2026-10-07.md)).
 
-To reach the wiring of the [Compute Blade building guide](../building/compute-blade/index.md), from what the table above
+To reach the wiring of the [Compute Blade building guide](../setup/compute-blade/cables.md), from what the table above
 records. None of us has wired a blade this way or
 converted a card on one yet (one conversion was begun on pi20 at ps1 and stopped before the flash write): **not yet run by us on this hardware**.
 
@@ -142,7 +142,7 @@ converted a card on one yet (one conversion was begun on pi20 at ps1 and stopped
 `cmdline.txt`, are in one directory on the ps1 gateway, `/srv/nfs/rpi/trixie/boot/`, which every netbooted
 host at ps1 boots from: on 7 October 2026 twelve hosts at ps1, not only the four blades (read on the ps1
 gateway, 6 and 7 October 2026). For (b) there are two ways, and which to take is Carl's choice
-([verifying 3](../building/compute-blade/verifying-3.md) has both, with their undo):
+([verifying 3](../checks/compute-blade-jtag.md) has both, with their undo):
 
 - **Change the shared directory.** At their next boot all twelve lose their console and login on the header's
   serial pins, and the firmware's boot messages there. They include pi21 at ps1, a Tiny Tapeout host by fpgas.online-infra's inventory (not seen by us), and seven hosts we cannot name. Undo: put the two files back (keep a copy of both first).
@@ -155,7 +155,7 @@ gateway, 6 and 7 October 2026). For (b) there are two ways, and which to take is
 nothing from the gateway. Then the Host column's (a), which the serial-pair checks will need in a boot with the
 serial port on once a card is converted (on an unconverted card they are `not run`). Then (b), only when JTAG is to run on a blade, which is what converting a card needs: with the serial
 port off, `/dev/ttyAMA0` is not there, so the `p2-uart`, `p2-serial` and `scratch` tests cannot pass in that
-boot ([verifying 3](../building/compute-blade/verifying-3.md)). Both are changes to the gateway's boot files,
+boot ([verifying 3](../checks/compute-blade-jtag.md)). Both are changes to the gateway's boot files,
 so they are Carl's to decide and to time, (b) for every host or for one blade only (above). A load over
 JTAG, which converting a card needs, is not part of this guide yet (the paragraph above the table).
 
@@ -170,8 +170,8 @@ port would stay on for the serial-pair tests with nothing else using it. That is
 wire: the steps for taking them off without losing P1 are on [Taking pi20 at ps1's old serial wiring
 off](ps1-pi20-old-serial.md).
 
-The parts are on [Compute Blade cables: parts and tools](../building/compute-blade/bom.md). Once
-a blade is wired, [check it](../building/compute-blade/verifying-1.md).
+The parts are on [Compute Blade cables: parts and tools](../setup/compute-blade/parts.md). Once
+a blade is wired, [check it](../checks/compute-blade.md).
 
 (labels)=
 Labels for the blades and cards at ps1, which exist and which wait, are on [Labels at ps1](ps1-labels.md); in

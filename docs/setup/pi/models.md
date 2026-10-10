@@ -25,7 +25,7 @@ console on `ttyAMA0` and a login on it; that is why JTAG and the FPGA's UART can
 **Compute Module 4.** `GPIO14 = TXD0` and `GPIO15 = RXD0` at alt0, on the BCM2711 serial blocks, and only
 `/dev/ttyAMA0` exists. There is no mux option that makes GPIO15 a transmitter, so an FPGA's TX must land on
 GPIO15: one correct wiring, no software escape (from the earlier docs page, not re-checked). The `pinctrl set
-14,15 a0` step for a CM4 is on [Compute Blade JTAG](../../boards/acorn/wiring/compute-blade-jtag.md).
+14,15 a0` step for a CM4 is on [Compute Blade JTAG](../../boards/acorn/checks/compute-blade-jtag-by-hand.md).
 
 **Compute Module 5.** `GPIO14/15` at alt4 on the RP1 (read on the four ps1 blades on 2026-10-07, above). Like the
 Pi 5, the RP1 offers several UART instances plus PIO, so pins can be reassigned in software. Measured on CM5
@@ -42,7 +42,7 @@ the FPGA's UART; the Pi 5's command line therefore names `ttyAMA10`. These conso
 serve; a `/proc/cmdline` read on each model at welland is still to do.
 
 Which GPIO chip carries the header, for `libgpiod` tools such as openFPGALoader's `libgpiod` cable, depends on
-the model and the kernel: [Acorn on a Raspberry Pi 5: the Pi's settings](../../boards/acorn/wiring/rpi-5-host.md)
+the model and the kernel: [Acorn on a Raspberry Pi 5: the Pi's settings](../../boards/acorn/setup/rpi-5/pi-settings.md)
 has what was read on the welland Pi 5s.
 
 ## Freeing the header UART for a board
@@ -74,7 +74,7 @@ ps1](../../boards/acorn/installations/ps1.md) asks for.
 :::{warning}
 A design that transmits on the UART while the kernel console is on it does more than print noise: on a
 Compute Blade at ps1 it produced bytes the kernel read as SysRq commands, ending in a reboot ([the kernel
-console on the FPGA UART](../../boards/acorn/wiring/rpi-5-host.md#kernel-console-on-the-fpga-uart)). welland's
+console on the FPGA UART](../../boards/acorn/setup/rpi-5/pi-settings.md#kernel-console-on-the-fpga-uart)). welland's
 root sets `kernel.sysrq = 0` as well as keeping the console off that UART.
 :::
 

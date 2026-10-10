@@ -49,7 +49,7 @@ class RewriteLinks(unittest.TestCase):
 
     def test_link_to_a_board_install_section_goes_to_the_board_page_here(self):
         self.assertEqual(rewrite("[a](hardware/acorn.md#installing-the-acorn-packages)"),
-                         "[a](../boards/acorn/packages.md#installing-the-acorn-packages)")
+                         "[a](../boards/acorn/setup/packages.md#installing-the-acorn-packages)")
 
     def test_other_heading_of_a_board_document_goes_to_github(self):
         self.assertEqual(rewrite("[a](hardware/acorn.md#clock)"), f"[a]({GH}/blob/main/docs/hardware/acorn.md#clock)")
@@ -427,14 +427,26 @@ class Labels(unittest.TestCase):
         self.assertEqual(self.page("[index.md](https://docs.fpgas.online/en/latest/index.html)"),
                          "[fpgas.online](../index.md)")
 
+    def test_a_published_address_of_a_page_that_moved_goes_to_the_page_that_took_its_place(self):
+        moved = {"boards/acorn/old": "boards/acorn/index", "boards/acorn/old#part": "boards/acorn/wiring#assembly",
+                 "boards/acorn/gone#part": "boards/acorn/index", "boards/acorn/split": "boards/acorn/wiring#assembly"}
+        site = "https://docs.fpgas.online/en/latest/boards/acorn"
+        with unittest.mock.patch.dict(s.MOVED, moved, clear=True):
+            out = rewrite(f"[a]({site}/old.html) [b]({site}/old.html#part) [c]({site}/old.html#other) "
+                          f"[d]({site}/gone.html#part) [e]({site}/split.html) [f]({site}/split.html#mine)")
+        # an entry's own "#fragment" is where a section went; a link to the page keeps the fragment it gave
+        self.assertEqual(out, "[a](../boards/acorn/index.md) [b](../boards/acorn/wiring.md#assembly) "
+                              "[c](../boards/acorn/index.md#other) [d](../boards/acorn/index.md) "
+                              "[e](../boards/acorn/wiring.md) [f](../boards/acorn/wiring.md#mine)")
+
     def test_the_label_names_what_the_rewritten_link_opens(self):
         # a section's document opens the page that includes the section, or, for another heading, the document
         # on GitHub: the label is the title of that one
-        titles = {("page", "docs/boards/acorn/packages.md"): "Acorn packages",
+        titles = {("page", "docs/boards/acorn/setup/packages.md"): "Acorn packages",
                   ("repo", "test-designs", "docs/hardware/acorn.md"): "Acorn (on GitHub)"}.get
         out = rewrite("[acorn.md](hardware/acorn.md#installing-the-acorn-packages) [acorn.md](hardware/acorn.md#clock)",
                       titles=lambda o: titles(o[:3]))
-        self.assertEqual(out, "[Acorn packages](../boards/acorn/packages.md#installing-the-acorn-packages) "
+        self.assertEqual(out, "[Acorn packages](../boards/acorn/setup/packages.md#installing-the-acorn-packages) "
                               f"[Acorn (on GitHub)]({GH}/blob/main/docs/hardware/acorn.md#clock)")
 
     def test_a_label_is_left_and_reported_when_the_title_cannot_be_read(self):
@@ -473,11 +485,35 @@ class Wrappers(unittest.TestCase):
                 if isinstance(w.lead, s.Interim):
                     self.assertEqual((s.DOCS / w.dest).read_text(), s.wrapper_text(repo, w, w.lead.text), w.dest)
 
-    def test_the_acorn_building_guide_is_generated(self):
+    def test_the_acorn_cable_and_check_pages_are_generated(self):
         dests = {w.dest for w in s.TEST_DESIGNS.WRAPPERS}
-        for page in (s.DOCS / "docs/boards/acorn/building").rglob("*.md"):
-            self.assertIn(str(page.relative_to(s.DOCS)), dests)
-        self.assertIn("docs/boards/acorn/packages.md", dests)
+        for carrier in ("rpi-5", "compute-blade"):
+            for page in ("cables", "parts", "jtag-wires", "jtag-housing", "uart-wires", "uart-housing", "bench-check",
+                         "fitting"):
+                self.assertIn(f"docs/boards/acorn/setup/{carrier}/{page}.md", dests)
+            self.assertIn(f"docs/boards/acorn/checks/{carrier}.md", dests)
+        self.assertIn("docs/boards/acorn/setup/packages.md", dests)
+
+    def test_a_wrapper_sits_among_hand_written_pages_so_it_claims_only_its_own_path(self):
+        # an owned directory is emptied of what the sync does not list: the Acorn tree mixes both kinds of page
+        for w in s.TEST_DESIGNS.WRAPPERS:
+            self.assertFalse(w.own_dir, w.dest)
+
+    def test_every_wrapper_has_a_type_a_reader_and_a_title_that_fits(self):
+        titles = [w.title for w in s.TEST_DESIGNS.WRAPPERS]
+        self.assertEqual(len(titles), len(set(titles)))
+        for w in s.TEST_DESIGNS.WRAPPERS:
+            self.assertIn(w.kind, ("tutorial", "how-to", "reference", "explanation"), w.dest)
+            self.assertTrue(w.reader, w.dest)
+            self.assertLessEqual(len(w.title), 65, w.title)
+            self.assertEqual(w.title.startswith("How to "), w.kind == "how-to", w.title)
+
+    def test_a_wrapper_with_a_type_opens_with_its_front_matter(self):
+        w = s.Wrapper("docs/w/a.md", "How to a", s.Interim("**Lead.**"), kind="how-to", reader="someone doing a")
+        text = s.wrapper_text(s.REPOS["infra"], w, "**Lead.**")
+        self.assertTrue(text.startswith("---\ntype: how-to\nowner: infra maintainers\nreader: someone doing a\n"
+                                        f"review: {s.WRAPPER_REVIEW}\n---\n\n% This page is generated"), text)
+        self.assertRegex(text[:600], s.OUR_COMMENT)
 
     def test_interim_leads_are_listed_on_every_run(self):
         notes = []

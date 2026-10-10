@@ -12,7 +12,7 @@ pi20 at ps1) and the FPGA UART is `/dev/ttyAMA0` at GPIO14/15. All four ran Debi
 openFPGALoader 0.13.1, which has `--read-dna`, when probed. PCIe is through the blade's M.2 slot. On 2026-09-20
 all four netbooted the trixie NFS root (arm64 then) with overlayroot, with `console=tty1` and
 `serial-getty@ttyAMA0` inactive, so the [kernel console
-crash](../wiring/compute-blade-host.md#kernel-console-on-the-fpga-uart) could not
+crash](../setup/compute-blade/blade-settings.md#kernel-console-on-the-fpga-uart) could not
 happen. That no longer holds on pi16 at ps1 or pi20 at ps1 (their boot configuration, read on
 2026-10-05, is below). On 2026-10-07 all four were read again: every one boots with
 `console=ttyAMA0,115200` on the kernel command line, `serial-getty@ttyAMA0` active, GPIO14 and GPIO15 as the
@@ -37,13 +37,13 @@ SQRL Acorn CLE-101: the same PCB family, XC7A100T with 512 MB of DDR3. See [SQRL
 Acorn](../index.md).
 
 **No blade is wired to the [Compute Blade
-wiring](../building/compute-blade/index.md) yet.** That wiring puts P1 on
+wiring](../setup/compute-blade/cables.md) yet.** That wiring puts P1 on
 the Extension Port and P2 on the 4-pin UART header, with a 470 Ω resistor in the
 J2 wire. pi20 at ps1, the one blade whose wiring has been read, has its P2 serial pair
 wired straight to GPIO14 (J2) and GPIO15 (K2) instead (pin-ID read, 31 August
 2026; on which header pins the wires sit is not recorded by us), so J2 shares
 GPIO14 directly with TMS, with no resistor, so a design that drives J2 costs JTAG until a PoE
-cycle ([why](../wiring/compute-blade-host.md#the-shared-line-and-the-470-ω-resistor)),
+cycle ([why](../setup/compute-blade/blade-settings.md#the-shared-line-and-the-470-ω-resistor)),
 and its J5 and H5 are not wired. How pi14 at ps1's and pi16 at ps1's P2 cables are wired is
 not known: pi14 at ps1's P1 did not answer on 2026-09-20 and pi16 at ps1's JTAG cannot run
 today ([pi16 at ps1 on 5 October 2026](#pi16-at-ps1-on-5-october-2026)), so nothing can be
@@ -76,7 +76,7 @@ Two things follow from the serial port being on:
   So whether pi16 at ps1's P1 cable is mated cannot be told from a scan today; the
   "P1 unmated" in the table is the pull-up reading of 2026-09-20.
 - **The kernel console is on the FPGA's UART**, which the [wiring
-  page](../wiring/compute-blade-host.md#kernel-console-on-the-fpga-uart) warns
+  page](../setup/compute-blade/blade-settings.md#kernel-console-on-the-fpga-uart) warns
   against: a design that drives serial TX can reboot or crash the host. It must
   be moved (`console=tty1`, no serial getty) before such a design is loaded.
 
