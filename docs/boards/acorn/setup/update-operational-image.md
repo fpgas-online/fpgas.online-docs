@@ -9,7 +9,7 @@ review: 2026-11-10
 
 You have an Acorn that runs the fpgas.online Acorn design from flash and want to write another operational image to it. This page covers a Raspberry Pi 5. It does not cover the first install, which is [How to install the fpgas.online images on an Acorn](install-images.md).
 
-This procedure is waiting for its run: ISSUE-04.
+This procedure is waiting for its run: [test-designs issue #223](https://github.com/fpgas-online/fpgas.online-test-designs/issues/223).
 
 ## What you need
 
