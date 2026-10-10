@@ -350,7 +350,7 @@ TEST_DESIGNS = Repo(
         ("docs/hardware/arty-a7.md", "Installing the Arty Packages"):
             ("docs/boards/generated/install-arty-a7.md", "docs/boards/arty-a7/setup/packages.md"),
         ("docs/hardware/netv2.md", "Installing the NeTV2 Packages"):
-            ("docs/boards/generated/install-netv2.md", "docs/boards/netv2.md"),
+            ("docs/boards/generated/install-netv2.md", "docs/boards/netv2/setup/packages.md"),
         ("docs/hardware/fomu-evt.md", "Installing the Fomu Packages"):
             ("docs/boards/generated/install-fomu-evt.md", "docs/boards/fomu-evt.md"),
         ("docs/hardware/tt-fpga.md", "Installing the TT FPGA Packages"):

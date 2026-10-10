@@ -33,7 +33,7 @@ The serial port and JTAG cannot both have GPIO14 in one boot of a host on kernel
 
 ## What the host offers as a UART
 
-The serial pair is a null-modem crossover, the Raspberry Pi header convention that `/dev/ttyAMA0` uses. It is also the one the NeTV2 boards use ([NeTV2 primary UART](/boards/netv2.md#primary-uart-via-rpi-gpio)).
+The serial pair is a null-modem crossover, the Raspberry Pi header convention that `/dev/ttyAMA0` uses. It is also the one the NeTV2 boards use ([NeTV2 primary UART](/boards/netv2/setup/wiring.md#primary-uart)).
 
 On a BCM2711 host (a CM4) the PL011 mux is fixed: GPIO14 can only be a UART transmitter and GPIO15 only a receiver. So the crossover is the one wiring that works. On an RP1 host (a CM5) the hardware UART0 is offered only as GPIO14 = `TXD0` and GPIO15 = `RXD0`; `pinctrl funcs 14,15` lists no alternative where they swap.
 

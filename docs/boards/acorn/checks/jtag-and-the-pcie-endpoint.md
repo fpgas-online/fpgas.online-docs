@@ -15,7 +15,7 @@ It is for someone who wants the reasons behind the by-hand pages. It gives no st
 
 Reconfiguring the FPGA over JTAG while its endpoint is enumerated is a PCIe surprise removal. The BCM2712 root complex, in a Pi 5 and in a CM5, does not survive it. The host drops its SSH session and reboots. With the endpoint removed first, the load completes and the host is unaffected.
 
-The rule belongs to the root complex, not to the Acorn. It applies to any PCIe FPGA on a Pi 5, the NeTV2 included ([PCIe detection](../../netv2.md#pcie-detection-rpi5-netv2)). Every by-hand page that loads a bitstream detaches the endpoint first, on every carrier.
+The rule belongs to the root complex, not to the Acorn. It applies to any PCIe FPGA on a Pi 5, the NeTV2 included ([PCIe detection](../../netv2/overview/specifications.md#pcie-detection-on-a-raspberry-pi-5)). Every by-hand page that loads a bitstream detaches the endpoint first, on every carrier.
 
 Read-only operations (`--detect`, `--read-dna`, `--read-xadc`) do not reconfigure the device. They are safe on a live endpoint.
 

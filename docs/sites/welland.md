@@ -20,7 +20,7 @@ A bare host name in these docs means a host at welland. Its gateway is on [The w
 listed while the check on its host passes, so the list is what works at that moment. The lab holds these kinds of board.
 
 - [Acorn](../boards/acorn/index.md) CLE-215+ cards, each on a Raspberry Pi 5, with PCIe, JTAG and a serial port.
-- [NeTV2](../boards/netv2.md) boards, each on a Raspberry Pi, with JTAG and a serial port on the header.
+- [NeTV2](../boards/netv2/index.md) boards, each on a Raspberry Pi, with JTAG and a serial port on the header.
 - A [Fomu EVT](../boards/fomu-evt.md), with a USB analyser between the board and its host.
 - [Arty A7](../boards/arty-a7/index.md) boards, each on a Raspberry Pi over USB.
 
