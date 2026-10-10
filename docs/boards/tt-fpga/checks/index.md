@@ -1,0 +1,21 @@
+---
+type: landing
+owner: documentation maintainers
+reader: someone with a Tiny Tapeout FPGA demo board who wants to know that it works
+review: 2026-11-10
+---
+
+# Tiny Tapeout FPGA demo board checks
+
+- [fpgas-verify: the Tiny Tapeout demo boards](../../../verify/tt-fpga.md): how the check tells which board it has, and what its tests judge.
+- [fpgas-verify: what an Arty, NeTV2, Fomu or TT FPGA check tests](../../../verify/tests.md): what each test of the check does, and when it passes.
+- [How to install the Tiny Tapeout FPGA packages](../setup/packages.md): the check on the host, and how to run it by hand.
+- [Tiny Tapeout FPGA demo board test designs](test-designs.md): the four test designs and the scripts that load them.
+- [How to free the Raspberry Pi's SPI pins before a PMOD test](free-spi-pins.md): unload the kernel modules that hold GPIO7-11.
+
+```{toctree}
+:hidden:
+
+test-designs
+free-spi-pins
+```
