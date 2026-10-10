@@ -8,7 +8,7 @@ review: 2026-11-10
 # Programming an Acorn
 
 This page explains how a design reaches an Acorn on fpgas.online, in three layers: the protocol, the connection and
-the tool. It does not give the commands. They are on [How to run JTAG by hand on an Acorn](../checks/jtag-by-hand.md) and
+the tool. It does not give the commands. Loading is on [How to run JTAG by hand on an Acorn on a Raspberry Pi 5](../checks/jtag-by-hand.md). Writing the flash is on
 [How to install the fpgas.online images on an Acorn](../setup/install-images.md). The card's own hardware is on
 [Acorn specifications](specifications.md).
 
@@ -53,14 +53,13 @@ On both carriers the serial pair lands on the same GPIOs: K2 (FPGA TX) on GPIO15
 FPGA pin constraints and one set of host scripts therefore serves every host.
 
 The pin order and the Pi 5 link are in [JTAG from the Pi](../setup/rpi-5/pi-settings.md#jtag-from-the-pi). The
-`overlayroot=tmpfs` trap is in [How to run JTAG by hand on an Acorn](../checks/jtag-by-hand.md). The blade is in
-[JTAG on a blade](../checks/compute-blade-jtag-by-hand.md#jtag-on-a-blade).
+`overlayroot=tmpfs` trap is in [How to run JTAG by hand on an Acorn on a Raspberry Pi 5](../checks/jtag-by-hand.md). The blade is in
+[How to run JTAG by hand on an Acorn on a Compute Blade](../checks/compute-blade-jtag-by-hand.md).
 
 :::{warning}
 Detach the PCIe endpoint before loading a bitstream. Reconfiguring the FPGA underneath an enumerated endpoint is a
 surprise removal, and the BCM2712 root complex does not survive it: the host crashes. The rule, the per-host bus
-address and bringing the endpoint back are in [detach the PCIe endpoint before any JTAG
-reconfiguration](../checks/pcie-by-hand.md#detach-the-pcie-endpoint-before-any-jtag-reconfiguration).
+address and bringing the endpoint back are in [why the endpoint is detached before a load](../checks/jtag-and-the-pcie-endpoint.md#why-the-endpoint-is-detached-before-a-load).
 :::
 
 ### PCIe

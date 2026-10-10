@@ -41,7 +41,7 @@ Headings get anchors down to three levels, so you can link to a section of
 another page directly:
 
 ```markdown
-See [JTAG on a blade](boards/acorn/checks/compute-blade-jtag-by-hand.md#jtag-on-a-blade).
+See [the steps](boards/acorn/checks/compute-blade-jtag-by-hand.md#steps).
 ```
 
 Wide tables scroll sideways rather than being split. A table of dense

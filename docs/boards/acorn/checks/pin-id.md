@@ -1,107 +1,76 @@
 ---
 type: how-to
 owner: documentation maintainers
-reader: someone with a wired Acorn who wants to see which wire is on which pin
+reader: someone with an Acorn on a Raspberry Pi 5 who wants to read its wires
 review: 2026-11-10
 ---
 
-# How to run the pin ID test on an Acorn
+# How to run the pin ID test on an Acorn on a Raspberry Pi 5
 
-**You have an Acorn wired to a Raspberry Pi 5 or to a Compute Blade and want to know how the pin-ID design
-is loaded and what it is meant to show: each P2 ball sending its own name, so that a wire's far end can be
-read off.** What this page does not give today:
+**You have an Acorn wired to a Raspberry Pi 5 and want each P2 ball to send its own name.**
 
-- **No released file that works.** The pin-ID build for the Acorn in the release named below configures but
-  never toggles a pin; the design has to be built from `main`.
-- **No reader known to work on a Compute Blade** under kernel 6.18.
-- **No commands for the passive check** at the end of this page: it is described, not written out.
- On a card that runs the fpgas.online design
-the boot check names a wrong wire without this design: [on a Raspberry Pi
-5](rpi-5.md), [on a Compute Blade](compute-blade.md).
+The boot check names a wrong wire without this design on a card that runs the fpgas.online design: [on a Raspberry Pi 5](rpi-5.md). On a Compute Blade the load differs: [How to run the pin ID test on an Acorn on a Compute Blade](pin-id-compute-blade.md).
+
+This procedure is waiting for its run: [test-designs issue #229](https://github.com/fpgas-online/fpgas.online-test-designs/issues/229).
 
 ```{include} ../inc/gpio-contention.inc
 ```
 
-## The design this page loads
+## What you need
 
-```{include} ../inc/release-designs.inc
+- An Acorn wired as on [Acorn wiring on a Raspberry Pi 5](../setup/rpi-5/wiring.md), in the M.2 HAT slot, where the card is at `0001:01:00.0`.
+- `openFPGALoader` with the `libgpiod` cable, and the pin order `10:9:11:8` for `--pins`.
+- The pin-ID bitstream in `PINID`:
+
+  ```{include} ../inc/release-designs.inc
+  ```
+
+- A reader for the pins: [the repository's pin-ID host scanner](https://github.com/fpgas-online/fpgas.online-test-designs/blob/main/designs/pmod-pin-id/host/identify_pmod_pins.py), or `gpiomon` edge timestamps decoded by hand.
+
+## Steps
+
+1. On the Pi, detach the card's PCIe endpoint before the load ([why](jtag-and-the-pcie-endpoint.md#why-the-endpoint-is-detached-before-a-load)); the card no longer shows in `lspci`.
+
+   ```console
+   $ echo 1 | sudo tee /sys/bus/pci/devices/0001:01:00.0/remove
+   ```
+
+2. On the Pi, link the header's GPIO chip as `gpiochip0`, because the `libgpiod` cable opens `gpiochip0` and the header is `gpiochip15`.
+
+   ```console
+   $ sudo ln -sfn /dev/gpiochip15 /dev/gpiochip0
+   ```
+
+3. On the Pi, load the pin-ID design; each ball then transmits its own name at 1200 baud.
+
+   ```console
+   $ openFPGALoader --cable libgpiod --pins 10:9:11:8 $PINID
+   ```
+
+4. On the Pi, run the host scanner with GPIO14 kept an input throughout, and read the name each pin sends. The scanner and its options are on [Verifying wiring with the pin-id design](../../pin-id.md#usage).
+
+   Only GPIO15 can be a hardware UART receiver on a Pi 5, so the scanner decodes the other three from edge timestamps. It requests both-edge events through gpiod (v1 or v2) and finds the header chip by label. It rebuilds the 1200-baud frames from the kernel timestamps: 833 µs per bit against nanosecond stamps.
+
+5. On the Pi, check the method on a positive control before you trust a negative: drive a spare GPIO and confirm the monitor sees it.
+
+## Check
+
+A correctly wired card sends each name on its Pi GPIO.
+
+```text
+GPIO15 -> "K2"  (serial TX, on the Pi's RXD0)
+GPIO14 -> "J2"  (serial RX, on the Pi's TXD0)
+GPIO3  -> "J5"  (spare GPIO)
+GPIO4  -> "H5"  (spare GPIO)
 ```
 
-## On a Raspberry Pi 5
+## If it fails
 
-```console
-$ echo 1 | sudo tee /sys/bus/pci/devices/0001:01:00.0/remove   # detach first, as before every JTAG load
-# The libgpiod cable opens gpiochip0, the header is gpiochip15
-$ sudo ln -sfn /dev/gpiochip15 /dev/gpiochip0
-$ openFPGALoader --cable libgpiod --pins 10:9:11:8 $PINID
-# Each ball transmits its own name at 1200 baud. Correctly wired:
-# GPIO15 → "K2" (serial TX, on the Pi's RXD0)
-# GPIO14 → "J2" (serial RX, on the Pi's TXD0)
-# GPIO3  → "J5" (spare GPIO)
-# GPIO4  → "H5" (spare GPIO)
-```
+- **The Pi crashes when a GPIO is set to output:** pin ID drives all four P2 balls, so a Pi output fights an FPGA output. Keep GPIO14 an input (`pinctrl set 14 ip pn`) while pin ID runs.
+- **The bytes are mis-framed on a clean signal:** the reader polls the pins from Python. Read edge timestamps instead.
 
-## On a Compute Blade
+## Next
 
-```{include} ../inc/blade-first.inc
-```
-
-```{include} ../inc/blade-jtag-serial-off.inc
-```
-
-Not yet run by us on a blade wired as on [Acorn wiring on a Compute Blade](../setup/compute-blade/wiring.md).
-
-:::{warning}
-**Not on a blade whose J2 wire has no 470 Ω resistor**, which is how pi20 at ps1 was wired when read on 31 August 2026. The moment
-the load finishes, the pin-ID design drives J2, and J2 is on GPIO14, which
-openFPGALoader has just left an output. With the resistor that is about 7 mA
-for a moment; without it, it is two outputs shorted together, which costs JTAG
-until a power cycle and can crash the host.
-:::
-
-Like every JTAG load on a blade it needs a boot with the header's serial port
-off. The load and the command that makes
-GPIO14 an input again are **one command line**, so that nothing is typed
-between them, and the pins are put back even if the load fails:
-
-```console
-$ echo 1 | sudo tee /sys/bus/pci/devices/$BDF/remove   # detach first, as before every JTAG load
-$ openFPGALoader --cable libgpiod --pins 2:3:4:14 $PINID; pinctrl set 14 ip pn; pinctrl set 2,4 no pu
-# GPIO14 is now an input with no pull: do NOT set it to a0 or a4 while pin-ID runs.
-# Only GPIO15 → "K2" and GPIO14 → "J2" answer: J5 and H5 are not connected.
-# The design drives J2, which shares GPIO14 with TMS. The 470 Ω resistor in the
-# J2 wire is there so that JTAG still works afterwards; without it JTAG is lost
-# until a power cycle (see "The shared line and the 470 Ω resistor").
-```
-
-## Reading the pins
-
-Only GPIO15 can be a hardware UART receiver on a Pi 5, so the other three are
-decoded from edge timestamps: [the repository's pin-ID host
-scanner](https://github.com/fpgas-online/fpgas.online-test-designs/blob/main/designs/pmod-pin-id/host/identify_pmod_pins.py)
-requests both-edge events through gpiod (v1 or v2), rebuilds the 1200-baud
-frames from the kernel timestamps (833 µs per bit against nanosecond stamps),
-and finds the header chip by label, so it works on a Pi 5. `gpiomon` edge
-timestamps decoded by hand work the same way. Do not sample the pins by polling
-from Python: polling mis-frames the bytes even on a clean signal. Keep GPIO14 an
-input throughout (the warning at the top of this page).
-Check the method on a positive control before trusting a negative: drive a
-spare Pi GPIO and confirm the monitor sees it. The design is described under
-[Verifying wiring with the pin-id design](../../pin-id.md). Which of these readers
-works on a blade under kernel 6.18 is not known.
-
-## A passive check, without a bitstream
-
-A passive check needs no bitstream: toggle the Pi's internal pull-up, then
-pull-down, on each line and see whether the line follows. A ~50 kΩ internal pull
-loses to any real driver, so a line that follows is floating (the far end is an
-FPGA input: J2) and one that stays put is driven (an FPGA output: K2). It cannot
-read GPIO2 or GPIO3 where they carry I²C pull-ups. The same test shows whether
-P1 is mated: the Acorn pulls TCK up, so a TCK line that the Pi's pull-down
-cannot move has the card on the end of it, and one that follows has nothing.
-
-## If it goes wrong
-
-| Problem | Likely cause | Fix |
-|---------|--------------|-----|
-| Pi crashes the instant a GPIO is set to output | Contention with an FPGA output on the same wire (pin-ID drives all four P2 balls) | Keep GPIO14 an input (`pinctrl set 14 ip pn`) while pin-ID runs |
+- [Verifying wiring with the pin-id design](../../pin-id.md)
+- [Acorn wiring faults on a Raspberry Pi 5](../troubleshooting/rpi-5-wiring.md)
+- [How to run the Acorn UART and GPIO loopback on a Raspberry Pi 5](uart-gpio-loopback.md)

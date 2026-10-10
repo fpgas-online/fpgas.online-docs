@@ -28,7 +28,7 @@ Each row of the next table is a setting of the Pi's header serial port and its v
 
 ## JTAG from the Pi
 
-Each row of the next table is a setting of JTAG from a Pi 5 and its value. To run JTAG, follow [How to run JTAG by hand on an Acorn](../../checks/jtag-by-hand.md).
+Each row of the next table is a setting of JTAG from a Pi 5 and its value. To run JTAG, follow [How to run JTAG by hand on an Acorn on a Raspberry Pi 5](../../checks/jtag-by-hand.md).
 
 | Setting | Value |
 |---------|-------|
@@ -46,7 +46,7 @@ Each row of the next table is an action of that openFPGALoader build and what it
 |--------|--------|
 | `--detect` | read-only; safe against a live PCIe endpoint |
 | `--read-dna`, `--read-xadc`, `--read-register` | read-only |
-| Loading a bitstream | not safe against a live PCIe endpoint: [detach it first](../../checks/pcie-by-hand.md#detach-the-pcie-endpoint-before-any-jtag-reconfiguration) |
+| Loading a bitstream | not safe against a live PCIe endpoint: [why the endpoint is detached before a load](../../checks/jtag-and-the-pcie-endpoint.md#why-the-endpoint-is-detached-before-a-load) |
 
 ## Kernel console on the FPGA UART
 

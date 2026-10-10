@@ -32,8 +32,8 @@ only the device string. Board names the card, and the other columns are its FPGA
 The CLE-215+ is equivalent to the NiteFury but with 1 GB DDR3 (against 512 MB).
 
 The table gives the package as FBG484 for every card. The file `sqrl_acorn.py` disagrees for the CLE-101. It builds it as `xc7a100t-fgg484-2` and passes `fgg484` to
-openFPGALoader. Only the CLE-215 and CLE-215+ are `fbg484` there
-([docs issue #2](https://github.com/fpgas-online/fpgas.online-docs/issues/2)).
+openFPGALoader. Only the CLE-215 and CLE-215+ are `fbg484` there ([docs issue #2](https://github.com/fpgas-online/fpgas.online-docs/issues/2)).
+
 The LiteFury is the same board as the CLE-101. Sources are the [NiteFury and LiteFury repository](https://github.com/RHSResearchLLC/NiteFury-and-LiteFury) and the
 [LiteX Acorn CLE-215 wiki](https://github.com/enjoy-digital/litex/wiki/Use-LiteX-on-the-Acorn-CLE-215).
 
@@ -53,10 +53,10 @@ Neither the PCI ID nor the IDCODE tells a CLE-215+ from a CLE-215 or a NiteFury 
 
 Where to read each tell:
 
-- The PCI ID: the PCIe table of [Acorn specifications](overview/specifications.md#pcie-interface), read as in
-  [How to check an Acorn's PCIe link by hand](checks/pcie-by-hand.md).
+- The PCI ID: the PCIe table of [Acorn specifications](overview/specifications.md#pcie-interface). Reading it is on
+  [How to check an Acorn's PCIe link by hand on a Raspberry Pi 5](checks/pcie-by-hand.md).
 - The fpgas.online design: [Images](overview/design.md#images).
-- The IDCODE: the `--detect` blocks of [How to run JTAG by hand on an Acorn](checks/jtag-by-hand.md).
+- The IDCODE: the `--detect` blocks of [How to run JTAG by hand on an Acorn on a Raspberry Pi 5](checks/jtag-by-hand.md).
 
 ## Wiring
 

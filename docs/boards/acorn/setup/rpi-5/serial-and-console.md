@@ -7,7 +7,7 @@ review: 2026-11-10
 
 # The serial port, the console and JTAG on a Raspberry Pi 5
 
-This page explains why a Raspberry Pi 5 that carries an Acorn is set up as [the Pi's settings](pi-settings.md) say. It covers the serial pair, the kernel console and JTAG. The values to set are on the settings page. It gives no commands, which are in [How to run JTAG by hand on an Acorn](../../checks/jtag-by-hand.md).
+This page explains why a Raspberry Pi 5 that carries an Acorn is set up as [the Pi's settings](pi-settings.md) say. It covers the serial pair, the kernel console and JTAG. The values to set are on the settings page. It gives no commands, which are in [How to run JTAG by hand on an Acorn on a Raspberry Pi 5](../../checks/jtag-by-hand.md).
 
 ## The serial pair is a crossover
 
