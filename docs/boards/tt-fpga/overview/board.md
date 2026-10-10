@@ -16,7 +16,7 @@ The Tiny Tapeout (TT) FPGA demo board is a Lattice iCE40UP5K "FabricFox" FPGA br
 :::{admonition} Figure to come
 :class: placeholder
 
-The whole board, with the FPGA breakout in the demo PCB and each named part numbered. Tracked in ISSUE-02.
+The whole board, with the FPGA breakout in the demo PCB and each named part numbered. Tracked in [test-designs issue #255](https://github.com/fpgas-online/fpgas.online-test-designs/issues/255).
 :::
 
 ## The two boards

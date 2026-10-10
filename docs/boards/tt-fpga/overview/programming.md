@@ -14,7 +14,7 @@ This page keeps the protocol, the connection and the tools apart. The pins are o
 :::{admonition} Figure to come
 :class: placeholder
 
-The three layers: iCE40 SPI configuration as the protocol, USB-C and RP2350 GPIO as the connection, host scripts and daemon as the tools. Tracked in ISSUE-03.
+The three layers: iCE40 SPI configuration as the protocol, USB-C and RP2350 GPIO as the connection, host scripts and daemon as the tools. Tracked in [test-designs issue #256](https://github.com/fpgas-online/fpgas.online-test-designs/issues/256).
 :::
 
 ## The protocol
