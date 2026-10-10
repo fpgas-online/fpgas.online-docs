@@ -22,7 +22,7 @@ The controller is an **RP2040** on demo board **v2** (TT06 to TT08) and an **RP2
 :::{admonition} Figure to come
 :class: placeholder
 
-The whole demo board with its chip and each part numbered, top and bottom. Tracked in ISSUE-01.
+The whole demo board with its chip and each part numbered, top and bottom. Tracked in [test-designs issue #261](https://github.com/fpgas-online/fpgas.online-test-designs/issues/261).
 :::
 
 ## The chip's connectors
@@ -52,5 +52,4 @@ The public site for these boards is <https://tinytapeout.fpgas.online>.
 
 ## Checks
 
-The check that runs on the host for the Tiny Tapeout demo boards is [fpgas-verify: the Tiny Tapeout demo boards](../../../verify/tt-fpga.md).
-The chip-board check is tracked in fpgas.online-test-designs [#235](https://github.com/fpgas-online/fpgas.online-test-designs/issues/235).
+The check that runs on the host for the Tiny Tapeout demo boards is [fpgas-verify: the Tiny Tapeout demo boards](../../../verify/tt-fpga.md). On a chip board it runs the `sdk` test and then the `wiring` test of the three Pmod ribbons, and it loads nothing.
