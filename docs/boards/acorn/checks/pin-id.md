@@ -47,7 +47,7 @@ This procedure is waiting for its run: [test-designs issue #229](https://github.
    $ openFPGALoader --cable libgpiod --pins 10:9:11:8 $PINID
    ```
 
-4. On the Pi, run the host scanner with GPIO14 kept an input throughout, and read the name each pin sends. The scanner and its options are on [Verifying wiring with the pin-id design](../../pin-id.md#usage).
+4. On the Pi, run the host scanner with GPIO14 kept an input throughout, and read the name each pin sends. The scanner's options are on [Pin-id scanner options](../../pin-id/scanner-options.md).
 
    Only GPIO15 can be a hardware UART receiver on a Pi 5, so the scanner decodes the other three from edge timestamps. It requests both-edge events through gpiod (v1 or v2) and finds the header chip by label. It rebuilds the 1200-baud frames from the kernel timestamps: 833 µs per bit against nanosecond stamps.
 
@@ -71,6 +71,6 @@ GPIO4  -> "H5"  (spare GPIO)
 
 ## Next
 
-- [Verifying wiring with the pin-id design](../../pin-id.md)
+- [The pin-id design](../../pin-id.md)
 - [Acorn wiring faults on a Raspberry Pi 5](../troubleshooting/rpi-5-wiring.md)
 - [How to run the Acorn UART and GPIO loopback on a Raspberry Pi 5](uart-gpio-loopback.md)

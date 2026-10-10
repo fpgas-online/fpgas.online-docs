@@ -44,4 +44,4 @@ The SPI kernel modules claim GPIO7-11. Those carry HAT JA pin 1 (GPIO8) and HAT 
 ## Next
 
 - [How to run the Arty A7 UART test by hand](uart-by-hand.md)
-- [Verifying wiring with the pin-id design](../../pin-id.md)
+- [The pin-id design](../../pin-id.md)

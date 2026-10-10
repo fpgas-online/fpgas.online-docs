@@ -1,12 +1,17 @@
+---
+type: reference
+owner: documentation maintainers
+reader: someone looking up which RP2040 or RP2350 GPIO or PMOD pin carries a Tiny Tapeout signal
+review: 2026-11-10
+---
+
 # Tiny Tapeout PMOD layouts
 
-Standard PMOD pin layouts recommended by TinyTapeout for use on its demo board PMOD headers. These follow the [Digilent PMOD Interface Specification](index.md) and are used across the TinyTapeout community to ensure interoperability between designs and peripheral boards.
-
-This page covers the demo board's three PMOD connectors and signal groups, the standard protocol and peripheral layouts built on them, and community PMOD boards. It also documents the RP2350 (demo board v3, TT09+) and RP2040 (v2, TT06 to TT08) GPIO maps behind those connectors.
+**This page is the reference for the PMOD pin layouts that Tiny Tapeout recommends on its demo boards**. It covers the demo board's three PMOD connectors, its signal groups and the standard layouts built on them. It also covers community PMOD boards. The RP2350 (demo board v3, TT09+) and RP2040 (demo board v2, TT06 to TT08) GPIO maps behind the connectors are here too. The layouts follow the [PMOD interface](index.md), and the HAT that joins them to a Raspberry Pi is on [Raspberry Pi PMOD HAT](rpi-hat.md).
 
 ## TinyTapeout I/O Signal Groups
 
-TinyTapeout projects have three groups of 8 signals (24 total):
+TinyTapeout projects have three groups of 8 signals, 24 in all. Signal Group is the group, Direction is its direction as seen from the chip and Description is its use.
 
 | Signal Group  | Direction        | Description                    |
 | ------------- | ---------------- | ------------------------------ |
@@ -16,7 +21,7 @@ TinyTapeout projects have three groups of 8 signals (24 total):
 
 ## Demo Board PMOD Connectors
 
-The TT demo board has three 12-pin PMOD connectors on the bottom edge, one per signal group. Looking at the board from the top:
+The TT demo board has three 12-pin PMOD connectors on the bottom edge, one per signal group. The diagram shows the board from the top, with the connectors in the order ui_in, uio, uo_out.
 
 ```text
 ┌─────────────────────────────────────────┐
@@ -27,10 +32,9 @@ The TT demo board has three 12-pin PMOD connectors on the bottom edge, one per s
 │ │  (input)  │  (bidir)  │  (output) │   │
 │ └───────────┴───────────┴───────────┘   │
 └─────────────────────────────────────────┘
-    Left        Middle      Right
 ```
 
-Each connector maps signals straight through: IO1=bit[0], IO2=bit[1], ... IO8=bit[7].
+Each connector maps signals straight through: IO1=bit[0], IO2=bit[1], ... IO8=bit[7]. PMOD Pin is the connector pin, Row is its row and TT Signal is the signal it carries for group X.
 
 | PMOD Pin | Row    | TT Signal (for each group X) |
 | -------- | ------ | ----------------------------- |
@@ -49,13 +53,11 @@ Each connector maps signals straight through: IO1=bit[0], IO2=bit[1], ... IO8=bi
 
 ## Standard Protocol Layouts
 
-TinyTapeout recommends specific pin assignments that align with Digilent PMOD types. Each protocol can use either the top row ([0:3]) or bottom row ([4:7]) of a signal group; **top row is preferred**.
-
-Source: [tinytapeout.com/specs/pinouts](https://tinytapeout.com/specs/pinouts/), [GPIO spreadsheet](https://docs.google.com/spreadsheets/d/1oClV8Y9fUVvqTYBOXfEt2CuNS86VK3US2h4tn60mHgw/edit?gid=1000041856#gid=1000041856)
+TinyTapeout recommends pin assignments that align with Digilent PMOD types, as in its [pinout specification](https://tinytapeout.com/specs/pinouts/) and its [GPIO spreadsheet](https://docs.google.com/spreadsheets/d/1oClV8Y9fUVvqTYBOXfEt2CuNS86VK3US2h4tn60mHgw/edit?gid=1000041856#gid=1000041856). Each protocol can use the top row ([0:3]) or the bottom row ([4:7]) of a signal group, and the **top row is preferred**. In each protocol table, PMOD Pin is the connector pin. Top Row and Bottom Row give the signal for each choice, and Function is its role.
 
 ### SPI ([Type 2](index.md#type-2--spi-6-pin)) — Bidirectional PMOD
 
-Can use either the top row (uio[0:3]) or bottom row (uio[4:7]); top row is preferred.
+Either row can be used: the top row (uio[0:3]) or the bottom row (uio[4:7]), and the top row is preferred.
 
 | PMOD Pin | Top Row | Bottom Row | Function           |
 | -------- | ------- | ---------- | ------------------ |
@@ -68,7 +70,7 @@ Can use either the top row (uio[0:3]) or bottom row (uio[4:7]); top row is prefe
 
 ### SPI Alternate — Cross-PMOD (frees bidir for other use)
 
-When the bidir PMOD is needed for something else, SPI can span the input and output PMODs (ASIC as SPI master):
+When the bidir PMOD is needed for something else, SPI can span the input and output PMODs, with the ASIC as SPI master. TT Signal is the signal and Direction is its direction at the chip.
 
 | Function | TT Signal | Direction |
 | -------- | --------- | --------- |
@@ -79,7 +81,7 @@ When the bidir PMOD is needed for something else, SPI can span the input and out
 
 ### QSPI Flash and PSRAM — Bidirectional PMOD (full)
 
-Uses both rows for quad SPI with multiple chip selects. Compatible with the [QSPI PMOD](https://github.com/mole99/qspi-pmod) (16 MB Flash + 16 MB RAM) and [Digilent PmodSF3](https://digilent.com/reference/pmod/pmodsf3/start).
+Quad SPI on both rows with multiple chip selects. Compatible with the [QSPI PMOD](https://github.com/mole99/qspi-pmod) (16 MB Flash + 16 MB RAM) and [Digilent PmodSF3](https://digilent.com/reference/pmod/pmodsf3/start).
 
 | PMOD Pin | TT Signal | Function    |
 | -------- | --------- | ----------- |
@@ -98,7 +100,7 @@ Uses both rows for quad SPI with multiple chip selects. Compatible with the [QSP
 
 ### UART ([Type 3](index.md#type-3--uart-6-pin)) — Bidirectional PMOD
 
-Can use either the top row (uio[0:3]) or bottom row (uio[4:7]); top row is preferred.
+Either row can be used: the top row (uio[0:3]) or the bottom row (uio[4:7]), and the top row is preferred.
 
 | PMOD Pin | Top Row | Bottom Row | Function        |
 | -------- | ------- | ---------- | ---------------- |
@@ -111,7 +113,7 @@ Can use either the top row (uio[0:3]) or bottom row (uio[4:7]); top row is prefe
 
 ### UART via RP2040/RP2350 (built-in USB bridge, no PMOD needed)
 
-Two options for UART-to-USB through the on-board microcontroller:
+Two options for UART-to-USB through the on-board microcontroller. RX is the signal into the chip and TX is the signal out of it.
 
 | Variant | RX (to chip) | TX (from chip) |
 | ------- | ------------ | --------------- |
@@ -120,7 +122,7 @@ Two options for UART-to-USB through the on-board microcontroller:
 
 ### I2C (Type 6) — Bidirectional PMOD
 
-Can use either the top row (uio[0:3]) or bottom row (uio[4:7]); top row is preferred.
+Either row can be used: the top row (uio[0:3]) or the bottom row (uio[4:7]), and the top row is preferred.
 
 | PMOD Pin | Top Row | Bottom Row | Function           |
 | -------- | ------- | ---------- | ------------------ |
@@ -135,7 +137,7 @@ Can use either the top row (uio[0:3]) or bottom row (uio[4:7]); top row is prefe
 
 ### VGA Output (Tiny VGA) — Output PMOD
 
-2-bit per colour channel. Uses only the output PMOD, leaving bidir free.
+2 bits per colour channel on the output PMOD only, which leaves bidir free.
 
 | PMOD Pin | TT Signal | Function   |
 | -------- | --------- | ---------- |
@@ -156,6 +158,8 @@ Board: [Tiny VGA](https://github.com/mole99/tiny-vga)
 
 ### Audio Output — Output or Bidirectional PMOD
 
+Mode is mono or stereo, TT Signal is the pin choice for it and Function is its role.
+
 | Mode   | TT Signal           | Function      |
 | ------ | -------------------- | ------------- |
 | Mono   | uo_out[7] or uio[7]  | Audio output  |
@@ -166,23 +170,19 @@ Board: [TT Audio Pmod](https://github.com/MichaelBell/tt-audio-pmod) — compati
 
 ### Game Controller — Input PMOD
 
+TT Signal is the input and Function is the game controller line it carries.
+
 | TT Signal | Function |
 | --------- | -------- |
 | ui_in[4]  | LATCH    |
 | ui_in[5]  | CLOCK    |
 | ui_in[6]  | DATA     |
 
-:::{note}
-These tables are derived from the Tiny Tapeout specification. The mapping
-measured on the Welland FPGA demo boards is on the
-[Tiny Tapeout FPGA demo board pin mapping](../tt-fpga/overview/pin-mapping.md) page; the two agree.
-:::
+These tables are derived from the Tiny Tapeout specification. The mapping of these signals to HAT ports and Raspberry Pi GPIOs is on the [Tiny Tapeout FPGA demo board pin mapping](../tt-fpga/overview/pin-mapping.md) page.
 
 ## RP2350 GPIO Mapping (Demo Board v3, TT09+)
 
-The latest demo board uses an RP2350B. Each TT signal maps to a specific RP2350 GPIO with hardware peripheral options.
-
-Control signals: reset = GPIO14, clock = GPIO16.
+Demo board v3 uses an RP2350B. Each table maps a TT signal to an RP2350 GPIO and lists the I2C, SPI and UART peripheral functions of that GPIO. The control signals are reset on GPIO14 and clock on GPIO16.
 
 ### Input PMOD (ui_in)
 
@@ -225,7 +225,7 @@ Control signals: reset = GPIO14, clock = GPIO16.
 
 ## RP2040 GPIO Mapping (Demo Board v2, TT06-TT08)
 
-Control signals: clock = GPIO0, reset = GPIO1. TT04/TT05 had a discrete MUX sharing uo_out[0:3] with control signals; TT06+ removed it.
+Each table maps a TT signal to an RP2040 GPIO and lists the I2C, SPI and UART peripheral functions of that GPIO. The control signals are clock on GPIO0 and reset on GPIO1. TT04 and TT05 had a discrete MUX that shared uo_out[0:3] with the control signals, and TT06 and later boards removed it.
 
 ### Input PMOD (ui_in)
 
@@ -268,6 +268,8 @@ Control signals: clock = GPIO0, reset = GPIO1. TT04/TT05 had a discrete MUX shar
 
 ## Community PMOD Boards
 
+Board is the PMOD board with its repository, Description is what it provides and PMOD Port is the demo board connector it uses.
+
 | Board                                                                                         | Description                      | PMOD Port       |
 | --------------------------------------------------------------------------------------------- | --------------------------------- | ---------------- |
 | [Tiny VGA](https://github.com/mole99/tiny-vga)                                                | VGA output, 2-bit/channel         | Output           |
@@ -278,16 +280,17 @@ Control signals: clock = GPIO0, reset = GPIO1. TT04/TT05 had a discrete MUX shar
 | [ChipTune PWM](https://github.com/WallieEverest/pmod_pwm)                                     | PWM audio filter + USB UART       | Custom           |
 | [KianV QSPI](https://github.com/splinedrive/kianRiscV/tree/master/archive/pcb/pmod_nor_psram) | 8 MB Flash + 8 MB RAM             | Bidir            |
 
-More at: [awesome-tinytapeout-pmods](https://github.com/TinyTapeout/awesome-tinytapeout-pmods)
+More boards are listed in [awesome-tinytapeout-pmods](https://github.com/TinyTapeout/awesome-tinytapeout-pmods).
 
 ## Design Guidelines
 
-1. **Use common pinouts** where possible — shared pinouts make it easier to swap peripheral boards between designs.
-2. **Not mandatory** — these are recommendations, not requirements.
-3. **Prefer top row** — for protocols using only one row (SPI, UART, I2C), use pins 1-4 (signals [0:3]).
-4. **Bidir for protocols** — the bidir PMOD is the natural choice for bidirectional protocols.
-5. **3.3V I/O** — all signals use 3.3V logic levels.
-6. **Propose new layouts** — if you use a protocol not listed here, propose it on the [TinyTapeout Discord](https://discord.gg/tinytapeout).
+These are recommendations, not requirements.
+
+- **Common pinouts**: use them where possible, because shared pinouts make it easier to swap peripheral boards between designs.
+- **Top row**: for protocols that use one row (SPI, UART, I2C), use pins 1-4 (signals [0:3]).
+- **Bidir for protocols**: the bidir PMOD is the natural choice for bidirectional protocols.
+- **3.3V I/O**: all signals use 3.3V logic levels.
+- **Proposals**: a protocol not listed here is proposed on the [TinyTapeout Discord](https://discord.gg/tinytapeout).
 
 ## References
 
@@ -296,6 +299,4 @@ More at: [awesome-tinytapeout-pmods](https://github.com/TinyTapeout/awesome-tiny
 - [TT Demo PCB Repository](https://github.com/TinyTapeout/tt-demo-pcb)
 - [TT KiCad PMOD Library](https://github.com/TinyTapeout/kicad-tinytapeout-pmod-lib)
 - [GPIO Spreadsheet](https://docs.google.com/spreadsheets/d/1oClV8Y9fUVvqTYBOXfEt2CuNS86VK3US2h4tn60mHgw/edit?gid=1000041856#gid=1000041856)
-- PMOD Interface Specification: [PMOD interface](index.md)
-- PMOD HAT Adapter (RPi): [Raspberry Pi PMOD HAT](rpi-hat.md)
 - [Digilent PMOD Specification](https://digilent.com/reference/pmod/specification)

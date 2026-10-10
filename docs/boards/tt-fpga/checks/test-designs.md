@@ -28,4 +28,4 @@ Test names the test, Bitstream its design, Wrapper the script that loads it, and
 | PMOD loopback | [`pmod-loopback/.../top.bin`](https://github.com/fpgas-online/fpgas.online-test-designs/tree/main/designs/pmod-loopback/) | `tt_pmod_wrapper.py` | GPIO inversion across wired pin pairs |
 | PMOD pin ID | [`pmod-pin-id/.../top.bin`](https://github.com/fpgas-online/fpgas.online-test-designs/tree/main/designs/pmod-pin-id/) | `tt_pmod_wrapper.py` | UART TX on each GPIO pin |
 
-The pin ID test and how to read its output are on [Verifying wiring with the pin-id design](../../pin-id.md). The hardware verification script, [`verify_hardware.py`](https://github.com/fpgas-online/fpgas.online-test-designs/blob/main/verify_hardware.py), orchestrates the tests.
+The pin ID test is on [The pin-id design](../../pin-id.md). How to read a scan's output is on [How to scan a board's wiring with the pin-id design](../../pin-id/scan.md). The hardware verification script, [`verify_hardware.py`](https://github.com/fpgas-online/fpgas.online-test-designs/blob/main/verify_hardware.py), orchestrates the tests.

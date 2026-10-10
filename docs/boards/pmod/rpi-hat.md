@@ -1,8 +1,17 @@
+---
+type: reference
+owner: documentation maintainers
+reader: someone looking up which Raspberry Pi GPIO a PMOD HAT pin reaches
+review: 2026-11-10
+---
+
 # Raspberry Pi PMOD HAT
 
-The Digilent PMOD HAT Adapter connects standard Digilent PMOD modules to a Raspberry Pi's 40-pin GPIO header. In the fpgas.online infrastructure, it enables direct signal connections between a Raspberry Pi host and FPGA boards with PMOD connectors (such as the Arty A7 and TT FPGA Demo Board).
+**The Digilent PMOD HAT Adapter connects standard Digilent PMOD modules to a Raspberry Pi's 40-pin GPIO header**. This page is the reference for its ports, the GPIO behind each PMOD pin, its unused GPIOs and its electrical figures. It also names the boards that use it. The PMOD connector types themselves are on the [PMOD interface](index.md) page.
 
 ## Key Specifications
+
+The Parameter column names a property of the HAT, as in the [Digilent PMOD HAT Reference Manual](https://digilent.com/reference/add-ons/pmod-hat/reference-manual), and the Value column gives it.
 
 | Parameter           | Value                                                     |
 | ------------------- | --------------------------------------------------------- |
@@ -13,13 +22,11 @@ The Digilent PMOD HAT Adapter connects standard Digilent PMOD modules to a Raspb
 | RPi header          | 40-pin GPIO (Pi 2/3/4/5 compatible)                       |
 | Unused GPIO         | 5 pins available (GPIO22, GPIO23, GPIO24, GPIO25, GPIO27) |
 
-Source: [Digilent PMOD HAT Reference Manual](https://digilent.com/reference/add-ons/pmod-hat/reference-manual)
-
-For the PMOD connector pinouts, interface types, and electrical specification, see the [PMOD interface](index.md) page.
-
 ## RPi GPIO to PMOD Pin Mapping
 
-The PMOD HAT maps Raspberry Pi GPIO pins to three PMOD ports (JA, JB, JC). Each PMOD port has 8 signal pins (top row pins 1-4 and bottom row pins 7-10). Only the top rows conform to standard [PMOD interface types](index.md); the bottom rows provide RPi hardware peripherals but not in standard PMOD type positions.
+The PMOD HAT maps Raspberry Pi GPIO pins to three PMOD ports, JA, JB and JC. Each port has 8 signal pins, in the top row (pins 1-4) and the bottom row (pins 7-10). Only the top rows conform to standard [PMOD interface types](index.md). The bottom rows carry Raspberry Pi hardware peripherals, but not in standard PMOD type positions.
+
+In the table, Top Row gives the type and peripheral. Bottom Row gives the peripheral. Full 12-pin Type says whether the port matches a double width type.
 
 | Port | Top Row (1-4)             | Bottom Row (7-10) | Full 12-pin Type? |
 | ---- | ------------------------- | ----------------- | ----------------- |
@@ -29,7 +36,7 @@ The PMOD HAT maps Raspberry Pi GPIO pins to three PMOD ports (JA, JB, JC). Each 
 
 ### Port JA — Top Row: Type 2 (SPI) Exact Match
 
-The top row (pins 1-4) exactly matches the [Type 2 (SPI)](index.md#type-2--spi-6-pin) pinout when the RPi's SPI0 hardware controller is enabled. The bottom row carries RPi PCM/I2S signals (not a standard PMOD type).
+The top row (pins 1-4) exactly matches the [Type 2 (SPI)](index.md#type-2--spi-6-pin) pinout when the Raspberry Pi's SPI0 hardware controller is enabled. The bottom row carries Raspberry Pi PCM/I2S signals, which are not a standard PMOD type. In this table and the two below, RPi GPIO is the BCM GPIO number and RPi Header Pin is the 40-pin header position. BCM Function is the pin's peripheral function. The last column gives the pin of the matching standard type.
 
 | PMOD Pin | Signal | RPi GPIO | RPi Header Pin | BCM Function   | Type 2 Standard |
 | -------- | ------ | -------- | -------------- | -------------- | --------------- |
@@ -46,7 +53,7 @@ The top row (pins 1-4) exactly matches the [Type 2 (SPI)](index.md#type-2--spi-6
 
 ### Port JB — Top Row: Type 2 (SPI) Exact Match
 
-Same SPI bus as JA but with a different chip select (CE1). The bottom row has I2C1 on pins 9-10, but this does not match Type 2A (which expects INT/RESET on pins 7-8).
+Port JB uses the same SPI bus as JA with a different chip select, CE1. The bottom row has I2C1 on pins 9-10, which does not match Type 2A, because Type 2A expects INT and RESET on pins 7-8.
 
 | PMOD Pin | Signal | RPi GPIO | RPi Header Pin | BCM Function   | Type 2 Standard |
 | -------- | ------ | -------- | -------------- | -------------- | --------------- |
@@ -63,7 +70,7 @@ Same SPI bus as JA but with a different chip select (CE1). The bottom row has I2
 
 ### Port JC — Top Row: Type 4 (UART) Exact Match
 
-The top row (pins 1-4) exactly matches the [Type 4 (UART)](index.md#type-4--uart-6-pin) pinout (CTS, TXD, RXD, RTS) when the RPi's UART0 hardware controller is enabled. Note: this is Type 4, **not** Type 3 (which has a different pin order: CTS, RTS, RXD, TXD). The bottom row carries mixed signals (not a standard PMOD type).
+The top row (pins 1-4) exactly matches the [Type 4 (UART)](index.md#type-4--uart-6-pin) pinout (CTS, TXD, RXD, RTS) when the Raspberry Pi's UART0 hardware controller is enabled. This is Type 4, **not** Type 3, which has a different pin order (CTS, RTS, RXD, TXD). The bottom row carries mixed signals, which are not a standard PMOD type.
 
 | PMOD Pin | Signal | RPi GPIO | RPi Header Pin | BCM Function | Type 4 Standard |
 | -------- | ------ | -------- | -------------- | ------------ | --------------- |
@@ -76,14 +83,13 @@ The top row (pins 1-4) exactly matches the [Type 4 (UART)](index.md#type-4--uart
 | JC9      | I/O 7  | GPIO5    | Pin 29         |              | —               |
 | JC10     | I/O 8  | GPIO6    | Pin 31         |              | —               |
 
-**Notes on JC**:
-- GPIO14/15 (JC2/JC3) are the default UART TX/RX pins. If using GPIO UART for other purposes, these pins are not available for PMOD.
+GPIO14 and GPIO15 (JC2 and JC3) are the default UART TX and RX pins. If the GPIO UART is used for anything else, these pins are not available for PMOD.
 
-Source: [DesignSpark.Pmod HAT.py driver](https://github.com/DesignSparkRS/DesignSpark.Pmod/blob/master/DesignSpark/Pmod/HAT.py), [Digilent PMOD HAT Schematic](https://digilent.com/reference/_media/learn/documentation/schematics/pmod_hat_adapter_sch.pdf), [Digilent PMOD HAT Reference Manual](https://digilent.com/reference/add-ons/pmod-hat/reference-manual)
+The port tables follow the [DesignSpark.Pmod HAT.py driver](https://github.com/DesignSparkRS/DesignSpark.Pmod/blob/master/DesignSpark/Pmod/HAT.py) and the [Digilent PMOD HAT schematic](https://digilent.com/reference/_media/learn/documentation/schematics/pmod_hat_adapter_sch.pdf).
 
 ## Unused GPIO Pins
 
-Seven RPi GPIO pins are not assigned to any PMOD port. Five of them are free for other uses; GPIO0 and GPIO1 are reserved for the HAT ID EEPROM, which is why the Key Specifications above count five available rather than seven:
+Seven Raspberry Pi GPIOs are assigned to no PMOD port. GPIO0 and GPIO1 are reserved for the HAT ID EEPROM, and the other five are free, which is why Key Specifications lists five unused GPIOs. In the table, Notes gives the GPIO's use.
 
 | RPi GPIO | RPi Header Pin | Notes                 |
 | -------- | -------------- | --------------------- |
@@ -95,9 +101,9 @@ Seven RPi GPIO pins are not assigned to any PMOD port. Five of them are free for
 | GPIO25   | Pin 22         | Free                  |
 | GPIO27   | Pin 13         | Free                  |
 
-Source: [DesignSpark.Pmod HAT.py driver](https://github.com/DesignSparkRS/DesignSpark.Pmod/blob/master/DesignSpark/Pmod/HAT.py), [Digilent PMOD HAT Schematic](https://digilent.com/reference/_media/learn/documentation/schematics/pmod_hat_adapter_sch.pdf)
-
 ## Electrical Characteristics
+
+The Parameter column names an electrical property and the Value column gives it.
 
 | Parameter                 | Value                                   |
 | ------------------------- | --------------------------------------- |
@@ -108,15 +114,15 @@ Source: [DesignSpark.Pmod HAT.py driver](https://github.com/DesignSparkRS/Design
 | Input threshold (low)     | ~0.8V                                   |
 | Input threshold (high)    | ~1.3V                                   |
 
-The PMOD HAT does not include any level shifters or buffers -- signals pass directly from RPi GPIO to PMOD connectors. This means the 3.3V logic level and current limits of the RPi GPIO apply directly.
+The PMOD HAT has no level shifters or buffers, so signals pass directly from the Raspberry Pi GPIO to the PMOD connectors. The 3.3V logic level and the current limits of the Raspberry Pi GPIO therefore apply directly.
 
-## Usage in fpgas.online
+## Boards that use the HAT
 
-The PMOD HAT is installed on RPi hosts that have **Arty A7**, **Tiny Tapeout FPGA Demo Board** or [**Tiny Tapeout ASIC demo board**](../tt-asic/index.md) hardware attached — every one of the six Tiny Tapeout ASIC hosts at Welland carries one. It connects the RPi's GPIO pins to the PMOD connectors on these FPGA boards, enabling the RPi to directly drive and read FPGA I/O pins for testing (GPIO loopback, SPI, UART, etc.).
+The HAT is fitted to hosts with an Arty A7, a Tiny Tapeout FPGA demo board or a [Tiny Tapeout ASIC demo board](../tt-asic/index.md) attached. It connects the Raspberry Pi's GPIO pins to the PMOD connectors on these boards. The Raspberry Pi can then drive and read their I/O pins for GPIO loopback, SPI and UART tests.
 
 ### Wiring
 
-Ribbon cables connect straight through between matching port names:
+Ribbon cables connect straight through between matching port names. The HAT Port column is the port on the HAT, FPGA Board Port is the port it joins and Cable is the cable type.
 
 | HAT Port | FPGA Board Port | Cable       |
 | -------- | --------------- | ----------- |
@@ -124,28 +130,12 @@ Ribbon cables connect straight through between matching port names:
 | JB       | JB              | 12-pin PMOD |
 | JC       | JC              | 12-pin PMOD |
 
-Straight through is the design, not a guarantee for any individual cable:
-pin-level crossovers have been measured on deployed cables. The routing tables on [Arty A7 wiring to a Raspberry Pi](../arty-a7/setup/wiring.md#pmod-cables) have HAT JC pins 1 and 2 crossed relative to Arty JC pins 1 and 2. Check the
-cable before trusting the mapping on a host that has not been scanned.
+Straight through is the design, not a guarantee for any individual cable, because pin-level crossovers have been measured on deployed cables. The [PMOD cable routing tables of the Arty A7](../arty-a7/setup/wiring.md#pmod-cables) record one. On one cable, HAT JC pins 1 and 2 were found crossed relative to Arty JC pins 1 and 2.
 
-The full RPi GPIO → PMOD pin → FPGA pin mappings for each board are documented in:
+The full Raspberry Pi GPIO to PMOD pin to FPGA pin mappings for each board are on these pages:
 
 - [Arty A7 wiring to a Raspberry Pi](../arty-a7/setup/wiring.md)
 - [Tiny Tapeout FPGA demo board](../tt-fpga/index.md)
-
-### Development hosts
-
-Surveyed 2026-03-17. Two PMOD HAT development hosts sit on
-`iot.welland.mithis.com`, a separate network that is not part of the
-fpgas.online fleet, so no site page lists them.
-
-```{rst-class} nowrap
-```
-
-| Host                             | RPi Model | Notes             |
-| -------------------------------- | --------------- | ----------------- |
-| `rpi5-pmod.iot.welland.mithis.com` | RPi 5           | PMOD HAT dev host |
-| `rpi4-pmod.iot.welland.mithis.com` | RPi 4           | PMOD HAT dev host |
 
 ## References
 
