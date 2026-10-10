@@ -22,7 +22,7 @@ listed while the check on its host passes, so the list is what works at that mom
 - [Acorn](../boards/acorn/index.md) CLE-215+ cards, each on a Raspberry Pi 5, with PCIe, JTAG and a serial port.
 - [NeTV2](../boards/netv2.md) boards, each on a Raspberry Pi, with JTAG and a serial port on the header.
 - A [Fomu EVT](../boards/fomu-evt.md), with a USB analyser between the board and its host.
-- [Arty A7](../boards/arty-a7.md) boards, each on a Raspberry Pi over USB.
+- [Arty A7](../boards/arty-a7/index.md) boards, each on a Raspberry Pi over USB.
 
 A board's page gives a terminal in the browser, an upload for a bitstream and a camera feed of the board.
 Its reset power-cycles the host. The page also shows the command for a visitor's own `ssh` client. Whatever a

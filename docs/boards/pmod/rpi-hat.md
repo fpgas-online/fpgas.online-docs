@@ -126,13 +126,13 @@ Ribbon cables connect straight through between matching port names:
 
 Straight through is the design, not a guarantee for any individual cable:
 pin-level crossovers have been measured on deployed cables. The 2026-03-17
-[PMOD cable routing scans](../arty-a7.md#pmod-cable-routing-hat--arty) found HAT
+[PMOD cable routing scans](../arty-a7/setup/wiring.md#pmod-cables) found HAT
 JC pins 1 and 2 crossed relative to Arty JC pins 1 and 2 on one host. Check the
 cable before trusting the mapping on a host that has not been scanned.
 
 The full RPi GPIO → PMOD pin → FPGA pin mappings for each board are documented in:
 
-- [Digilent Arty A7](../arty-a7.md)
+- [Arty A7 wiring to a Raspberry Pi](../arty-a7/setup/wiring.md)
 - [Tiny Tapeout FPGA demo board](../tt-fpga.md)
 
 ### Development hosts

@@ -47,7 +47,7 @@ Install **one** of these. They conflict, so a host is never set up for two board
 * Versions are `0.0.postN` from `git describe` (for example `0.0.post771`). Each package depends on the others'
   exact version, so `sudo apt upgrade` moves them together.
 * Each board's page lists what its packages pull in: [acorn](../boards/acorn/setup/packages.md#installing-the-acorn-packages),
-  [arty-a7](../boards/arty-a7.md#installing-the-arty-packages), [netv2](../boards/netv2.md#installing-the-netv2-packages),
+  [arty-a7](../boards/arty-a7/setup/packages.md#installing-the-arty-packages), [netv2](../boards/netv2.md#installing-the-netv2-packages),
   [fomu-evt](../boards/fomu-evt.md#installing-the-fomu-packages), [tt-fpga](../boards/tt-fpga.md#installing-the-tt-fpga-packages).
 * CI builds every package and checks its install rules in clean bookworm and trixie
   ([`collect-bitstreams.yml`](https://github.com/fpgas-online/fpgas.online-test-designs/blob/main/.github/workflows/collect-bitstreams.yml),
