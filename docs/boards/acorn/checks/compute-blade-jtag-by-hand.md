@@ -11,7 +11,7 @@ review: 2026-11-10
 
 Which wire goes where is on [Acorn wiring on a Compute Blade](../setup/compute-blade/wiring.md). The line JTAG shares with the serial pair is on [the blade's pins, the shared line and settings](../setup/compute-blade/blade-settings.md#the-shared-line-and-the-470-ω-resistor). On a Raspberry Pi 5 the commands differ: [How to run JTAG by hand on an Acorn on a Raspberry Pi 5](jtag-by-hand.md).
 
-This procedure is waiting for its run: [test-designs issue #219](https://github.com/fpgas-online/fpgas.online-test-designs/issues/219).
+This procedure is waiting for its run: [test-designs issue #237](https://github.com/fpgas-online/fpgas.online-test-designs/issues/237).
 
 ## What you need
 

@@ -11,6 +11,8 @@ review: 2026-11-10
 
 The boot check names a wrong wire without this design on a card that runs the fpgas.online design: [on a Raspberry Pi 5](rpi-5.md). On a Compute Blade the load differs: [How to run the pin ID test on an Acorn on a Compute Blade](pin-id-compute-blade.md).
 
+This procedure is waiting for its run: [test-designs issue #229](https://github.com/fpgas-online/fpgas.online-test-designs/issues/229).
+
 ```{include} ../inc/gpio-contention.inc
 ```
 
@@ -45,7 +47,7 @@ The boot check names a wrong wire without this design on a card that runs the fp
    $ openFPGALoader --cable libgpiod --pins 10:9:11:8 $PINID
    ```
 
-4. On the Pi, run the host scanner with GPIO14 kept an input throughout, and read the name each pin sends.
+4. On the Pi, run the host scanner with GPIO14 kept an input throughout, and read the name each pin sends. The scanner and its options are on [Verifying wiring with the pin-id design](../../pin-id.md#usage).
 
    Only GPIO15 can be a hardware UART receiver on a Pi 5, so the scanner decodes the other three from edge timestamps. It requests both-edge events through gpiod (v1 or v2) and finds the header chip by label. It rebuilds the 1200-baud frames from the kernel timestamps: 833 µs per bit against nanosecond stamps.
 

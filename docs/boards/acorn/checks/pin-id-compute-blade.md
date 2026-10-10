@@ -11,7 +11,7 @@ review: 2026-11-10
 
 Only K2 and J2 answer on a blade, because J5 and H5 are not connected. On a Raspberry Pi 5 the load differs: [How to run the pin ID test on an Acorn on a Raspberry Pi 5](pin-id.md).
 
-This procedure is waiting for its run: [test-designs issue #219](https://github.com/fpgas-online/fpgas.online-test-designs/issues/219).
+This procedure is waiting for its run: [test-designs issue #237](https://github.com/fpgas-online/fpgas.online-test-designs/issues/237).
 
 :::{warning}
 **Never load pin ID on a blade whose J2 wire has no 470 Ω resistor.**

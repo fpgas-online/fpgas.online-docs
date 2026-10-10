@@ -43,6 +43,6 @@ From the check's document ([what each board's check tests](../../../verify/fpgas
 On a Raspberry Pi 5, a `p2-uart` test needs the header's serial port on (`/dev/ttyAMA0`) and the kernel console off it:
 [the Pi's settings](../setup/rpi-5/pi-settings.md#the-serial-port).
 
-The check can run these tests alone, with its `--test` option, on either carrier: [on a Raspberry Pi 5](rpi-5.md), [on a Compute Blade](compute-blade.md). On a Compute Blade the P2 tests need a boot with the header's serial port on ([why](jtag-and-the-pcie-endpoint.md#why-a-blade-needs-its-serial-port-off-for-jtag)).
+The check runs these tests alone as `sudo fpgas-acorn-verify --test pcie-bar0 --test p2-uart --test scratch`, on either carrier: [on a Raspberry Pi 5](rpi-5.md), [on a Compute Blade](compute-blade.md). On a Compute Blade the P2 tests need a boot with the header's serial port on ([why](jtag-and-the-pcie-endpoint.md#why-a-blade-needs-its-serial-port-off-for-jtag)).
 
 More: the design's own document is in fpgas.online-test-designs: [`designs/acorn-pcie`](https://github.com/fpgas-online/fpgas.online-test-designs/tree/main/designs/acorn-pcie).

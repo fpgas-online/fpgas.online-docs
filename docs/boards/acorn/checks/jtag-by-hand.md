@@ -63,7 +63,7 @@ A load over JTAG lands in SRAM and works on every variant. An SRAM load is lost 
 
 - **`JTAG init failed with: Unable to open gpio chip`:** the `gpiochip0` link of step 2 is missing; link the chip again.
 - **`--detect` says `found 0 devices` but PCIe enumerates:** the P1 cable is unmated or miswired; check TCK for the Acorn's pull-up and reseat P1.
-- **`Open file … FAIL` in under 0.1 s:** the bitstream is gone, because `/home/pi` is a memory overlay that loses its files at reboot; copy it again.
+- **`Open file … FAIL` in under 0.1 s:** the bitstream is gone. `/home/pi` is a memory overlay (`overlayroot=tmpfs`) that loses its files at reboot; copy it again.
 - **The Pi drops SSH and reboots during the load:** the endpoint was still enumerated; detach it (step 1) before every load.
 - **JTAG programming fails:** the pin order is wrong; use `--pins 10:9:11:8`.
 

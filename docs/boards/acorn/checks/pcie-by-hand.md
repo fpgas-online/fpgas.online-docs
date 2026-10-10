@@ -74,15 +74,17 @@ Xilinx Corporation Device [10ee:7021]
 - **The Acorn is not in step 1:** the M.2 card or the HAT's FPC cable is loose; reseat both and read `dmesg | grep -i pci`.
 - **The Pi reboots or SSH drops during the load:** the endpoint was still enumerated; detach it (step 2) before every load.
 - **Step 6 shows nothing:** the card did not link; re-probe the slot's root complex with the lines below, then run step 6 again.
-- **`bind` fails with `No such device`:** the link was down, so the root port `0001:00:00.0` is gone. Load a design that links (or `openFPGALoader --reset`), then `bind` again.
+- **`bind` fails with `No such device`, and the driver logs `link down`:** the link was down, so the root port `0001:00:00.0` is gone. Load a design that links (or `openFPGALoader --reset`), then `bind` again.
 - **The card still does not link:** check that the build's I/O report has the lane on B10 and B6.
 
-The re-probe finds the platform device behind the slot, then unbinds and binds it:
+The re-probe finds the platform device behind the slot, `1000110000.pcie`, then unbinds and binds it. `lspci -nn -s 0001:01:00.0` then shows the card:
 
 ```console
 $ RC=$(readlink -f /sys/bus/pci/devices/0001:00:00.0 | grep -o '[0-9a-f]*\.pcie')
 $ echo $RC | sudo tee /sys/bus/platform/drivers/brcm-pcie/unbind
 $ echo $RC | sudo tee /sys/bus/platform/drivers/brcm-pcie/bind
+$ lspci -nn -s 0001:01:00.0
+0001:01:00.0 Memory controller [0580]: Xilinx Corporation Device [10ee:7021]
 ```
 
 ## Next

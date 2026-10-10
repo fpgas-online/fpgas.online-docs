@@ -9,7 +9,7 @@ review: 2026-11-10
 
 **You have an Acorn wired to a Raspberry Pi 5 and want to see that the serial pair of P2 carries in both directions.**
 
-The loopback design (`pmod-loopback`) returns on K2 the inverse of what it sees on J2, and nothing else: GPIO14 to J2, inverted, K2, GPIO15. It does not touch J5 or H5. On a card that runs the fpgas.online design the boot check tests the same wires without this design (`p2-uart`, `p2-serial`): [Installing the Acorn packages](../setup/packages.md#installing-the-acorn-packages).
+The loopback design (`pmod-loopback`) returns on K2 the inverse of what it sees on J2, and nothing else: GPIO14 to J2, inverted, K2, GPIO15. It does not touch J5 or H5; the boot check tests those two wires with `p2-gpio`. On a card that runs the fpgas.online design the boot check tests the same wires without this design (`p2-uart`, `p2-serial`): [Installing the Acorn packages](../setup/packages.md#installing-the-acorn-packages).
 
 On a Compute Blade this cannot be done by hand in one boot. The load needs the header's serial port off, and the test needs it on ([why](jtag-and-the-pcie-endpoint.md#why-a-blade-needs-its-serial-port-off-for-jtag)). The check tests the pair there with `p2-uart` and `p2-serial`.
 

@@ -10,7 +10,7 @@ review: 2026-11-10
 **You have an Acorn in a Compute Blade with a CM4 or CM5 and want to know which wire of the card's two
 connectors goes to which pin of the blade's Extension Port and UART header.** What follows from the line
 the two cables share, and what the blade must have set for JTAG and for the serial pair, is on [the
-blade's pins, shared line and settings](blade-settings.md) and [How to run JTAG by hand on a Compute Blade](../../checks/compute-blade-jtag-by-hand.md). An Acorn on a Raspberry Pi 5 is
+blade's pins, shared line and settings](blade-settings.md) and [How to run JTAG by hand on an Acorn on a Compute Blade](../../checks/compute-blade-jtag-by-hand.md). An Acorn on a Raspberry Pi 5 is
 wired differently and has [its own page](../rpi-5/wiring.md). To build and fit the cables, follow the
 [The two cables on a Compute Blade](cables.md).
 
