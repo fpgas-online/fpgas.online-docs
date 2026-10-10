@@ -57,7 +57,8 @@ that creates it ships in the same package and is described under
 [Serial consoles](pi.md#serial-consoles). What the daemon holding that port open
 means for anything else that wants it — and how to take it back, and why to give
 it straight back — is under
-[Serial port ownership](../boards/tt-fpga/overview/serial-port.md) and
+[Serial port ownership](../boards/tt-fpga/overview/serial-port.md), the steps are
+[How to stop the fpgas-tt daemon and start it again](../boards/tt-fpga/setup/stop-daemon.md), and
 [Connection to the Pi](../boards/tt-asic.md#connection-to-the-pi).
 
 One object owns that port. `WS /serial` is the bridge: every connected client

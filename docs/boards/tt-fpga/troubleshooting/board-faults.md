@@ -15,10 +15,10 @@ What you see is the symptom, Likely cause the reason, and Fix what to do.
 
 | What you see | Likely cause | Fix |
 |---|---|---|
-| The board never comes up, and the RP2350 does not answer | The stock `main.py` calls `DemoBoard()`, which probes I2C and can hang permanently. The `ttdbv3` firmware the boards shipped with did this | A PoE cycle of the board's switch port resets it. SDK 3.1.0 boots cleanly, and the board reports `board present` |
-| The board is off the public site although the Pi is up | A `main.py` that does nothing: the site and the daemon's design list depend on the SDK booting into `DemoBoard()` | Do not install a no-op `main.py` on a deployed board |
+| The board never comes up | The stock `main.py` calls `DemoBoard()`, which probes I2C and can hang permanently. The `ttdbv3` firmware the boards shipped with did this | A PoE cycle of the board's switch port resets it; if the RP2350 is unresponsive, a USB power cycle with `uhubctl` can also recover it. SDK 3.1.0 boots cleanly, and the board reports `board present` |
+| The board is off the public site although the Pi is up | A `main.py` that does nothing: the site and the daemon's design list depend on the SDK booting into `DemoBoard()` | Recovery without a file write is [fpgas.online-tt issue #21](https://github.com/fpgas-online/fpgas.online-tt/issues/21) |
 | The clock output on GPIO16 is stuck high instead of oscillating | The first `PWM()` call on GPIO16 of the RP2350 produces a stuck-HIGH output | Deinit and recreate the PWM object, as the code below shows |
-| The RP2350 is unresponsive | The controller is wedged | A USB power cycle with `uhubctl`, or a PoE reset, can recover it |
+| The check fails with `dip-switches fail: switch N is on` | A DIP switch on `ui_in` is on | Set all DIP switches off and run the check again: [The DIP switches](../../../verify/tt-fpga.md#the-dip-switches) |
 
 ## RP2350 PWM first-call bug
 

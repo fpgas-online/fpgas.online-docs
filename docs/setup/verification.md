@@ -278,8 +278,8 @@ host keys were prefixed with a site name.
 
 ### TT FPGA programming
 
-The mechanism — the RP2350 taking the bitstream over `mpremote`, programming
-the iCE40 over SPI and then releasing the shared pins to high-Z — is on the
+The mechanism — the RP2350 programming the iCE40 over SPI and then releasing
+the shared pins to high-Z — is on the
 [TT FPGA board page](../boards/tt-fpga/overview/programming.md), with the pin numbers
 under [Pin mapping](../boards/tt-fpga/overview/pin-mapping.md) and the HAT side on
 [Raspberry Pi PMOD HAT](../boards/pmod/rpi-hat.md).

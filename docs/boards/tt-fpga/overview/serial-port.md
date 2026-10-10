@@ -19,7 +19,7 @@ The serial port has a permanent owner. Every Tiny Tapeout host runs the [`fpgas-
 
 ## What that means for a tool
 
-A tool that opens `/dev/ttyACM0` itself cannot do so while the daemon runs. `mpremote` and the [bitstream programming script](https://github.com/fpgas-online/fpgas.online-test-designs/blob/main/designs/_host/tt_fpga_program.py) are two such tools. The daemon is stopped first and started again afterwards. The other way is to drive the board through the daemon's `/serial` socket.
+Any tool that opens `/dev/ttyACM0` itself cannot do so while the daemon runs. The daemon is stopped first and started again afterwards. The tools documented for the board are the check's: [How to install the Tiny Tapeout FPGA packages](../setup/packages.md). The other way is to drive the board through the daemon's `/serial` socket.
 
 The daemon must be started again, because the board is on a public web site while you work. With the daemon stopped, the board drops off the site. The bitstream-loading and design-listing features live in the daemon, as `/designs` and `/bitstream`, with demos from the `fpgas-online-tt-demos` package. The public site uses them.
 
@@ -29,10 +29,9 @@ The recommended access is through the RP2350 USB bridge. The RP2350 connects to 
 
 A test uses `--port /dev/ttyACM0 --board tt --skip-banner` at 115200 baud. It needs RP2350 firmware configured to bridge UART0 on GPIO20/37. The UART pins are in [the pin mapping](pin-mapping.md#uart-interface).
 
-Five reasons make the bridge the recommended access:
+Four reasons make the bridge the recommended access:
 
-- Raspberry Pi GPIO5 and GPIO11 are **not hardware UART pins**: the BCM2711 has no UART peripheral assignable to this GPIO pair.
-- If the other pin tables are the right ones, the pair is GPIO17 and GPIO19 instead. That is no better: GPIO17 is RTS0 and GPIO19 is PCM_FS, so neither is a UART data pin.
+- Raspberry Pi GPIO5 and GPIO11 are **not hardware UART pins**: the BCM2711 has no UART peripheral assignable to this GPIO pair. GPIO17 and GPIO19, the other pair, are no better: GPIO17 is RTS0 and GPIO19 is PCM_FS.
 - The NFS boot image has no device tree overlay files, and the root filesystem is read-only.
 - Software bit-bang UART at 115200 baud is unreliable under a non-RT Linux kernel.
 - The RP2350 has hardware UART peripherals that can be configured for these pins.

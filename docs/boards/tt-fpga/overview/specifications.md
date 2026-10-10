@@ -33,7 +33,7 @@ Parameter names the figure, and Value gives it.
 
 ## Tiny Tapeout I/O interface
 
-The FPGA implements a Tiny Tapeout compatible interface. Signal Group names the signals, Width their count, Direction the direction seen from the FPGA, and Description what they carry.
+Signal Group names the signals, Width their count, Direction the direction seen from the FPGA, and Description what they carry.
 
 | Signal Group | Width | Direction | Description |
 |-------------|-------|-----------|-------------|
@@ -46,7 +46,7 @@ The FPGA implements a Tiny Tapeout compatible interface. Signal Group names the 
 
 ## Serial interface
 
-The board supports UART communication through the Tiny Tapeout I/O pins, in two pin configurations. Signal is the UART signal, TT Pin the Tiny Tapeout pin that carries it, and Direction the direction from the FPGA's perspective.
+Signal is the UART signal, TT Pin the Tiny Tapeout pin that carries it, and Direction the direction from the FPGA's perspective.
 
 ### Option 1 (Default TT UART)
 
@@ -62,24 +62,32 @@ The board supports UART communication through the Tiny Tapeout I/O pins, in two 
 | RX | ui_in[7] | Input |
 | TX | uo_out[0] | Output |
 
-The RP2350 on the demo PCB can act as a USB-to-UART bridge, forwarding serial data between the USB-C port and the FPGA's UART pins.
-
 ## PMOD headers
 
-The demo PCB has three PMOD headers, one per signal group. Two follow the [Digilent specification](../../pmod/index.md), which the Tiny Tapeout PCB specification calls standard, and the third is the bidirectional (`uio`) one.
+Item names the property and Value gives it.
 
-- Each header is a 12-pin connector (8 signal + 2 GND + 2 VCC).
-- Signal voltage is 3.3V.
-- The PMOD signals are routed through the Tiny Tapeout bidirectional I/O (`uio`) or directly to the FPGA breakout board.
-- The layouts Tiny Tapeout recommends for the headers are on [Tiny Tapeout PMOD layouts](../../pmod/tinytapeout.md).
+| Item | Value |
+|------|-------|
+| Count | 3, one per signal group |
+| Standard ones | 2, following the [Digilent specification](../../pmod/index.md); the third is the bidirectional (`uio`) one |
+| Connector | 12-pin (8 signal + 2 GND + 2 VCC) |
+| Signal voltage | 3.3V |
+| Routing | through the Tiny Tapeout bidirectional I/O (`uio`) or directly to the FPGA breakout board |
+| Recommended layouts | [Tiny Tapeout PMOD layouts](../../pmod/tinytapeout.md) |
 
 ## Clock
 
-The RP2350 generates a 50 MHz clock via PWM on GPIO16 (`RP_PROJCLK`). The iCE40UP5K's internal PLL divides it down to a 12 MHz system clock for LiteX SoC designs, as the [clock and reset generator](https://github.com/fpgas-online/fpgas.online-test-designs/blob/main/designs/_shared/tt_fpga_crg.py) shows.
+Item names the clock property and Value gives it.
+
+| Item | Value |
+|------|-------|
+| Source | RP2350 PWM on GPIO16 (`RP_PROJCLK`) |
+| Frequency | 50 MHz |
+| System clock for LiteX SoC designs | 12 MHz, divided down by the iCE40UP5K's internal PLL ([clock and reset generator](https://github.com/fpgas-online/fpgas.online-test-designs/blob/main/designs/_shared/tt_fpga_crg.py)) |
 
 ## 7-segment display
 
-The demo PCB has a 7-segment LED display connected to the `uo_out` pins. Segment names the display segment, and TT Output Pin the output that drives it.
+The display is connected to the `uo_out` pins. Segment names the display segment, and TT Output Pin the output that drives it. The iCE40 ball behind each segment is on [Tiny Tapeout FPGA demo board pin mapping](pin-mapping.md#7-segment-display-pins).
 
 | Segment | TT Output Pin |
 |---------|--------------|
@@ -92,18 +100,22 @@ The demo PCB has a 7-segment LED display connected to the `uo_out` pins. Segment
 | g | uo_out[6] |
 | dp | uo_out[7] |
 
-The iCE40 ball behind each segment is on [Tiny Tapeout FPGA demo board pin mapping](pin-mapping.md#7-segment-display-pins).
-
 ## DIP switches
 
-The demo PCB has DIP switches connected to the `ui_in` pins, which allow manual input to the FPGA design during development and testing.
+Item names the property and Value gives it.
+
+| Item | Value |
+|------|-------|
+| Connected to | the `ui_in` pins |
+| Use | manual input to the FPGA design during development and testing |
 
 ## Programming interface
 
-The iCE40 is programmed through the RP2350 over USB CDC, not directly from the Raspberry Pi. Parameter names the interface item, and Value gives it. How the steps run is on [Programming a Tiny Tapeout FPGA demo board](programming.md).
+Parameter names the interface item and Value gives it. How the steps run is on [Programming a Tiny Tapeout FPGA demo board](programming.md).
 
 | Parameter | Value |
 |-----------|-------|
+| Programmed through | the RP2350 over USB CDC, not directly from the Raspberry Pi |
 | Interface | RP2350 PIO SPI → iCE40 SPI configuration port |
 | USB device | `/dev/ttyACM0` (MicroPython REPL) |
 | USB VID:PID | `2e8a:0005` (MicroPython Board in FS mode) |

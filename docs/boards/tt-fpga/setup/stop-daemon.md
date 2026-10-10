@@ -7,20 +7,20 @@ review: 2026-11-10
 
 # How to stop the fpgas-tt daemon and start it again
 
-**You want to run a tool of your own on the serial port of a Tiny Tapeout FPGA demo board.**
+**You want to run a tool on the serial port of a Tiny Tapeout FPGA demo board, and the `fpgas-tt` daemon holds that port.**
 
-The `fpgas-tt` daemon holds that port open, so the tool needs the daemon stopped. The board drops off the public site until the daemon is started again. Why the daemon owns the port is on [Serial port ownership on a Tiny Tapeout FPGA demo board](../overview/serial-port.md).
+The board drops off the public site until the daemon is started again. Why the daemon owns the port is on [Serial port ownership on a Tiny Tapeout FPGA demo board](../overview/serial-port.md). A tool can also drive the board through the daemon's `/serial` socket, which needs no stop.
 
 ## What you need
 
 - A shell on the Raspberry Pi that has the board, with `sudo`. A Pi that is not routable from your machine is reached through its site's gateway, as [The welland gateway](../../../sites/welland-gateway.md#reaching-a-pi) shows.
-- A tool that reads from the board or streams a bitstream to the FPGA. The tool must not write, replace or delete a file on the board.
+- The check's debug tool, `fpgas-tt-fpga-debug`, from [How to install the Tiny Tapeout FPGA packages](../setup/packages.md). It needs `--variant tt-fpga` said out loud: [fpgas-verify: the Tiny Tapeout demo boards](../../../verify/tt-fpga.md#which-tiny-tapeout-board-it-is).
 
 ## Steps
 
 1. On the Pi, run `sudo systemctl stop fpgas-tt` to stop the daemon, which releases `/dev/ttyACM0`.
-2. On the Pi, run your tool on `/dev/ttyACM0` and wait for it to finish.
-3. On the Pi, run `sudo systemctl start fpgas-tt` to start the daemon again, which puts the board back on the public site.
+2. On the Pi, run the check's debug tool, `sudo fpgas-tt-fpga-debug test uart`, and wait for it to finish.
+3. On the Pi, run `sudo systemctl start fpgas-tt` to start the daemon again, whether or not step 2 succeeded, which puts the board back on the public site.
 
 ## Check
 
@@ -30,9 +30,8 @@ With the daemon running, `fuser /dev/ttyACM0` shows the daemon's python3 process
 
 | What you see | Likely cause | Fix |
 |---|---|---|
-| Your tool cannot open `/dev/ttyACM0` | The daemon still holds the port | Run step 1 again, and check with `fuser /dev/ttyACM0` |
+| Your tool cannot open `/dev/ttyACM0` | The daemon still holds the port | Run step 1 again |
 | The board is missing from the public site after your tool ended | The daemon was not started again | Run step 3 |
-| You cannot stop the daemon | The tool must share the port | Drive the board through the daemon's `/serial` socket instead |
 
 ## Next
 

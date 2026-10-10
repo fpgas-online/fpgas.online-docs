@@ -9,9 +9,9 @@ review: 2026-11-10
 
 **You want to know which test designs exist for the board, what each verifies, and which script loads it.**
 
-The check that runs on the host is on [fpgas-verify: the Tiny Tapeout demo boards](../../../verify/tt-fpga.md).
+This page lists the test designs under `designs/` and the host scripts that load them. What the check runs, what it leaves running and what it needs, including every DIP switch off, is on [fpgas-verify: the Tiny Tapeout demo boards](../../../verify/tt-fpga.md).
 
-The RP2350 provides bitstream loading, clock generation and USB-to-UART bridging. Three host-side wrapper scripts handle the RP2350 interaction. Script names the file in the test-designs repository, and Purpose what it does.
+Script names the file in the test-designs repository, and Purpose what it does.
 
 | Script | Purpose |
 |--------|---------|
@@ -24,7 +24,7 @@ Test names the test, Bitstream its design, Wrapper the script that loads it, and
 | Test | Bitstream | Wrapper | What it verifies |
 |------|-----------|---------|------------------|
 | UART echo | [`uart/.../tt_fpga_platform.bin`](https://github.com/fpgas-online/fpgas.online-test-designs/tree/main/designs/uart/) | `tt_test_wrapper.py` | Serial TX/RX via RP2350 bridge |
-| SPI Flash ID | [`spi-flash-id/.../tt_fpga_platform.bin`](https://github.com/fpgas-online/fpgas.online-test-designs/tree/main/designs/spi-flash-id/) | `tt_test_wrapper.py` | JEDEC ID readback from on-board flash |
+| SPI Flash ID ([test-designs issue #258](https://github.com/fpgas-online/fpgas.online-test-designs/issues/258)) | [`spi-flash-id/.../tt_fpga_platform.bin`](https://github.com/fpgas-online/fpgas.online-test-designs/tree/main/designs/spi-flash-id/) | `tt_test_wrapper.py` | JEDEC ID readback from on-board flash |
 | PMOD loopback | [`pmod-loopback/.../top.bin`](https://github.com/fpgas-online/fpgas.online-test-designs/tree/main/designs/pmod-loopback/) | `tt_pmod_wrapper.py` | GPIO inversion across wired pin pairs |
 | PMOD pin ID | [`pmod-pin-id/.../top.bin`](https://github.com/fpgas-online/fpgas.online-test-designs/tree/main/designs/pmod-pin-id/) | `tt_pmod_wrapper.py` | UART TX on each GPIO pin |
 

@@ -26,6 +26,8 @@ The demo board consists of two PCBs.
 1. **The Tiny Tapeout demo PCB** carries the RP2350B microcontroller, the USB-C connector, the 7-segment display, the DIP switches and the PMOD headers. It is designed to interface with Tiny Tapeout ASICs and also accepts the FPGA breakout board.
 2. **The FPGA breakout board** carries the iCE40UP5K FPGA, the SPI flash and the clock oscillator. It plugs into the chip socket of the demo PCB and presents the same interface as a Tiny Tapeout ASIC.
 
+Whether the breakout has a flash is [test-designs issue #258](https://github.com/fpgas-online/fpgas.online-test-designs/issues/258). The 7-segment display shares the PMOD traces, so it reflects the test patterns while the Raspberry Pi drives GPIO tests.
+
 The microcontroller programs the iCE40 over SPI and provides its 50 MHz clock. After programming it releases its GPIO pins to high impedance. The Raspberry Pi can then talk to the FPGA directly through the PMOD HAT. The controller and the PMOD headers share the same physical traces. The order of those steps is on [Programming a Tiny Tapeout FPGA demo board](programming.md).
 
 ## How it sits on its Raspberry Pi

@@ -15,7 +15,8 @@ Raspberry Pi GPIO7-11 overlap with the SPI0 bus and conflict with the PMOD HAT p
 
 - `sudo` on the Raspberry Pi that has the board and its PMOD HAT.
 - Nothing else on the Pi using SPI0: this step takes the bus away from it.
-- The board's GPIO pins released to high impedance after FPGA programming, which the programming wrapper does by itself.
+- The check's debug tool, `fpgas-tt-fpga-debug`, from [How to install the Tiny Tapeout FPGA packages](../setup/packages.md).
+- The board's GPIO pins released to high impedance after FPGA programming (`--gpio-release`).
 
 ## Steps
 
@@ -23,15 +24,14 @@ Raspberry Pi GPIO7-11 overlap with the SPI0 bus and conflict with the PMOD HAT p
 
 ## Check
 
-The `rmmod` command prints nothing. GPIO7-11 are no longer claimed by the SPI0 bus, which overlapped HAT JA pins 1-4 and JB pin 1 (`uo_out[2]`, `uo_out[4]`, `uo_out[6]`, `uo_out[7]`).
+The SPI modules no longer claim GPIO7-11. A PMOD test can then use HAT JA pins 1-4 and JB pin 1, which carry `uo_out[2]`, `uo_out[4]`, `uo_out[6]` and `uo_out[7]`.
 
 ## If it fails
 
 | What you see | Likely cause | Fix |
 |---|---|---|
-| The PMOD test cannot use GPIO7-11 | The SPI kernel modules still claim GPIO7-11 | Run step 1 again |
 | `uo_out[1:3]` and `uio[1:3]` disagree when both are driven | JA pins 2-4 and JB pins 2-4 share Raspberry Pi GPIOs | [Shared GPIOs of JA and JB](../setup/wiring.md#shared-gpios-of-ja-and-jb) |
-| The board's outputs fight the Pi's drive | The RP2350 did not release its GPIO pins | Load the design through the programming wrapper, which releases them |
+| The board's outputs fight the Pi's drive | The RP2350 did not release its GPIO pins | Load the design with `--gpio-release` |
 
 ## Next
 
