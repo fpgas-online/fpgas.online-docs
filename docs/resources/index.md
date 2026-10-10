@@ -10,6 +10,7 @@ review: 2026-11-10
 - [PMOD interface](../boards/pmod/index.md): the PMOD connector types and their pins.
 - [Raspberry Pi PMOD HAT](../boards/pmod/rpi-hat.md): the Raspberry Pi GPIOs behind each PMOD pin of the HAT.
 - [Tiny Tapeout PMOD layouts](../boards/pmod/tinytapeout.md): the PMOD layouts of the Tiny Tapeout demo boards.
+- [Verifying wiring with the pin-id design](../boards/pin-id.md): a design that makes each FPGA pin send its own name.
 
 ```{toctree}
 :hidden:
@@ -17,4 +18,5 @@ review: 2026-11-10
 ../boards/pmod/index
 ../boards/pmod/rpi-hat
 ../boards/pmod/tinytapeout
+../boards/pin-id
 ```

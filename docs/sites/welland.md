@@ -14,7 +14,7 @@ are.
 ## What the site provides
 
 welland is a private test lab in South Australia. Its boards are open to visitors through the public sites named here.
-A bare host name in these docs means a host at welland.
+A bare host name in these docs means a host at welland. Its gateway is on [The welland gateway](welland-gateway.md), for someone who runs the site.
 
 [The welland site](https://welland.fpgas.online/fpgas/) lists the FPGA boards a visitor can use. A board is
 listed while the check on its host passes, so the list is what works at that moment. The lab holds these kinds of board.

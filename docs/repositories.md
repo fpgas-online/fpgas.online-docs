@@ -44,7 +44,7 @@ makes, and Runs on is where that ends up. How the packages reach a host is on [P
 | Repository | Responsible for | Publishes | Runs on |
 |---|---|---|---|
 | [fpgas.online-test-designs](https://github.com/fpgas-online/fpgas.online-test-designs) | The test designs for every board and `fpgas-verify`, the check that proves a board is wired and working. Also the source of the wiring sheets on the board pages here. See [Verification](setup/verification.md) | Debian packages (the check and its bitstreams) | CI builds; the Pis run the check |
-| [fpgas.online-vivado-runners](https://github.com/fpgas-online/fpgas.online-vivado-runners) | Sandboxed, one-job-each GitHub Actions runners with Vivado, for the designs the open toolchains cannot build. **Designed, not deployed** | nothing yet | a KVM host |
+| [fpgas.online-vivado-runners](https://github.com/fpgas-online/fpgas.online-vivado-runners) | Sandboxed, one-job-each GitHub Actions runners with Vivado, for the designs the open toolchains cannot build. **Not deployed: the repository holds no code** | nothing yet | a KVM host |
 | [migen](https://github.com/fpgas-online/migen) | A mirror of migen that builds it as the Debian package `python3-migen` | signed apt repository at <https://fpgas.online/migen/> | CI |
 
 ## Tiny Tapeout

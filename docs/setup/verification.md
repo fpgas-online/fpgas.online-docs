@@ -26,9 +26,7 @@ none of which this procedure produces.
 
 ## Adding a device of an existing type
 
-Five things change, and a sixth from the original checklist has collapsed into
-the second. Three of them still live in repositories rather than in these docs,
-and are called out as such.
+Three things change. Each lives in a repository or on the gateway, not in these docs, and is called out as such.
 
 ### 1. Gateway network configuration
 
@@ -115,7 +113,7 @@ After all of the above:
    whichever tool that board needs; the per-board commands are in
    [Programming commands](#programming-commands) below.
 5. **Test.** Run `verify_hardware.py --host <new-host>` for the full suite.
-6. **Commit.** Commit the documentation changes.
+6. **Commit.** Commit the change to `verify_hardware.py`.
 
 The order in which a test actually exercises the board — boot, program, open
 the serial port, parse the result — is under
@@ -130,8 +128,7 @@ the serial port, parse the result — is under
 4. Commit and push
 ```
 
-The original checklist suggests a commit message of the form "Add pi42 Arty A7
-to Welland site".
+The commit message says which host was added, in the form "Add pi42 Arty A7 to Welland site".
 
 :::{note}
 `pi42` is the legacy naming form. It is still correct at PS1, where a host is

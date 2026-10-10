@@ -14,7 +14,7 @@ a board to use. It does not list the boards or their hosts. The site's own pages
 
 ps1 is at [Pumping Station: One](https://pumpingstationone.org/), a hackerspace in Chicago. Its gateway and
 switch belong to the site's own operator, and fpgas.online does not deploy to them. A host at ps1 is always
-written with its site in these docs, as in "pi20 at ps1".
+written with its site in these docs, as in "pi20 at ps1". Its gateway is on [The ps1 gateway and switch](ps1-gateway.md), for someone who runs the site.
 
 [The ps1 site](https://ps1.fpgas.online/fpgas/) lists the boards a visitor can use. They are
 [Arty A7](../boards/arty-a7.md) boards, each on a Raspberry Pi over USB. A board's page gives a terminal in the
