@@ -14,7 +14,7 @@ This page keeps the protocol, the connection and the tool apart. The commands ar
 :::{admonition} Figure to come
 :class: placeholder
 
-The three layers of programming a NeTV2: JTAG as the protocol, the Pi's GPIO header as the connection, openFPGALoader as the tool. Tracked in [test-designs issue #245](https://github.com/fpgas-online/fpgas.online-test-designs/issues/245).
+The three layers of programming a NeTV2: JTAG as the protocol, the Pi's GPIO header as the connection, openFPGALoader and OpenOCD as the tools. Tracked in [test-designs issue #245](https://github.com/fpgas-online/fpgas.online-test-designs/issues/245).
 :::
 
 ## The protocol
@@ -27,10 +27,12 @@ JTAG is wired directly to Raspberry Pi GPIO pins on the 40-pin header. TCK is on
 
 On a Raspberry Pi 5 the PCIe link matters for another reason. Reconfiguring the FPGA over JTAG while its PCIe endpoint is enumerated is a surprise removal, and it crashes the BCM2712 root complex. The endpoint is detached first.
 
-## The tool
+## The tools
 
 openFPGALoader drives the JTAG signals, and its `--pins` order is `TDI:TDO:TCK:TMS`. On a Raspberry Pi 3B+ it uses the `libgpiod` cable, which drives the pins through the Linux GPIO subsystem. That is bit-banging, and its effective JTAG clock is about 5 MHz.
 
 On a Raspberry Pi 5 the same `libgpiod` cable works but is slower, because the RP1 I/O controller adds latency to sysfs GPIO access. The `rp1pio` cable drives JTAG through the RP1's PIO peripheral instead, which is much faster. It is not in upstream openFPGALoader. It is installed from the `openfpgaloader-rp1pio` package, which brings the `librp1jtag0` shared library with it, and [the NeTV2 packages](../setup/packages.md) say where the package comes from.
+
+The check on the host uses a second tool on a Raspberry Pi 3 or 4. There it runs OpenOCD with the `bcm2835gpio` adapter, both to find the NeTV2 and to load a bitstream. On a Raspberry Pi 5 the check uses openFPGALoader with the `rp1pio` cable, and the NeTV2 tools package installs both tools.
 
 The sources behind the package are [mithro/openFPGALoader (feature/rp1-jtag-netv2)](https://github.com/mithro/openFPGALoader/tree/feature/rp1-jtag-netv2), which has the RP1 PIO JTAG support, and the RP1 JTAG shared library [mithro/rp1-jtag](https://github.com/mithro/rp1-jtag).
