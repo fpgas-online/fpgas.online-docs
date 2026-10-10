@@ -25,7 +25,7 @@ unaffected.
 
 The rule is the root complex's, not the Acorn's: it applies to any PCIe FPGA on
 a Pi 5, the NeTV2 on `rpi5-netv2` included ([PCIe
-detection](../../netv2.md#pcie-detection-rpi5-netv2)).
+detection](../../netv2/overview/specifications.md#pcie-detection-on-a-raspberry-pi-5)).
 
 Every `openFPGALoader … <bitstream>` on these pages assumes the endpoint is detached.
 Read-only operations (`--detect`, `--read-dna`, `--read-xadc`) do not

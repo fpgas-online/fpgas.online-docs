@@ -384,7 +384,7 @@ the PL011 is free for the FPGA UART — but that is
 stock Raspberry Pi 3B+ Bluetooth holds the PL011 and the GPIO UART is the mini
 UART at `/dev/ttyS0`; the same hedge applies to the NeTV2 hosts, which are the
 same model from the same survey — see
-[Serial Device by Host](netv2.md#serial-device-by-host). Resolve the symlink on
+[Serial device by Raspberry Pi model](netv2/overview/specifications.md#serial-device-by-raspberry-pi-model). Resolve the symlink on
 the host before assuming either name.
 
 `serial-getty` must be masked, not just stopped, or it will come back and
