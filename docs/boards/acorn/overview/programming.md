@@ -7,95 +7,87 @@ review: 2026-11-10
 
 # Programming an Acorn
 
-**You want to know what an Acorn on fpgas.online can do today, and how each part of it is reached from its
-host.** The card's own hardware is on [Acorn specifications](specifications.md).
+This page explains how a design reaches an Acorn on fpgas.online, in three layers: the protocol, the connection and
+the tool. It does not give the commands. They are on [How to run JTAG by hand on an Acorn](../checks/jtag-by-hand.md) and
+[How to install the fpgas.online images on an Acorn](../setup/install-images.md). The card's own hardware is on
+[Acorn specifications](specifications.md).
 
-## How the card is reached
+:::{admonition} Figure to come
+:class: placeholder
 
-PCIe is through the M.2 slot of the host. JTAG, the serial pair and the spare wires are carried on two cables
-to GPIO pins of the host.
+The three layers: JTAG as the protocol, the host's GPIO pins to P1 or PCIe as the connection, openFPGALoader, OpenOCD and `spi_flash.py` as the tools. Tracked in [docs issue #122](https://github.com/fpgas-online/fpgas.online-docs/issues/122).
+:::
 
-The wiring depends on the **carrier the Pi sits in** — how many GPIOs it brings
-out — not on the site:
+## The protocol: JTAG
 
-- **[Raspberry Pi 5 with an M.2 HAT](../setup/rpi-5/wiring.md)**: the full 40-pin header
-  is available. P2 goes to header pins 5-10 and P1 to header pins 19-26. JTAG
-  has its own pins, `--pins 10:9:11:8` (TDI:TDO:TCK:TMS), the serial pair is on
-  GPIO14/15, and both spare balls (J5, H5) are wired.
-- **[Compute Blade with a CM4 or CM5](../setup/compute-blade/wiring.md)**: the blade brings out
-  only GPIO2, 3, 4, 14 and 15. P1 goes to the Extension Port and JTAG is
-  `--pins 2:3:4:14`. P2's serial pair goes to the 4-pin UART header, and J5 and
-  H5 are not connected. The UART header's TX pin is the same GPIO14 as TMS, so
-  the J2 wire has a 470 Ω resistor in it so that JTAG should win (designed so,
-  not yet measured). No ps1 blade is wired this way yet: [test-designs issue #216](https://github.com/fpgas-online/fpgas.online-test-designs/issues/216).
+The Acorn is configured over JTAG. A load over JTAG lands in the FPGA's SRAM and is gone at the next power cycle.
+A JTAG load works whatever the card has loaded.
 
-On both carriers the serial pair lands on the same GPIOs — K2 (FPGA TX) on
-GPIO15, J2 (FPGA RX) on GPIO14 — so one set of FPGA pin constraints and one set
-of host scripts serves every host.
+Anything persistent has to go into the SPI flash. The command `openFPGALoader --write-flash` does not work over the
+GPIO JTAG wiring, because its spiOverJtag bridge never toggles CCLK after configuration. Over that wiring JTAG can
+only load volatile SRAM.
 
-## Programming
+## The connection: GPIO pins to P1, or PCIe
 
-There are three ways in, and they are not interchangeable. A load over GPIO JTAG
-lands in SRAM and is gone at the next power cycle. Anything persistent has to go
-into the SPI flash, which the GPIO JTAG path cannot write. And PCIe programming
-only works on a board that is running a LiteX design with PCIe.
+PCIe comes through the M.2 slot of the host. JTAG, the serial pair and the spare wires are carried on two cables to
+GPIO pins of the host. The wiring depends on the carrier the Pi sits in, which sets how many GPIOs it brings out, and
+not on the site.
 
-### GPIO JTAG (openFPGALoader): what the fleet uses
+### GPIO pins to P1
 
-P1 is wired to GPIOs on the Pi's header; openFPGALoader bit-bangs JTAG through
-libgpiod (about 16 s for a full XC7A200T bitstream). The load goes to SRAM only
-and is lost at power-off, which is what makes it safe to experiment with.
+On a [Raspberry Pi 5 with an M.2 HAT](../setup/rpi-5/wiring.md) the full 40-pin header is available:
 
-On a **Raspberry Pi 5** (these three commands are for that carrier only):
+- P2 goes to header pins 5-10 and P1 to header pins 19-26.
+- JTAG has its own pins, `10:9:11:8` in the order TDI:TDO:TCK:TMS.
+- The serial pair is on GPIO14/15, and both spare balls (J5, H5) are wired.
+- libgpiod opens `gpiochip0`, so on a Pi 5 `/dev/gpiochip0` is a link to `/dev/gpiochip15`.
 
-```console
-$ echo 1 | sudo tee /sys/bus/pci/devices/0001:01:00.0/remove   # detach the endpoint first
-$ sudo ln -sfn /dev/gpiochip15 /dev/gpiochip0                  # Pi 5 only: libgpiod opens gpiochip0
-$ openFPGALoader --cable libgpiod --pins 10:9:11:8 <bitstream.bit>
-```
+On a [Compute Blade with a CM4 or CM5](../setup/compute-blade/wiring.md) only GPIO2, 3, 4, 14 and 15 are brought out:
 
-**On a Compute Blade do not make this `gpiochip0` link and do not use these commands.** There the JTAG pins are
-`2:3:4:14` (P1 lands on GPIO2, 3, 4 and 14: the I²C pair, GPIO4 and the UART TX
-line), and the PCIe bus address differs per blade; see [JTAG on a blade](../checks/compute-blade-jtag-by-hand.md#jtag-on-a-blade).
+- P1 goes to the Extension Port, and JTAG is `2:3:4:14`: the I²C pair, GPIO4 and the UART TX line.
+- P2's serial pair goes to the 4-pin UART header, and J5 and H5 are not connected.
+- The UART header's TX pin is the same GPIO14 as TMS. The J2 wire has a 470 Ω resistor in it, so that JTAG wins by design; its measurement is [test-designs issue #221](https://github.com/fpgas-online/fpgas.online-test-designs/issues/221).
+- The `gpiochip0` link of the Pi 5 is not made, and the PCIe bus address differs per blade.
+
+On both carriers the serial pair lands on the same GPIOs: K2 (FPGA TX) on GPIO15 and J2 (FPGA RX) on GPIO14. One set of
+FPGA pin constraints and one set of host scripts therefore serves every host.
+
+The pin order and the Pi 5 link are in [JTAG from the Pi](../setup/rpi-5/pi-settings.md#jtag-from-the-pi). The
+`overlayroot=tmpfs` trap is in [How to run JTAG by hand on an Acorn](../checks/jtag-by-hand.md). The blade is in
+[JTAG on a blade](../checks/compute-blade-jtag-by-hand.md#jtag-on-a-blade).
 
 :::{warning}
-Detach the PCIe endpoint before loading a bitstream. Reconfiguring the FPGA
-underneath an enumerated endpoint is a surprise removal, and the BCM2712 root
-complex does not survive it: the host crashes. The rule, the per-host bus
-address and bringing the endpoint back are in [detach the PCIe endpoint before
-any JTAG
+Detach the PCIe endpoint before loading a bitstream. Reconfiguring the FPGA underneath an enumerated endpoint is a
+surprise removal, and the BCM2712 root complex does not survive it: the host crashes. The rule, the per-host bus
+address and bringing the endpoint back are in [detach the PCIe endpoint before any JTAG
 reconfiguration](../checks/pcie-by-hand.md#detach-the-pcie-endpoint-before-any-jtag-reconfiguration).
 :::
 
-Pin order and the Pi 5 `gpiochip15` link are in [JTAG from the Pi](../setup/rpi-5/pi-settings.md#jtag-from-the-pi), and the
-`overlayroot=tmpfs` trap in [How to run JTAG by hand on an Acorn](../checks/jtag-by-hand.md). Which bitstreams
-to use, and which prebuilt ones not to, is under
-[Images](design.md#images).
+### PCIe
 
-### JTAG over an FT232H (OpenOCD)
+PCIe programming only works on a board that is running a LiteX design with PCIe. With the fpgas.online Acorn design
+running, the flash is written over PCIe BAR0 with `spi_flash.py`. That moves a board onto the golden and operational images, and updates the operational image. The steps are on
+[How to install the fpgas.online images on an Acorn](../setup/install-images.md).
 
-For a bench setup, an FT232H USB adapter with a BSCAN_SPI proxy bitstream:
+A board on the SQRL factory firmware or the vendor XDMA image first needs the design loaded into SRAM over JTAG. Which
+bitstreams to use, and which prebuilt ones not to, is under [Images](design.md#images).
 
-```console
-$ openocd -f openocd_xc7_ft232.cfg -c "init; pld load 0 <bitstream>; exit"
-```
+## The tools: openFPGALoader, OpenOCD and spi_flash.py
 
-### PCIe (the fpgas.online Acorn design)
+openFPGALoader bit-bangs JTAG through libgpiod; a full XC7A200T bitstream of 1.6 MB takes about 16 s. OpenOCD loads the
+2.3 MB fpgas.online SoC over the same wiring in about 24 s. Both load to SRAM only, which is what makes it safe to
+experiment with.
 
-With the fpgas.online Acorn design running, the flash is written over PCIe BAR0
-with `spi_flash.py`, which is how a board is moved onto the golden and
-operational images and how the operational image is updated; see [How to install the fpgas.online images on an Acorn](../setup/install-images.md). A board on the SQRL factory
-firmware or the vendor XDMA image first needs the design loaded into SRAM over
-JTAG.
+`spi_flash.py` is standard-library Python over BAR0 and needs no kernel module. It reads the 32 MiB flash in 58 s and
+erases, writes and verifies a 4 MiB slot in about 20 s.
 
-## The programming paths compared
+## The paths compared
 
-| Method | Speed | Persistent? | Requires | Notes |
-|--------|-------|-------------|----------|-------|
-| GPIO JTAG → SRAM | about 16 s for a 1.6 MB XC7A200T bitstream over libgpiod; 24 s for the 2.3 MB fpgas.online SoC over OpenOCD | No (lost at power-off) | the P1 JTAG wiring | Works whatever is loaded. **[Detach the PCIe endpoint first](../checks/pcie-by-hand.md#detach-the-pcie-endpoint-before-any-jtag-reconfiguration)** |
-| PCIe → SPI flash, `spi_flash.py` | 32 MiB read in 58 s; a 4 MiB slot erased, written and verified in about 20 s | Yes | the fpgas.online Acorn design running (from flash, or loaded into SRAM over JTAG) | Stdlib Python over BAR0, no kernel module. The proven path |
-| PCIe → SPI flash, `litepcie_util` | — | Yes | a LiteX PCIe design and the `litepcie` kernel module | Not yet run on fleet hardware |
+Method names the path, Speed what it takes, Persistent whether the result survives a power cycle, and Requires what must
+be in place first.
 
-`openFPGALoader --write-flash` does not work over the GPIO JTAG wiring: its
-spiOverJtag bridge never toggles CCLK after configuration, so over that path JTAG
-can only load volatile SRAM.
+| Method                          | Speed                                            | Persistent | Requires                                                     |
+|---------------------------------|--------------------------------------------------|------------|--------------------------------------------------------------|
+| GPIO JTAG to SRAM               | 16 s (openFPGALoader, 1.6 MB); 24 s (OpenOCD, 2.3 MB) | No    | the P1 JTAG wiring, with the PCIe endpoint detached first    |
+| PCIe to SPI flash, `spi_flash.py` | 58 s to read 32 MiB; about 20 s for a 4 MiB slot | Yes      | the fpgas.online Acorn design running, from flash or loaded into SRAM over JTAG |
+| PCIe to SPI flash, `litepcie_util` | waits for its run: [test-designs issue #220](https://github.com/fpgas-online/fpgas.online-test-designs/issues/220) | Yes | a LiteX PCIe design and the `litepcie` kernel module |
