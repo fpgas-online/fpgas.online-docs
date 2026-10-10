@@ -54,7 +54,7 @@ FPGA pin constraints and one set of host scripts therefore serves every host.
 
 The pin order and the Pi 5 link are in [JTAG from the Pi](../setup/rpi-5/pi-settings.md#jtag-from-the-pi). The
 `overlayroot=tmpfs` trap is in [How to run JTAG by hand on an Acorn on a Raspberry Pi 5](../checks/jtag-by-hand.md). The blade is in
-[JTAG on a blade](../checks/compute-blade-jtag-by-hand.md).
+[How to run JTAG by hand on an Acorn on a Compute Blade](../checks/compute-blade-jtag-by-hand.md).
 
 :::{warning}
 Detach the PCIe endpoint before loading a bitstream. Reconfiguring the FPGA underneath an enumerated endpoint is a

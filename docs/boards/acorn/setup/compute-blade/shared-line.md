@@ -29,7 +29,7 @@ The way back is a PoE cycle of the blade's switch port, which restores everythin
 
 ## The serial port and JTAG in one boot
 
-The serial port and JTAG cannot both have GPIO14 in one boot of a host on kernel 6.18. With the header's serial port on (`enable_uart=1`), the kernel's serial driver holds GPIO14 and JTAG cannot run. With it off, there is no `/dev/ttyAMA0` for the serial pair (see [JTAG on a blade](../../checks/compute-blade-jtag-by-hand.md)). Under kernel 6.12.75, JTAG ran and then the serial pair was used in the same boot.
+The serial port and JTAG cannot both have GPIO14 in one boot of a host on kernel 6.18. With the header's serial port on (`enable_uart=1`), the kernel's serial driver holds GPIO14 and JTAG cannot run. With it off, there is no `/dev/ttyAMA0` for the serial pair (see [why a blade needs its serial port off for JTAG](../../checks/jtag-and-the-pcie-endpoint.md#why-a-blade-needs-its-serial-port-off-for-jtag)). Under kernel 6.12.75, JTAG ran and then the serial pair was used in the same boot.
 
 ## What the host offers as a UART
 
