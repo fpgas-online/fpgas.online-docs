@@ -54,7 +54,7 @@ $ sudo fuser -k /dev/serial0
 $ sudo chmod 666 /dev/serial0
 ```
 
-7. Start the UART test with `--port /dev/serial0 --board fomu --skip-banner`; the test opens `/dev/serial0` at 115200 baud.
+7. Start the UART test with the arguments `--port /dev/serial0 --board fomu --skip-banner`; the test opens `/dev/serial0` at 115200 baud. The test is the check's `uart` test, described on the page under Next.
 
 ## Check
 
@@ -66,9 +66,10 @@ $ sudo chmod 666 /dev/serial0
 | What you see | Likely cause | Fix |
 |---|---|---|
 | `no GPIO UART on this host` | `/dev/serial0` does not exist on this Pi | Run the test on a Pi that has the GPIO UART |
-| The test reads nothing, or reads garbage | The login console came back and consumes the serial data: `serial-getty` was stopped but not masked | Run the block again; the `mask` line keeps systemd from restarting it |
+| The test reads nothing, or the output is corrupt | The login console came back and consumes the serial data: `serial-getty` was stopped but not masked | Run the block again; the `mask` line keeps systemd from restarting it |
 
 ## Next
 
 - [How to load a design onto a Fomu EVT with openFPGALoader](../setup/load-design.md)
 - [Fomu EVT test faults](../troubleshooting/test-faults.md)
+- [fpgas-verify: what an Arty, NeTV2, Fomu or TT FPGA check tests](../../../verify/tests.md#what-each-boards-check-tests)

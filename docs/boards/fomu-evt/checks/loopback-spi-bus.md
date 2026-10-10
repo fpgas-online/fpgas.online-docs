@@ -11,7 +11,7 @@ review: 2026-11-10
 
 The loopback wires are on [Fomu EVT wiring to a Raspberry Pi](../setup/wiring.md#confirmed-loopback-pair).
 
-This procedure is waiting for its run: [test-designs issue #251](https://github.com/fpgas-online/fpgas.online-test-designs/issues/251).
+This procedure is waiting for its run: [test-designs issue #251](https://github.com/fpgas-online/fpgas.online-test-designs/issues/251). The pair it reads is contested: [test-designs issue #202](https://github.com/fpgas-online/fpgas.online-test-designs/issues/202) says the loopback cannot pass on the EVT as wired.
 
 ## What you need
 
@@ -26,7 +26,7 @@ This procedure is waiting for its run: [test-designs issue #251](https://github.
 $ sudo rmmod spidev spi_bcm2835
 ```
 
-2. Run the loopback test, which drives GPIO27 and reads GPIO9. It polls until the value is stable, because the Fomu's output settles in roughly 5 ms.
+2. Run the loopback test, the check's `pmod` test, which drives GPIO27 and reads GPIO9. It polls until the value is stable, because the Fomu's output settles in roughly 5 ms.
 
 ## Check
 
@@ -44,3 +44,4 @@ $ sudo rmmod spidev spi_bcm2835
 
 - [Fomu EVT test faults](../troubleshooting/test-faults.md)
 - [Fomu EVT checks](index.md)
+- [fpgas-verify: what an Arty, NeTV2, Fomu or TT FPGA check tests](../../../verify/tests.md#what-each-boards-check-tests)

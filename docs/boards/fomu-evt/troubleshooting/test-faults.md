@@ -19,3 +19,4 @@ Each row gives what you see, the likely cause and the fix.
 | The serial data never reaches the test | `serial-getty` was stopped but not masked, so it came back and consumes the data | Mask the unit, as in the serial console how-to |
 | The loopback test cannot read GPIO9 | The SPI0 drivers `spidev` and `spi_bcm2835` are loaded | `sudo rmmod spidev spi_bcm2835` |
 | The loopback read is wrong on the first look | The Fomu GPIO output settles in roughly 5 ms | Poll until the value is stable |
+| The loopback never passes | The pair GPIO27 and GPIO9 may not be joined on the EVT | [test-designs issue #202](https://github.com/fpgas-online/fpgas.online-test-designs/issues/202) |

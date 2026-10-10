@@ -29,7 +29,7 @@ The test bitstreams contain no USB core, so the Fomu leaves USB the moment one i
 
 ## The tool: openFPGALoader
 
-fpgas.online loads the board from its Raspberry Pi with `openFPGALoader -b fomu`, which speaks DFU itself and needs nothing else installed on the Fomu side. That is the path the test harness takes. It loads a `.bin` bitstream, which is a volatile SRAM load, so a power cycle of the Fomu discards it.
+fpgas.online loads the board from its Raspberry Pi with `openFPGALoader -b fomu`, which speaks DFU itself and needs nothing else installed on the Fomu side. That is the path the test harness takes. It loads a `.bin` bitstream, which is a volatile SRAM load, so a power cycle of the Fomu discards it. The check's own text says a DFU load writes the flash's user image: [test-designs issue #260](https://github.com/fpgas-online/fpgas.online-test-designs/issues/260) is to settle which.
 
 ## The bootloader's window
 

@@ -13,7 +13,7 @@ Why the board leaves USB afterwards is on [Programming a Fomu EVT](../overview/p
 
 ## What you need
 
-- A Raspberry Pi with the Fomu EVT plugged into its USB port and seated on its GPIO header.
+- A Raspberry Pi 3B+ with the Fomu EVT plugged into its USB port and seated on its GPIO header.
 - `openFPGALoader` installed on the Pi; the [packages](packages.md) bring it.
 - The Fomu's DFU bootloader running, which waits for DFU activity for about 3 minutes.
 

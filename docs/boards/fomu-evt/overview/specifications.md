@@ -21,7 +21,7 @@ Each row gives a parameter of the board and its value.
 | Package              | SG48 (48-pin QFN)                         |
 | Logic cells          | 5,280 LUT4s                               |
 | SPRAM                | 128 KB (4 x 32 KB blocks)                 |
-| DPRAM (EBR)          | 120 Kbit (15 x 8 Kbit blocks)             |
+| DPRAM (EBR)          | 120 Kbit (15 x 8 Kbit blocks; [docs issue #5](https://github.com/fpgas-online/fpgas.online-docs/issues/5) has the datasheet's 30 x 4 Kbit) |
 | DSP blocks           | 8 (16x16 multiply-accumulate)             |
 | System clock         | 48 MHz (pin 44, LVCMOS33)                 |
 | Internal oscillators | 48 MHz HFOSC, 10 kHz LFOSC                |

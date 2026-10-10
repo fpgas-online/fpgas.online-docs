@@ -29,11 +29,11 @@ Each row of the second table gives a parameter of the Pi's side and its value.
 
 | Parameter  | Value                                            |
 | ---------- | ------------------------------------------------ |
-| RPi device | `/dev/serial0` → `/dev/ttyAMA0`                  |
+| RPi device | `/dev/serial0`, which is `/dev/ttyAMA0` or `/dev/ttyS0` (the third table) |
 | Baud rate  | 115200                                           |
 | Test args  | `--port /dev/serial0 --board fomu --skip-banner` |
 
-The model-agnostic form to use is `--port /dev/serial0`. The device `/dev/serial0` is the symlink the Pi points at whichever UART is on GPIO14/GPIO15. It is right on every host, whichever kernel device that turns out to be. Each row of the third table gives a Pi UART, the kernel device it is and when the GPIO header uses it.
+The model-agnostic form to use is `--port /dev/serial0`. The device `/dev/serial0` is the symlink the Pi points at whichever UART is on GPIO14/GPIO15. It is right on every host, whichever kernel device that turns out to be. Which one a Fomu's Raspberry Pi has is [test-designs issue #252](https://github.com/fpgas-online/fpgas.online-test-designs/issues/252). Each row of the third table gives a Pi UART, the kernel device it is and when the GPIO header uses it.
 
 | Pi UART   | Kernel device    | When it is the GPIO UART                                        |
 | --------- | ---------------- | --------------------------------------------------------------- |
@@ -53,7 +53,7 @@ The loopback gateware uses `pmoda_n` as input and `pmodb_n` as output. Their pin
 
 ### Confirmed loopback pair
 
-Only 1 of the 4 loopback pairs connects to a Pi GPIO through the GPIO header. Each row gives the Pi GPIO driven, the Pi GPIO read and the status of the pair.
+This pair is contested: [test-designs issue #202](https://github.com/fpgas-online/fpgas.online-test-designs/issues/202) says no net joins the two pins on the EVT. Only 1 of the 4 loopback pairs connects to a Pi GPIO through the GPIO header. Each row gives the Pi GPIO driven, the Pi GPIO read and the status of the pair.
 
 | Drive RPi GPIO | Read RPi GPIO | Status    |
 | -------------- | ------------- | --------- |
