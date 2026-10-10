@@ -7,39 +7,33 @@ review: 2026-11-10
 
 # The camera over an Acorn
 
-**You are fitting the camera that watches an Acorn's LEDs (an Acorn CLE-215+ on its host) and want to know
-where the camera's lens goes over the card.** The drawing is the record; the figures a builder needs are
-repeated here in words.
+This page says where the lens of the camera that watches an Acorn CLE-215+ sits over the card. It is for someone
+fitting that camera. The drawing is the sheet RPICAM-OVER-ACORN in
+[fpgas.online-mechanical](https://github.com/fpgas-online/fpgas.online-mechanical/tree/main/raspberry_pi_camera);
+this page repeats the figures a builder needs in words.
 
 ```{image} /_static/mechanical/over-acorn-cle-215-plus-views-light.svg
-:alt: The camera over an Acorn CLE-215+: end and front elevations with the lens-face heights, the plan with the LEDs, the notes and the table of lens-face heights
+:alt: The camera over an Acorn CLE-215+: end and front elevations with the lens-face heights, the plan with the LEDs, and the notes
 :class: only-light
 ```
 
 ```{image} /_static/mechanical/over-acorn-cle-215-plus-views-dark.svg
-:alt: The camera over an Acorn CLE-215+: end and front elevations with the lens-face heights, the plan with the LEDs, the notes and the table of lens-face heights
+:alt: The camera over an Acorn CLE-215+: end and front elevations with the lens-face heights, the plan with the LEDs, and the notes
 :class: only-dark
 ```
 
-The whole drawing sheet, with its title block: {download}`light </_static/mechanical/over-acorn-cle-215-plus-sheet-light.svg>`,
-{download}`dark </_static/mechanical/over-acorn-cle-215-plus-sheet-dark.svg>` (an SVG: zoom in to read it).
+## The lens position
 
-## The figures
+The lens face goes 60.0 mm from the Acorn card's top face, straight over the LEDs at the card's end.
 
-- **The lens face goes 60.0 mm above the Acorn card's top face**, where the LEDs at the card's end are, straight
-  over those LEDs.
-- **The camera's stock lens has to be refocused.** The Raspberry Pi camera module v1.3 is sold with its lens
-  set far (Raspberry Pi: "approx 1 m to infinity"); for 60 mm it has to be unscrewed to focus (60 mm is the
-  closest a Raspberry Pi forum user reports with the lens still held in its thread). **Not done by us as of
-  7 October 2026.**
-- **Two heights are not known**: S, from the face of the mounting plate to the card's top face, and T, from the
-  card's top face to the highest point of the assembly under the camera. Neither is published, and neither has
-  been measured by us. So the lens face above the plate is S + 60.0 mm, and the room left above the highest
-  part is 60.0 − T mm; the drawing gives them that way, and draws S and T not to scale.
-- What is seen on one Acorn today (Tim, 3 October 2026): an autofocus camera (AF-65) on the reference Acorn
-  sits about 10 cm above the LEDs, looks in focus, and needs a digital crop of about four times
-  to fill the picture with the LEDs.
+## The lens focus
 
-Source: the sheet RPICAM-OVER-ACORN in
-[fpgas.online-mechanical](https://github.com/fpgas-online/fpgas.online-mechanical/tree/main/raspberry_pi_camera),
-copied from commit `64181e1` (the commit is recorded beside the files in `docs/_static/mechanical/SOURCE`).
+The Raspberry Pi camera module v1.3 is sold with its lens set far, "approx 1 m to infinity" in Raspberry Pi's words.
+At 60 mm the stock lens has to be refocused by unscrewing it.
+A Raspberry Pi forum user reports 60 mm as the closest focus with the lens still held in its thread.
+
+## The two unknown heights
+
+Two heights are not published. S runs from the face of the mounting plate to the card's top face. T runs from the card's
+top face to the highest point of the assembly under the camera. The lens face above the plate is then S + 60.0 mm, and the
+room left above the highest part is 60.0 − T mm. The drawing gives them that way and draws S and T not to scale.
