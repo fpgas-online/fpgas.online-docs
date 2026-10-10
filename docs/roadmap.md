@@ -8,7 +8,9 @@ review: 2026-11-10
 # Roadmap
 
 This page says what is planned across fpgas.online, beyond what one site plans. It is for someone deciding
-whether to wait for something. It gives no dates. Each line is one planned thing and the issue or pull request
+whether to wait for something. It gives no dates.
+
+Each line is one planned thing and the issue or pull request
 that tracks it. A thing leaves this page once it is in service. What one site plans is on that site's page,
 under [Sites](sites/index.md).
 
