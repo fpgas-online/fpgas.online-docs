@@ -43,7 +43,9 @@ The Raspberry Pi side of these cables is on [RPi GPIO to PMOD pin mapping](../..
 
 The cabling found on other boards differs from these tables: [test-designs issue #58](https://github.com/fpgas-online/fpgas.online-test-designs/issues/58) holds that survey. The ribbon cables in these tables connect straight through: **HAT JA to Arty JA**, **HAT JB to Arty JB** and **HAT JC to Arty JC**. Arty JD is not connected, because the HAT has only 3 ports. The routing was read with the [`pmod-pin-id` design](../../pin-id.md), which sends each FPGA pin's ball name as 1200-baud UART on every PMOD pin.
 
-Each table below has one row per HAT pin. RPi GPIO is the Raspberry Pi GPIO the pin lands on and Scanned FPGA Pin is the ball the scan read there. Expected is the ball that the documented pin order puts there under straight-through routing. For Arty JC pins 1 and 2 the check expects the scanned ball instead: [HAT JC to Arty JC](#hat-jc-to-arty-jc). Match says whether the two agree. It is `yes`, `shared` where the GPIO is shared with another port, or `reversed` where two pins read in each other's place.
+Each table below has one row per HAT pin. RPi GPIO is the Raspberry Pi GPIO the pin lands on and Scanned FPGA Pin is the ball the scan read there. Expected is the ball that the documented pin order puts there under straight-through routing. For Arty JC pins 1 and 2 the check expects the scanned ball instead: [HAT JC to Arty JC](#hat-jc-to-arty-jc).
+
+Match says whether the two agree. It is `yes`, `shared` where the GPIO is shared with another port, or `reversed` where two pins read in each other's place.
 
 ### HAT JA to Arty JA
 
