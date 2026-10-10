@@ -25,8 +25,8 @@ of board.
 - A [Fomu EVT](../boards/fomu-evt.md), with a USB analyser between the board and its host.
 - [Arty A7](../boards/arty-a7.md) boards, each on a Raspberry Pi over USB.
 
-A board's page gives a terminal in the browser, an upload for a bitstream, a camera feed of the board, and a
-reset that power-cycles the host. The page also shows the command for a visitor's own `ssh` client. Whatever a
+A board's page gives a terminal in the browser, an upload for a bitstream and a camera feed of the board.
+Its reset power-cycles the host. The page also shows the command for a visitor's own `ssh` client. Whatever a
 visitor writes on a host is gone after its next reset.
 
 [The Tiny Tapeout site](https://tinytapeout.fpgas.online) has the Tiny Tapeout boards. The

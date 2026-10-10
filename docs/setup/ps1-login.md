@@ -22,6 +22,6 @@ maintainer. It does not cover the welland hosts: their board pages give the comm
 
 ## Next
 
-To check a board from the blade, install the packages and run the check:
-[How to install the Acorn packages](../boards/acorn/setup/packages.md), then
+To check a board from the blade, install the packages first:
+[How to install the Acorn packages](../boards/acorn/setup/packages.md). Then run the check:
 [How to run the Acorn check on a Compute Blade](../boards/acorn/checks/compute-blade.md).
