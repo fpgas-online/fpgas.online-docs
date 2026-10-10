@@ -85,9 +85,11 @@ SOURCE = "SOURCE"
 # Where this site is published: a link to it from a pulled page is turned into a link inside the site.
 PUBLISHED = "https://docs.fpgas.online/en/latest/"
 WRAPPER_REVIEW = "2026-11-10"  # the review date in a wrapper page's front matter
-# docs/redirects.json: {old page or "old page#fragment": new page, with its "#fragment" if it has one}, as
-# document names. A link written by an old published address goes to the page that took its place.
-MOVED = json.loads((DOCS / "docs" / "redirects.json").read_text())
+# tools/moved_pages.json: {old page or "old page#fragment": new page, with its "#fragment" if it has one}, as
+# document names. A repository that still writes a link by a page's old published address gets the page that
+# took its place. The site itself serves no redirect from an old address: an entry goes once no repository
+# writes the old address any more.
+MOVED = json.loads((DOCS / "tools" / "moved_pages.json").read_text())
 
 
 @dataclass(frozen=True)
