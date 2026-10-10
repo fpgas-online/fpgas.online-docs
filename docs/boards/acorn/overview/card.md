@@ -14,8 +14,14 @@ SQRL Acorn CLE-215+, CLE-215 or CLE-101, or a LiteFury or NiteFury. What differs
 :::{admonition} Figure to come
 :class: placeholder
 
-The whole Acorn, top and bottom, with numbered callouts that match the sections of this page. Tracked in ISSUE-01.
+The whole Acorn, top and bottom, with numbered callouts that match the sections of this page. Tracked in [docs issue #121](https://github.com/fpgas-online/fpgas.online-docs/issues/121).
 :::
+
+## The card and its hosts
+
+The SQRL Acorn CLE-215+ is an M.2 PCIe FPGA accelerator card. It is pin-compatible with the
+[NiteFury and LiteFury](https://github.com/RHSResearchLLC/NiteFury-and-LiteFury) boards. On fpgas.online it sits in an
+M.2 HAT on a Raspberry Pi 5, or in a Compute Blade's own M.2 slot.
 
 ## The connector end
 

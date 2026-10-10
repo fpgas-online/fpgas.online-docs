@@ -8,14 +8,14 @@ review: 2026-11-10
 # Programming an Acorn
 
 This page explains how a design reaches an Acorn on fpgas.online, in three layers: the protocol, the connection and
-the tool. It does not give the commands: they are on [JTAG by hand](../checks/jtag-by-hand.md) and
-[Installing and updating the images](../setup/install-images.md). The card's own hardware is on
-[The Acorn card](card.md).
+the tool. It does not give the commands. They are on [How to run JTAG by hand on an Acorn](../checks/jtag-by-hand.md) and
+[How to install the fpgas.online images on an Acorn](../setup/install-images.md). The card's own hardware is on
+[Acorn specifications](specifications.md).
 
 :::{admonition} Figure to come
 :class: placeholder
 
-The three layers: JTAG as the protocol, the host's GPIO pins to P1 or PCIe as the connection, openFPGALoader and OpenOCD as the tools. Tracked in ISSUE-02.
+The three layers: JTAG as the protocol, the host's GPIO pins to P1 or PCIe as the connection, openFPGALoader and OpenOCD as the tools. Tracked in [docs issue #122](https://github.com/fpgas-online/fpgas.online-docs/issues/122).
 :::
 
 ## The protocol: JTAG
@@ -51,7 +51,7 @@ On both carriers the serial pair lands on the same GPIOs: K2 (FPGA TX) on GPIO15
 FPGA pin constraints and one set of host scripts therefore serves every host.
 
 The pin order and the Pi 5 link are in [JTAG from the Pi](../setup/rpi-5/pi-settings.md#jtag-from-the-pi). The
-`overlayroot=tmpfs` trap is in [JTAG by hand](../checks/jtag-by-hand.md). The blade is in
+`overlayroot=tmpfs` trap is in [How to run JTAG by hand on an Acorn](../checks/jtag-by-hand.md). The blade is in
 [JTAG on a blade](../checks/compute-blade-jtag-by-hand.md#jtag-on-a-blade).
 
 :::{warning}
@@ -64,9 +64,8 @@ reconfiguration](../checks/pcie-by-hand.md#detach-the-pcie-endpoint-before-any-j
 ### PCIe
 
 PCIe programming only works on a board that is running a LiteX design with PCIe. With the fpgas.online Acorn design
-running, the flash is written over PCIe BAR0 with `spi_flash.py`. That moves a board onto the golden and
-operational images and updates the operational image; see
-[Acorn PCIe programming and multiboot](../setup/install-images.md).
+running, the flash is written over PCIe BAR0 with `spi_flash.py`. That moves a board onto the golden and operational images, and updates the operational image. The steps are on
+[How to install the fpgas.online images on an Acorn](../setup/install-images.md).
 
 A board on the SQRL factory firmware or the vendor XDMA image first needs the design loaded into SRAM over JTAG. Which
 bitstreams to use, and which prebuilt ones not to, is under [Images](design.md#images).

@@ -13,7 +13,7 @@ NiteFury. It lists what differs between them and what you can read from a card t
 :::{admonition} Figure to come
 :class: placeholder
 
-The five variants side by side, in the same orientation and at the same scale, with the difference between them marked. Tracked in ISSUE-03.
+The five variants side by side, in the same orientation and at the same scale, with the difference between them marked. Tracked in [docs issue #123](https://github.com/fpgas-online/fpgas.online-docs/issues/123).
 :::
 
 ## Compatible boards
@@ -49,9 +49,9 @@ Tell names what is read, Reads is the value it shows, and Identifies is the card
 Where to read each tell:
 
 - The PCI ID: the PCIe table of [Acorn specifications](overview/specifications.md#pcie-interface), read as in
-  [PCIe by hand](checks/pcie-by-hand.md).
+  [How to check an Acorn's PCIe link by hand](checks/pcie-by-hand.md).
 - The fpgas.online design: [Images](overview/design.md#images).
-- The IDCODE: the `--detect` blocks of [JTAG by hand](checks/jtag-by-hand.md).
+- The IDCODE: the `--detect` blocks of [How to run JTAG by hand on an Acorn](checks/jtag-by-hand.md).
 
 ## Wiring
 

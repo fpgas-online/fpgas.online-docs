@@ -8,8 +8,8 @@ review: 2026-11-10
 # The fpgas.online Acorn design
 
 This page says what the fpgas.online Acorn design is, its two images and how they sit in the card's flash.
-It does not say how to load or write it. Loading into SRAM is on [PCIe by hand](../checks/pcie-by-hand.md), and
-writing the flash is on [Installing and updating the images](../setup/install-images.md). What the boot check tests
+It does not say how to load or write it. Loading into SRAM is on [How to check an Acorn's PCIe link by hand](../checks/pcie-by-hand.md).
+Writing the flash is on [How to install the fpgas.online images on an Acorn](../setup/install-images.md). What the boot check tests
 of it is under [Installing the Acorn packages](../setup/packages.md#installing-the-acorn-packages).
 
 ## Images
@@ -47,7 +47,7 @@ reads `7a200tfbg484` (IDCODE `0x3636093`).
 
 ## What the flash holds
 
-Which image a card boots shows in its PCI ID, which [PCIe by hand](../checks/pcie-by-hand.md) reads. Two images other
+Which image a card boots shows in its PCI ID, which [How to check an Acorn's PCIe link by hand](../checks/pcie-by-hand.md) reads. Two images other
 than the fpgas.online one are in service:
 
 - **SQRL factory firmware** (`1e24:021f`): a cryptocurrency mining design, not
