@@ -69,6 +69,7 @@ pins one commit for them.
 """
 import argparse
 import collections
+import json
 import posixpath
 import re
 import subprocess
@@ -83,6 +84,10 @@ ORG = "fpgas-online"
 SOURCE = "SOURCE"
 # Where this site is published: a link to it from a pulled page is turned into a link inside the site.
 PUBLISHED = "https://docs.fpgas.online/en/latest/"
+WRAPPER_REVIEW = "2026-11-10"  # the review date in a wrapper page's front matter
+# docs/redirects.json: {old page or "old page#fragment": new page, with its "#fragment" if it has one}, as
+# document names. A link written by an old published address goes to the page that took its place.
+MOVED = json.loads((DOCS / "docs" / "redirects.json").read_text())
 
 
 @dataclass(frozen=True)
@@ -130,6 +135,8 @@ class Wrapper:
     includes: tuple = ()
     toctree: Toctree = None
     own_dir: bool = True  # False: the page sits among pages of these docs and claims only its own path
+    kind: str = None  # the page's type, for its front matter: tutorial, how-to, reference, explanation, landing
+    reader: str = None  # who the page is for, for its front matter
 
 
 @dataclass
@@ -168,15 +175,6 @@ class Repo:
 
     def lead_sources(self):
         return {w.lead.path for w in self.WRAPPERS if isinstance(w.lead, Lead)}
-
-
-_GUIDE = ("bom", "jtag-connector-1", "jtag-connector-2", "uart-connector-1", "uart-connector-2", "bench-check",
-          "fitting", "verifying-1", "verifying-2", "verifying-2b")
-
-
-def _guide_pages(*more):
-    """The visible toctree that ends an index page of the Acorn building guide."""
-    return Toctree((*_GUIDE, *more), heading="The pages of this guide", maxdepth=1, hidden=False)
 
 
 _PS1_LOGIN = Include("docs/sites/ps1-login.inc", docs_owned=True)
@@ -339,7 +337,7 @@ TEST_DESIGNS = Repo(
     },
     SECTIONS={
         ("docs/hardware/acorn.md", "Installing the Acorn Packages"):
-            ("docs/boards/generated/install-acorn.md", "docs/boards/acorn/packages.md"),
+            ("docs/boards/generated/install-acorn.md", "docs/boards/acorn/setup/packages.md"),
         ("docs/hardware/arty-a7.md", "Installing the Arty Packages"):
             ("docs/boards/generated/install-arty-a7.md", "docs/boards/arty-a7.md"),
         ("docs/hardware/netv2.md", "Installing the NeTV2 Packages"):
@@ -358,201 +356,273 @@ TEST_DESIGNS = Repo(
     WRAPPERS=[
         # The Acorn building guide, and the Acorn's packages page around its install section.
         Wrapper(
-            'docs/boards/acorn/building/compute-blade/bench-check.md',
-            'Compute Blade cables: bench check',
+            'docs/boards/acorn/setup/compute-blade/bench-check.md',
+            'How to check the cables on the bench (Compute Blade)',
             Interim('**You have built both cables for an Acorn on a Compute Blade. Before anything is '
                     'powered, a check on the host with a meter that ground reaches the plugs and that the 3.3 '
                     'V wire reaches nothing.**'),
             (Include('docs/boards/acorn/generated/acorn-build-blade-bench.md', relative_images=True),),
+            kind='how-to',
+            reader='someone who has built both cables for an Acorn on a Compute Blade',
+            own_dir=False,
         ),
         Wrapper(
-            'docs/boards/acorn/building/compute-blade/bom.md',
-            'Compute Blade cables: parts and tools',
+            'docs/boards/acorn/setup/compute-blade/parts.md',
+            'Parts and tools for the Compute Blade cables',
             Interim('**You are about to build the two cables for an Acorn on a Compute Blade: tick off every '
                     'line before you start.**'),
             (Include('docs/boards/acorn/generated/acorn-blade-bom.md'),),
+            kind='reference',
+            reader='someone gathering the parts and tools for the Compute Blade cables',
+            own_dir=False,
         ),
         Wrapper(
-            'docs/boards/acorn/building/compute-blade/fitting.md',
-            'Compute Blade cables: fitting',
+            'docs/boards/acorn/setup/compute-blade/fitting.md',
+            'How to fit the cables and the card (Compute Blade)',
             Interim('**Your two cables for an Acorn on a Compute Blade have passed the bench check, and you '
                     'are fitting them and the card.**'),
             (Include('docs/boards/acorn/generated/acorn-build-blade-fit.md', relative_images=True),),
+            kind='how-to',
+            reader='someone fitting the cables and the Acorn on a Compute Blade',
+            own_dir=False,
         ),
         Wrapper(
-            'docs/boards/acorn/building/compute-blade/index.md',
-            'Compute Blade cables: overview',
+            'docs/boards/acorn/setup/compute-blade/cables.md',
+            'The two cables on a Compute Blade',
             Interim('**You have an Acorn and a Compute Blade, and want to build the two cables between them, '
                     'fit them and check them.** An Acorn on a Raspberry Pi 5 has [its own '
-                    'guide](../rpi-5/index.md); nothing there is for a Compute Blade.'),
+                    'guide](../rpi-5/cables.md); nothing there is for a Compute Blade.'),
             (Include('docs/boards/acorn/generated/acorn-build-blade-overview.md', relative_images=True),),
-            _guide_pages("verifying-3"),
+            toctree=Toctree(("parts", "jtag-wires", "jtag-housing", "uart-wires", "uart-housing", "bench-check")),
+            kind='explanation',
+            reader='someone with an Acorn and a Compute Blade who is about to build the two cables',
+            own_dir=False,
         ),
         Wrapper(
-            'docs/boards/acorn/building/compute-blade/jtag-connector-1.md',
-            'Compute Blade cables: JTAG connector 1, prepare the wires',
+            'docs/boards/acorn/setup/compute-blade/jtag-wires.md',
+            "How to prepare the JTAG cable's wires (Compute Blade)",
             Interim('**You have the parts for an Acorn on a Compute Blade and are making the first of its two '
                     "cables, from the Acorn's P1 socket (JTAG). On this page: cut the bought cable in half, "
                     'find wire 1, check it with a meter, cut back the wires that are not used, crimp the '
                     'rest.**'),
             (Include('docs/boards/acorn/generated/acorn-build-blade-jtag-1.md', relative_images=True),),
+            kind='how-to',
+            reader='someone making the JTAG cable for an Acorn on a Compute Blade',
+            own_dir=False,
         ),
         Wrapper(
-            'docs/boards/acorn/building/compute-blade/jtag-connector-2.md',
-            'Compute Blade cables: JTAG connector 2, fill and check the housing',
+            'docs/boards/acorn/setup/compute-blade/jtag-housing.md',
+            "How to fill the JTAG cable's housing (Compute Blade)",
             Interim('**You have the P1 cable for an Acorn on a Compute Blade with its wires flagged and '
                     'crimped, and are putting them into their housing. On this page: which wire goes in which '
                     'cavity, and a meter check of every wire.**'),
             (Include('docs/boards/acorn/generated/acorn-build-blade-jtag-2.md', relative_images=True),),
+            kind='how-to',
+            reader='someone making the JTAG cable for an Acorn on a Compute Blade',
+            own_dir=False,
         ),
         Wrapper(
-            'docs/boards/acorn/building/compute-blade/uart-connector-1.md',
-            'Compute Blade cables: UART connector 1, prepare the wires',
+            'docs/boards/acorn/setup/compute-blade/uart-wires.md',
+            "How to prepare the UART cable's wires (Compute Blade)",
             Interim('**You have the parts for an Acorn on a Compute Blade and are making the second of its '
                     "two cables, from the Acorn's P2 socket (the serial port). On this page: find wire 1, "
                     'check it with a meter, cut back the wires that are not used, solder the resistor into '
                     'the J2 wire, crimp the rest.**'),
             (Include('docs/boards/acorn/generated/acorn-build-blade-uart-1.md', relative_images=True),),
+            kind='how-to',
+            reader='someone making the UART cable for an Acorn on a Compute Blade',
+            own_dir=False,
         ),
         Wrapper(
-            'docs/boards/acorn/building/compute-blade/uart-connector-2.md',
-            'Compute Blade cables: UART connector 2, fill and check the housing',
+            'docs/boards/acorn/setup/compute-blade/uart-housing.md',
+            "How to fill the UART cable's housing (Compute Blade)",
             Interim('**You have the P2 cable for an Acorn on a Compute Blade with its wires flagged and '
                     'crimped, and are putting them into their housing. On this page: which wire goes in which '
                     'cavity, and a meter check of every wire.**'),
             (Include('docs/boards/acorn/generated/acorn-build-blade-uart-2.md', relative_images=True),),
+            kind='how-to',
+            reader='someone making the UART cable for an Acorn on a Compute Blade',
+            own_dir=False,
         ),
         Wrapper(
-            'docs/boards/acorn/building/compute-blade/verifying-1.md',
-            'Compute Blade cables: verifying 1, run the check and read the result',
+            'docs/boards/acorn/checks/compute-blade.md',
+            'How to run the Acorn check on a Compute Blade',
             Interim('**You have an Acorn on a Compute Blade, its two cables built and fitted, and want to '
                     'know what the check on the blade says about the wiring. On a Compute Blade today it '
                     'cannot yet prove the cables: the paragraph "What to expect on a Compute Blade today" '
                     'below says why.**\n\nLog in to the blade first. At ps1:'),
             (_PS1_LOGIN, Include('docs/boards/acorn/generated/acorn-check-blade-1.md', relative_images=True)),
+            toctree=Toctree(("compute-blade-jtag",)),
+            kind='how-to',
+            reader='someone with an Acorn fitted on a Compute Blade who wants to check its wiring',
+            own_dir=False,
         ),
         Wrapper(
-            'docs/boards/acorn/building/compute-blade/verifying-2.md',
-            'Compute Blade cables: verifying 2, when a test fails',
+            'docs/boards/acorn/troubleshooting/compute-blade-failing-test.md',
+            'A failing Acorn test on a Compute Blade',
             Interim('**The check of your Acorn on a Compute Blade printed a failing line, and you want to '
                     'know which wire it means.**'),
             (Include('docs/boards/acorn/generated/acorn-check-blade-2.md', relative_images=True),),
+            kind='reference',
+            reader='someone whose Acorn check on a Compute Blade printed a failing line',
+            own_dir=False,
         ),
         Wrapper(
-            'docs/boards/acorn/building/compute-blade/verifying-2b.md',
-            'Compute Blade cables: verifying 2b, when the failure is not a wire',
+            'docs/boards/acorn/troubleshooting/compute-blade-other-messages.md',
+            'Other Acorn check messages on a Compute Blade',
             Interim('**The check of your Acorn on a Compute Blade printed a line that is not about one of the '
                     "cables' wires (the card's image, its memory, the tool itself), and you want to know what "
                     'it means.**'),
             (Include('docs/boards/acorn/generated/acorn-check-blade-2b.md', relative_images=True),),
+            kind='reference',
+            reader='someone whose Acorn check on a Compute Blade printed a message that is not about a wire',
+            own_dir=False,
         ),
         Wrapper(
-            'docs/boards/acorn/building/compute-blade/verifying-3.md',
-            'Compute Blade cables: verifying 3, what has been run on a Compute Blade',
+            'docs/boards/acorn/checks/compute-blade-jtag.md',
+            'How to make a Compute Blade boot ready for JTAG',
             Interim("**Your Compute Blade's check fails at `jtag` although the wiring is right, or you want "
                     'to know what to expect before you start: what has and has not been run on a blade, and '
                     'the pin JTAG shares with the serial port.**'),
             (Include('docs/boards/acorn/generated/acorn-check-blade-3.md', relative_images=True),),
+            kind='how-to',
+            reader='someone with an Acorn on a Compute Blade whose boot does not let JTAG run',
+            own_dir=False,
         ),
         Wrapper(
-            'docs/boards/acorn/building/rpi-5/bench-check.md',
-            'Raspberry Pi 5 cables: bench check',
+            'docs/boards/acorn/setup/rpi-5/bench-check.md',
+            'How to check the cables on the bench (Raspberry Pi 5)',
             Interim('**You have built both cables for an Acorn on a Raspberry Pi 5. Before anything is '
                     'powered, a check on the host with a meter that ground reaches the plugs and that the 3.3 '
                     'V wire reaches nothing.**'),
             (Include('docs/boards/acorn/generated/acorn-build-pi5-bench.md', relative_images=True),),
+            kind='how-to',
+            reader='someone who has built both cables for an Acorn on a Raspberry Pi 5',
+            own_dir=False,
         ),
         Wrapper(
-            'docs/boards/acorn/building/rpi-5/bom.md',
-            'Raspberry Pi 5 cables: parts and tools',
+            'docs/boards/acorn/setup/rpi-5/parts.md',
+            'Parts and tools for the Raspberry Pi 5 cables',
             Interim('**You are about to build the two cables for an Acorn on a Raspberry Pi 5: tick off every '
                     'line before you start.**'),
             (Include('docs/boards/acorn/generated/acorn-pi5-bom.md'),),
+            kind='reference',
+            reader='someone gathering the parts and tools for the Raspberry Pi 5 cables',
+            own_dir=False,
         ),
         Wrapper(
-            'docs/boards/acorn/building/rpi-5/fitting.md',
-            'Raspberry Pi 5 cables: fitting',
+            'docs/boards/acorn/setup/rpi-5/fitting.md',
+            'How to fit the cables and the card (Raspberry Pi 5)',
             Interim('**Your two cables for an Acorn on a Raspberry Pi 5 have passed the bench check, and you '
                     'are fitting them and the card.**'),
             (Include('docs/boards/acorn/generated/acorn-build-pi5-fit.md', relative_images=True),),
+            kind='how-to',
+            reader='someone fitting the cables and the Acorn on a Raspberry Pi 5',
+            own_dir=False,
         ),
         Wrapper(
-            'docs/boards/acorn/building/rpi-5/index.md',
-            'Raspberry Pi 5 cables: overview',
+            'docs/boards/acorn/setup/rpi-5/cables.md',
+            'The two cables on a Raspberry Pi 5',
             Interim('**You have an Acorn and a Raspberry Pi 5, and want to build the two cables between them, '
                     'fit them and check them.** An Acorn on a Compute Blade has [its own '
-                    'guide](../compute-blade/index.md); nothing there is for a Raspberry Pi 5.'),
+                    'guide](../compute-blade/cables.md); nothing there is for a Raspberry Pi 5.'),
             (Include('docs/boards/acorn/generated/acorn-build-pi5-overview.md', relative_images=True),),
-            _guide_pages(),
+            toctree=Toctree(("parts", "jtag-wires", "jtag-housing", "uart-wires", "uart-housing", "bench-check")),
+            kind='explanation',
+            reader='someone with an Acorn and a Raspberry Pi 5 who is about to build the two cables',
+            own_dir=False,
         ),
         Wrapper(
-            'docs/boards/acorn/building/rpi-5/jtag-connector-1.md',
-            'Raspberry Pi 5 cables: JTAG connector 1, prepare the wires',
+            'docs/boards/acorn/setup/rpi-5/jtag-wires.md',
+            "How to prepare the JTAG cable's wires (Raspberry Pi 5)",
             Interim('**You have the parts for an Acorn on a Raspberry Pi 5 and are making the first of its '
                     "two cables, from the Acorn's P1 socket (JTAG). On this page: cut the bought cable in "
                     'half, find wire 1, check it with a meter, cut back the wires that are not used, crimp '
                     'the rest.**'),
             (Include('docs/boards/acorn/generated/acorn-build-pi5-jtag-1.md', relative_images=True),),
+            kind='how-to',
+            reader='someone making the JTAG cable for an Acorn on a Raspberry Pi 5',
+            own_dir=False,
         ),
         Wrapper(
-            'docs/boards/acorn/building/rpi-5/jtag-connector-2.md',
-            'Raspberry Pi 5 cables: JTAG connector 2, fill and check the housing',
+            'docs/boards/acorn/setup/rpi-5/jtag-housing.md',
+            "How to fill the JTAG cable's housing (Raspberry Pi 5)",
             Interim('**You have the P1 cable for an Acorn on a Raspberry Pi 5 with its wires flagged and '
                     'crimped, and are putting them into their housing. On this page: which wire goes in which '
                     'cavity, and a meter check of every wire.**'),
             (Include('docs/boards/acorn/generated/acorn-build-pi5-jtag-2.md', relative_images=True),),
+            kind='how-to',
+            reader='someone making the JTAG cable for an Acorn on a Raspberry Pi 5',
+            own_dir=False,
         ),
         Wrapper(
-            'docs/boards/acorn/building/rpi-5/uart-connector-1.md',
-            'Raspberry Pi 5 cables: UART connector 1, prepare the wires',
+            'docs/boards/acorn/setup/rpi-5/uart-wires.md',
+            "How to prepare the UART cable's wires (Raspberry Pi 5)",
             Interim('**You have the parts for an Acorn on a Raspberry Pi 5 and are making the second of its '
                     "two cables, from the Acorn's P2 socket (the serial port). On this page: find wire 1, "
                     'check it with a meter, cut back the wires that are not used, crimp the rest.**'),
             (Include('docs/boards/acorn/generated/acorn-build-pi5-uart-1.md', relative_images=True),),
+            kind='how-to',
+            reader='someone making the UART cable for an Acorn on a Raspberry Pi 5',
+            own_dir=False,
         ),
         Wrapper(
-            'docs/boards/acorn/building/rpi-5/uart-connector-2.md',
-            'Raspberry Pi 5 cables: UART connector 2, fill and check the housing',
+            'docs/boards/acorn/setup/rpi-5/uart-housing.md',
+            "How to fill the UART cable's housing (Raspberry Pi 5)",
             Interim('**You have the P2 cable for an Acorn on a Raspberry Pi 5 with its wires flagged and '
                     'crimped, and are putting them into their housing. On this page: which wire goes in which '
                     'cavity, and a meter check of every wire.**'),
             (Include('docs/boards/acorn/generated/acorn-build-pi5-uart-2.md', relative_images=True),),
+            kind='how-to',
+            reader='someone making the UART cable for an Acorn on a Raspberry Pi 5',
+            own_dir=False,
         ),
         Wrapper(
-            'docs/boards/acorn/building/rpi-5/verifying-1.md',
-            'Raspberry Pi 5 cables: verifying 1, run the check and read the result',
+            'docs/boards/acorn/checks/rpi-5.md',
+            'How to run the Acorn check on a Raspberry Pi 5',
             Interim('**You have an Acorn on a Raspberry Pi 5, its two cables built and fitted, and want to '
                     "know whether the wiring is right.**\n\nLog in to the Pi 5 first. At welland, the board's "
                     'page on <https://welland.fpgas.online/fpgas/> shows its ssh command under "Use your own '
                     'ssh client".'),
             (Include('docs/boards/acorn/generated/acorn-check-pi5-1.md', relative_images=True),),
+            kind='how-to',
+            reader='someone with an Acorn fitted on a Raspberry Pi 5 who wants to check its wiring',
+            own_dir=False,
         ),
         Wrapper(
-            'docs/boards/acorn/building/rpi-5/verifying-2.md',
-            'Raspberry Pi 5 cables: verifying 2, when a test fails',
+            'docs/boards/acorn/troubleshooting/rpi-5-failing-test.md',
+            'A failing Acorn test on a Raspberry Pi 5',
             Interim('**The check of your Acorn on a Raspberry Pi 5 printed a failing line, and you want to '
                     'know which wire it means.**'),
             (Include('docs/boards/acorn/generated/acorn-check-pi5-2.md', relative_images=True),),
+            kind='reference',
+            reader='someone whose Acorn check on a Raspberry Pi 5 printed a failing line',
+            own_dir=False,
         ),
         Wrapper(
-            'docs/boards/acorn/building/rpi-5/verifying-2b.md',
-            'Raspberry Pi 5 cables: verifying 2b, when the failure is not a wire',
+            'docs/boards/acorn/troubleshooting/rpi-5-other-messages.md',
+            'Other Acorn check messages on a Raspberry Pi 5',
             Interim('**The check of your Acorn on a Raspberry Pi 5 printed a line that is not about one of '
                     "the cables' wires (the card's image, its memory, the tool itself), and you want to know "
                     'what it means.**'),
             (Include('docs/boards/acorn/generated/acorn-check-pi5-2b.md', relative_images=True),),
+            kind='reference',
+            reader='someone whose Acorn check on a Raspberry Pi 5 printed a message that is not about a wire',
+            own_dir=False,
         ),
         Wrapper(
-            'docs/boards/acorn/packages.md',
-            'Acorn packages and the boot check',
+            'docs/boards/acorn/setup/packages.md',
+            'How to install the Acorn packages',
             Interim('**You have an Acorn on its host (a Raspberry Pi 5 with an M.2 HAT, or a CM4 or CM5 on a '
                     'Compute Blade) and\nwant to install the fpgas.online packages for it, run the check, and '
                     'identify or verify its flash with the\nflash tool (`id` and `verify`; writing the flash '
-                    'is on [Installing and updating the\nimages](designs/install-images.md)).**\n\nOn a '
+                    'is on [Installing and updating the\nimages](install-images.md)).**\n\nOn a '
                     'Raspberry Pi 5, before the check is run: its `p2-uart` and `p2-serial` tests need the '
                     "header's serial\nport on (`/dev/ttyAMA0`) and the kernel console off it: [the Pi's "
-                    'settings](wiring/rpi-5-host.md#the-serial-port).'),
+                    'settings](rpi-5/pi-settings.md#the-serial-port).'),
             (Include('docs/boards/generated/install-acorn.md'),),
+            kind='how-to',
+            reader='someone with an Acorn on its host who wants to install the fpgas.online packages for it',
             own_dir=False,
         ),
     ],
@@ -928,6 +998,14 @@ def rewrite_links(text, src, at, ref, *, repo, own_fragments=None, strict_fragme
             # inside the site, which the build checks. (By its address it would be checked against what is
             # published, and a page added in the same change is not published yet.)
             page, _, fragment = target[len(PUBLISHED) :].partition("#")
+            if page.endswith(".html") and "?" not in page:
+                name = page.removesuffix(".html")
+                moved = MOVED.get(f"{name}#{fragment}") if fragment else None
+                if moved is not None:
+                    name, _, fragment = moved.partition("#")
+                elif name in MOVED:
+                    name = MOVED[name].partition("#")[0]
+                page = name + ".html"
             dest = "docs/" + page.removesuffix(".html") + ".md"
             if page.endswith(".html") and "?" not in page and ((DOCS / dest).exists() or dest in published):
                 return here(dest, fragment)
@@ -1065,6 +1143,10 @@ def wrapper_marker(repo):
 def wrapper_text(repo, w, lead):
     """The page a WRAPPERS row makes, given its lead's text (already link-rewritten; None for no lead)."""
     blocks = [f"# {w.title}"]
+    front = ""
+    if w.kind:
+        front = (f"---\ntype: {w.kind}\nowner: {repo.name} maintainers\nreader: {w.reader}\n"
+                 f"review: {WRAPPER_REVIEW}\n---\n\n")
     if lead:
         blocks.append(lead.strip("\n"))
     for inc in w.includes:
@@ -1077,7 +1159,7 @@ def wrapper_text(repo, w, lead):
         options = (":hidden:\n" if t.hidden else "") + (f":maxdepth: {t.maxdepth}\n" if t.maxdepth else "")
         entries = "".join((f"{e[0]} <{e[1]}>\n" if isinstance(e, tuple) else f"{e}\n") for e in t.entries)
         blocks.append(f"```{{toctree}}\n{options}\n{entries}```")
-    return wrapper_marker(repo) + "\n\n".join(blocks) + "\n"
+    return front + wrapper_marker(repo) + "\n\n".join(blocks) + "\n"
 
 
 def source_text(repo, ref, commit):

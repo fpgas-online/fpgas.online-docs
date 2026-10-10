@@ -4,7 +4,9 @@ Markdown-first: pages are written in Markdown and parsed by MyST. reStructuredTe
 still works if a page ever needs it, but nothing here requires it.
 """
 
+import json
 import pathlib
+import posixpath
 import sys
 from datetime import date
 
@@ -32,7 +34,16 @@ extensions = [
                                 # full of commands meant to be pasted
     "sphinx.ext.intersphinx",
     "sphinx.ext.todo",
+    "sphinx_reredirects",       # a page at each old address that sends the reader to the new one
 ]
+
+# docs/redirects.json holds every page that moved: {old page: new page}, as document names. An entry with a
+# "#fragment" in its key is a section that left its page; tools/sync_repos.py reads those, a browser cannot.
+_moved = json.loads((pathlib.Path(__file__).resolve().parent / "redirects.json").read_text())
+redirects = {
+    old: posixpath.relpath(new.partition("#")[0], posixpath.dirname(old)) + ".html" + "".join(new.partition("#")[1:])
+    for old, new in _moved.items() if "#" not in old
+}
 
 source_suffix = {
     ".md": "markdown",
@@ -46,6 +57,7 @@ exclude_patterns = [
     "Thumbs.db",
     ".DS_Store",
     "requirements.txt",
+    "redirects.json",
     "superpowers",
     # Tables copied from fpgas.online-test-designs by tools/sync_repos.py. They are pulled into
     # pages with {include}, not built as pages of their own.
