@@ -11,7 +11,7 @@ review: 2026-11-10
 
 The images and the flash layout are on [the fpgas.online Acorn design](../overview/design.md). A bad operational image at 0x400000 needs nothing from you. The watchdog fires, the FPGA reloads from 0x0, the golden image brings PCIe up, and the host rewrites the operational slot. On a Compute Blade use `--pins 2:3:4:14` and the card's address from `lspci` ([how to run JTAG on a Compute Blade](../checks/compute-blade-jtag-by-hand.md)).
 
-This procedure is waiting for its run: ISSUE-01.
+This procedure is waiting for its run: [test-designs issue #228](https://github.com/fpgas-online/fpgas.online-test-designs/issues/228).
 
 :::{danger}
 **Never write flash address 0x0 during normal operation.** The golden image there is the recovery mechanism. Overwrite it badly and the only way back is the SRAM bootstrap below. On a board whose JTAG does not answer, there is no way back at all. `spi_flash.py` refuses 0x0 without `--i-know-this-writes-golden`; `litepcie_util` does not check.

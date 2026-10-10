@@ -13,7 +13,7 @@ The loopback design (`pmod-loopback`) returns on K2 the inverse of what it sees 
 
 On a Compute Blade this cannot be done by hand in one boot. The load needs the header's serial port off, and the test needs it on ([why](jtag-and-the-pcie-endpoint.md#why-a-blade-needs-its-serial-port-off-for-jtag)). The check tests the pair there with `p2-uart` and `p2-serial`.
 
-This procedure is waiting for its run: ISSUE-03.
+This procedure is waiting for its run: [test-designs issue #230](https://github.com/fpgas-online/fpgas.online-test-designs/issues/230).
 
 ## What you need
 
