@@ -8,7 +8,7 @@ review: 2026-11-10
 # Programming an Acorn
 
 This page explains how a design reaches an Acorn on fpgas.online, in three layers: the protocol, the connection and
-the tool. It does not give the commands. They are on [How to run JTAG by hand on an Acorn on a Raspberry Pi 5](../checks/jtag-by-hand.md) and
+the tool. It does not give the commands. Loading is on [How to run JTAG by hand on an Acorn on a Raspberry Pi 5](../checks/jtag-by-hand.md). Writing the flash is on
 [How to install the fpgas.online images on an Acorn](../setup/install-images.md). The card's own hardware is on
 [Acorn specifications](specifications.md).
 

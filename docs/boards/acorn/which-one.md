@@ -32,8 +32,8 @@ only the device string. Board names the card, and the other columns are its FPGA
 The CLE-215+ is equivalent to the NiteFury but with 1 GB DDR3 (against 512 MB).
 
 The table gives the package as FBG484 for every card. The file `sqrl_acorn.py` disagrees for the CLE-101. It builds it as `xc7a100t-fgg484-2` and passes `fgg484` to
-openFPGALoader. Only the CLE-215 and CLE-215+ are `fbg484` there
-([docs issue #2](https://github.com/fpgas-online/fpgas.online-docs/issues/2)).
+openFPGALoader. Only the CLE-215 and CLE-215+ are `fbg484` there ([docs issue #2](https://github.com/fpgas-online/fpgas.online-docs/issues/2)).
+
 The LiteFury is the same board as the CLE-101. Sources are the [NiteFury and LiteFury repository](https://github.com/RHSResearchLLC/NiteFury-and-LiteFury) and the
 [LiteX Acorn CLE-215 wiki](https://github.com/enjoy-digital/litex/wiki/Use-LiteX-on-the-Acorn-CLE-215).
 
