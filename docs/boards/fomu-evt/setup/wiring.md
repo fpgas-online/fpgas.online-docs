@@ -13,7 +13,7 @@ review: 2026-11-10
 
 The Fomu connects to the Pi in two ways.
 
-- **GPIO header**: the Fomu sits directly on the Pi's GPIO header as a standard HAT, and connects UART and GPIO signals.
+- **GPIO header**: the Fomu sits on the Pi's 40-pin header, which carries reset, CDONE, the SPI flash and the UART.
 - **USB**: the Fomu's USB-A connector plugs into the Pi's USB port, through an inline [USB analyser](../overview/usb-analysers.md) when one is fitted.
 
 ## Serial (UART) on the GPIO header
@@ -42,7 +42,7 @@ The model-agnostic form to use is `--port /dev/serial0`. The device `/dev/serial
 
 The login console on the port is stopped by [How to stop the serial login console before a Fomu UART test](../checks/stop-serial-console.md).
 
-## PMOD / GPIO loopback
+## The PMOD connectors and the loopback gateware
 
 The loopback gateware uses `pmoda_n` as input and `pmodb_n` as output. Their pins are under PMODA_N and PMODB_N on [Fomu EVT specifications](../overview/specifications.md#pmod-connectors). Each row of the table gives a connector and its loopback role.
 

@@ -1,13 +1,13 @@
 ---
 type: reference
 owner: documentation maintainers
-reader: someone whose Fomu EVT does not answer the UART or the PMOD loopback test
+reader: someone whose Fomu EVT does not answer the UART test, or fails the `pmod` or `pin-id` test
 review: 2026-11-10
 ---
 
 # Fomu EVT test faults
 
-**Your Fomu EVT is loaded, but its UART or loopback test fails.**
+**Your Fomu EVT is loaded, but its UART, `pmod` or `pin-id` test fails.**
 
 The Pi's side of the UART test is on [How to stop the serial login console before a Fomu UART test](../checks/stop-serial-console.md).
 
