@@ -77,7 +77,7 @@ Each row is a line the scanner prints for one GPIO.
 | `GPIO7 (HAT JB pin 07) -> (garbled: '????a????a')` | Two FPGA outputs drive one GPIO, as on the HAT's shared SPI pins JA2-4 and JB2-4 | Unplug the JB cable while scanning JA |
 | `GPIO7 (HAT JB pin 07) -> (garbled: '????a????a')` | A kernel driver (SPI, I2C, UART) is driving the GPIO | Run without `--no-unload`, so the scanner unloads the SPI modules |
 | `GPIO0 (HAT JB pin 09) -> (no signal)` | The GPIO routes to no FPGA pin, as GPIO0 and GPIO1 (the HAT's I2C EEPROM) | None: they always show no signal |
-| `GPIO0 (HAT JB pin 09) -> (no signal)` | A pull-up overrides the FPGA's drive (not expected with LVCMOS33 at 3.3 V) | None known |
+| `GPIO0 (HAT JB pin 09) -> (no signal)` | A pull-up overrides the FPGA's drive (not expected with LVCMOS33 at 3.3V) | None known |
 | `GPIO0 (HAT JB pin 09) -> (no signal)` | The PMOD cable for this port is not plugged in | Plug the cable into this port |
 | `GPIO0 (HAT JB pin 09) -> (no signal)` | A different GPIO chip on a Raspberry Pi 5 (`pinctrl-rp1`, not `pinctrl-bcm2711`) | None: the scanner detects the chip itself |
 
