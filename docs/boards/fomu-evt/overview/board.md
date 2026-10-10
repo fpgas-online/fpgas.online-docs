@@ -14,7 +14,7 @@ The Fomu is a tiny FPGA board that fits inside a USB Type-A port, designed by th
 :::{admonition} Figure to come
 :class: placeholder
 
-The whole Fomu EVT, top and bottom, with the USB contacts, the RGB LED, the touch pads, the PMOD pads and the debug header marked. Tracked in ISSUE-02.
+The whole Fomu EVT, top and bottom, with the USB contacts, the RGB LED, the touch pads, the PMOD pads and the debug header marked. Tracked in [docs issue #140](https://github.com/fpgas-online/fpgas.online-docs/issues/140).
 :::
 
 ## How it sits on its Raspberry Pi

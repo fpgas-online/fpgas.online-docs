@@ -12,7 +12,7 @@ review: 2026-11-10
 :::{admonition} Figure to come
 :class: placeholder
 
-The three layers of programming a Fomu EVT side by side. They are the protocol (USB DFU), the connection (the USB-A plug, then two GPIO header pins) and the tool (openFPGALoader). Tracked in ISSUE-03.
+The three layers of programming a Fomu EVT side by side. They are the protocol (USB DFU), the connection (the USB-A plug, then two GPIO header pins) and the tool (openFPGALoader). Tracked in [docs issue #141](https://github.com/fpgas-online/fpgas.online-docs/issues/141).
 :::
 
 ## The protocol: USB DFU

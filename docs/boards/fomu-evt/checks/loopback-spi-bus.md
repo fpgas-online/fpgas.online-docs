@@ -11,7 +11,7 @@ review: 2026-11-10
 
 The loopback wires are on [Fomu EVT wiring to a Raspberry Pi](../setup/wiring.md#confirmed-loopback-pair).
 
-This procedure is waiting for its run: ISSUE-04.
+This procedure is waiting for its run: [test-designs issue #251](https://github.com/fpgas-online/fpgas.online-test-designs/issues/251).
 
 ## What you need
 
