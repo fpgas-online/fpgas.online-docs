@@ -395,7 +395,7 @@ Document the exact Fomu-to-RPi GPIO header pin mapping from iCE40 pins 13, 21 to
 RPi GPIO14, GPIO15.
 
 The method is the
-[pin-ID scan](pin-id/scan.md): load the design on the Fomu and read back which Pi GPIO
+[pin-ID design](pin-id.md): load it on the Fomu and read back which Pi GPIO
 carries which FPGA pin's identity.
 :::
 

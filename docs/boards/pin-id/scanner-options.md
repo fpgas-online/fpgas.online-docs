@@ -7,9 +7,9 @@ review: 2026-11-10
 
 # Pin-id scanner options
 
-**The options of the pin-id host scanner `host/identify_pmod_pins.py`, which hold for any board**. The options are run from `designs/pmod-pin-id` on the Raspberry Pi. How to run a whole scan is on [How to scan a board's wiring with the pin-id design](scan.md).
+**The options of the pin-id host scanner `host/identify_pmod_pins.py`**. The options are run from `designs/pmod-pin-id` on the Raspberry Pi. How to run a whole scan is on [How to scan a board's wiring with the pin-id design](scan.md).
 
-The Option column is the flag, and the Command column is a full command that uses it.
+The Option column is the flag, the Command column is a full command that uses it, and What it does is the effect.
 
 | Option | Command | What it does |
 |---|---|---|

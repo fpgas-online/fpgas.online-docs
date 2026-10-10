@@ -13,24 +13,25 @@ review: 2026-11-10
 
 - An Arty A7 cabled to the Raspberry Pi's [PMOD HAT](../pmod/rpi-hat.md) with the three ribbon cables.
 - A checkout of the [test-designs repository](https://github.com/fpgas-online/fpgas.online-test-designs) with the `designs/pmod-pin-id` directory.
-- `uv`, which runs the scanner.
+- `uv` on both machines: the design's `make` targets run Python through `uv run`.
+- A machine that builds the bitstream and has the Arty's USB cable, for steps 1 and 2. The scanner of step 3 runs on the Raspberry Pi, from the same directory of a checkout there.
 
 ## Steps
 
-1. In `designs/pmod-pin-id`, build the Arty bitstream, which CI also does automatically.
+1. On the machine that builds, in `designs/pmod-pin-id`, build the Arty bitstream, which CI also does automatically.
 
    ```console
    $ cd designs/pmod-pin-id
    $ make gateware-arty
    ```
 
-2. In the same directory, program the FPGA, which makes every PMOD pin start sending its name.
+2. In the same directory, on the machine with the Arty's USB cable, program the FPGA, which makes every PMOD pin start sending its name.
 
    ```console
    $ make program-arty
    ```
 
-3. On the Raspberry Pi, run the scanner, which prints one line per GPIO and then a mapping table.
+3. On the Raspberry Pi, in `designs/pmod-pin-id`, run the scanner, which prints one line per GPIO and then a mapping table.
 
    ```console
    $ make scan-arty
@@ -74,7 +75,7 @@ Each row is a line the scanner prints for one GPIO.
 | What you see | Likely cause | Fix |
 |---|---|---|
 | `GPIO7 (HAT JB pin 07) -> (garbled: '????a????a')` | Python timing jitter missed bit boundaries | Run the scan again |
-| `GPIO7 (HAT JB pin 07) -> (garbled: '????a????a')` | Two FPGA outputs drive one GPIO, as on the HAT's shared SPI pins JA2-4 and JB2-4 | Unplug the JB cable while scanning JA |
+| `GPIO7 (HAT JB pin 07) -> (garbled: '????a????a')` | Two FPGA outputs drive one GPIO, as on the HAT's shared SPI pins JA2-4 and JB2-4 | None on this page: pins 2-4 of JA cannot be verified independently while JB is also connected |
 | `GPIO7 (HAT JB pin 07) -> (garbled: '????a????a')` | A kernel driver (SPI, I2C, UART) is driving the GPIO | Run without `--no-unload`, so the scanner unloads the SPI modules |
 | `GPIO0 (HAT JB pin 09) -> (no signal)` | The GPIO routes to no FPGA pin, as GPIO0 and GPIO1 (the HAT's I2C EEPROM) | None: they always show no signal |
 | `GPIO0 (HAT JB pin 09) -> (no signal)` | A pull-up overrides the FPGA's drive (not expected with LVCMOS33 at 3.3V) | None known |
@@ -85,7 +86,7 @@ A garbled line means start bits arrived but the UART frames did not decode clean
 
 ## Next
 
-- [Pin-id scanner options](scanner-options.md), which hold for any board
+- [Pin-id scanner options](scanner-options.md)
 - [How to add a board to the pin-id design](add-board.md)
 - [The pin-id design](../pin-id.md)
 - [Raspberry Pi PMOD HAT](../pmod/rpi-hat.md)
