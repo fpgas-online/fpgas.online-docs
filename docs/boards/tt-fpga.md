@@ -316,7 +316,7 @@ bridging. Three host-side wrapper scripts handle the RP2040 interaction:
 | PMOD pin ID | [`pmod-pin-id/.../top.bin`](https://github.com/fpgas-online/fpgas.online-test-designs/tree/main/designs/pmod-pin-id/) | [`tt_pmod_wrapper.py`](https://github.com/fpgas-online/fpgas.online-test-designs/blob/main/designs/_host/tt_pmod_wrapper.py) | UART TX on each GPIO pin |
 
 The pin ID test and how to read its output are described on
-[Pin identification](pin-id.md).
+[How to scan a board's wiring with the pin-id design](pin-id/scan.md).
 
 ### Test Execution
 
@@ -582,7 +582,7 @@ confirms that the cables are connected, not that the bit order is right.
 each pin, so the decode names the bit at each GPIO. Run `designs/pmod-pin-id`
 through
 [`tt_pmod_wrapper.py`](https://github.com/fpgas-online/fpgas.online-test-designs/blob/main/designs/_host/tt_pmod_wrapper.py) on `pi-sw2-p33`,
-read the decode (see [Pin identification](pin-id.md)), then correct whichever
+read the decode (see [How to scan a board's wiring with the pin-id design](pin-id/scan.md)), then correct whichever
 of the three copies loses: the tables on this page, the mapping in
 `verify-hardware.md`, or `drive_pins`/`read_pins` in `test_pmod_loopback.py`.
 Everything on this page that quotes RPi GPIO numbers — the

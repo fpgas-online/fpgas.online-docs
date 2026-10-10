@@ -1,19 +1,27 @@
-# Verifying wiring with the pin-id design
+---
+type: explanation
+owner: documentation maintainers
+reader: someone who wants to know how pin-id reads a cable's wiring
+review: 2026-11-10
+---
 
-Each FPGA pin broadcasts its own name over a slow UART, and a host scanner
-decodes that name on every Raspberry Pi GPIO in turn, so a cable's actual pin
-mapping is read off directly rather than assumed from documentation or
-datasheets. Several board pages defer their open wiring questions to this
-method, including the Arty A7's
-[PMOD cable routing](arty-a7.md#pmod-cable-routing-hat--arty), the Acorn's
-[P2 wiring check](acorn/checks/pin-id.md),
-and the TT FPGA's [pin mapping](tt-fpga.md#pin-mapping).
+# The pin-id design
 
-## How It Works
+**The pin-id design makes each FPGA pin send its own name over a slow UART**. A host scanner then reads a cable's pin mapping off the wire. This page explains how the design works and why. The commands to scan are on [How to scan a board's wiring with the pin-id design](pin-id/scan.md). Adding a board is on [How to add a board to the pin-id design](pin-id/add-board.md).
 
-The technique is simple: each FPGA output pin continuously transmits its own
-name as slow UART data. Connect any host GPIO to any FPGA pin, and the host
-decodes the name to identify the connection.
+Several board pages defer their open wiring questions to this method. They include the Arty A7's [PMOD cable routing](arty-a7.md#pmod-cable-routing-hat--arty), the Acorn's [P2 wiring check](acorn/checks/pin-id.md) and the TT FPGA's [pin mapping](tt-fpga.md#pin-mapping).
+
+```{toctree}
+:hidden:
+
+pin-id/scan
+pin-id/scanner-options
+pin-id/add-board
+```
+
+## How it works
+
+Each FPGA output pin continuously transmits its own name as slow UART data. A host GPIO connected to any FPGA pin decodes the name and so identifies the connection.
 
 ```text
 FPGA Pin G13 ──── transmits "G13\r\n" at 1200 baud ────> RPi GPIO8
@@ -22,47 +30,36 @@ FPGA Pin E15 ──── transmits "E15\r\n" at 1200 baud ────> RPi GPI
   ...every pin simultaneously...
 ```
 
-### Why 1200 Baud?
+## Why 1200 baud
 
-- **Reliable with software bit-banging**: At 1200 baud each bit is ~833 us,
-  easily sampled by Python on a Raspberry Pi without real-time scheduling.
-- **Trivial FPGA divider**: A 100 MHz clock divides to 1200 baud with 83,333
-  cycles per bit (0.0004% error). Even a 12 MHz iCE40 clock gives 10,000
-  cycles per bit.
-- **No hardware UART needed on the host**: The RPi scanner uses `gpiod` to
-  read GPIO values directly — no serial port, no kernel driver, no device tree
-  overlay.
+Three properties of 1200 baud decide it.
 
-### Why FPGA Pin Names?
+- **Reliable with software bit-banging**: at 1200 baud each bit is about 833 us, which Python on a Raspberry Pi samples without real-time scheduling.
+- **Trivial FPGA divider**: a 100 MHz clock divides to 1200 baud with 83,333 cycles per bit (0.0004% error). A 12 MHz iCE40 clock gives 10,000 cycles per bit.
+- **No hardware UART needed on the host**: the Raspberry Pi scanner reads GPIO values directly with `gpiod`. It needs no serial port, no kernel driver and no device tree overlay.
 
-The design transmits the FPGA package ball name (e.g. `G13`, `V14`, `K16`)
-rather than a connector label (e.g. `JA01`). This is the canonical,
-unambiguous identifier:
+## Why FPGA pin names
 
-- It doesn't depend on which connector naming convention the board uses.
-- It matches what you see in constraint files (XDC, PCF) and schematics.
-- You can look up the pin in the FPGA datasheet directly.
-- The connector label can be derived by cross-referencing with the platform
-  file.
+The design transmits the FPGA package ball name (`G13`, `V14`, `K16`) rather than a connector label (`JA01`). The ball name is the canonical, unambiguous identifier.
+
+- It does not depend on which connector naming convention the board uses.
+- It matches what constraint files (XDC, PCF) and schematics show.
+- The pin can be looked up in the FPGA datasheet directly.
+- The connector label can be derived by cross-referencing the platform file.
 
 ## Components
 
-### FPGA Gateware
+The design has two parts: the gateware that runs in the FPGA and the scanner that runs on the host.
 
-Two files in the
-[pin-id gateware directory](https://github.com/fpgas-online/fpgas.online-test-designs/tree/main/designs/pmod-pin-id/gateware/):
+### FPGA gateware
 
-**`pmod_pin_id.py`** — The reusable `UARTTxIdentifier` Migen module. Each
-instance is a tiny state machine: a baud rate counter, a character index into
-the label string, and a 10-bit shift register (start + 8 data + stop). The pin
-idles high and continuously cycles through the label characters.
-Board-agnostic — works with any LiteX platform.
+Two files make up the [pin-id gateware directory](https://github.com/fpgas-online/fpgas.online-test-designs/tree/main/designs/pmod-pin-id/gateware/).
 
-**`pmod_pin_id_<board>.py`** — Board-specific build script. Extracts FPGA pin
-names from the LiteX platform's connector table and instantiates one
-`UARTTxIdentifier` per pin. Pure gateware (no CPU, no firmware).
+**`pmod_pin_id.py`** holds the reusable `UARTTxIdentifier` Migen module. Each instance is a tiny state machine. It has a baud rate counter, a character index into the label string and a 10-bit shift register (start, 8 data, stop). The pin idles high and continuously cycles through the label characters. The module is board-agnostic and works with any LiteX platform.
 
-Example for the Arty A7 (`pmod_pin_id_arty.py`):
+**`pmod_pin_id_<board>.py`** is the board-specific build script. It extracts FPGA pin names from the LiteX platform's connector table and instantiates one `UARTTxIdentifier` per pin. It is pure gateware, with no CPU and no firmware.
+
+This is the Arty A7 build script (`pmod_pin_id_arty.py`):
 
 ```python
 CONNECTORS = ["pmoda", "pmodb", "pmodc", "pmodd"]
@@ -79,223 +76,28 @@ def build_pin_list(platform):
     return pins
 ```
 
-The pin names come directly from the platform definition — no hardcoding, no
-manual lookup tables.
+The pin names come directly from the platform definition, with no hardcoding and no manual lookup tables.
 
-### Host Scanner
+### Host scanner
 
-The
-[pin-id host scanner](https://github.com/fpgas-online/fpgas.online-test-designs/blob/main/designs/pmod-pin-id/host/identify_pmod_pins.py)
-is a Python script that runs on the RPi. For each GPIO pin:
+The [pin-id host scanner](https://github.com/fpgas-online/fpgas.online-test-designs/blob/main/designs/pmod-pin-id/host/identify_pmod_pins.py) is a Python script that runs on the Raspberry Pi. For each GPIO pin it sets the line as input using `gpiod` (v1.6+ or v2.x). It waits for the line to go HIGH (idle). It detects the HIGH-to-LOW transition, which is the UART start bit. It then samples 8 data bits at the centre of each bit period and repeats for multiple frames to build a label string.
 
-1. Configures the GPIO as input using `gpiod` (v1.6+ or v2.x).
-2. Waits for the line to go HIGH (idle state).
-3. Detects the HIGH-to-LOW transition (UART start bit).
-4. Samples 8 data bits at the centre of each bit period.
-5. Repeats for multiple frames to build a label string.
-6. Validates the decoded label against expected format.
-7. Reports the mapping.
+The scanner tries 10 frames per GPIO and uses majority voting. It validates the decoded label against the expected format and reports the mapping. A label is accepted only if it matches `^[A-Z][A-Za-z0-9]{1,3}$`, which FPGA pin names such as `G13` and `V14` do.
 
-The scanner tries 10 frames per GPIO and uses majority voting. Labels must
-match `^[A-Z][A-Za-z0-9]{1,3}$` (FPGA pin names like `G13`, `V14`) to be
-accepted as valid.
+## Cross-validation
 
-## Usage
+Two independent scans give high confidence in a mapping.
 
-### Quick Start (Arty A7)
+- **PMOD name scan**: the gateware transmits connector pin names (`JA01`) instead of FPGA ball names. This tests the firmware's index-to-physical-pin mapping.
+- **FPGA pin name scan**: the default mode, which reads pin names directly from the LiteX platform connector table.
 
-```console
-# 1. Build the bitstream (CI does this automatically)
-$ cd designs/pmod-pin-id
-$ make gateware-arty
-# 2. Program the FPGA
-$ make program-arty
-# 3. Run the scanner on the RPi
-$ make scan-arty
-```
+If both scans agree, with each GPIO mapping to the expected FPGA pin for its connector position, the mapping is verified. Any disagreement points to a bug in the connector table, a cable swap or a documentation error. This is how the [Arty A7 mapping](arty-a7.md#pmod-cable-routing-hat--arty) was verified. Of 21 unique GPIOs, 17 decoded correctly in both scans, and the 4 that garbled in one scan were confirmed via the other.
 
-### Scanner Options
-
-```console
-# Scan all PMOD HAT GPIOs (default)
-$ uv run python host/identify_pmod_pins.py
-# Scan specific GPIOs
-$ uv run python host/identify_pmod_pins.py --gpios 8 19 21
-# Scan a single HAT port
-$ uv run python host/identify_pmod_pins.py --hat-port JA
-# Skip kernel module unloading (if already done)
-$ uv run python host/identify_pmod_pins.py --no-unload
-```
-
-### Example Output
-
-```text
-=== FPGA Pin Identification Scanner ===
-Baud rate:  1200
-GPIO chip:  /dev/gpiochip0
-Scanning:   21 GPIO pins
-
-  GPIO 8 (HAT JA pin 01       ) -> G13
-  GPIO19 (HAT JA pin 07       ) -> D13
-  GPIO21 (HAT JA pin 08       ) -> B18
-  GPIO20 (HAT JA pin 09       ) -> A18
-  GPIO18 (HAT JA pin 10       ) -> K16
-  GPIO 7 (HAT JB pin 01       ) -> E15
-  GPIO26 (HAT JB pin 07       ) -> J17
-  GPIO13 (HAT JB pin 08       ) -> J18
-  ...
-
-=== Pin Mapping Table (21 confirmed, 0 garbled, 0 no signal) ===
-
-| RPi GPIO | HAT Location           | FPGA Pin |
-|----------|------------------------|----------|
-| GPIO7    | HAT JB pin 01          | E15      |
-| GPIO8    | HAT JA pin 01          | G13      |
-| ...
-```
-
-## Adding a New Board
-
-To use this tool with a different FPGA board:
-
-### 1. Create the board-specific build script
-
-Copy `pmod_pin_id_arty.py` and modify:
-
-```python
-# Change the platform import
-from litex_boards.platforms.your_board import Platform
-
-# Change the connector list to match your board's connectors
-CONNECTORS = ["pmoda", "pmodb"]  # whatever your board has
-
-# Change the clock frequency
-SYS_CLK_FREQ = 48e6  # your board's clock
-
-# Change the I/O standard if needed (in build_io_extensions)
-IOStandard("LVCMOS33")  # or LVCMOS18, etc.
-```
-
-The `build_pin_list()` function works unchanged — it reads connector pin names
-from any LiteX platform.
-
-### 2. Update the scanner's GPIO list (if needed)
-
-If your host uses a different GPIO-to-connector mapping than the Digilent
-PMOD HAT, update `PMOD_HAT_PORTS` in `identify_pmod_pins.py` or pass
-`--gpios` explicitly.
-
-### 3. Add Makefile targets
-
-```makefile
-gateware-yourboard:
-	$(PYTHON) gateware/pmod_pin_id_yourboard.py --build
-
-program-yourboard:
-	openFPGALoader -b yourboard build/yourboard/gateware/your_board.bit
-
-scan-yourboard:
-	$(PYTHON) host/identify_pmod_pins.py --gpios 2 3 4 5 6 7
-```
-
-## Interpreting Results
-
-### Clean decode
-
-```text
-GPIO8 (HAT JA pin 01) -> G13
-```
-
-The FPGA pin G13 is physically connected to RPi GPIO8 through the cable.
-Cross-reference G13 with the FPGA platform file to determine which connector
-and pin position it belongs to.
-
-### Garbled decode
-
-```text
-GPIO7 (HAT JB pin 07) -> (garbled: '????a????a')
-```
-
-Signal is present (start bits detected) but the UART frames are not decoding
-cleanly. Causes:
-
-- **Python timing jitter**: The bit-bang sampling missed bit boundaries.
-  Re-running usually helps.
-- **Bus contention**: Two FPGA outputs driving the same GPIO (e.g. the PMOD
-  HAT's shared SPI pins JA2-4 / JB2-4).
-- **Kernel driver conflict**: A kernel driver (SPI, I2C, UART) is actively
-  driving the GPIO. Run with `--no-unload` disabled (default) to let the
-  scanner unload SPI modules.
-
-### No signal
-
-```text
-GPIO0 (HAT JB pin 09) -> (no signal)
-```
-
-The GPIO is stuck high (idle). Causes:
-
-- **Not connected**: The GPIO doesn't route to any FPGA pin (e.g. GPIO0/1 are
-  I2C EEPROM on the PMOD HAT, not routed to any PMOD port).
-- **Hardware pull-up too strong**: The GPIO has a pull-up that overrides the
-  FPGA's drive (unlikely with LVCMOS33 at 3.3V).
-- **Cable not plugged in**: The PMOD cable isn't connecting this port.
-- **Wrong GPIO chip**: On RPi 5, the GPIO chip is different (`pinctrl-rp1` vs
-  `pinctrl-bcm2711`). The scanner auto-detects this.
-
-## Cross-Validation
-
-For high confidence, run two independent scans:
-
-1. **PMOD name scan**: Modify the gateware to transmit connector pin names
-   (e.g. `JA01`) instead of FPGA ball names. This tests the firmware's
-   index-to-physical-pin mapping.
-
-2. **FPGA pin name scan**: The default mode. This reads pin names directly
-   from the LiteX platform connector table.
-
-If both scans agree (each GPIO maps to the expected FPGA pin for its
-connector position), the mapping is verified. Any disagreement points to a
-bug in the connector table, a cable swap, or a documentation error.
-
-This is how the
-[Arty A7 mapping](arty-a7.md#pmod-cable-routing-hat--arty) was verified in the
-fpgas.online infrastructure: 17 of 21 unique GPIOs decoded correctly in both
-scans, and the 4 that garbled in one scan were confirmed via the other.
+A loopback test cannot arbitrate bit order, because driving and reading use the same permutation and any consistent swap between the two still passes. The pin-id design can, as recorded on the [TT FPGA pin mapping](tt-fpga.md#pin-mapping) page.
 
 ## Limitations
 
-- **Shared GPIOs**: The PMOD HAT shares GPIO9/10/11 between ports JA and JB
-  (SPI bus). When cables are connected to both Arty JA and JB, these GPIOs
-  see bus contention and will read the stronger driver's signal (typically
-  JB wins). Pins 2-4 of JA cannot be independently verified while JB is also
-  connected.
-
-- **I2C EEPROM GPIOs**: GPIO0 and GPIO1 on the RPi are used for the HAT's
-  I2C EEPROM and are not routed to any PMOD port. They will always show
-  "no signal".
-
-- **Baud rate vs. label length**: Shorter labels (2-3 chars for FPGA names
-  like `G13`) repeat faster than longer ones (4 chars like `JA01`), giving
-  more decode attempts but slightly different timing characteristics. Both
-  work reliably.
-
-- **32 simultaneous UART TX modules**: Uses minimal FPGA resources (a few
-  hundred LUTs on Artix-7 for 32 instances) but the design cannot be combined
-  with other gateware. It's a dedicated diagnostic bitstream, not a test
-  overlay.
-
-:::{note}
-A loopback test cannot arbitrate bit order — driving and reading use the same
-permutation, so any consistent swap between the two still passes — while
-pin-id can, as recorded on the [TT FPGA pin mapping](tt-fpga.md#pin-mapping)
-page.
-:::
-
-## References
-
-- Gateware source: [the pin-id gateware](https://github.com/fpgas-online/fpgas.online-test-designs/tree/main/designs/pmod-pin-id/gateware/)
-- Host scanner: [the pin-id host scanner](https://github.com/fpgas-online/fpgas.online-test-designs/blob/main/designs/pmod-pin-id/host/identify_pmod_pins.py)
-- PMOD HAT pin mapping: [Raspberry Pi PMOD HAT](pmod/rpi-hat.md)
-- Arty A7 pin mapping (with scan results): [Digilent Arty A7](arty-a7.md#wiring-to-the-raspberry-pi)
-- TinyTapeout PMOD standards: [Tiny Tapeout PMOD layouts](pmod/tinytapeout.md)
+- **Shared GPIOs**: the PMOD HAT shares GPIO9, GPIO10 and GPIO11 between ports JA and JB (the SPI bus). With cables on both Arty JA and JB, these GPIOs see bus contention and read the stronger driver's signal, typically JB. Pins 2-4 of JA cannot be independently verified while JB is also connected.
+- **I2C EEPROM GPIOs**: GPIO0 and GPIO1 on the Raspberry Pi serve the HAT's I2C EEPROM and are not routed to any PMOD port. They always show "no signal".
+- **Baud rate and label length**: shorter labels (2-3 characters for FPGA names like `G13`) repeat faster than longer ones (4 characters like `JA01`). They give more decode attempts and slightly different timing, and both work reliably.
+- **32 simultaneous UART TX modules**: the design uses a few hundred LUTs on Artix-7 for 32 instances. It cannot be combined with other gateware, because it is a dedicated diagnostic bitstream and not a test overlay.

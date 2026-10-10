@@ -455,7 +455,7 @@ connector was never scanned, and one crossover is known (JC pins 1 and 2):
   the JC top row and pi5 was off. Any design using JC1/JC2 must either account
   for the swap or be checked per host.
 
-Re-run the [`pmod-pin-id`](pin-id.md) scan on the current Arty hosts at both
+Re-run the [`pmod-pin-id` scan](pin-id/scan.md) on the current Arty hosts at both
 sites, record the date, and say per host whether JC is crossed.
 :::
 

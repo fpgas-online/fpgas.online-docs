@@ -87,7 +87,7 @@ from Python: polling mis-frames the bytes even on a clean signal. Keep GPIO14 an
 input throughout (the warning at the top of this page).
 Check the method on a positive control before trusting a negative: drive a
 spare Pi GPIO and confirm the monitor sees it. The design is described under
-[Verifying wiring with the pin-id design](../../pin-id.md). Which of these readers
+[The pin-id design](../../pin-id.md). Which of these readers
 works on a blade under kernel 6.18 is not known.
 
 ## A passive check, without a bitstream

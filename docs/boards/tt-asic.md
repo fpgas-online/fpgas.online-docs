@@ -112,7 +112,7 @@ here. Nothing on this page should be read as a verified ASIC pin map.
 
 :::{todo}
 Measure the PMOD HAT to Raspberry Pi GPIO wiring on the deployed TT ASIC hosts
-with the [pin-ID design](pin-id.md), the way the Acorn wiring was measured, and
+with the [pin-ID scan](pin-id/scan.md), the way the Acorn wiring was measured, and
 record a per-signal table here.
 :::
 
