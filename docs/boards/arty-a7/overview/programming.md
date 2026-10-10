@@ -12,7 +12,7 @@ review: 2026-11-10
 :::{admonition} Figure to come
 :class: placeholder
 
-The three layers of programming an Arty A7: JTAG, the USB cable to the FTDI chip's channel A, and openFPGALoader. Tracked in ISSUE-02.
+The three layers of programming an Arty A7: JTAG, the USB cable to the FTDI chip's channel A, and openFPGALoader. Tracked in [docs issue #138](https://github.com/fpgas-online/fpgas.online-docs/issues/138).
 :::
 
 ## The protocol

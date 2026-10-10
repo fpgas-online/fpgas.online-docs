@@ -14,7 +14,7 @@ review: 2026-11-10
 :::{admonition} Figure to come
 :class: placeholder
 
-The whole Arty A7 from above, with the USB connector, the four PMOD connectors, the RJ45 jack and the FPGA numbered. Tracked in ISSUE-01.
+The whole Arty A7 from above, with the USB connector, the four PMOD connectors, the RJ45 jack and the FPGA numbered. Tracked in [docs issue #137](https://github.com/fpgas-online/fpgas.online-docs/issues/137).
 :::
 
 The Digilent Arty A7 is a Xilinx Artix-7 development board. It carries 256 MB of DDR3 SDRAM, a TI DP83848J Ethernet PHY and a quad SPI flash. It also has four PMOD connectors (JA, JB, JC and JD), and LEDs, switches and buttons. A single FTDI FT2232HQ chip gives it a USB connection for both programming and a serial console.
