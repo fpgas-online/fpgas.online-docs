@@ -8,7 +8,7 @@ review: 2026-11-10
 # The fpgas.online Acorn design
 
 This page says what the fpgas.online Acorn design is, its two images and how they sit in the card's flash.
-It does not say how to load or write it. Loading into SRAM is on [How to check an Acorn's PCIe link by hand](../checks/pcie-by-hand.md).
+It does not say how to load or write it. Loading into SRAM is on [How to check an Acorn's PCIe link by hand on a Raspberry Pi 5](../checks/pcie-by-hand.md).
 Writing the flash is on [How to install the fpgas.online images on an Acorn](../setup/install-images.md). What the boot check tests
 of it is under [Installing the Acorn packages](../setup/packages.md#installing-the-acorn-packages).
 
@@ -47,7 +47,7 @@ reads `7a200tfbg484` (IDCODE `0x3636093`).
 
 ## What the flash holds
 
-Which image a card boots shows in its PCI ID, which [How to check an Acorn's PCIe link by hand](../checks/pcie-by-hand.md) reads. Two images other
+Which image a card boots shows in its PCI ID. Reading it is on [How to check an Acorn's PCIe link by hand on a Raspberry Pi 5](../checks/pcie-by-hand.md). Two images other
 than the fpgas.online one are in service:
 
 - **SQRL factory firmware** (`1e24:021f`): a cryptocurrency mining design, not
@@ -82,7 +82,7 @@ The Acorn has a Spansion S25FL256S (256 Mbit = 32 MB) quad-SPI NOR flash.
 └──────────────────────────────────────────────────┘
 ```
 
-The safety rules are on [How to recover an Acorn with a bad image](../troubleshooting/recovery.md#safety-rules).
+The safety rules are on [How to recover an Acorn with a bad image](../troubleshooting/recovery.md).
 
 ## Multiboot
 

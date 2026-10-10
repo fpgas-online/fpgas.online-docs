@@ -7,7 +7,7 @@ review: 2026-11-10
 
 # The line JTAG and the serial port share on a Compute Blade
 
-This page explains why the Acorn's JTAG and serial pair share one line on a Compute Blade. It also says what the 470 Ω resistor and the full-length housings are for. It is for someone building or debugging the blade's cables. It gives no pin tables, which are on [the blade's pins and settings](blade-settings.md). It gives no commands, which are on [How to run JTAG by hand on a Compute Blade](../../checks/compute-blade-jtag-by-hand.md).
+This page explains why the Acorn's JTAG and serial pair share one line on a Compute Blade. It also says what the 470 Ω resistor and the full-length housings are for. It is for someone building or debugging the blade's cables. It gives no pin tables, which are on [the blade's pins and settings](blade-settings.md). It gives no commands, which are on [How to run JTAG by hand on an Acorn on a Compute Blade](../../checks/compute-blade-jtag-by-hand.md).
 
 ## Why one line is shared
 
@@ -29,7 +29,7 @@ The way back is a PoE cycle of the blade's switch port, which restores everythin
 
 ## The serial port and JTAG in one boot
 
-The serial port and JTAG cannot both have GPIO14 in one boot of a host on kernel 6.18. With the header's serial port on (`enable_uart=1`), the kernel's serial driver holds GPIO14 and JTAG cannot run. With it off, there is no `/dev/ttyAMA0` for the serial pair (see [JTAG on a blade](../../checks/compute-blade-jtag-by-hand.md#jtag-on-a-blade)). Under kernel 6.12.75, JTAG ran and then the serial pair was used in the same boot.
+The serial port and JTAG cannot both have GPIO14 in one boot of a host on kernel 6.18. With the header's serial port on (`enable_uart=1`), the kernel's serial driver holds GPIO14 and JTAG cannot run. With it off, there is no `/dev/ttyAMA0` for the serial pair (see [why a blade needs its serial port off for JTAG](../../checks/jtag-and-the-pcie-endpoint.md#why-a-blade-needs-its-serial-port-off-for-jtag)). Under kernel 6.12.75, JTAG ran and then the serial pair was used in the same boot.
 
 ## What the host offers as a UART
 

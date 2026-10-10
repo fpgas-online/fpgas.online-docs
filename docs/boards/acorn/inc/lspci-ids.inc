@@ -1,4 +1,4 @@
-What it shows, after the address:
+The line after the address says which image the card runs:
 
 ```text
 The factory Sqrl firmware:

@@ -18,7 +18,8 @@ What the two images are is on [the fpgas.online Acorn design](../overview/design
 - The images in `/usr/share/fpgas-online/acorn-pcie/images/`, where `manifest.json` lists them. For a CLE-215+ the operational image (`sqrl_acorn_operational.bin` below) is `acorn-cle-215p-sqrl_acorn_operational.bin` there. The golden image (`sqrl_acorn_fallback.bin` below) is `acorn-cle-215p-golden-sqrl_acorn_fallback.bin`. For a CLE-101 put `cle-101` in place of `cle-215p`.
 - The card's PCIe address, `<bdf>` below: `0001:01:00.0` on a Raspberry Pi 5 with the M.2 HAT.
 - A way to PoE-cycle the host's switch port, for step 9.
-- The load and rescan commands of [How to run JTAG by hand on an Acorn](../checks/jtag-by-hand.md) and [How to check an Acorn's PCIe link by hand](../checks/pcie-by-hand.md).
+- The load command of [How to run JTAG by hand on an Acorn on a Raspberry Pi 5](../checks/jtag-by-hand.md).
+- The rescan command of [How to check an Acorn's PCIe link by hand on a Raspberry Pi 5](../checks/pcie-by-hand.md).
 
 ## Steps
 

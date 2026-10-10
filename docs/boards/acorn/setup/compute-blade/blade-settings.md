@@ -11,7 +11,7 @@ This page is for someone with an Acorn wired to a Compute Blade with a CM4 or CM
 
 Why JTAG and the serial pair share a line is on [The line JTAG and the serial port share on a Compute Blade](shared-line.md).
 
-How JTAG is run on a blade is on [How to run JTAG by hand on a Compute Blade](../../checks/compute-blade-jtag-by-hand.md). Which wire goes where is on [Acorn wiring on a Compute Blade](wiring.md).
+How JTAG is run on a blade is on [How to run JTAG by hand on an Acorn on a Compute Blade](../../checks/compute-blade-jtag-by-hand.md). Which wire goes where is on [Acorn wiring on a Compute Blade](wiring.md).
 
 ## The blade's connectors and their GPIOs
 
