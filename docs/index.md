@@ -41,6 +41,7 @@ boards/index
 setup/index
 verify/fpgas-verify
 packages
+developer/index
 contributing
 open-items
 ```
