@@ -25,7 +25,7 @@ Item names a property of the link; Value is what the Raspberry Pi sees.
 | Owner of the port | the `fpgas-tt` daemon, which republishes it as a WebSocket on port 8765 |
 | Liveness | `https://tinytapeout.fpgas.online/board/<slug>/status.json`, the daemon's `/health` plus `reachable` |
 
-The daemon's endpoints are on [Serial port ownership](../../tt-fpga.md#serial-port-ownership).
+The daemon's endpoints are on [Serial port ownership on a Tiny Tapeout FPGA demo board](../../tt-fpga/overview/serial-port.md).
 The steps to stop and start it are in [How to free a Tiny Tapeout board's serial port from fpgas-tt](free-the-serial-port.md).
 
 ## The PMOD HAT ribbon

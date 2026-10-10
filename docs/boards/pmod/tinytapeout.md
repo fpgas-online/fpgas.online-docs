@@ -175,7 +175,7 @@ Board: [TT Audio Pmod](https://github.com/MichaelBell/tt-audio-pmod) — compati
 :::{note}
 These tables are derived from the Tiny Tapeout specification. The mapping
 measured on the Welland FPGA demo boards is on the
-[Tiny Tapeout FPGA demo board](../tt-fpga.md#pin-mapping) page; the two agree.
+[Tiny Tapeout FPGA demo board pin mapping](../tt-fpga/overview/pin-mapping.md) page; the two agree.
 :::
 
 ## RP2350 GPIO Mapping (Demo Board v3, TT09+)

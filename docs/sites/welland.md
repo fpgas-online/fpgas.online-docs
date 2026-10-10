@@ -30,7 +30,7 @@ visitor writes on a host is gone after its next reset.
 
 [The Tiny Tapeout site](https://tinytapeout.fpgas.online) has the Tiny Tapeout boards. The
 [chip boards](../boards/tt-asic/index.md) carry manufactured Tiny Tapeout chips, and a visitor selects a design on
-the chip and drives its pins. The [FPGA demo boards](../boards/tt-fpga.md) run a bundled demo or a visitor's
+the chip and drives its pins. The [FPGA demo boards](../boards/tt-fpga/index.md) run a bundled demo or a visitor's
 own bitstream. Each board has a camera feed.
 
 ## What the site plans to provide

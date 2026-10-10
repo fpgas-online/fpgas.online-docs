@@ -131,7 +131,7 @@ cable before trusting the mapping on a host that has not been scanned.
 The full RPi GPIO → PMOD pin → FPGA pin mappings for each board are documented in:
 
 - [Arty A7 wiring to a Raspberry Pi](../arty-a7/setup/wiring.md)
-- [Tiny Tapeout FPGA demo board](../tt-fpga.md)
+- [Tiny Tapeout FPGA demo board](../tt-fpga/index.md)
 
 ### Development hosts
 

@@ -278,10 +278,10 @@ host keys were prefixed with a site name.
 
 ### TT FPGA programming
 
-The mechanism — the RP2350 taking the bitstream over `mpremote`, programming
-the iCE40 over SPI and then releasing the shared pins to high-Z — is on the
-[TT FPGA board page](../boards/tt-fpga.md#programming), with the pin numbers
-under [Pin mapping](../boards/tt-fpga.md#pin-mapping) and the HAT side on
+The mechanism — the RP2350 programming the iCE40 over SPI and then releasing
+the shared pins to high-Z — is on the
+[TT FPGA board page](../boards/tt-fpga/overview/programming.md), with the pin numbers
+under [Pin mapping](../boards/tt-fpga/overview/pin-mapping.md) and the HAT side on
 [Raspberry Pi PMOD HAT](../boards/pmod/rpi-hat.md).
 
 What the runner does differently is which of the two entry points it calls. For
@@ -296,9 +296,8 @@ programming is the only board-specific step.
 
 :::{note}
 The upstream `verify-hardware.md` carries its own iCE40 ↔ PMOD HAT ↔ Pi GPIO pin
-tables, and they do not agree with the measured tables on the board page. That
-disagreement is tracked in the todo under
-[Pin mapping](../boards/tt-fpga.md#pin-mapping); use the board page's tables.
+tables, and they do not agree with the tables on the board page. Which is right is [test-designs issue #58](https://github.com/fpgas-online/fpgas.online-test-designs/issues/58). That disagreement is also tracked in [test-designs issue #19](https://github.com/fpgas-online/fpgas.online-test-designs/issues/19); use the tables on the
+[Pin mapping](../boards/tt-fpga/overview/pin-mapping.md) page.
 :::
 
 ### Result detection and exit code

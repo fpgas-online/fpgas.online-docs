@@ -46,7 +46,7 @@ Where the ribbons are in place, the chip's I/O pins can be driven and sampled fr
 
 ## Beside the FPGA board
 
-The same demo PCB with a Lattice iCE40UP5K breakout in place of the chip is the [Tiny Tapeout FPGA demo board](../../tt-fpga.md).
+The same demo PCB with a Lattice iCE40UP5K breakout in place of the chip is the [Tiny Tapeout FPGA demo board](../../tt-fpga/index.md).
 The USB bridge and the MicroPython SDK are shared between the two boards, and the FPGA page carries the deeper detail.
 The public site for these boards is <https://tinytapeout.fpgas.online>.
 

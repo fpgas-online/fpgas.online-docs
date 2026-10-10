@@ -42,4 +42,4 @@ The board's `https://tinytapeout.fpgas.online/board/<slug>/status.json` reports 
 
 - [Tiny Tapeout chip demo board wiring to a Raspberry Pi](wiring.md)
 - [The Tiny Tapeout chip demo boards](../overview/board.md)
-- [Serial port ownership](../../tt-fpga.md#serial-port-ownership)
+- [Serial port ownership on a Tiny Tapeout FPGA demo board](../../tt-fpga/overview/serial-port.md)

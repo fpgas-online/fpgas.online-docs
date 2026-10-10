@@ -86,6 +86,6 @@ root sets `kernel.sysrq = 0` as well as keeping the console off that UART.
   port open permanently and fans it out over WebSocket, so `mpremote` and the programming scripts cannot open
   it while the daemon runs ([The Tiny Tapeout stack](../tinytapeout.md);
   the consequences are under [Serial port
-  ownership](../../boards/tt-fpga.md#serial-port-ownership)).
+  ownership](../../boards/tt-fpga/overview/serial-port.md)).
 - **The USB-C console** on a Pi 4 or Pi 5, and **the kernel log over the network** (`netconsole` to the
   gateway, 10.21.0.1): [When a Pi does not boot](../netboot/not-booting.md).

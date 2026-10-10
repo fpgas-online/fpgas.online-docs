@@ -23,4 +23,4 @@ It repeats none of their content.
 
 - [Tiny Tapeout PMOD layouts](../../pmod/tinytapeout.md), with the [RP2040 map (v2, TT06 to TT08)](../../pmod/tinytapeout.md#rp2040-gpio-mapping-demo-board-v2-tt06-tt08) and the [RP2350 map (v3, TT09+)](../../pmod/tinytapeout.md#rp2350-gpio-mapping-demo-board-v3-tt09)
 - [Raspberry Pi PMOD HAT](../../pmod/rpi-hat.md), the PMOD HAT adapter
-- [Tiny Tapeout FPGA demo board](../../tt-fpga.md), the FPGA sibling
+- [Tiny Tapeout FPGA demo board](../../tt-fpga/index.md), the FPGA sibling

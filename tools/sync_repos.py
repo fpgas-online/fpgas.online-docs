@@ -354,7 +354,7 @@ TEST_DESIGNS = Repo(
         ("docs/hardware/fomu-evt.md", "Installing the Fomu Packages"):
             ("docs/boards/generated/install-fomu-evt.md", "docs/boards/fomu-evt/setup/packages.md"),
         ("docs/hardware/tt-fpga.md", "Installing the TT FPGA Packages"):
-            ("docs/boards/generated/install-tt-fpga.md", "docs/boards/tt-fpga.md"),
+            ("docs/boards/generated/install-tt-fpga.md", "docs/boards/tt-fpga/setup/packages.md"),
     },
     # A link to one of them with no #fragment goes to that page; with a fragment it goes there only if the
     # fragment is a section taken above (the page's other headings are not the source's).
