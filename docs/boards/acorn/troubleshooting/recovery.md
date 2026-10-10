@@ -1,8 +1,15 @@
-# Acorn: recovery and safety rules
+---
+type: how-to
+owner: documentation maintainers
+reader: someone whose Acorn no longer boots a working image
+review: 2026-11-10
+---
+
+# How to recover an Acorn with a bad image
 
 **You have an Acorn on a Raspberry Pi 5 whose flash holds a bad fpgas.online image, or you are about to
 write its flash, and want to know how the card recovers and what must never be done.** The images and the
-flash layout are on [the fpgas.online LiteX SoC](litex-soc.md).
+flash layout are on [the fpgas.online LiteX SoC](../overview/design.md).
 
 ## Safety rules
 
@@ -22,7 +29,7 @@ way back at all. `spi_flash.py` refuses 0x0 without
    only then write the `.bin`.
 4. **Keep the JTAG wiring connected** on every deployed board. Without JTAG a
    bad golden image bricks the board until JTAG is reconnected.
-5. **Detach the PCIe endpoint before every JTAG load** ([why](pcie.md#detach-the-pcie-endpoint-before-any-jtag-reconfiguration)).
+5. **Detach the PCIe endpoint before every JTAG load** ([why](../checks/pcie-by-hand.md#detach-the-pcie-endpoint-before-any-jtag-reconfiguration)).
 6. **Keep the golden image minimal**: PCIe, flash, ICAP and UART, nothing that
    can fail calibration.
 :::
@@ -32,17 +39,17 @@ way back at all. `spi_flash.py` refuses 0x0 without
 **We hold no dated record of the bad-golden recovery having been run.** The only related record is
 acorn-willow's install, last checked 2026-09-21: its steps 1 and 6 load the operational and the golden
 `.bit` into SRAM over JTAG, and its step 7 writes the golden slot through the SRAM-loaded golden design
-([the record](install-images.md#installing-the-fpgasonline-images)).
+([the record](../setup/install-images.md#installing-the-fpgasonline-images)).
 
 `golden.bit` below is the golden build's `.bit`. The packages carry only the operational `.bit`; the golden
 one comes from the golden build (`acorn_pcie_soc.py --variant <v> --golden --build`, [a Vivado
-build](litex-soc.md#images)). By the release tool's naming (from the design's source, `publish_release.py`;
+build](../overview/design.md#images)). By the release tool's naming (from the design's source, `publish_release.py`;
 not fetched by us for this page) it is `acorn-cle-215p-golden-sqrl_acorn.bit` in the design's release for a
 CLE-215+.
 
 The commands are for a Raspberry Pi 5. On a Compute Blade the recovery is **not yet run by us on this
 hardware**; there the JTAG pins are `--pins 2:3:4:14` and the card's address differs per blade ([JTAG on a
-blade](../wiring/compute-blade-jtag.md#jtag-on-a-blade)).
+blade](../checks/compute-blade-jtag-by-hand.md#jtag-on-a-blade)).
 
 ### Bad operational image: automatic
 
@@ -94,7 +101,7 @@ corrupt golden image, and you start again from step 1.
    ```
 
 2. **Bring the endpoint back** (rescan, then the [root-complex
-   re-probe](pcie.md#bring-the-endpoint-back-after-a-jtag-load) if needed) and confirm the design enumerated:
+   re-probe](../checks/pcie-by-hand.md#bring-the-endpoint-back-after-a-jtag-load) if needed) and confirm the design enumerated:
 
    ```console
    $ echo 1 | sudo tee /sys/bus/pci/rescan

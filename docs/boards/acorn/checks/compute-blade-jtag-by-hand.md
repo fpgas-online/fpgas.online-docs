@@ -1,25 +1,32 @@
-# Acorn on a Compute Blade: JTAG
+---
+type: how-to
+owner: documentation maintainers
+reader: someone with an Acorn wired to a Compute Blade who wants to run JTAG on it
+review: 2026-11-10
+---
+
+# How to run JTAG by hand on a Compute Blade
 
 **You have an Acorn wired to a Compute Blade with a CM4 or CM5 and want to run JTAG on it: what the blade
 must have set at boot, the commands, and how the pins are put back afterwards.** Which wire goes where is on
-[Acorn wiring on a Compute Blade](compute-blade.md); the line JTAG shares with the serial pair is on [the
-blade's pins, the shared line and settings](compute-blade-host.md#the-shared-line-and-the-470-ω-resistor).
+[Acorn wiring on a Compute Blade](../setup/compute-blade/wiring.md); the line JTAG shares with the serial pair is on [the
+blade's pins, the shared line and settings](../setup/compute-blade/blade-settings.md#the-shared-line-and-the-470-ω-resistor).
 
 ## JTAG on a blade
 
-```{include} blade-jtag-serial-off.inc
+```{include} ../inc/blade-jtag-serial-off.inc
 ```
 
-```{include} blade-detach.inc
+```{include} ../inc/blade-detach.inc
 ```
 
 The pin order is TDI(GPIO2):TDO(GPIO3):TCK(GPIO4):TMS(GPIO14).
 
-```{include} blade-jtag-commands.inc
+```{include} ../inc/blade-jtag-commands.inc
 ```
 
 `$SOC` is the design's `.bit`; which file that is, and where it comes from, is under [The design
-these steps load](../designs/jtag.md#the-design-these-steps-load).
+these steps load](jtag-by-hand.md#the-design-these-steps-load).
 
 The `libgpiod` cable opens `/dev/gpiochip0`. On pi16 at ps1 and pi20 at ps1 (CM5s, kernel
 6.18.50, 2026-10-05) `gpiodetect` listed the header's chip, `pinctrl-rp1`, as
@@ -36,7 +43,7 @@ pu` restored GPIO2 and GPIO4 to what they were before.
 
 Give GPIO14 and GPIO15 back to the serial port only when the loaded design
 treats J2 as an input (the fpgas.online Acorn design does; pin-ID does not: see
-the warning under [P2](compute-blade-host.md#the-serial-port)). The UART function is
+the warning under [P2](../setup/compute-blade/blade-settings.md#the-serial-port)). The UART function is
 a different alternate on each module, so run only the line for yours;
 `pinctrl funcs 14,15` lists them. This applies only to a boot in which the
 serial port is on (kernel 6.12.75, as on pi20 at ps1). In a kernel 6.18 boot with the
@@ -56,8 +63,4 @@ $ pinctrl set 14,15 a4       # GPIO14 = TXD0, GPIO15 = RXD0
 
 The ps1 blades ran openFPGALoader 0.13.1 when probed on 2026-09-20, and pi16 at ps1 again on 2026-10-05 ([what was read](../installations/ps1-reads.md)); it has `--read-dna`, `--read-xadc` and `--read-register`, all read-only.
 
-## Troubleshooting
-
-| Problem | Likely cause | Fix |
-|---------|--------------|-----|
-| UART dead after JTAG on a Compute Blade | openFPGALoader left GPIO14 a plain output | Only in a boot with the serial port on (kernel 6.12), and only once the loaded design treats J2 as an input: on a CM4 `pinctrl set 14,15 a0`; on a CM5 `pinctrl set 14,15 a4` (one or the other), then open `/dev/ttyAMA0`. Never with pin-ID loaded |
+When a wire does not answer: [Acorn wiring faults on a Compute Blade](../troubleshooting/compute-blade-wiring.md).

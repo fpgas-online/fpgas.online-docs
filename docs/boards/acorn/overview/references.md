@@ -1,4 +1,11 @@
-# Acorn resources and links
+---
+type: reference
+owner: documentation maintainers
+reader: someone looking for the documents behind the Acorn pages
+review: 2026-11-10
+---
+
+# Acorn references
 
 **You want the documents, repositories and sources behind the Acorn pages: the vendor's and LiteX's
 documents, our own repositories, and where the generated wiring comes from.**

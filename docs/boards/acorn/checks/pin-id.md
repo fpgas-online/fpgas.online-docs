@@ -1,4 +1,11 @@
-# Acorn test: pin ID
+---
+type: how-to
+owner: documentation maintainers
+reader: someone with a wired Acorn who wants to see which wire is on which pin
+review: 2026-11-10
+---
+
+# How to run the pin ID test on an Acorn
 
 **You have an Acorn wired to a Raspberry Pi 5 or to a Compute Blade and want to know how the pin-ID design
 is loaded and what it is meant to show: each P2 ball sending its own name, so that a wire's far end can be
@@ -10,14 +17,14 @@ read off.** What this page does not give today:
 - **No commands for the passive check** at the end of this page: it is described, not written out.
  On a card that runs the fpgas.online design
 the boot check names a wrong wire without this design: [on a Raspberry Pi
-5](../building/rpi-5/verifying-1.md), [on a Compute Blade](../building/compute-blade/verifying-1.md).
+5](rpi-5.md), [on a Compute Blade](compute-blade.md).
 
-```{include} ../wiring/gpio-contention.inc
+```{include} ../inc/gpio-contention.inc
 ```
 
 ## The design this page loads
 
-```{include} release-designs.inc
+```{include} ../inc/release-designs.inc
 ```
 
 ## On a Raspberry Pi 5
@@ -36,13 +43,13 @@ $ openFPGALoader --cable libgpiod --pins 10:9:11:8 $PINID
 
 ## On a Compute Blade
 
-```{include} blade-first.inc
+```{include} ../inc/blade-first.inc
 ```
 
-```{include} ../wiring/blade-jtag-serial-off.inc
+```{include} ../inc/blade-jtag-serial-off.inc
 ```
 
-Not yet run by us on a blade wired as on [Acorn wiring on a Compute Blade](../wiring/compute-blade.md).
+Not yet run by us on a blade wired as on [Acorn wiring on a Compute Blade](../setup/compute-blade/wiring.md).
 
 :::{warning}
 **Not on a blade whose J2 wire has no 470 Ω resistor**, which is how pi20 at ps1 is recorded on [Acorns at ps1](../installations/ps1.md#the-cards). The moment

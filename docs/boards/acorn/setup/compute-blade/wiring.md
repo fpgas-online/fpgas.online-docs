@@ -1,25 +1,32 @@
+---
+type: reference
+owner: documentation maintainers
+reader: someone looking up which wire goes to which pin of a Compute Blade
+review: 2026-11-10
+---
+
 # Acorn wiring on a Compute Blade
 
 **You have an Acorn in a Compute Blade with a CM4 or CM5 and want to know which wire of the card's two
 connectors goes to which pin of the blade's Extension Port and UART header.** What follows from the line
 the two cables share, and what the blade must have set for JTAG and for the serial pair, is on [the
-blade's pins, shared line and settings](compute-blade-host.md) and [JTAG on a Compute Blade](compute-blade-jtag.md). An Acorn on a Raspberry Pi 5 is
-wired differently and has [its own page](rpi-5.md). To build and fit the cables, follow the
-[Compute Blade building guide](../building/compute-blade/index.md).
+blade's pins, shared line and settings](blade-settings.md) and [JTAG on a Compute Blade](../../checks/compute-blade-jtag-by-hand.md). An Acorn on a Raspberry Pi 5 is
+wired differently and has [its own page](../rpi-5/wiring.md). To build and fit the cables, follow the
+[Compute Blade building guide](cables.md).
 
 ## The wiring sheet
 
 The [Compute Blade](https://computeblade.com/) for a CM4 or CM5 does not have
 the 40-pin header.
 
-[![Acorn to Compute Blade wiring sheet](../generated/acorn-wiring-computeblade.png)](../generated/acorn-wiring-computeblade.svg){.only-light}
-[![Acorn to Compute Blade wiring sheet](../generated/acorn-wiring-computeblade-dark.png)](../generated/acorn-wiring-computeblade-dark.svg){.only-dark}
+[![Acorn to Compute Blade wiring sheet](../../generated/acorn-wiring-computeblade.png)](../../generated/acorn-wiring-computeblade.svg){.only-light}
+[![Acorn to Compute Blade wiring sheet](../../generated/acorn-wiring-computeblade-dark.png)](../../generated/acorn-wiring-computeblade-dark.svg){.only-dark}
 
 Read the sheet from the card's two connectors (P2 and P1, pin 1 at the end nearest the M.2 edge) along each
 wire to the blade pin it lands on. The `--pins` numbers on the sheet are GPIO numbers, not printed pin
 numbers. Select the sheet for the full-size drawing.
 
-```{include} board-connectors.inc
+```{include} ../../inc/board-connectors.inc
 ```
 
 ## Pin numbering
@@ -34,21 +41,21 @@ front of you at the bench. The legend above the Extension Port is spelled
 blade's side.
 
 Every pin of the two headers, by its printed number, is listed under [the blade's connectors and their
-GPIOs](compute-blade-host.md#the-blades-connectors-and-their-gpios).
+GPIOs](blade-settings.md#the-blades-connectors-and-their-gpios).
 
 ## P1: JTAG, on the Extension Port
 
-```{include} ../generated/acorn-blade-p1.md
+```{include} ../../generated/acorn-blade-p1.md
 ```
 
 ## P2: serial pair, on the UART header
 
-```{include} ../generated/acorn-blade-p2.md
+```{include} ../../generated/acorn-blade-p2.md
 ```
 
 **The J2 wire carries a 470 Ω resistor**, soldered into the wire near its housing end. Why: [the shared line
-and the 470 Ω resistor](compute-blade-host.md#the-shared-line-and-the-470-ω-resistor). Fitting it: [UART
-connector 1](../building/compute-blade/uart-connector-1.md) of the building guide.
+and the 470 Ω resistor](blade-settings.md#the-shared-line-and-the-470-ω-resistor). Fitting it: [UART
+connector 1](uart-wires.md) of the building guide.
 
 Cut the J5 and H5 wires back and insulate them like VCC: the blade's five GPIOs
 are JTAG's four plus the serial pair's second line, so none is left for them.
@@ -76,7 +83,4 @@ match it to printed pin 1.
 Their cavities must stay empty.**
 :::
 
-## Troubleshooting
-
-```{include} trouble-either-carrier.inc
-```
+When a wire does not answer: [Acorn wiring faults on a Compute Blade](../../troubleshooting/compute-blade-wiring.md).

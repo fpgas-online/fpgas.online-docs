@@ -1,12 +1,19 @@
-# Acorn on a Raspberry Pi 5: the Pi's settings
+---
+type: how-to
+owner: documentation maintainers
+reader: someone with an Acorn wired to a Raspberry Pi 5 who is setting up the Pi
+review: 2026-11-10
+---
+
+# How to set up a Raspberry Pi 5 for an Acorn
 
 **You have an Acorn wired to a Raspberry Pi 5 and want to know what the Pi must have set for the card's
 serial pair and for JTAG, where the kernel console must not be, and what must never be done on those
-wires.** Which wire goes where is on [Acorn wiring on a Raspberry Pi 5](rpi-5.md).
+wires.** Which wire goes where is on [Acorn wiring on a Raspberry Pi 5](wiring.md).
 
 ## The serial port
 
-```{include} serial-pair.inc
+```{include} ../../inc/serial-pair.inc
 ```
 
 How firmly the host holds to it:
@@ -33,9 +40,9 @@ UART](#kernel-console-on-the-fpga-uart)), so the Pi 5s use
 `console=ttyAMA10`, the dedicated debug connector, via `[pi5]
 cmdline=cmdline-pi5.txt`. The Welland NFS root sets both, and its
 `verify-pi.yml --tags uart` play checks them; see also [Raspberry
-Pi 5](../../../setup/pi.md#raspberry-pi-5).
+Pi 5](../../../../setup/pi.md#raspberry-pi-5).
 
-```{include} gpio-contention.inc
+```{include} ../../inc/gpio-contention.inc
 ```
 
 ## JTAG from the Pi
@@ -58,16 +65,9 @@ build has `--read-dna`, `--read-xadc` and `--read-register`, all read-only.
 
 `--detect` is read-only and safe against a live PCIe endpoint. Loading a
 bitstream is not: [detach the PCIe endpoint
-first](../designs/pcie.md#detach-the-pcie-endpoint-before-any-jtag-reconfiguration).
+first](../../checks/pcie-by-hand.md#detach-the-pcie-endpoint-before-any-jtag-reconfiguration).
 
-```{include} kernel-console.inc
+```{include} ../../inc/kernel-console.inc
 ```
 
-## Troubleshooting
-
-| Problem | Likely cause | Fix |
-|---------|--------------|-----|
-| `JTAG init failed with: Unable to open gpio chip` (Pi 5) | The `libgpiod` cable opens `/dev/gpiochip0`; the header is `gpiochip15` | `ln -sfn /dev/gpiochip15 /dev/gpiochip0` |
-| No `/dev/ttyAMA0` on a Pi 5 | RP1 uart0 disabled; `disable-bt` does not enable it on bcm2712 | `[pi5] dtoverlay=uart0-pi5` |
-| Board hung, ~0.4 W on PoE instead of ~8 W | Wedged Pi 5 | PoE cycle the switch port; a Pi 5 needs over 90 s to come back |
-| Pi reboots when a serial design loads | Kernel console on the FPGA UART; SysRq | Console to `ttyAMA10` (Pi 5) / `tty1` (blade), `kernel.sysrq=0` |
+When a wire does not answer: [Acorn wiring faults on a Raspberry Pi 5](../../troubleshooting/rpi-5-wiring.md).

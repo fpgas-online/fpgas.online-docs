@@ -7,7 +7,7 @@ Each host and each card gets a label with what identifies it, made by
 `fpgas-verify` from a read of the hardware itself. **Not on pi14 at ps1 or pi18 at ps1:** the label read asks
 the firmware (`vcgencmd`), which hung for good on those two Compute Module 4 blades on 7 October 2026. On
 pi16 at ps1 or pi20 at ps1, once the packages are installed there
-([verifying 1](../building/compute-blade/verifying-1.md)):
+([verifying 1](../checks/compute-blade.md)):
 
 ```console
 $ sudo fpgas-verify --label --out labels.pdf

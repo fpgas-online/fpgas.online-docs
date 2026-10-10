@@ -1,13 +1,20 @@
-# Acorn test design: DDR memory
+---
+type: explanation
+owner: documentation maintainers
+reader: someone who wants to know how the check tests an Acorn's memory
+review: 2026-11-10
+---
+
+# The Acorn DDR memory test
 
 **You have an Acorn that runs the fpgas.online design, on a Raspberry Pi 5 or in a Compute Blade, and want
 to know what tests its DDR3 memory, what a pass means, and what has been measured.** The memory itself and
-its pins are on [Acorn device info](../overview/device-info.md#ddr3-sdram). Each fact here is given with its source.
+its pins are on [The Acorn card](../overview/specifications.md#ddr3-sdram). Each fact here is given with its source.
 
 ## What it is
 
 There is no separate DDR design for the Acorn: the memory test is part of the operational image of [the
-fpgas.online LiteX SoC](litex-soc.md). From the design's source
+fpgas.online LiteX SoC](../overview/design.md). From the design's source
 ([`acorn_pcie_soc.py`](https://github.com/fpgas-online/fpgas.online-test-designs/blob/main/designs/acorn-pcie/gateware/acorn_pcie_soc.py)):
 
 - The DDR3 controller is LiteDRAM on the 7-series PHY (`A7DDRPHY`), built for an MT41K512M16 on the CLE-215+
@@ -31,7 +38,7 @@ the minimum is 1100 MB/s for writing and for reading, on both the CLE-215+ and t
 16-bit DDR3 at 400 MHz (DDR3-800), so the peak is 1600 MB/s.
 
 The test reads and writes only the DRAM. The check never writes the card's flash and never reconfigures
-the FPGA (from [Installing the Acorn packages](../packages.md#installing-the-acorn-packages)).
+the FPGA (from [Installing the Acorn packages](../setup/packages.md#installing-the-acorn-packages)).
 
 To run the test alone, the same command on either carrier (`--test` is in the check's document; on a Compute
 Blade it is **not yet run by us on this hardware**):
@@ -46,7 +53,7 @@ $ sudo fpgas-acorn-verify --test ddr
   pi-sw2-p48, on 2026-10-01 (from `expected.toml`).
 - **A different test, the LiteX BIOS's own memory test at start-up**: DDR3 1 GiB at 800 MT/s, read leveling clean on both modules, `Memtest OK`,
   35.1 MiB/s write, 46.8 MiB/s read, on acorn-willow, last checked 2026-09-21 (step 10 of [its
-  install](install-images.md#installing-the-fpgasonline-images)).
+  install](../setup/install-images.md#installing-the-fpgasonline-images)).
 - **The `ddr` test passed** on acorn-holly, acorn-willow, acorn-sycamore and acorn-olive in the boot check of
   6 October 2026 ([Acorns at welland](../installations/welland.md#the-cards)).
 - The CLE-101 has not been measured yet (from `expected.toml`).

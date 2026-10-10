@@ -9,7 +9,7 @@ SoC, pin-ID, the GPIO loopback — reboots or crashes the host. A fleet host
 is meant to boot with `console=tty1` (Compute Blades) or `console=ttyAMA10` (Pi 5s); check
 this on any new host, and on a host that has been reinstalled: pi16 at ps1 had
 its console on the FPGA UART when read on 2026-10-05 ([pi16 at ps1 on 5 October
-2026](../installations/ps1-reads.md#pi16-at-ps1-on-5-october-2026)).
+2026](/boards/acorn/installations/ps1-reads.md#pi16-at-ps1-on-5-october-2026)).
 :::
 
 The FPGA drives K2 at its own baud rate (1200 for pin-ID, 115200 for the UART

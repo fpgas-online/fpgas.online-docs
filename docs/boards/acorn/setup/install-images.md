@@ -1,17 +1,24 @@
-# Acorn: installing and updating the fpgas.online images
+---
+type: how-to
+owner: documentation maintainers
+reader: someone putting the fpgas.online images into an Acorn's flash
+review: 2026-11-10
+---
+
+# How to install the fpgas.online images on an Acorn
 
 **You have an Acorn on a Raspberry Pi 5, its JTAG answers, and you want to see how a card was converted to
 the fpgas.online golden and operational images, and how the operational image is updated.** This page is
 the dated record of one card's install (acorn-willow, last checked 2026-09-21) with what each step gave,
 and the update commands. It is not yet a procedure with every command: the commands for the SRAM loads and
 the ICAP warm boots of that record are not on this page. What the two images are is on [the fpgas.online LiteX
-SoC](litex-soc.md); what to do when an image is bad is on [Recovery and safety
-rules](recovery.md).
+SoC](../overview/design.md); what to do when an image is bad is on [Recovery and safety
+rules](../troubleshooting/recovery.md).
 
 ## The tool and the files
 
 `spi_flash.py` is the flash tool's source file. The `fpgas-online-acorn-tools` package installs it as
-`/usr/bin/fpgas-acorn-flash` ([Installing the Acorn packages](../packages.md#installing-the-acorn-packages)),
+`/usr/bin/fpgas-acorn-flash` ([Installing the Acorn packages](packages.md#installing-the-acorn-packages)),
 so on a host with the packages `sudo fpgas-acorn-flash id` is `sudo python3 spi_flash.py id`. The images are
 installed by `fpgas-online-acorn-bitstreams` in `/usr/share/fpgas-online/acorn-pcie/images/`, where
 `manifest.json` lists them. For a CLE-215+ the operational image (`sqrl_acorn_operational.bin` below) is
@@ -110,3 +117,24 @@ $ litepcie_util flash_reload        # ICAP warm boot from flash
 Converting a card on a Compute Blade is **not yet run by us on this hardware**; the steps above are as run
 on a Raspberry Pi 5. What each blade's card still needs is on [Acorns at
 ps1](../installations/ps1.md#what-each-blade-still-needs).
+
+## Generating multiboot bitstreams by hand
+
+The fpgas.online Acorn design's build produces both flavours. For any other
+design, set the properties in Vivado:
+
+```tcl
+# Golden: chain-load the operational slot
+set_property BITSTREAM.CONFIG.NEXT_CONFIG_ADDR 0x00400000 [current_design]
+write_bitstream -force golden.bit
+write_cfgmem -force -format bin -interface spix4 -size 16 -loadbit "up 0x0 golden.bit" -file golden.bin
+
+# Operational: watchdog and fallback
+set_property BITSTREAM.CONFIG.TIMER_CFG 0x0001fbd0 [current_design]
+set_property BITSTREAM.CONFIG.CONFIGFALLBACK Enable [current_design]
+write_bitstream -force operational.bit
+write_cfgmem -force -format bin -interface spix4 -size 16 -loadbit "up 0x0 operational.bit" -file operational.bin
+```
+
+openXC7 does not support `NEXT_CONFIG_ADDR`, so golden images need Vivado; that
+is acceptable for an image written once and rarely changed.

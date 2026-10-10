@@ -1,9 +1,16 @@
-# Acorn test: PCIe by hand
+---
+type: how-to
+owner: documentation maintainers
+reader: someone with an Acorn in its host who wants to check its PCIe link by hand
+review: 2026-11-10
+---
+
+# How to check an Acorn's PCIe link by hand
 
 **You have an Acorn on a Raspberry Pi 5 or in a Compute Blade and want to see by hand that the card is on
 the PCIe bus, detach it before a JTAG load, load the fpgas.online design and bring the card back on the
 bus.** The boot check does the reading part by itself (`pcie-link`, `pcie-bar0`): [Installing the Acorn
-packages](../packages.md#installing-the-acorn-packages). The design is built for the CLE-215+, the CLE-215
+packages](../setup/packages.md#installing-the-acorn-packages). The design is built for the CLE-215+, the CLE-215
 and the CLE-101.
 
 ## Detach the PCIe endpoint before any JTAG reconfiguration
@@ -24,7 +31,7 @@ Every `openFPGALoader … <bitstream>` on these pages assumes the endpoint is de
 Read-only operations (`--detect`, `--read-dna`, `--read-xadc`) do not
 reconfigure the device and are safe on a live endpoint.
 
-```{include} soc-file.inc
+```{include} ../inc/soc-file.inc
 ```
 
 ## On a Raspberry Pi 5
@@ -37,7 +44,7 @@ On a Raspberry Pi 5 with the M.2 HAT the card is at `0001:01:00.0` (so on every 
 $ lspci -nn -s 0001:01:00.0
 ```
 
-```{include} lspci-ids.inc
+```{include} ../inc/lspci-ids.inc
 ```
 
 If the Acorn doesn't appear, check the M.2 seating and the HAT's FPC
@@ -66,10 +73,10 @@ $ lspci -nn -d 10ee:
 
 ## On a Compute Blade
 
-```{include} blade-first.inc
+```{include} ../inc/blade-first.inc
 ```
 
-```{include} ../wiring/blade-jtag-serial-off.inc
+```{include} ../inc/blade-jtag-serial-off.inc
 ```
 
 ### Is the card on the bus?
@@ -78,7 +85,7 @@ $ lspci -nn -d 10ee:
 $ lspci -nn -s $BDF
 ```
 
-```{include} lspci-ids.inc
+```{include} ../inc/lspci-ids.inc
 ```
 
 If the Acorn doesn't appear, check the M.2 seating, and `dmesg | grep -i pci`.
@@ -88,7 +95,7 @@ If the Acorn doesn't appear, check the M.2 seating, and `dmesg | grep -i pci`.
 At ps1 the address differs per blade, so read it from the `PCIe` column in [Acorns at
 ps1](../installations/ps1.md#the-cards).
 
-```{include} ../wiring/blade-detach.inc
+```{include} ../inc/blade-detach.inc
 ```
 
 ### Load the design and bring the endpoint back

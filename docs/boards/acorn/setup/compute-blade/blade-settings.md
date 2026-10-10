@@ -1,10 +1,17 @@
-# Acorn on a Compute Blade: the blade's pins, the shared line and settings
+---
+type: reference
+owner: documentation maintainers
+reader: someone looking up a Compute Blade's pins and settings for an Acorn
+review: 2026-11-10
+---
+
+# A Compute Blade's pins and settings for an Acorn
 
 **You have an Acorn wired to a Compute Blade with a CM4 or CM5 and want to know what each pin of the
 blade's two headers is, what follows from JTAG and the serial pair sharing one line, and what the blade must
 have set for the serial pair and the kernel console.** How JTAG is run on a blade is on [JTAG on a Compute
-Blade](compute-blade-jtag.md). Which wire goes where is on [Acorn wiring on a Compute
-Blade](compute-blade.md).
+Blade](../../checks/compute-blade-jtag-by-hand.md). Which wire goes where is on [Acorn wiring on a Compute
+Blade](wiring.md).
 
 ## The blade's connectors and their GPIOs
 
@@ -26,12 +33,12 @@ not been measured on a blade.
 
 The Extension Port (2×5), by printed pin:
 
-```{include} ../generated/acorn-blade-ext.md
+```{include} ../../generated/acorn-blade-ext.md
 ```
 
 The UART header (1×4), by printed pin:
 
-```{include} ../generated/acorn-blade-uart.md
+```{include} ../../generated/acorn-blade-uart.md
 ```
 
 The UART header's 5 V pin can be an input or an output (vendor note), so it is
@@ -39,7 +46,7 @@ live whenever the blade is powered.
 
 ## The serial port
 
-```{include} serial-pair.inc
+```{include} ../../inc/serial-pair.inc
 ```
 
 How firmly the host holds to it:
@@ -63,7 +70,7 @@ How firmly the host holds to it:
 A CM5 on a Compute Blade needs no `uart0-pi5` overlay: pi16 at ps1 had `/dev/ttyAMA0` with `enable_uart=1` and no
 `uart0-pi5`, read 2026-10-05.
 
-```{include} gpio-contention.inc
+```{include} ../../inc/gpio-contention.inc
 ```
 
 ## The shared line and the 470 Ω resistor
@@ -85,7 +92,7 @@ resistor: GPIO15 is not a JTAG pin on this carrier.
 The serial port and JTAG cannot both have GPIO14 in one boot of a host on
 kernel 6.18: with the header's serial port on (`enable_uart=1`) the kernel's
 serial driver holds GPIO14 and JTAG cannot run, and with it off there is no
-`/dev/ttyAMA0` for the serial pair (see [JTAG on a blade](compute-blade-jtag.md#jtag-on-a-blade)).
+`/dev/ttyAMA0` for the serial pair (see [JTAG on a blade](../../checks/compute-blade-jtag-by-hand.md#jtag-on-a-blade)).
 Under kernel 6.12.75 pi20 at ps1 ran JTAG and then used `/dev/ttyAMA0` in the same
 boot.
 
@@ -105,16 +112,12 @@ GPIO14 is TMS, and once the FPGA drives it `openFPGALoader` cannot. The pin-ID
 design drives every P2 ball, so it does this every time. The way back is a PoE
 cycle of the blade's switch port, which restores everything in about 60 s: the
 flash bitstream reloads and `--detect`, the DNA read and the PCIe endpoint all
-come back. See [PoE power control](../../../setup/network.md#poe-power-control) and,
-for the ps1 blades, [Power control](../../../sites/ps1-gateway.md#power-control). Which
-blades have the resistor is on [Acorns at ps1](../installations/ps1.md#the-cards).
+come back. See [PoE power control](../../../../setup/network.md#poe-power-control) and,
+for the ps1 blades, [Power control](../../../../sites/ps1-gateway.md#power-control). Which
+blades have the resistor is on [Acorns at ps1](../../installations/ps1.md#the-cards).
 :::
 
-```{include} kernel-console.inc
+```{include} ../../inc/kernel-console.inc
 ```
 
-## Troubleshooting
-
-| Problem | Likely cause | Fix |
-|---------|--------------|-----|
-| Pi reboots when a serial design loads | Kernel console on the FPGA UART; SysRq | Console to `ttyAMA10` (Pi 5) / `tty1` (blade), `kernel.sysrq=0` |
+When a wire does not answer: [Acorn wiring faults on a Compute Blade](../../troubleshooting/compute-blade-wiring.md).

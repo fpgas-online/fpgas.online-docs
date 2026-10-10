@@ -1,10 +1,17 @@
-# Acorn test design: the fpgas.online LiteX SoC
+---
+type: explanation
+owner: documentation maintainers
+reader: someone who wants to know what the fpgas.online Acorn design is and how it sits in the flash
+review: 2026-11-10
+---
+
+# The fpgas.online Acorn design
 
 **You have an Acorn and want to know what the fpgas.online Acorn design is: what is in it, which cards it
 is built for, its two images, and how they sit in the card's flash.** To load it into SRAM by hand on
-either carrier: [PCIe by hand](pcie.md). To put it in a card's flash: [Installing and updating the
-images](install-images.md). What the boot check tests of it: [Installing the Acorn
-packages](../packages.md#installing-the-acorn-packages).
+either carrier: [PCIe by hand](../checks/pcie-by-hand.md). To put it in a card's flash: [Installing and updating the
+images](../setup/install-images.md). What the boot check tests of it: [Installing the Acorn
+packages](../setup/packages.md#installing-the-acorn-packages).
 
 ## Images
 
@@ -76,7 +83,7 @@ The Acorn has a Spansion S25FL256S (256 Mbit = 32 MB) quad-SPI NOR flash.
 └──────────────────────────────────────────────────┘
 ```
 
-The safety rules are on [Recovery and safety rules](recovery.md#safety-rules).
+The safety rules are on [Recovery and safety rules](../troubleshooting/recovery.md#safety-rules).
 
 ## Multiboot
 
@@ -98,23 +105,4 @@ address to `WBSTAR`, then `IPROG` to the ICAPE2 command register. The PCIe link
 drops and retrains once the new image is loaded. LiteX's `ICAP` core
 (`self.icap = ICAP(); self.icap.add_reload()`) exposes it.
 
-## Generating multiboot bitstreams by hand
-
-The fpgas.online Acorn design's build produces both flavours. For any other
-design, set the properties in Vivado:
-
-```tcl
-# Golden: chain-load the operational slot
-set_property BITSTREAM.CONFIG.NEXT_CONFIG_ADDR 0x00400000 [current_design]
-write_bitstream -force golden.bit
-write_cfgmem -force -format bin -interface spix4 -size 16 -loadbit "up 0x0 golden.bit" -file golden.bin
-
-# Operational: watchdog and fallback
-set_property BITSTREAM.CONFIG.TIMER_CFG 0x0001fbd0 [current_design]
-set_property BITSTREAM.CONFIG.CONFIGFALLBACK Enable [current_design]
-write_bitstream -force operational.bit
-write_cfgmem -force -format bin -interface spix4 -size 16 -loadbit "up 0x0 operational.bit" -file operational.bin
-```
-
-openXC7 does not support `NEXT_CONFIG_ADDR`, so golden images need Vivado; that
-is acceptable for an image written once and rarely changed.
+To build the two flavours of another design by hand: [generating multiboot bitstreams by hand](../setup/install-images.md#generating-multiboot-bitstreams-by-hand).

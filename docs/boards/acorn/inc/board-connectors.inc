@@ -9,7 +9,7 @@ the end of the card.
 Pin 1 of each connector is the end **nearest the M.2 edge connector**, and it is
 GND on both:
 
-```{include} ../generated/acorn-connectors.md
+```{include} /boards/acorn/generated/acorn-connectors.md
 ```
 
 Sources: the "Pico-EZmate connectors pinout on Acorn, Nite/LiteFury" legend on

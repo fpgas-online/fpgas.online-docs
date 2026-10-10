@@ -1,4 +1,11 @@
-# Acorn mechanical: the camera over the card
+---
+type: explanation
+owner: documentation maintainers
+reader: someone mounting a camera over an Acorn
+review: 2026-11-10
+---
+
+# The camera over an Acorn
 
 **You are fitting the camera that watches an Acorn's LEDs (an Acorn CLE-215+ on its host) and want to know
 where the camera's lens goes over the card.** The drawing is the record; the figures a builder needs are

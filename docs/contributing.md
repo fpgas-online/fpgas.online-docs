@@ -41,7 +41,7 @@ Headings get anchors down to three levels, so you can link to a section of
 another page directly:
 
 ```markdown
-See [JTAG on a blade](boards/acorn/wiring/compute-blade-jtag.md#jtag-on-a-blade).
+See [JTAG on a blade](boards/acorn/checks/compute-blade-jtag-by-hand.md#jtag-on-a-blade).
 ```
 
 Wide tables scroll sideways rather than being split. A table of dense
@@ -117,7 +117,7 @@ the page and publish it.
 
 ```console
 $ uv run tools/print_pages.py --paper A4 --title "Wiring an Acorn to a Raspberry Pi 5" \
-    --output acorn-pi5.pdf boards/acorn/building/rpi-5/bom "boards/acorn/wiring/rpi-5#p2-serial-pair-and-spare-gpios,p1-jtag"
+    --output acorn-pi5.pdf boards/acorn/setup/rpi-5/parts "boards/acorn/setup/rpi-5/wiring#p2-serial-pair-and-spare-gpios,p1-jtag"
 ```
 
 A page is given by its path, and may be cut down to sections named by their

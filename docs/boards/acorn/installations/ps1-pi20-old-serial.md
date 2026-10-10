@@ -24,23 +24,23 @@ pin 4 the bottom one, with pin 3 the third. Which GPIO each pin carries (pin 9 a
 Which Extension Port and UART pins
 the old serial wires sit on, and whether J2 shares a terminal or a housing with P1's TMS wire, is
 not recorded by us. Build a new P2 cable by the guide ([UART connector
-1](../building/compute-blade/uart-connector-1.md) and 2) first. Then ask Tim, and power the blade off (unplug its PoE cable,
+1](../setup/compute-blade/uart-wires.md) and 2) first. Then ask Tim, and power the blade off (unplug its PoE cable,
 and a USB-C cable if one is plugged in), take the card out of its M.2 slot (touch bare metal of the unplugged blade first, and hold the card by its
 edges, as on the cable pages), and look at Extension Port pins 9 and
 10 and UART header pins 3 and 4: note which housing sits where.
 
 1. Take the old serial wiring off the blade and the card. If a serial wire shares a housing, a terminal or a
    splice with P1's TMS wire, do not cut or pull it: take P1's cable off with it, and build a new P1 cable by the
-   guide ([JTAG connector 1](../building/compute-blade/jtag-connector-1.md) and 2).
+   guide ([JTAG connector 1](../setup/compute-blade/jtag-wires.md) and 2).
 2. Otherwise take P1's housing off its header and its plug out of the card's socket P1 too, and check it as
-   [JTAG connector 2](../building/compute-blade/jtag-connector-2.md) steps 3 and 4 do: each plug contact beeps to its
+   [JTAG connector 2](../setup/compute-blade/jtag-housing.md) steps 3 and 4 do: each plug contact beeps to its
    cavity and to no other, and contact 6 (VCC, 3.3 V from the Acorn) beeps to no cavity at all: in the guide's
-   cable its wire is cut off short and insulated ([JTAG connector 1](../building/compute-blade/jtag-connector-1.md)
+   cable its wire is cut off short and insulated ([JTAG connector 1](../setup/compute-blade/jtag-wires.md)
    step 5): look at it, a short stub with tube over its cut end. The bench check cannot tell whether wire 6 reaches
    a header pin, so this look and the meter are what keep its 3.3 V off the host. If any of this fails, or the housing is not the guide's 2×5, build a new P1 cable.
-3. Run the [bench check](../building/compute-blade/bench-check.md) with the new P2 cable and the P1 cable, kept or
+3. Run the [bench check](../setup/compute-blade/bench-check.md) with the new P2 cable and the P1 cable, kept or
    new, the card still out, as that page says. Its ground beep is meant to show that no housing is turned round (that a turned housing would
    then stay silent is not tried by us, as that page says).
-4. Then fit both cables and the card as [Fitting](../building/compute-blade/fitting.md) does. Whether P1's TMS
+4. Then fit both cables and the card as [Fitting](../setup/compute-blade/fitting.md) does. Whether P1's TMS
    works is shown only by the check's `jtag` test, in a boot with the header's serial port off ([verifying
-   3](../building/compute-blade/verifying-3.md)); the meter cannot reach it with the card fitted.
+   3](../checks/compute-blade-jtag.md)); the meter cannot reach it with the card fitted.

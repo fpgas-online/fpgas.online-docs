@@ -26,9 +26,9 @@ empty (the reads of 2026-09-20 on [Acorns at ps1](../boards/acorn/installations/
 
 A host at ps1 is checked as any machine outside the fleet is: install the Acorn packages on the host and run
 `fpgas-verify` ([Installing the Acorn
-packages](../boards/acorn/packages.md#installing-the-acorn-packages), then [Checking a board:
+packages](../boards/acorn/setup/packages.md#installing-the-acorn-packages), then [Checking a board:
 fpgas-verify](../verify/fpgas-verify.md)). For an Acorn on a Compute Blade, [Compute Blade cables:
-verifying](../boards/acorn/building/compute-blade/verifying-1.md) goes from logging in after a fresh boot to
+verifying](../boards/acorn/checks/compute-blade.md) goes from logging in after a fresh boot to
 which wire a failing line points at.
 
 ## Public site

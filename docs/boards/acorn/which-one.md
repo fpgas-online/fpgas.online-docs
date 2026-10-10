@@ -1,3 +1,10 @@
+---
+type: reference
+owner: documentation maintainers
+reader: someone holding an Acorn-family card who wants to know which one it is
+review: 2026-11-10
+---
+
 # Acorn variants
 
 **You have a card of the Acorn family (an Acorn CLE-215+, CLE-215 or CLE-101, a LiteFury or a NiteFury) and
@@ -33,17 +40,17 @@ wiki](https://github.com/enjoy-digital/litex/wiki/Use-LiteX-on-the-Acorn-CLE-215
 ## Telling the variants apart
 
 - **By the PCI ID as sold** (SQRL's factory firmware in flash): `1e24:021f` is an Acorn CLE-215+ and
-  `1e24:0101` a CLE-101 (the PCIe table of [Acorn device info](device-info.md#pcie-interface); `lspci -nn`
-  on [PCIe by hand](../designs/pcie.md)). A card on the fpgas.online design shows `10ee:7021` and carries
-  the same pair as its PCI subsystem ID ([the fpgas.online LiteX SoC](../designs/litex-soc.md#images)).
+  `1e24:0101` a CLE-101 (the PCIe table of [The Acorn card](overview/specifications.md#pcie-interface); `lspci -nn`
+  on [PCIe by hand](checks/pcie-by-hand.md)). A card on the fpgas.online design shows `10ee:7021` and carries
+  the same pair as its PCI subsystem ID ([the fpgas.online LiteX SoC](overview/design.md#images)).
 - **By the JTAG IDCODE**: `0x3636093` is an XC7A200T (CLE-215+, CLE-215, NiteFury) and `0x3631093` an
-  XC7A100T (CLE-101, LiteFury) (the `--detect` blocks of [JTAG by hand](../designs/jtag.md); `0x3631093`
-  was read on pi20 at ps1 on 2026-09-20, [Acorns at ps1](../installations/ps1.md#the-cards)).
+  XC7A100T (CLE-101, LiteFury) (the `--detect` blocks of [JTAG by hand](checks/jtag-by-hand.md); `0x3631093`
+  was read on pi20 at ps1 on 2026-09-20, [Acorns at ps1](installations/ps1.md#the-cards)).
 
 Neither tells a CLE-215+ from a CLE-215 or a NiteFury: not on these pages.
 
 ## Wiring
 
 All variants share the PCB layout and pin assignments, so the wiring applies
-unchanged to each of them: [on a Raspberry Pi 5](../wiring/rpi-5.md), [on a Compute
-Blade](../wiring/compute-blade.md).
+unchanged to each of them: [on a Raspberry Pi 5](setup/rpi-5/wiring.md), [on a Compute
+Blade](setup/compute-blade/wiring.md).

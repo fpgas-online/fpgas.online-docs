@@ -28,8 +28,8 @@ page disagrees, the site page is the measured source and wins.
 | [Digilent Arty A7-35T](https://digilent.com/shop/arty-a7-artix-7-fpga-development-board/) | [Arty A7](arty-a7.md), [wiring to the Pi](arty-a7.md#wiring-to-the-raspberry-pi) | ×5 | ×8 | Xilinx XC7A35T | DDR3, Ethernet, PMOD, USB&nbsp;JTAG+UART |
 | [Kosagi NeTV2](https://www.crowdsupply.com/alphamax/netv2) (GPIO&nbsp;JTAG) | [Kosagi NeTV2](netv2.md), [JTAG via RPi GPIO](netv2.md#jtag-via-rpi-gpio) | ×5 | — | Xilinx XC7A35T | DDR3, Ethernet, PCIe, HDMI, GPIO&nbsp;JTAG+UART |
 | [Kosagi NeTV2](https://www.crowdsupply.com/alphamax/netv2) (RPi5&nbsp;PCIe) | [Kosagi NeTV2](netv2.md), [JTAG via RPi GPIO](netv2.md#jtag-via-rpi-gpio) | —&nbsp;(+×4) | — | Xilinx XC7A35T | DDR3, Ethernet, PCIe, HDMI, GPIO&nbsp;JTAG+UART |
-| [Sqrl Acorn CLE-215+](https://github.com/enjoy-digital/litex/wiki/Use-LiteX-on-the-Acorn-CLE-215) | [SQRL Acorn](acorn/index.md), [wiring on a Raspberry Pi 5](acorn/wiring/rpi-5.md), [installing the images](acorn/designs/install-images.md) | ×6 | — | Xilinx XC7A200T | DDR3, PCIe, SPI&nbsp;Flash, GPIO&nbsp;JTAG+UART |
-| [LiteFury](https://github.com/RHSResearchLLC/NiteFury-and-LiteFury) / Acorn CLE-101 | [SQRL Acorn](acorn/index.md), [wiring on a Compute Blade](acorn/wiring/compute-blade.md), [installing the images](acorn/designs/install-images.md) | — | ×3&nbsp;(+×1) | Xilinx XC7A100T | DDR3, PCIe, SPI&nbsp;Flash, GPIO&nbsp;JTAG+UART |
+| [Sqrl Acorn CLE-215+](https://github.com/enjoy-digital/litex/wiki/Use-LiteX-on-the-Acorn-CLE-215) | [SQRL Acorn](acorn/index.md), [wiring on a Raspberry Pi 5](acorn/setup/rpi-5/wiring.md), [installing the images](acorn/setup/install-images.md) | ×6 | — | Xilinx XC7A200T | DDR3, PCIe, SPI&nbsp;Flash, GPIO&nbsp;JTAG+UART |
+| [LiteFury](https://github.com/RHSResearchLLC/NiteFury-and-LiteFury) / Acorn CLE-101 | [SQRL Acorn](acorn/index.md), [wiring on a Compute Blade](acorn/setup/compute-blade/wiring.md), [installing the images](acorn/setup/install-images.md) | — | ×3&nbsp;(+×1) | Xilinx XC7A100T | DDR3, PCIe, SPI&nbsp;Flash, GPIO&nbsp;JTAG+UART |
 | [Fomu EVT](https://www.crowdsupply.com/sutajio-kosagi/fomu) | [Fomu EVT](fomu-evt.md), [wiring to the Pi](fomu-evt.md#wiring-to-the-raspberry-pi) | ×2 | — | Lattice iCE40UP5K | USB&nbsp;1.1, SPI&nbsp;Flash, PMOD, I2C |
 | [TT FPGA Demo Board](https://tinytapeout.com/guides/fpga-breakout/) | [TT FPGA demo board](tt-fpga.md), [pin mapping](tt-fpga.md#pin-mapping), [live board page](https://tinytapeout.fpgas.online/board/fpga-1/) | ×4 | —&nbsp;(+×4) | Lattice iCE40UP5K | PMOD, USB&nbsp;(RP2350), SPI&nbsp;Flash |
 | [ButterStick](https://github.com/butterstick-fpga) | [ButterStick](butterstick.md) | —&nbsp;(+×4) | — | Lattice ECP5UM5G-85F | DDR3, GbE, USB&nbsp;2.0, SYZYGY |
@@ -146,10 +146,10 @@ PMOD interconnects:
 
 Wiring guides:
 
-- [Acorn wiring on a Raspberry Pi 5](acorn/wiring/rpi-5.md) and [on a Compute Blade](acorn/wiring/compute-blade.md) — step-by-step Acorn CLE-215+ setup: M.2 HAT,
+- [Acorn wiring on a Raspberry Pi 5](acorn/setup/rpi-5/wiring.md) and [on a Compute Blade](acorn/setup/compute-blade/wiring.md) — step-by-step Acorn CLE-215+ setup: M.2 HAT,
   Pico-EZmate cable prep, JTAG/UART/GPIO wiring (serial crossover!), Pi 5 traps,
   measured per-board wiring, PCIe verification
-- [Acorn test designs](acorn/index.md#test-designs) — PCIe-detach rule for
+- [Acorn checks](acorn/checks/index.md) — PCIe-detach rule for
   JTAG loads, prebuilt Vivado bitstreams, PCIe-based bitstream programming,
   Xilinx 7-series multiboot, flash layout, recovery procedures
 
