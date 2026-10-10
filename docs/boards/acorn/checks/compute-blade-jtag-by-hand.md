@@ -9,8 +9,7 @@ review: 2026-11-10
 
 **You have an Acorn wired to a Compute Blade with a CM4 or CM5 and want to run JTAG on it: what the blade
 must have set at boot, the commands, and how the pins are put back afterwards.** Which wire goes where is on
-[Acorn wiring on a Compute Blade](../setup/compute-blade/wiring.md); the line JTAG shares with the serial pair is on [the
-blade's pins, the shared line and settings](../setup/compute-blade/blade-settings.md#the-shared-line-and-the-470-ω-resistor).
+[Acorn wiring on a Compute Blade](../setup/compute-blade/wiring.md); the line JTAG shares with the serial pair is on [The line JTAG and the serial port share on a Compute Blade](../setup/compute-blade/shared-line.md).
 
 ## JTAG on a blade
 

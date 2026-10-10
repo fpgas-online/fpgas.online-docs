@@ -52,7 +52,7 @@ $ sudo fpgas-acorn-verify --test ddr
   pi-sw2-p48, on 2026-10-01 (from `expected.toml`).
 - **A different test, the LiteX BIOS's own memory test at start-up**: DDR3 1 GiB at 800 MT/s, read leveling clean on both modules, `Memtest OK`,
   35.1 MiB/s write, 46.8 MiB/s read, on acorn-willow, last checked 2026-09-21 (step 10 of [its
-  install](../setup/install-images.md#installing-the-fpgasonline-images)).
+  install](../setup/install-images.md#steps)).
 - **The `ddr` test passed** on acorn-holly, acorn-willow, acorn-sycamore and acorn-olive in the boot check of
   6 October 2026.
 - The CLE-101 has not been measured yet (from `expected.toml`).

@@ -97,3 +97,5 @@ watchdog fires and the FPGA ignores `WBSTAR`, rebooting from 0x0.
 **ICAPE2 warm boot** reconfigures without a power cycle. The target flash address goes to `WBSTAR`, then `IPROG` goes to
 the ICAPE2 command register. The PCIe link drops and retrains once the loaded image is running. LiteX's `ICAP` core
 (`self.icap = ICAP(); self.icap.add_reload()`) exposes it.
+
+The two flavours of another design are built by hand as on [How to generate multiboot bitstreams by hand](../setup/multiboot-bitstreams.md).
