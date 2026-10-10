@@ -167,7 +167,7 @@ The columns are as for PMODA.
 
 ### PMODC
 
-The columns are as for PMODA. The table is the documented order. On every Arty scanned, a pin-id scan reads V12 on pin 1 and U12 on pin 2. The scan is on [Arty A7 wiring to a Raspberry Pi](../setup/wiring.md#hat-jc-to-arty-jc).
+The columns are as for PMODA. The table is the documented order. On every Arty scanned, a pin-id scan reads V12 on HAT JC pin 1 and U12 on HAT JC pin 2. The scan is on [Arty A7 wiring to a Raspberry Pi](../setup/wiring.md#hat-jc-to-arty-jc).
 
 | PMOD Pin | Signal Index | FPGA Pin | IO Standard |
 | -------- | ------------ | -------- | ----------- |

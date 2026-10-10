@@ -39,7 +39,7 @@ The SPI kernel modules claim GPIO7-11. Those carry HAT JA pin 1 (GPIO8) and HAT 
 
 ## If it fails
 
-- A lane reads back wrong. Compare the lane with the routing tables on [Arty A7 wiring to a Raspberry Pi](../setup/wiring.md#pmod-cables). Arty JC pins 1 and 2 read in the reverse of the documented order there.
+- A lane reads back wrong. Compare the lane with the routing tables on [Arty A7 wiring to a Raspberry Pi](../setup/wiring.md#pmod-cables).
 
 ## Next
 
