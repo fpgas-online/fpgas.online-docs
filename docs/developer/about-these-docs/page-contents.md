@@ -50,15 +50,15 @@ column gives what it must be.
 
 ## Other pages
 
-| Page | Title | Body |
-|---|---|---|
-| Tutorial | the first success it reaches | one path from nothing; each step with a visible result; the success state pictured first |
-| Explanation | a noun phrase | prose; one idea to a paragraph; no numbered steps |
-| Explanation of a board's programming | the board and "programming" | one page for each board, in three layers: protocol, connection, tool |
-| Reference | the thing looked up | a table or list, generated from source data where a data file exists; no steps; no prose beyond the scope sentences and the column definitions |
-| Orientation | the object | the whole object, then a master picture whose numbered callouts are the sections, each with its own crop |
-| Identification | the variants | the variants side by side at one orientation and scale; the difference marked; a table of the tells |
-| Landing | the section | one line for each destination and nothing else |
+| Page | Type | Title | Body |
+|---|---|---|---|
+| Tutorial | tutorial | the first success it reaches | one path from nothing; each step with a visible result; the success state pictured first |
+| Explanation | explanation | a noun phrase | prose; one idea to a paragraph; no numbered steps |
+| Explanation of a board's programming | explanation | the board and "programming" | one page for each board, in three layers: protocol, connection, tool |
+| Reference | reference | the thing looked up | a table or list, generated from source data where a data file exists; no steps; no prose beyond the scope sentences and the column definitions |
+| Orientation | explanation | the object | the whole object, then a master picture whose numbered callouts are the sections, each with its own crop |
+| Identification | reference | the variants | the variants side by side at one orientation and scale; the difference marked; a table of the tells |
+| Landing | landing | the section | one line for each destination and nothing else |
 
 ## Limits
 
