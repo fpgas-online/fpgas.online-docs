@@ -31,9 +31,9 @@ A test uses `--port /dev/ttyACM0 --board tt --skip-banner` at 115200 baud. It ne
 
 Four reasons make the bridge the recommended access:
 
-- Raspberry Pi GPIO5 and GPIO11 are **not hardware UART pins**: the BCM2711 has no UART peripheral assignable to this GPIO pair. GPIO17 and GPIO19, the other pair, are no better: GPIO17 is RTS0 and GPIO19 is PCM_FS.
+- Raspberry Pi GPIO11 (to the FPGA's RX) and GPIO4 (from its TX) are **not a hardware UART pair**. The BCM2711 has no UART assignable to them in these directions.
 - The NFS boot image has no device tree overlay files, and the root filesystem is read-only.
 - Software bit-bang UART at 115200 baud is unreliable under a non-RT Linux kernel.
 - The RP2350 has hardware UART peripherals that can be configured for these pins.
 
-Access through the Raspberry Pi GPIO is not feasible. GPIO5 and GPIO11 are not assignable to any BCM2711 hardware UART as a pair. The BCM2711 UART3 uses GPIO4/5 (TX/RX), and no UART uses GPIO11 for TX. Without hardware UART support, these pins cannot reliably serve as a serial port at 115200 baud.
+Access through the Raspberry Pi GPIO is not feasible. The Raspberry Pi would have to transmit on GPIO11 and receive on GPIO4. On the BCM2711, UART3 has its TX, not its RX, on GPIO4, and no UART has its TX on GPIO11. Without hardware UART support, these pins cannot reliably serve as a serial port at 115200 baud.
