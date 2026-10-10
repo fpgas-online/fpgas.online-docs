@@ -11,7 +11,7 @@ review: 2026-11-10
 
 This is the mapping as connected in the fpgas.online test infrastructure. The wires between the PMOD HAT and the demo board are on [Tiny Tapeout FPGA demo board wiring to a Raspberry Pi](../setup/wiring.md). The other figures are on [Tiny Tapeout FPGA demo board specifications](specifications.md).
 
-The check expects `ui_in` on HAT JA, `uio` on HAT JB and `uo_out` on HAT JC, and the boards are cabled that way.
+The check expects `ui_in` on HAT JA, `uio` on HAT JB and `uo_out` on HAT JC. The boards measured with the pin-id design and by the check are cabled that way.
 
 The shipped RP2350 firmware loaded `GPIOMapTT04` instead of `GPIOMapTTDBv3`, returning incorrect GPIO numbers. All pin numbers on this page are the correct TTDBv3 values, not the firmware-reported ones.
 
@@ -25,7 +25,7 @@ Read or inferred, in the `ui_in` and `uo_out` tables, is `read` where the pin-id
 
 The 8-bit input bus. The Raspberry Pi drives these through the PMOD HAT, and the FPGA reads them. They are cabled to PMOD HAT port JA.
 
-The positions of `ui_in[1:3]` are inferred, not read back, because their Raspberry Pi GPIOs are shared with `uio[1:3]`: [test-designs issue #142](https://github.com/fpgas-online/fpgas.online-test-designs/issues/142).
+Six wires were not read back: `ui_in[1:3]` and `uio[1:3]`, which share Raspberry Pi GPIOs. Their positions are inferred from the pattern of bit 0 on pin 1 and bit 7 on pin 10: [test-designs issue #142](https://github.com/fpgas-online/fpgas.online-test-designs/issues/142). The HAT joins the JA wire and the JB wire of the same number (2, 3 or 4) on one Raspberry Pi pin. No test can therefore tell those two wires swapped with each other.
 
 | Bit      | iCE40 Pin | RP2350 GPIO | PMOD HAT Pin | RPi GPIO | Read or inferred |
 | -------- | --------- | ----------- | ------------ | -------- | ---------------- |

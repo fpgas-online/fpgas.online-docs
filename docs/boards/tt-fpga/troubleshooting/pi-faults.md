@@ -16,4 +16,4 @@ What you see is the symptom, Likely cause the reason, and Fix what to do.
 | What you see | Likely cause | Fix |
 |---|---|---|
 | GPIO7-11 cannot be driven by the PMOD test | Raspberry Pi GPIO7-11 overlap with the SPI0 bus and conflict with PMOD HAT pins (JA/JB pins 2-4) | `sudo rmmod spidev spi_bcm2835` before a PMOD test run by hand. Nothing else on the Pi may be using SPI0: this takes the bus away from it |
-| `uio[1,2,3]` read wrongly while the Raspberry Pi drives `ui_in[1,2,3]` | HAT JB pins 2-4 and HAT JA pins 2-4 are the same Raspberry Pi GPIO lines (GPIO10, GPIO9, GPIO11), so a drive on `ui_in[1:3]` also reaches `uio[1:3]` | Make `uio[1:3]` inputs in the design while the Raspberry Pi drives `ui_in[1:3]`; leave GPIO10, GPIO9 and GPIO11 as inputs while the design drives `uio[1:3]` |
+| `ui_in[1,2,3]` and `uio[1,2,3]` cannot be tested independently | HAT JB pins 2-4 and HAT JA pins 2-4 are the same Raspberry Pi GPIO lines (GPIO10, GPIO9, GPIO11), so a drive on `ui_in[1:3]` also reaches `uio[1:3]` | Make `uio[1:3]` inputs in the design while the Raspberry Pi drives `ui_in[1:3]`; leave GPIO10, GPIO9 and GPIO11 as inputs while the design drives `uio[1:3]` |
