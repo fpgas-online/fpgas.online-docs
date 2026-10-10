@@ -1,21 +1,21 @@
-"""docs/redirects.json: every page that moved, old document name to new."""
+"""tools/moved_pages.json: the pages that moved, old document name to new, for the sync's link rewriting."""
 import json
 import unittest
 from pathlib import Path
 
 DOCS = Path(__file__).resolve().parent.parent / "docs"
-MOVED = json.loads((DOCS / "redirects.json").read_text())
+MOVED = json.loads((Path(__file__).resolve().parent / "moved_pages.json").read_text())
 
 
-class Redirects(unittest.TestCase):
+class MovedPages(unittest.TestCase):
     def test_an_old_page_is_gone_and_its_new_page_is_here(self):
         for old, new in MOVED.items():
             page, _, fragment = old.partition("#")
             if not fragment:
-                self.assertFalse((DOCS / f"{page}.md").exists(), f"{page} still exists, so it cannot redirect")
+                self.assertFalse((DOCS / f"{page}.md").exists(), f"{page} still exists, so it has not moved")
             self.assertTrue((DOCS / f"{new.partition('#')[0]}.md").exists(), f"{old} goes to {new}, which is not a page")
 
-    def test_no_redirect_goes_to_a_page_that_itself_moved(self):
+    def test_no_entry_goes_to_a_page_that_itself_moved(self):
         for old, new in MOVED.items():
             self.assertNotIn(new.partition("#")[0], MOVED, f"{old} goes to {new}, which has moved again")
 
