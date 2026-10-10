@@ -293,11 +293,6 @@ runs the test in one invocation, with a 240-second timeout instead of the
 reaches it through the PMOD HAT exactly as it does an Arty, so
 programming is the only board-specific step.
 
-:::{note}
-The upstream `verify-hardware.md` carries its own iCE40 ↔ PMOD HAT ↔ Pi GPIO pin
-tables, and they do not agree with the tables on the board page. Which is right is [test-designs issue #58](https://github.com/fpgas-online/fpgas.online-test-designs/issues/58). That disagreement is also tracked in [test-designs issue #19](https://github.com/fpgas-online/fpgas.online-test-designs/issues/19); use the tables on the
-[Pin mapping](../boards/tt-fpga/overview/pin-mapping.md) page.
-:::
 
 ### Result detection and exit code
 

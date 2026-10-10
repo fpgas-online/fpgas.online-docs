@@ -35,4 +35,4 @@ On the host side, the `fpgas-tt` daemon on the Raspberry Pi loads bitstreams for
 
 Loading a design of your own by hand, and recovering a hung board, without a file write is [fpgas.online-tt issue #21](https://github.com/fpgas-online/fpgas.online-tt/issues/21). What the daemon's own loading does to the board is in the same issue. The test-designs scripts are listed on [Tiny Tapeout FPGA demo board test designs](../checks/test-designs.md). The UART test wrapper also calls its `reset_rp2350()`, which sends Ctrl-C to break any stuck MicroPython script, and retries after a USB power cycle.
 
-Once the FPGA is programmed, the Raspberry Pi has clean access to it through the PMOD HAT. Tests then run the same way as on any other board. UART and PMOD tests work identically to the Arty and the Fomu. Programming is the only Tiny Tapeout specific step.
+Once the FPGA is programmed, the Raspberry Pi has clean access to it through the PMOD HAT. Programming is the only Tiny Tapeout specific step.
