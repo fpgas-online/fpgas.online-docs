@@ -4,7 +4,7 @@ Not yet run by us on this hardware: written from the design. Photos: Waveshare (
 
 ## What you need
 
-The P1 cable with its wires flagged and a terminal crimped on each (the page before this one), the empty 2×4 Dupont housing, a paint pen or a dot of tape, and a multimeter with a continuity buzzer and a fine probe or a sewing pin.
+The P1 cable with its wires flagged and a terminal crimped on each ([How to prepare the JTAG cable's wires (Raspberry Pi 5)](/boards/acorn/setup/rpi-5/jtag-wires.md)), the empty 2×4 Dupont housing, a paint pen or a dot of tape, and a multimeter with a continuity buzzer and a fine probe or a sewing pin.
 
 ## Steps
 
