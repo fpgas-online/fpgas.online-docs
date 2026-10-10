@@ -12,10 +12,8 @@ review: 2026-11-10
 - [How to install the Tiny Tapeout FPGA packages](../setup/packages.md): the check on the host, and how to run it by hand.
 - [Tiny Tapeout FPGA demo board test designs](test-designs.md): the designs under `designs/` and the scripts that load them. Whether the breakout has a flash for its SPI Flash ID design is [test-designs issue #258](https://github.com/fpgas-online/fpgas.online-test-designs/issues/258).
 
-
 ```{toctree}
 :hidden:
 
 test-designs
-
 ```
