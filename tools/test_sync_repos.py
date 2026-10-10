@@ -429,13 +429,15 @@ class Labels(unittest.TestCase):
 
     def test_a_published_address_of_a_page_that_moved_goes_to_the_page_that_took_its_place(self):
         moved = {"boards/acorn/old": "boards/acorn/index", "boards/acorn/old#part": "boards/acorn/wiring#assembly",
-                 "boards/acorn/gone#part": "boards/acorn/index"}
+                 "boards/acorn/gone#part": "boards/acorn/index", "boards/acorn/split": "boards/acorn/wiring#assembly"}
         site = "https://docs.fpgas.online/en/latest/boards/acorn"
         with unittest.mock.patch.dict(s.MOVED, moved, clear=True):
             out = rewrite(f"[a]({site}/old.html) [b]({site}/old.html#part) [c]({site}/old.html#other) "
-                          f"[d]({site}/gone.html#part)")
+                          f"[d]({site}/gone.html#part) [e]({site}/split.html) [f]({site}/split.html#mine)")
+        # an entry's own "#fragment" is where a section went; a link to the page keeps the fragment it gave
         self.assertEqual(out, "[a](../boards/acorn/index.md) [b](../boards/acorn/wiring.md#assembly) "
-                              "[c](../boards/acorn/index.md#other) [d](../boards/acorn/index.md)")
+                              "[c](../boards/acorn/index.md#other) [d](../boards/acorn/index.md) "
+                              "[e](../boards/acorn/wiring.md) [f](../boards/acorn/wiring.md#mine)")
 
     def test_the_label_names_what_the_rewritten_link_opens(self):
         # a section's document opens the page that includes the section, or, for another heading, the document

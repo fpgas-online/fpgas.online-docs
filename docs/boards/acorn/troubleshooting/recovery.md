@@ -9,7 +9,7 @@ review: 2026-11-10
 
 **You have an Acorn on a Raspberry Pi 5 whose flash holds a bad fpgas.online image, or you are about to
 write its flash, and want to know how the card recovers and what must never be done.** The images and the
-flash layout are on [the fpgas.online LiteX SoC](../overview/design.md).
+flash layout are on [the fpgas.online Acorn design](../overview/design.md).
 
 ## Safety rules
 

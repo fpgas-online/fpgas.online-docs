@@ -9,12 +9,11 @@ review: 2026-11-10
 
 **You have an Acorn that runs the fpgas.online design, on a Raspberry Pi 5 or in a Compute Blade, and want
 to know what tests its DDR3 memory, what a pass means, and what has been measured.** The memory itself and
-its pins are on [The Acorn card](../overview/specifications.md#ddr3-sdram). Each fact here is given with its source.
+its pins are on [Acorn specifications](../overview/specifications.md#ddr3-sdram). Each fact here is given with its source.
 
 ## What it is
 
-There is no separate DDR design for the Acorn: the memory test is part of the operational image of [the
-fpgas.online LiteX SoC](../overview/design.md). From the design's source
+There is no separate DDR design for the Acorn: the memory test is part of the operational image of [the fpgas.online Acorn design](../overview/design.md). From the design's source
 ([`acorn_pcie_soc.py`](https://github.com/fpgas-online/fpgas.online-test-designs/blob/main/designs/acorn-pcie/gateware/acorn_pcie_soc.py)):
 
 - The DDR3 controller is LiteDRAM on the 7-series PHY (`A7DDRPHY`), built for an MT41K512M16 on the CLE-215+

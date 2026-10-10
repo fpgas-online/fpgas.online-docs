@@ -9,8 +9,7 @@ review: 2026-11-10
 
 **You have an Acorn wired to a Compute Blade with a CM4 or CM5 and want to know what each pin of the
 blade's two headers is, what follows from JTAG and the serial pair sharing one line, and what the blade must
-have set for the serial pair and the kernel console.** How JTAG is run on a blade is on [JTAG on a Compute
-Blade](../../checks/compute-blade-jtag-by-hand.md). Which wire goes where is on [Acorn wiring on a Compute
+have set for the serial pair and the kernel console.** How JTAG is run on a blade is on [How to run JTAG by hand on a Compute Blade](../../checks/compute-blade-jtag-by-hand.md). Which wire goes where is on [Acorn wiring on a Compute
 Blade](wiring.md).
 
 ## The blade's connectors and their GPIOs

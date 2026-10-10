@@ -8,7 +8,7 @@ review: 2026-11-10
 # Programming an Acorn
 
 **You want to know what an Acorn on fpgas.online can do today, and how each part of it is reached from its
-host.** The card's own hardware is on [The Acorn card](card.md).
+host.** The card's own hardware is on [Acorn specifications](specifications.md).
 
 ## How the card is reached
 
@@ -71,7 +71,7 @@ reconfiguration](../checks/pcie-by-hand.md#detach-the-pcie-endpoint-before-any-j
 :::
 
 Pin order and the Pi 5 `gpiochip15` link are in [JTAG from the Pi](../setup/rpi-5/pi-settings.md#jtag-from-the-pi), and the
-`overlayroot=tmpfs` trap in [JTAG by hand](../checks/jtag-by-hand.md). Which bitstreams
+`overlayroot=tmpfs` trap in [How to run JTAG by hand on an Acorn](../checks/jtag-by-hand.md). Which bitstreams
 to use, and which prebuilt ones not to, is under
 [Images](design.md#images).
 
@@ -87,8 +87,7 @@ $ openocd -f openocd_xc7_ft232.cfg -c "init; pld load 0 <bitstream>; exit"
 
 With the fpgas.online Acorn design running, the flash is written over PCIe BAR0
 with `spi_flash.py`, which is how a board is moved onto the golden and
-operational images and how the operational image is updated; see [Acorn PCIe
-programming and multiboot](../setup/install-images.md). A board on the SQRL factory
+operational images and how the operational image is updated; see [How to install the fpgas.online images on an Acorn](../setup/install-images.md). A board on the SQRL factory
 firmware or the vendor XDMA image first needs the design loaded into SRAM over
 JTAG. Which image each card boots is on [Acorns at welland](../installations/welland.md) and [Acorns at
 ps1](../installations/ps1.md).

@@ -13,7 +13,7 @@ Each fact here is given with its source.
 
 ## What it is
 
-The bridges are part of [the fpgas.online LiteX SoC](../overview/design.md), in both its images. From the
+The bridges are part of [the fpgas.online Acorn design](../overview/design.md), in both its images. From the
 design's source
 ([`acorn_pcie_soc.py`](https://github.com/fpgas-online/fpgas.online-test-designs/blob/main/designs/acorn-pcie/gateware/acorn_pcie_soc.py)),
 the design is reachable two ways, with the same registers behind both:
