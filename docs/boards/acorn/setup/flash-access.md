@@ -17,7 +17,7 @@ The tool drives the SoC's flash core through PCIe BAR0 from Python, with no kern
 
 The first SPI transfer after every configuration is lost. `STARTUPE2` does not pass the first three `USRCCLKO` edges to the flash clock pin. The first command therefore arrives three clocks short and reads back as all ones. The tool spends those clocks with the flash deselected.
 
-BAR0 answers only aligned 32-bit reads. Through `/sys/bus/pci/devices/<bdf>/resource0`, a 4-byte slice of the `mmap` returns the register, and a byte-wise slice of the same window returns `0xff` for every byte. Memory decoding must be enabled first.
+BAR0 answers only aligned 32-bit reads. Through `/sys/bus/pci/devices/<bdf>/resource0`, a 4-byte slice of the `mmap` (`struct.unpack("<I", m[off:off + 4])`) returns the register, and a byte-wise slice of the same window returns `0xff` for every byte. Memory decoding must be enabled first.
 
 ## Why a PoE cycle
 

@@ -23,12 +23,12 @@ The `--pins` numbers on the sheet are GPIO numbers, not printed pin numbers. Sel
 
 ## Pin numbering
 
-Each row of the table is a header of the blade, the pin numbers it prints, and how they relate to a Raspberry Pi header. This page uses the printed numbers, not Raspberry Pi header numbers. TX and RX on the UART header are named from the blade's side. Every pin of the two headers is listed under [the blade's connectors and their GPIOs](blade-settings.md#the-blades-connectors-and-their-gpios).
+Each row of the table is a header of the blade and the pin numbers it prints. This page uses the printed numbers, not Raspberry Pi header numbers. The Extension Port's ten pins are electrically Raspberry Pi header pins 1-10, in the same arrangement. TX and RX on the UART header are named from the blade's side. Every pin of the two headers is listed under [the blade's connectors and their GPIOs](blade-settings.md#the-blades-connectors-and-their-gpios).
 
-| Header | Printed pins | Electrically |
-|--------|--------------|--------------|
-| Extension Port (printed "Extention Port") | 1 to 5 in one column, 6 to 10 in the other | Raspberry Pi header pins 1-10, in the same arrangement |
-| UART header (the vendor's "UART Back") | 1 to 4 | not Raspberry Pi header pins |
+| Header | Printed pins |
+|--------|--------------|
+| Extension Port (printed "Extention Port") | 1 to 5 down the left column, 6 to 10 down the right ([docs issue #130](https://github.com/fpgas-online/fpgas.online-docs/issues/130) is the picture that fixes which is which) |
+| UART header (the vendor's "UART Back") | 1 to 4 from the top |
 
 ## P1: JTAG, on the Extension Port
 
@@ -54,7 +54,9 @@ Each row of the table is the Dupont housing of one connector and the cavities th
 | P2, on the UART header | 1×4 | the whole header | 1 |
 
 :::{warning}
-**Extension Port pins 6 and 7 and UART pin 1 are 5 V and sit inside a housing. Their cavities must stay empty.** A housing turned round puts a wire there. Mark pin 1 on each housing and match it to printed pin 1.
+**Extension Port pins 6 and 7 and UART pin 1 are 5 V and sit inside a housing. Their cavities must stay empty.** A housing turned round puts a wire there.
 :::
+
+Each housing is marked at its pin 1, and the mark goes on printed pin 1.
 
 When a wire does not answer: [Acorn wiring faults on a Compute Blade](../../troubleshooting/compute-blade-wiring.md).

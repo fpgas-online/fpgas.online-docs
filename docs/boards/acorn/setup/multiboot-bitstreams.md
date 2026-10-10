@@ -9,6 +9,8 @@ review: 2026-11-10
 
 You have a design other than the fpgas.online Acorn design and want its golden and operational flavours for an Acorn's flash. The fpgas.online Acorn design's own build produces both flavours, so this page is not needed for it. It does not cover writing the images, which is [How to install the fpgas.online images on an Acorn](install-images.md).
 
+This procedure is waiting for its run: [test-designs issue #226](https://github.com/fpgas-online/fpgas.online-test-designs/issues/226).
+
 ## What you need
 
 - Vivado, with the design open as `current_design`.

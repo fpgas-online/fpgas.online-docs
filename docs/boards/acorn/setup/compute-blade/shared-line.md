@@ -17,7 +17,9 @@ The five GPIOs are JTAG's four plus the serial pair's second line, so none is le
 
 ## The 470 Ω resistor
 
-The TMS wire goes straight to its pin. The J2 wire reaches the same line through a 470 Ω resistor at its housing end, which the [UART wires page](uart-wires.md) fits. The resistor is there so that TMS still gets through, whatever a loaded design does with J2. If the FPGA drives J2 against the Pi at 3.3 V, the resistor limits the current to about 7 mA (3.3 V / 470 Ω). Without the resistor, the same fight is a short between two outputs, which crashes the host.
+The TMS wire goes straight to its pin. The J2 wire reaches the same line through a 470 Ω resistor at its housing end, which the [UART wires page](uart-wires.md) fits. The resistor is there so that TMS still gets through, by design, whatever a loaded design does with J2. Its measurement is [test-designs issue #221](https://github.com/fpgas-online/fpgas.online-test-designs/issues/221).
+
+If the FPGA drives J2 against the Pi at 3.3 V, the resistor limits the current to about 7 mA (3.3 V / 470 Ω). Without the resistor, the same fight is a short between two outputs, which crashes the host.
 
 ## A cable without the resistor
 

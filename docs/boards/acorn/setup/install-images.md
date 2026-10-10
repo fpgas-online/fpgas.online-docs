@@ -24,6 +24,8 @@ What the two images are is on [the fpgas.online Acorn design](../overview/design
 
 The tool is [`spi_flash.py`](https://github.com/fpgas-online/fpgas.online-test-designs/blob/main/verify/src/fpgas_online_verify/boards/acorn/spi_flash.py). How it reaches the flash is on [Reaching an Acorn's flash through PCIe](flash-access.md).
 
+Steps 5, 8 and 10 give no command: [docs issue #126](https://github.com/fpgas-online/fpgas.online-docs/issues/126) holds what is missing. The warm boot's mechanism is under [Multiboot](../overview/design.md#multiboot).
+
 1. On the Pi, prove JTAG with `--detect`, detach the endpoint and load the operational `.bit` into SRAM, then rescan: PCIe enumerates `10ee:7021`.
 
 ```console
@@ -34,9 +36,9 @@ $ openFPGALoader --cable libgpiod --pins 10:9:11:8 --detect
 ```
 
 2. Read the flash ID with `sudo python3 spi_flash.py id`: S25FL256S, RDID `01 02 19 4d 01 80`, 32 MiB, QUAD bit set.
-3. Dump the flash twice with `sudo python3 spi_flash.py dump factory.bin`, the second dump to another file name, and compare them: their SHA-256 is identical. Keep one as the backup of the factory contents, which is the only copy.
+3. Dump the flash twice with `sudo python3 spi_flash.py dump factory.bin` and compare the two dumps: their SHA-256 is identical. Keep one as the backup of the factory contents, which is the only copy.
 4. Write the operational image with `sudo python3 spi_flash.py write sqrl_acorn_operational.bin 0x400000 --idcode 0x3636093`: it is erased, programmed and verified.
-5. Warm-boot to `0x400000` over ICAP, endpoint detached, triggered over the UART bridge: the operational image runs from flash with `BOOTSTS = 0x105`.
+5. Warm-boot to `0x400000` over ICAP, endpoint detached, triggered over the UART bridge: the operational image runs from flash. `BOOTSTS = 0x105` means no fallback and no error.
 
 The operational image runs from flash. The golden image goes in next.
 
@@ -55,7 +57,7 @@ The operational image runs from flash. The golden image goes in next.
 The card passes when each of these shows:
 
 - `idcode 0x3636093 (XC7A200T)` from `--detect`, and `10ee:7021` after each rescan.
-- `BOOTSTS = 0x105` after the warm boot to `0x400000`.
+- `BOOTSTS = 0x105` (no fallback, no error) after the warm boot to `0x400000`.
 - `10ee:7021`, subsystem `1e24:021f`, 5 GT/s x1 after the PoE cycle.
 - `Memtest OK` in the BIOS log.
 

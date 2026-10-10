@@ -56,7 +56,7 @@ Each row of the next table is a state of the header's serial port and what JTAG 
 | Kernel | Header serial port | `/dev/ttyAMA0` | JTAG on GPIO14 |
 |--------|--------------------|----------------|----------------|
 | 6.18 | on (`enable_uart=1`) | present | cannot run: the kernel's serial driver holds GPIO14 |
-| 6.18 | off | absent | runs |
+| 6.18 | off | absent | ran on the one blade it was tried on ([test-designs issue #213](https://github.com/fpgas-online/fpgas.online-test-designs/issues/213)) |
 | 6.12.75 | on | present | ran, and then the serial pair was used in the same boot |
 
 ```{include} ../../inc/gpio-contention.inc
