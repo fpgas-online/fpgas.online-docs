@@ -112,8 +112,7 @@ design drives every P2 ball, so it does this every time. The way back is a PoE
 cycle of the blade's switch port, which restores everything in about 60 s: the
 flash bitstream reloads and `--detect`, the DNA read and the PCIe endpoint all
 come back. See [PoE power control](../../../../setup/network.md#poe-power-control) and,
-for the ps1 blades, [Power control](../../../../sites/ps1-gateway.md#power-control). Which
-blades have the resistor is on [Acorns at ps1](../../installations/ps1.md#the-cards).
+for the ps1 blades, [Power control](../../../../sites/ps1-gateway.md#power-control). Which ps1 blades have the resistor: [test-designs issue #216](https://github.com/fpgas-online/fpgas.online-test-designs/issues/216).
 :::
 
 ```{include} ../../inc/kernel-console.inc

@@ -69,8 +69,7 @@ loopback design has to be loaded over JTAG, which needs the header's serial
 port off, and the test itself needs the serial port on ([JTAG on a
 blade](compute-blade-jtag-by-hand.md#jtag-on-a-blade)). The serial pair of a blade is checked by
 `fpgas-verify` (`p2-uart`, `p2-serial`) once the card runs the fpgas.online
-design from its flash; whether a ps1 blade card has that is on its installations page (see [What each blade
-still needs](../installations/ps1.md#what-each-blade-still-needs)).
+design from its flash. No card on a ps1 blade does yet: [test-designs issue #213](https://github.com/fpgas-online/fpgas.online-test-designs/issues/213).
 
 ## If it goes wrong
 

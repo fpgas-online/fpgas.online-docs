@@ -16,7 +16,7 @@ for **TT03p5, TT04, TT05, TT06, TT07 and TT08**. Five of the six run TT SDK
 **2.0.4**; the TT03p5 board runs demo-board firmware **1.2.2**, the last release
 that supports that shuttle. They are the public ASIC boards on
 [tinytapeout.fpgas.online](https://tinytapeout.fpgas.online), live since
-2026-08-23. [PS1](../sites/ps1-boards.md#pending) has none deployed — its TT ASIC
+2026-08-23. PS1 has none deployed — its TT ASIC
 boards are still pending.
 
 The same demo PCB with a Lattice iCE40UP5K breakout in place of the ASIC is the
@@ -59,16 +59,12 @@ Two disagreements between the sources, neither resolved:
   board v3 with an RP2350. The table above follows the version rule. No TT09
   board is deployed, so nothing has been measured either way.
 - The README's PS1 column has a pending TT08, while the PS1 board summary counts
-  seven pending ASIC boards, "one each: TT02-TT09 except TT08" — which is what
-  [PS1 pending](../sites/ps1-boards.md#pending) repeats. The PS1 column above follows
-  the README, so it totals **eight** pending boards where
-  [PS1 pending](../sites/ps1-boards.md#pending) says seven.
+  seven pending ASIC boards, "one each: TT02-TT09 except TT08". The PS1 column above follows the README, so it totals **eight** pending boards where that summary says seven ([tt issue #19](https://github.com/fpgas-online/fpgas.online-tt/issues/19)).
 :::
 
 :::{todo}
 Fix the test-designs hardware README on the three points in the note above:
-TT09's controller, the pending TT08 that [PS1 pending](../sites/ps1-boards.md#pending)
-excludes, and its link to `tinytapeout.com/chips/tt03p5/`, which is a 404 —
+TT09's controller, the pending TT08 that the PS1 board summary excludes, and its link to `tinytapeout.com/chips/tt03p5/`, which is a 404 —
 which is why the TT03p5 row has no shuttle link.
 :::
 
@@ -142,9 +138,7 @@ The web Commander does not support demo-board firmware 1.2.x, so the tt03p5
 board is camera-only on the public site until the upstream `legacy` branch is
 ported —
 [tt-commander-app #9](https://github.com/fpgas-online/tt-commander-app/pull/9)
-and [#10](https://github.com/fpgas-online/tt-commander-app/pull/10). This is
-tracked under [Known faults](../sites/welland-boards.md) on the Welland
-page.
+and [#10](https://github.com/fpgas-online/tt-commander-app/pull/10).
 :::
 
 Reflashing is awkward on the Raspberry Pi 3B+ hosts (tt06, tt07 and tt08): the
@@ -162,11 +156,7 @@ neither has been re-verified on an ASIC board.
 
 All six deployed boards are at Welland, on S3300 ports 3–8, on Raspberry Pi 4
 and 3B+ hosts with Pmod HATs — the switch port number is the shuttle number, so
-port N carries TTN. The hosts, their addresses, MACs, RP2040 serial numbers,
-per-board firmware versions and old `piNN` names are in
-[Tiny Tapeout ASIC boards](../sites/welland-tinytapeout.md#tiny-tapeout-asic-boards) on the
-Welland page, which also carries the per-port VLAN scheme those addresses come
-from. These hosts have no page under `welland.fpgas.online/fpgas/`; their public
+port N carries TTN. The per-port VLAN scheme their addresses come from is on [Network and power](../setup/network.md). These hosts have no page under `welland.fpgas.online/fpgas/`; their public
 pages are the `tinytapeout.fpgas.online` board pages linked above.
 
 ## References

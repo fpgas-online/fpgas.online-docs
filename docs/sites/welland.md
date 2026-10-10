@@ -1,97 +1,51 @@
-# Welland
+---
+type: explanation
+owner: documentation maintainers
+reader: someone choosing a board to use who wants to know what welland offers
+review: 2026-11-10
+---
 
-**You look after welland and want to know what is there, how its network is laid out, and which page has the rest.** This page
-chooses; the detail is on the two pages it links.
+# The welland site
 
-welland is the private test lab in South Australia behind
-[welland.fpgas.online](https://welland.fpgas.online) and
-[tinytapeout.fpgas.online](https://tinytapeout.fpgas.online). One gateway, tweed, serves Raspberry Pi hosts
-on two PoE switches: NeTV2 boards, a Fomu, Acorn cards on Raspberry Pi 5s, Arty A7 boards, Tiny Tapeout
-boards, and Orange Pis that carry no FPGA. A bare host name on these pages (`pi-sw2-p46`) is a welland host.
+This page explains what the welland site offers a visitor, and what it plans to offer. It is for someone
+choosing a board to use. It does not list the boards or their hosts. The site's own pages show those as they
+are.
 
-| You want | Page |
-|---|---|
-| Which board is on which host, what was last seen on each, and what is known wrong | [Hosts and boards at welland](welland-boards.md); the Tiny Tapeout boards: [Tiny Tapeout boards at welland](welland-tinytapeout.md) |
-| tweed: what it is, its addresses, how to reach a Pi through it | [The welland gateway](welland-gateway.md) |
-| An Acorn: which card, its state, what it still needs | [Acorns at welland](../boards/acorn/installations/welland.md) |
-| How a port becomes an address and a name | [Network and power](../setup/network.md) |
+## What the site provides
 
-## Network
+welland is a private test lab in South Australia. Its boards are open to visitors through the public sites named here.
+A bare host name in these docs means a host at welland.
 
-```
-                          ┌────────────────────────────────────┐
-Internet ── upstream ─────│  tweed (the welland gateway)       │
-            gateway       │  Debian 13 (trixie), x86_64        │
-                          │  dnsmasq (DHCP, DNS, TFTP), NFS    │
-                          │  root, web tier                    │
-              eth-local ──│  10.21.0.1/16, one VLAN per port   │
-                          └───────────┬────────────────────────┘
-                                      │ trunk
-                      ┌───────────────┴───────────────┐
-                      │ switch 1, Netgear GSM7252PS   │
-                      │ NeTV2 hosts; the Fomu host;   │
-                      │ an Acorn host on port 38      │
-                      └───────────────┬───────────────┘
-                                      │ trunk
-                      ┌───────────────┴───────────────┐
-                      │ switch 2, Netgear S3300       │
-                      │ Tiny Tapeout p3-8 and p33-36, │
-                      │ Acorns, Orange Pis and their  │
-                      │ hub host p30                  │
-                      └───────────────────────────────┘
-```
+[The welland site](https://welland.fpgas.online/fpgas/) lists the FPGA boards a visitor can use. A board is
+listed while the check on its host passes, so the list is what works at that moment. The lab holds these kinds of board.
 
-Every Pi netboots from tweed. Since late August 2026 the site has run one VLAN per switch port (fpgas.online-infra
-PR #10, merged 2026-08-25 Adelaide time): a Pi's name and address come from the port it is plugged into, `pi-sw<switch>-p<port>` at
-`10.21.<switch>.<port>`, and tweed's firewall stops one Pi reaching another. The formulas, and which switch
-port is which, are on [Network and power](../setup/network.md). Moving a Pi to another port renames and
-re-addresses it.
+- [Acorn](../boards/acorn/index.md) CLE-215+ cards, each on a Raspberry Pi 5, with PCIe, JTAG and a serial port.
+- [NeTV2](../boards/netv2.md) boards, each on a Raspberry Pi, with JTAG and a serial port on the header.
+- A [Fomu EVT](../boards/fomu-evt.md), with a USB analyser between the board and its host.
+- [Arty A7](../boards/arty-a7.md) boards, each on a Raspberry Pi over USB.
 
-On switch 2, port N carries Tiny Tapeout board N (ports 1 to 10; Tim's rule), and the Tiny Tapeout FPGA
-boards sit on ports 33 to 36. An Acorn is identified by its label, not its port: where each is plugged in is
-what its check last reported ([Acorns at welland](../boards/acorn/installations/welland.md)).
+A board's page gives a terminal in the browser, an upload for a bitstream and a camera feed of the board.
+Its reset power-cycles the host. The page also shows the command for a visitor's own `ssh` client. Whatever a
+visitor writes on a host is gone after its next reset.
 
-## Where each part of the old page went
+[The Tiny Tapeout site](https://tinytapeout.fpgas.online) has the Tiny Tapeout boards. The
+[chip boards](../boards/tt-asic.md) carry manufactured Tiny Tapeout chips, and a visitor selects a design on
+the chip and drives its pins. The [FPGA demo boards](../boards/tt-fpga.md) run a bundled demo or a visitor's
+own bitstream. Each board has a camera feed.
 
-The sections of this page moved on 7 October 2026. Links to the old sections land here:
+## What the site plans to provide
 
-(gateway-tweed)=
-- [Gateway: tweed](welland-gateway.md).
 
-(hosts-and-boards)=
-- [Hosts and boards](welland-boards.md).
 
-(infrastructure-host)=
-- Infrastructure host (pi1, the old NFS maintenance host, now unlocated): [Retired and unlocated hosts](welland-boards.md#retired-and-unlocated-hosts).
-
-(arty-a7-35t)=
-- [Arty A7-35T](welland-boards.md#arty-a7-35t).
-
-(netv2)=
-- [NeTV2](welland-boards.md#netv2).
-
-(sqrl-acorn-cle-215)=
-- [SQRL Acorn CLE-215+](welland-boards.md#acorn-cle-215).
-
-(fomu-evt)=
-- [Fomu EVT](welland-boards.md#fomu-evt).
-
-(tiny-tapeout-asic-boards)=
-- [Tiny Tapeout ASIC boards](welland-tinytapeout.md#tiny-tapeout-asic-boards).
-
-(tiny-tapeout-fpga-demo-boards)=
-- [Tiny Tapeout FPGA demo boards](welland-tinytapeout.md#tiny-tapeout-fpga-demo-boards).
-
-(disconnected-hosts)=
-- [Disconnected hosts](welland-boards.md#retired-and-unlocated-hosts).
-
-(known-faults)=
-- Known faults: now beside each board kind on [Hosts and boards at welland](welland-boards.md).
+- Arty A7 boards a visitor can use again: [infra issue #125](https://github.com/fpgas-online/fpgas.online-infra/issues/125).
+- NeTV2 boards that pass their memory test: [test-designs issue #86](https://github.com/fpgas-online/fpgas.online-test-designs/issues/86) and [test-designs issue #91](https://github.com/fpgas-online/fpgas.online-test-designs/issues/91).
+- The Acorn cards that are installed and not in service: [test-designs issue #209](https://github.com/fpgas-online/fpgas.online-test-designs/issues/209).
+- The Tiny Tapeout boards whose hosts are down, back in service: [infra issue #274](https://github.com/fpgas-online/fpgas.online-infra/issues/274).
+- The Tiny Tapeout chip boards tt09 and tt10: [tt issue #20](https://github.com/fpgas-online/fpgas.online-tt/issues/20).
+- Driving the oldest chip board from the browser, which shows a camera feed only: [tt-commander-app issue #9](https://github.com/fpgas-online/tt-commander-app/issues/9).
 
 ```{toctree}
 :hidden:
 
-Hosts and boards <welland-boards>
-Tiny Tapeout boards <welland-tinytapeout>
 Gateway <welland-gateway>
 ```

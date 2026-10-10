@@ -61,6 +61,6 @@ On a **CM5** (RP1):
 $ pinctrl set 14,15 a4       # GPIO14 = TXD0, GPIO15 = RXD0
 ```
 
-The ps1 blades ran openFPGALoader 0.13.1 when probed on 2026-09-20, and pi16 at ps1 again on 2026-10-05 ([what was read](../installations/ps1-reads.md)); it has `--read-dna`, `--read-xadc` and `--read-register`, all read-only.
+The ps1 blades ran openFPGALoader 0.13.1 when probed on 2026-09-20, and pi16 at ps1 again on 2026-10-05; it has `--read-dna`, `--read-xadc` and `--read-register`, all read-only.
 
 When a wire does not answer: [Acorn wiring faults on a Compute Blade](../troubleshooting/compute-blade-wiring.md).

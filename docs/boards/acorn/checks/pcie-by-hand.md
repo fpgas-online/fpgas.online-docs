@@ -92,8 +92,7 @@ If the Acorn doesn't appear, check the M.2 seating, and `dmesg | grep -i pci`.
 
 ### Detach the endpoint
 
-At ps1 the address differs per blade, so read it from the `PCIe` column in [Acorns at
-ps1](../installations/ps1.md#the-cards).
+At ps1 the address differs per blade, so read it with `lspci` on the blade.
 
 ```{include} ../inc/blade-detach.inc
 ```

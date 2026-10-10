@@ -19,7 +19,7 @@ before you wire a board to one or debug its UART.** Each row says where it is fr
 Sources: the 40-pin and console rows for welland are `roles/fixpi/tasks/tweeks.yml` and the two command-line
 templates in fpgas.online-infra (main, read 2026-10-07); the Compute Module rows are the `pinctrl` reads of the
 four ps1 blades on 2026-10-07 ([Acorns at ps1: what was read on each
-blade](../../boards/acorn/installations/ps1-reads.md)). The ps1 blades boot ps1's own root, with the kernel
+blade](../../sites/ps1.md)). The ps1 blades boot ps1's own root, with the kernel
 console on `ttyAMA0` and a login on it; that is why JTAG and the FPGA's UART cannot be used there as they are.
 
 **Compute Module 4.** `GPIO14 = TXD0` and `GPIO15 = RXD0` at alt0, on the BCM2711 serial blocks, and only
@@ -69,7 +69,7 @@ $ sudo fuser -v "$(readlink -f /dev/serial0)"   # expect nothing
 
 The mask lives in the tmpfs layer, so it is gone at the next reboot. A kernel console on that UART cannot be
 moved without a reboot; on ps1's blades that is the change [Acorns at
-ps1](../../boards/acorn/installations/ps1.md) asks for.
+ps1](../../sites/ps1.md) asks for.
 
 :::{warning}
 A design that transmits on the UART while the kernel console is on it does more than print noise: on a

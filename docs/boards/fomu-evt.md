@@ -7,8 +7,7 @@ Lattice iCE40UP5K with native USB: the FPGA has dedicated USB I/O pins, so there
 is no external PHY and no FTDI. The board therefore enumerates as a USB device
 by itself, and it is programmed over USB DFU rather than over JTAG. Two boards
 are installed, both at Welland, on Raspberry Pi 3B+ hosts with a USB protocol
-analyser inline; their addresses, MACs and analysers are in the
-[Fomu EVT host table](../sites/welland-boards.md#fomu-evt). This page covers the board
+analyser inline. This page covers the board
 itself, its iCE40 pin assignments for each on-board peripheral, how it is
 programmed and monitored, and how it is wired to its Raspberry Pi.
 
@@ -251,9 +250,7 @@ Source: [Fomu Workshop](https://workshop.fomu.im)
 Each Fomu host has an inline USB protocol analyser between the Fomu and the Pi's
 USB port, so the Fomu's native USB traffic — DFU programming, CDC-ACM serial,
 custom USB protocols — can be captured and analysed without modifying the FPGA
-design or the host software. Which analyser is on which host, along with the
-hosts' addresses and the Fomu's `1209:5bf0` VID:PID and DFU version, is in the
-[Fomu EVT host table](../sites/welland-boards.md#fomu-evt).
+design or the host software. The Fomu enumerates as `1209:5bf0`.
 
 ### OpenVizsla (pi17)
 
@@ -273,10 +270,7 @@ and the RPi host.
 The host names `pi17` and `pi21` here are the flat `piNN` names used before the
 2026-08-23 renumbering, and neither host has been re-probed since the survey.
 The old addresses no longer resolve; derive the current name and address of each
-host from its switch port using the
-[Fomu EVT host table](../sites/welland-boards.md#fomu-evt). The Welland
-[Known faults](../sites/welland-boards.md) also record pi21's Cythion/LUNA
-and its Fomu as offline at that survey.
+host from its switch port ([Network and power](../setup/network.md)). pi21's Cythion/LUNA and its Fomu were recorded offline at that survey ([infra issue #276](https://github.com/fpgas-online/fpgas.online-infra/issues/276)).
 :::
 
 Source: dnsmasq `pibs.conf` on tweed, verified 2026-03-17.

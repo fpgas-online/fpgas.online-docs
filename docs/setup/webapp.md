@@ -15,9 +15,7 @@ The front page of a site is the board grid. Each board gets a card with its
 hostname, the FPGA board fitted to it, a live HLS camera thumbnail playing
 through video.js, and a "Use this FPGA" link to the board page. Nothing on the
 card is interactive beyond the video controls. Which boards are on it is a site
-fact, not a platform one: the public grid is
-[PS1's](../sites/ps1.md#public-site), and Welland's boards are listed under
-[Hosts and boards](../sites/welland-boards.md).
+fact, not a platform one: the public grids are [PS1's](https://ps1.fpgas.online/fpgas/) and [Welland's](https://welland.fpgas.online/fpgas/).
 
 The board page (`fpga.html`) is one screen with everything on it:
 

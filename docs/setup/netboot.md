@@ -119,7 +119,7 @@ It also puts the Pi 4's and Pi 5's USB-C port in gadget mode
 boot.
 
 The PS1 Compute Blades boot a separate trixie root and have `console=tty1` with `serial-getty@ttyAMA0` inactive:
-[Compute blades](../sites/ps1-boards.md) (from the earlier docs page, not re-checked).
+[Compute blades](../sites/ps1.md) (from the earlier docs page, not re-checked).
 
 ## The NFS root is shared and read-only
 

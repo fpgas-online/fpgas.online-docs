@@ -34,4 +34,4 @@
 
 ## Related pages
 
-[Welland](../../sites/welland.md) (tweed on trixie, Pi 5 console, stale NFS handles), [The ps1 gateway and switch](../../sites/ps1-gateway.md) (one trixie root), [Compute blades](../../sites/ps1-boards.md) (`console=tty1` on the trixie root), [Packages](../../packages.md).
+[Welland](../../sites/welland.md) (tweed on trixie, Pi 5 console, stale NFS handles), [The ps1 gateway and switch](../../sites/ps1-gateway.md) (one trixie root), [Compute blades](../../sites/ps1.md) (`console=tty1` on the trixie root), [Packages](../../packages.md).

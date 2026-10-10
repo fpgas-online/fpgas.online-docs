@@ -103,7 +103,7 @@ MAC; its port and USB path are where it is plugged in now, and change if it is r
 | 2577845e-7668-460a-a9d1-2c97373b1da9 | 02:81:f5:c0:a6:10 | 24 | pi-sw2-p24 | 1-1.2.4 |
 
 On 6 October 2026 four of them answered after the root update: ports 19, 21, 22 and 24, with the MACs above
-([Hosts and boards at welland](../sites/welland-boards.md#what-was-up-on-6-october-2026)). Ports 18, 20 and 23
+([Hosts and boards at welland](../sites/welland.md)). Ports 18, 20 and 23
 did not.
 
 ## The hub host

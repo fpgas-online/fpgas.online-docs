@@ -54,7 +54,7 @@ $ sudo fpgas-acorn-verify --test ddr
   35.1 MiB/s write, 46.8 MiB/s read, on acorn-willow, last checked 2026-09-21 (step 10 of [its
   install](../setup/install-images.md#installing-the-fpgasonline-images)).
 - **The `ddr` test passed** on acorn-holly, acorn-willow, acorn-sycamore and acorn-olive in the boot check of
-  6 October 2026 ([Acorns at welland](../installations/welland.md#the-cards)).
+  6 October 2026.
 - The CLE-101 has not been measured yet (from `expected.toml`).
 
 More: the design's own document is in fpgas.online-test-designs: [`designs/acorn-pcie`](https://github.com/fpgas-online/fpgas.online-test-designs/tree/main/designs/acorn-pcie) and [`docs/tests/ddr-memory.md`](https://github.com/fpgas-online/fpgas.online-test-designs/blob/main/docs/tests/ddr-memory.md).

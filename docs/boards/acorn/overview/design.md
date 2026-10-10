@@ -45,8 +45,7 @@ a CLE-215+ use the `*_acorn-cle-215p_*` files, whose `.bit` header reads
 
 ## What the flash holds
 
-Which image each card boots is on [Acorns at welland](../installations/welland.md#the-cards) and [Acorns at
-ps1](../installations/ps1.md#the-cards). Two images other than the fpgas.online
+Which image a card boots shows in its PCI ID (`lspci -nn` on its host). Two images other than the fpgas.online
 one are in service:
 
 - **SQRL factory firmware** (`1e24:021f`): a cryptocurrency mining design, not

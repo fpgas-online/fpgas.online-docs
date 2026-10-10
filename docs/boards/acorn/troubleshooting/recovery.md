@@ -133,7 +133,5 @@ corrupt golden image, and you start again from step 1.
 
 :::{danger}
 The last row applies to every board whose JTAG does not answer `--detect`
-today. Which cards those are is on [Acorns at welland](../installations/welland.md#the-cards) and [Acorns at
-ps1](../installations/ps1.md#the-cards); none of them may have its
-golden slot written until its JTAG is repaired.
+today. No such card may have its golden slot written until its JTAG is repaired. The cards known not to answer: [test-designs issue #209](https://github.com/fpgas-online/fpgas.online-test-designs/issues/209) and [test-designs issue #214](https://github.com/fpgas-online/fpgas.online-test-designs/issues/214).
 :::

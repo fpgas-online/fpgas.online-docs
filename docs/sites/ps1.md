@@ -1,82 +1,43 @@
-# PS1
+---
+type: explanation
+owner: documentation maintainers
+reader: someone choosing a board to use who wants to know what ps1 offers
+review: 2026-11-10
+---
 
-**You want to know what is at ps1, how to log in to a host there, and which page has the rest.** This page
-chooses; the detail is on the two pages it links.
+# The ps1 site
 
-ps1 is the public site at [Pumping Station: One](https://pumpingstationone.org/) in Chicago, published as
-[ps1.fpgas.online](https://ps1.fpgas.online/fpgas/) and run by Carl Karsten (the site notes,
-`docs/hardware/site-ps1.md` in fpgas.online-test-designs). One gateway, val2, serves eight Arty A7 boards on
-Raspberry Pi 3B, 3B+ and 4B hosts, and four Compute Blades, each with a Raspberry Pi Compute Module. Three of
-the blades, pi14, pi16 and pi20 at ps1, carry an Acorn CLE-101 in their M.2 slot; pi18 at ps1's slot is
-empty (the reads of 2026-09-20 on [Acorns at ps1](../boards/acorn/installations/ps1.md)).
+This page explains what the ps1 site offers a visitor, and what it plans to offer. It is for someone choosing
+a board to use. It does not list the boards or their hosts. The site's own pages show those as they are.
 
-| You want | Page |
-|---|---|
-| Which board is on which host, its state, and what is known wrong with it | [Hosts and boards at ps1](ps1-boards.md) |
-| What val2 serves, its switch, and how to power-cycle one host | [The ps1 gateway and switch](ps1-gateway.md) |
-| An Acorn on a Compute Blade: which card, its state, what it still needs | [Acorns at ps1](../boards/acorn/installations/ps1.md) |
-| How a page on the public site is built | [The web application](../setup/webapp.md) |
+## What the site provides
 
-## Logging in to a host at ps1
+ps1 is at [Pumping Station: One](https://pumpingstationone.org/), a hackerspace in Chicago. Its gateway and
+switch belong to the site's own operator, and fpgas.online does not deploy to them. A host at ps1 is always
+written with its site in these docs, as in "pi20 at ps1".
 
-```{include} ps1-login.inc
-```
+[The ps1 site](https://ps1.fpgas.online/fpgas/) lists the boards a visitor can use. They are
+[Arty A7](../boards/arty-a7.md) boards, each on a Raspberry Pi over USB. A board's page gives a terminal in the
+browser, an upload for a bitstream and a camera feed of the board. Its reset power-cycles the host.
 
-## Checking a board here
+ps1 also has Compute Blades, each with a Raspberry Pi Compute Module and an M.2 slot for an
+[Acorn](../boards/acorn/index.md) card. A visitor reaches a blade with `ssh`:
+[How to log in to a host at ps1](../setup/ps1-login.md). Whatever is installed on a blade is gone after its
+next boot.
 
-A host at ps1 is checked as any machine outside the fleet is: install the Acorn packages on the host and run
-`fpgas-verify` ([Installing the Acorn
-packages](../boards/acorn/setup/packages.md#installing-the-acorn-packages), then [Checking a board:
-fpgas-verify](../verify/fpgas-verify.md)). For an Acorn on a Compute Blade, [Compute Blade cables:
-verifying](../boards/acorn/checks/compute-blade.md) goes from logging in after a fresh boot to
-which wire a failing line points at.
+## What the site plans to provide
 
-## Public site
 
-`https://ps1.fpgas.online/fpgas/` lists a page per Arty host. Each has a web terminal, a bitstream upload,
-"Turn it off and on again: Reset", a "Check PoE" button and a video feed at `/live/piN.m3u8` (read on
-`pi3.html` on 7 October 2026). The Compute Blades have no page there.
 
-## Where each part of the old page went
-
-The sections of this page moved to the two pages above on 7 October 2026. Links to the old sections land
-here:
-
-(gateway-val2)=
-- [Gateway: val2](ps1-gateway.md#gateway-val2): its system, its NFS root, its addresses.
-
-(poe-switch)=
-- [PoE switch](ps1-gateway.md#poe-switch): the port table.
-
-(power-control)=
-- [Power control](ps1-gateway.md#power-control): power-cycling one host.
-
-(hosts-and-boards)=
-- [Hosts and boards](ps1-boards.md): every host.
-
-(boards)=
-- [Boards](ps1-boards.md#boards): the count by board kind.
-
-(arty-a7-hosts)=
-- [Arty A7 hosts](ps1-boards.md#arty-a7-hosts).
-
-(compute-blades)=
-- [Compute blades](ps1-boards.md#compute-blades).
-
-(other-hosts)=
-- [Other hosts](ps1-boards.md#other-hosts).
-
-(pending)=
-- [Pending](ps1-boards.md#pending): boards allocated and not installed.
-
-(known-faults)=
-- Known faults: now beside each host on [Hosts and boards at ps1](ps1-boards.md).
-
-- [Public site](#public-site), above.
+- The Arty A7 boards whose hosts do not answer, back in service: [infra issue #272](https://github.com/fpgas-online/fpgas.online-infra/issues/272).
+- Acorn CLE-101 cards on the Compute Blades, wired by the cable guide: [test-designs issue #216](https://github.com/fpgas-online/fpgas.online-test-designs/issues/216).
+- Those cards running the fpgas.online design: [test-designs issue #213](https://github.com/fpgas-online/fpgas.online-test-designs/issues/213) and [test-designs issue #214](https://github.com/fpgas-online/fpgas.online-test-designs/issues/214).
+- A card for the blade that has none: [test-designs issue #217](https://github.com/fpgas-online/fpgas.online-test-designs/issues/217).
+- Tiny Tapeout chip boards and FPGA demo boards: [tt issue #19](https://github.com/fpgas-online/fpgas.online-tt/issues/19).
+- A page for each host that stays when its board changes: [site issue #65](https://github.com/fpgas-online/fpgas.online-site/issues/65).
 
 ```{toctree}
 :hidden:
 
-Hosts and boards <ps1-boards>
 Gateway and switch <ps1-gateway>
 ```

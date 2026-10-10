@@ -57,10 +57,9 @@ $ sudo fpgas-acorn-verify --test pcie-bar0 --test p2-uart --test scratch
   the UART, PCIe, P2 GPIO and flash checks passed, and the BIOS log was read from the crossover UART through
   BAR0 (steps 9 and 10 of [its install](../setup/install-images.md#installing-the-fpgasonline-images)).
 - **Both bridges on a Compute Blade**, on pi20 at ps1 (a CM5) on 2026-09-20, with the design loaded into SRAM: the
-  same identifier and device DNA over PCIe and over the UART bridge ([Acorns at
-  ps1](../installations/ps1.md#the-cards)). That blade's P2 pair is wired straight to GPIO14 and GPIO15, not by the
+  same identifier and device DNA over PCIe and over the UART bridge. That blade's P2 pair is wired straight to GPIO14 and GPIO15, not by the
   guide's cable; which header pins its wires sit on is not recorded by us.
 - **The `pcie-bar0`, `p2-uart` and `scratch` tests passed** on acorn-holly, acorn-willow, acorn-sycamore and
-  acorn-olive in the boot check of 6 October 2026 ([Acorns at welland](../installations/welland.md#the-cards)).
+  acorn-olive in the boot check of 6 October 2026.
 
 More: the design's own document is in fpgas.online-test-designs: [`designs/acorn-pcie`](https://github.com/fpgas-online/fpgas.online-test-designs/tree/main/designs/acorn-pcie).

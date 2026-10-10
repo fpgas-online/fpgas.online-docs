@@ -13,7 +13,7 @@ a port only when it is needed.
 
 **First, check who is on the port.** The port is in the Pi's name: `pi-sw2-p46` is switch 2, port 46, at
 `10.21.2.46`. On the welland gateway, that address must be answered by the MAC of the Pi you mean (the table of
-6 October 2026 on [Hosts and boards at welland](../../sites/welland-boards.md#what-was-up-on-6-october-2026) gives each
+6 October 2026 on [Hosts and boards at welland](../../sites/welland.md) gives each
 port's MAC):
 
 ```console
@@ -95,7 +95,7 @@ unexplained").
 
 The Pi netboots again: a kernel and a root over the network, not a resume from disk. The test automation
 allows about two minutes from power-on to SSH (`docs/verify-hardware.md` in fpgas.online-test-designs). [Acorns at
-welland](../../boards/acorn/installations/welland.md#reads-of-september-2026) records, from its reads of September
+welland](../../sites/welland.md) records, from its reads of September
 2026, that a Pi 5 there takes more than 90 seconds, and that a hung one draws about 0.4 W on its port instead of
 about 8 W; not measured again since. Earlier, on 2026-09-06, cycling all five NeTV2 ports on switch 1 and watching
 them netboot back took about 48 s; a Pi 3B+ is gone roughly a minute (from the earlier docs page, not re-checked).
