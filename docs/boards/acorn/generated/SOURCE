@@ -2,4 +2,4 @@ These files are copied from https://github.com/fpgas-online/fpgas.online-test-de
 by tools/sync_repos.py. Do not edit them here: change them in test-designs.
 
 ref: main
-commit: b832cf715cae24a23436b21cc74e481f02e95acf
+commit: d24e7840af80d81575d04b4d456a53cd908d99b4
