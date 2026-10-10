@@ -5,7 +5,7 @@
 
 ### What you need
 
-- a Raspberry Pi with the Fomu EVT on its GPIO header ([how it is wired](https://github.com/fpgas-online/fpgas.online-test-designs/blob/main/docs/hardware/fomu-pin-mapping.md#the-pis-header))
+- a Raspberry Pi with the Fomu EVT on its GPIO header ([Fomu EVT wiring to a Raspberry Pi](wiring.md#connections-to-the-pi))
 - the fpgas.online apt repository added on the Pi ([fpgas-verify: installing it](../../../verify/installing.md#installing))
 
 ### Steps
@@ -38,6 +38,6 @@ sudo fpgas-fomu-debug test spiflash
 
 ### Next
 
-- [The Fomu check at boot](../../../verify/tests.md#the-fomu-check-at-boot): what the check does, test by test.
-- [Fomu packages](../../../verify/installing.md#fomu-packages): what each package installs.
+- [The Fomu EVT check at boot](../../../verify/tests.md#the-fomu-evt-check-at-boot): what the check does, test by test.
+- [Fomu EVT packages](../../../verify/installing.md#fomu-evt-packages): what each package installs.
 - [fpgas-verify: reading the result](../../../verify/reading-the-result.md#reading-the-result): the report, `changed` and `--update`.
