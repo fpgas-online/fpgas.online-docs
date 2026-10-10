@@ -11,7 +11,7 @@ review: 2026-11-10
 connectors goes to which pin of the Pi's 40-pin header.** What the Pi must have set for those wires (the
 serial port, the GPIO chip for JTAG, the kernel console) is on [the Pi's settings](pi-settings.md).
 An Acorn in a Compute Blade is wired differently and has [its own page](../compute-blade/wiring.md). To build
-and fit the cables, follow the [Raspberry Pi 5 building guide](cables.md).
+and fit the cables, follow the [The two cables on a Raspberry Pi 5](cables.md).
 
 ## The wiring sheet
 

@@ -1,11 +1,11 @@
 ---
-type: how-to
+type: reference
 owner: documentation maintainers
-reader: someone with an Acorn wired to a Raspberry Pi 5 who is setting up the Pi
+reader: someone looking up a Raspberry Pi 5's settings for an Acorn
 review: 2026-11-10
 ---
 
-# How to set up a Raspberry Pi 5 for an Acorn
+# A Raspberry Pi 5's settings for an Acorn
 
 **You have an Acorn wired to a Raspberry Pi 5 and want to know what the Pi must have set for the card's
 serial pair and for JTAG, where the kernel console must not be, and what must never be done on those

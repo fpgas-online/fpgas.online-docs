@@ -27,10 +27,11 @@ next boot.
 
 ## What the site plans to provide
 
-Each item names the issue that tracks it.
 
+
+- The Arty A7 boards whose hosts do not answer, back in service: [infra issue #272](https://github.com/fpgas-online/fpgas.online-infra/issues/272).
 - Acorn CLE-101 cards on the Compute Blades, wired by the cable guide: [test-designs issue #216](https://github.com/fpgas-online/fpgas.online-test-designs/issues/216).
-- Those cards running the fpgas.online design, so that each has a board page: [test-designs issue #213](https://github.com/fpgas-online/fpgas.online-test-designs/issues/213).
+- Those cards running the fpgas.online design: [test-designs issue #213](https://github.com/fpgas-online/fpgas.online-test-designs/issues/213) and [test-designs issue #214](https://github.com/fpgas-online/fpgas.online-test-designs/issues/214).
 - A card for the blade that has none: [test-designs issue #217](https://github.com/fpgas-online/fpgas.online-test-designs/issues/217).
 - Tiny Tapeout chip boards and FPGA demo boards: [tt issue #19](https://github.com/fpgas-online/fpgas.online-tt/issues/19).
 - A page for each host that stays when its board changes: [site issue #65](https://github.com/fpgas-online/fpgas.online-site/issues/65).

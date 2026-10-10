@@ -82,7 +82,7 @@ The Acorn has a Spansion S25FL256S (256 Mbit = 32 MB) quad-SPI NOR flash.
 └──────────────────────────────────────────────────┘
 ```
 
-The safety rules are on [Recovery and safety rules](../troubleshooting/recovery.md#safety-rules).
+The safety rules are on [How to recover an Acorn with a bad image](../troubleshooting/recovery.md#safety-rules).
 
 ## Multiboot
 

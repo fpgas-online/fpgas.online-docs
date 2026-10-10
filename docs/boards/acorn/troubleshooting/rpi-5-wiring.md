@@ -7,7 +7,7 @@ review: 2026-11-10
 
 # Acorn wiring faults on a Raspberry Pi 5
 
-**Your Acorn on a Raspberry Pi 5 does not answer on JTAG or on its serial port, and you want the likely cause.** Which wire goes where is on [Acorn wiring on a Raspberry Pi 5](../setup/rpi-5/wiring.md); the Pi's settings are on [How to set up a Raspberry Pi 5 for an Acorn](../setup/rpi-5/pi-settings.md).
+**Your Acorn on a Raspberry Pi 5 does not answer on JTAG or on its serial port, and you want the likely cause.** Which wire goes where is on [Acorn wiring on a Raspberry Pi 5](../setup/rpi-5/wiring.md); the Pi's settings are on [A Raspberry Pi 5's settings for an Acorn](../setup/rpi-5/pi-settings.md).
 
 | Problem | Likely cause | Fix |
 |---------|--------------|-----|

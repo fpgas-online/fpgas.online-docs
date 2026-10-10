@@ -1,6 +1,6 @@
 # Digilent Arty A7
 
-The Digilent Arty A7 is a Xilinx Artix-7 development board in service at both sites: the boards a visitor can use are listed on [the welland site](https://welland.fpgas.online/fpgas/) and [the ps1 site](https://ps1.fpgas.online/fpgas/). Each board
+The Digilent Arty A7 is a Xilinx Artix-7 development board installed at both sites. The boards a visitor can use at a given moment are listed on [the welland site](https://welland.fpgas.online/fpgas/) and [the ps1 site](https://ps1.fpgas.online/fpgas/). Each board
 reaches its Raspberry Pi host over a single USB cable — an on-board FTDI
 FT2232HQ gives the host both a JTAG channel and a UART channel — and, on hosts
 fitted with a [PMOD HAT](pmod/rpi-hat.md), over three ribbon cables from the
@@ -468,7 +468,7 @@ The 2026-03-17 scans record only the flat names pi3, pi5 and pi9, and both sites
 used flat `10.21.0.0/24` addressing at the time, so the addresses do not say
 which site was scanned. The evidence:
 
-- Welland's record of known faults carried a `pi9` Arty
+- Welland's record of known faults ([infra issue #125](https://github.com/fpgas-online/fpgas.online-infra/issues/125)) carried a `pi9` Arty
   from this same survey whose FTDI is disconnected, so that board could not be
   programmed or tested on 2026-03-17. The `pmod-pin-id` scan needs the FTDI JTAG
   channel to load its bitstream, and pi9 produced a successful 21-of-24 scan

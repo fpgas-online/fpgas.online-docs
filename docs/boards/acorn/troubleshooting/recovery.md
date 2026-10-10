@@ -9,7 +9,7 @@ review: 2026-11-10
 
 **You have an Acorn on a Raspberry Pi 5 whose flash holds a bad fpgas.online image, or you are about to
 write its flash, and want to know how the card recovers and what must never be done.** The images and the
-flash layout are on [the fpgas.online LiteX SoC](../overview/design.md).
+flash layout are on [the fpgas.online Acorn design](../overview/design.md).
 
 ## Safety rules
 
@@ -133,5 +133,5 @@ corrupt golden image, and you start again from step 1.
 
 :::{danger}
 The last row applies to every board whose JTAG does not answer `--detect`
-today. No such card may have its golden slot written until its JTAG is repaired.
+today. No such card may have its golden slot written until its JTAG is repaired. The cards known not to answer: [test-designs issue #209](https://github.com/fpgas-online/fpgas.online-test-designs/issues/209) and [test-designs issue #214](https://github.com/fpgas-online/fpgas.online-test-designs/issues/214).
 :::

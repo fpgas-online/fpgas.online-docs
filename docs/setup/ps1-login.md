@@ -20,6 +20,21 @@ maintainer. It does not cover the welland hosts: their board pages give the comm
 ```{include} ../sites/ps1-login.inc
 ```
 
+## Check
+
+The prompt is the blade's own shell, and it runs a command:
+
+```console
+$ uname -m
+```
+
+## If it fails
+
+| What you see | Likely cause | Fix |
+|---|---|---|
+| `Connection refused`, or no answer | the blade is restarting, or is off | wait a few minutes, then connect again |
+| `Permission denied` | the password was mistyped | read it again from the banner |
+
 ## Next
 
 To check a board from the blade, install the packages first:

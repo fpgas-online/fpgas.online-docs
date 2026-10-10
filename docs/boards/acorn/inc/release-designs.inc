@@ -11,5 +11,4 @@ host, and put its name in `LOOPBACK` or `PINID`.
 
 This is the check by hand. To check the wiring of a card that runs
 the fpgas.online design, `fpgas-acorn-verify` needs none of these files:
-[verifying on a Compute Blade](/boards/acorn/checks/compute-blade.md), [verifying on a Raspberry Pi
-5](/boards/acorn/checks/rpi-5.md).
+[How to run the Acorn check on a Compute Blade](/boards/acorn/checks/compute-blade.md), [How to run the Acorn check on a Raspberry Pi 5](/boards/acorn/checks/rpi-5.md).
