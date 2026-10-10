@@ -42,7 +42,7 @@ It must start it again, or the board drops off the public site: [How to free a T
 The daemon is installed as described in [The Tiny Tapeout stack](../../../setup/tinytapeout.md).
 
 Every chip board's host also carries a [Raspberry Pi PMOD HAT](../../pmod/rpi-hat.md) and an ov5647 camera pointed at the board.
-Through the HAT the chip's I/O pins can be driven and sampled from Linux rather than through the MicroPython REPL.
+Where the ribbons are in place, the chip's I/O pins can be driven and sampled from Linux rather than through the MicroPython REPL.
 
 ## Beside the FPGA board
 

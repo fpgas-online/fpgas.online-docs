@@ -24,8 +24,14 @@ This page does not cover installing the daemon: [The Tiny Tapeout stack](../../.
 
 ## Check
 
-Open `https://tinytapeout.fpgas.online/board/<slug>/status.json` for the board.
-It reports the daemon's `/health` plus `reachable`.
+The daemon runs again: `systemctl is-active fpgas-tt` prints `active`.
+
+```console
+$ systemctl is-active fpgas-tt
+active
+```
+
+The board's `https://tinytapeout.fpgas.online/board/<slug>/status.json` reports the daemon's `/health` plus `reachable`.
 
 ## If it fails
 
