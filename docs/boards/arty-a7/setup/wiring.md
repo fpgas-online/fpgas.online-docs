@@ -43,7 +43,7 @@ The Raspberry Pi side of these cables is on [RPi GPIO to PMOD pin mapping](../..
 
 The cabling found on other boards differs from these tables: [test-designs issue #58](https://github.com/fpgas-online/fpgas.online-test-designs/issues/58) holds that survey. The ribbon cables in these tables connect straight through: **HAT JA to Arty JA**, **HAT JB to Arty JB** and **HAT JC to Arty JC**. Arty JD is not connected, because the HAT has only 3 ports. The routing was read with the [`pmod-pin-id` design](../../pin-id.md), which sends each FPGA pin's ball name as 1200-baud UART on every PMOD pin.
 
-Each table below has one row per HAT pin. RPi GPIO is the Raspberry Pi GPIO the pin lands on and Scanned FPGA Pin is the ball the scan read there. Expected is the ball the straight-through routing puts there, and Match says whether they agree.
+Each table below has one row per HAT pin. RPi GPIO is the Raspberry Pi GPIO the pin lands on and Scanned FPGA Pin is the ball the scan read there. Expected is the ball the straight-through routing puts there, and Match says whether they agree. It is `yes`, or `reversed` where two pins read in each other's place.
 
 ### HAT JA to Arty JA
 
@@ -77,12 +77,12 @@ All 8 pins are verified.
 
 ### HAT JC to Arty JC
 
-Pins 1 and 2 are swapped in the cable.
+Pins 1 and 2 read in the reverse of Digilent's documented order. That follows the Arty's JC connector, not the cable.
 
 | HAT Pin | RPi GPIO | Scanned FPGA Pin | Expected (Arty JC) | Match |
 | ------- | -------- | ---------------- | ------------------ | ----- |
-| 1       | GPIO16   | V12              | U12                | SWAP  |
-| 2       | GPIO14   | U12              | V12                | SWAP  |
+| 1       | GPIO16   | V12              | U12                | reversed |
+| 2       | GPIO14   | U12              | V12                | reversed |
 | 3       | GPIO15   | V10              | V10                | yes   |
 | 4       | GPIO17   | V11              | V11                | yes   |
 | 7       | GPIO4    | U14              | U14                | yes   |
@@ -90,4 +90,4 @@ Pins 1 and 2 are swapped in the cable.
 | 9       | GPIO5    | T13              | T13                | yes   |
 | 10      | GPIO6    | U13              | U13                | yes   |
 
-HAT JC pins 1 and 2 are swapped relative to Arty JC pins 1 and 2. This is a physical cable crossover: GPIO16 connects to Arty JC pin 2 (V12) and GPIO14 connects to Arty JC pin 1 (U12). All other pins match 1:1.
+The pin-id scan reads V12 on HAT JC pin 1 (GPIO16) and U12 on HAT JC pin 2 (GPIO14). It reads the same on every Arty scanned, wherever that connector is cabled. It is not a cable fault, and the check expects V12 and then U12 on these two pins. All other pins match 1:1.
