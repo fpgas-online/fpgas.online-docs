@@ -44,19 +44,30 @@ The login console on the port is stopped by [How to stop the serial login consol
 
 ## PMOD / GPIO loopback
 
-The loopback gateware uses `pmoda_n` as input and `pmodb_n` as output. Their pins are under PMODA_N and PMODB_N on [Fomu EVT specifications](../overview/specifications.md#pmod-connectors). Each row of the first table gives a connector and its loopback role.
+The loopback gateware uses `pmoda_n` as input and `pmodb_n` as output. Their pins are under PMODA_N and PMODB_N on [Fomu EVT specifications](../overview/specifications.md#pmod-connectors). Each row of the table gives a connector and its loopback role.
 
 | Connector | Role            | Note                                             |
 | --------- | --------------- | ------------------------------------------------ |
 | `pmoda_n` | loopback input  |                                                  |
 | `pmodb_n` | loopback output | shares pins with `touch_pins`, the touch pads    |
 
-### Confirmed loopback pair
+Neither connector reaches a pin of the Raspberry Pi's header on an EVT.
 
-This pair is contested: [test-designs issue #202](https://github.com/fpgas-online/fpgas.online-test-designs/issues/202) says no net joins the two pins on the EVT. Only 1 of the 4 loopback pairs connects to a Pi GPIO through the GPIO header. Each row gives the Pi GPIO driven, the Pi GPIO read and the status of the pair.
+### Not a loopback on the EVT
 
-| Drive RPi GPIO | Read RPi GPIO | Status    |
-| -------------- | ------------- | --------- |
-| GPIO27         | GPIO9         | Confirmed |
+"Drive GPIO27, read GPIO9" is not a loopback pair on an EVT that sits on the Raspberry Pi's header. Each row gives a Pi GPIO and the net of the EVT it is on.
 
-GPIO9 is SPI0_MISO, so the SPI0 drivers must be removed first: [How to free the Pi's SPI0 bus for the Fomu PMOD loopback test](../checks/loopback-spi-bus.md). The Fomu GPIO output has slow propagation, roughly 5 ms of settle time. The test polls until the value is stable rather than reading once.
+| Pi GPIO | Net on the EVT |
+| ------- | -------------- |
+| GPIO27  | the iCE40's CRESET, a dedicated reset input |
+| GPIO9   | the flash's MISO |
+
+No net joins the two. The check's `pmod` and `pin-id` tests assume the PMOD HAT's wiring, which an EVT on the header does not have. What those tests become is [test-designs issue #202](https://github.com/fpgas-online/fpgas.online-test-designs/issues/202).
+
+The Pi lines that an iCE40 design can drive on this board are:
+
+- the six `dbg` pins, on GPIO 2, 3, 4, 18, 22 and 7;
+- the UART, on GPIO 14 and 15;
+- the SPI pins it shares with its flash, on GPIO 8-11, 24 and 25.
+
+A design can drive the SPI pins only once it has loaded. It never can while the Pi reads the flash with the iCE40 held in reset.

@@ -9,7 +9,7 @@ review: 2026-11-10
 
 **Your Fomu EVT is loaded, but its UART or loopback test fails.**
 
-The Pi's side of the UART test is on [How to stop the serial login console before a Fomu UART test](../checks/stop-serial-console.md). The loopback test is on [How to free the Pi's SPI0 bus for the Fomu PMOD loopback test](../checks/loopback-spi-bus.md).
+The Pi's side of the UART test is on [How to stop the serial login console before a Fomu UART test](../checks/stop-serial-console.md).
 
 Each row gives what you see, the likely cause and the fix.
 
@@ -17,6 +17,4 @@ Each row gives what you see, the likely cause and the fix.
 |---------|--------------|-----|
 | `no GPIO UART on this host` | `/dev/serial0` does not exist on this Pi | Run the UART test on a Pi that has the GPIO UART |
 | The serial data never reaches the test | `serial-getty` was stopped but not masked, so it came back and consumes the data | Mask the unit, as in the serial console how-to |
-| The loopback test cannot read GPIO9 | The SPI0 drivers `spidev` and `spi_bcm2835` are loaded | `sudo rmmod spidev spi_bcm2835` |
-| The loopback read is wrong on the first look | The Fomu GPIO output settles in roughly 5 ms | Poll until the value is stable |
-| The loopback never passes | The pair GPIO27 and GPIO9 may not be joined on the EVT | [test-designs issue #202](https://github.com/fpgas-online/fpgas.online-test-designs/issues/202) |
+| The `pmod` or `pin-id` test never passes | An EVT on the Pi's header has no loopback pair: GPIO27 is CRESET and GPIO9 is the flash's MISO, and no net joins them | None on the board: [test-designs issue #202](https://github.com/fpgas-online/fpgas.online-test-designs/issues/202) |
