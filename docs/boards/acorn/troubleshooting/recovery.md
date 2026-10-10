@@ -39,7 +39,7 @@ way back at all. `spi_flash.py` refuses 0x0 without
 **We hold no dated record of the bad-golden recovery having been run.** The only related record is
 acorn-willow's install, last checked 2026-09-21: its steps 1 and 6 load the operational and the golden
 `.bit` into SRAM over JTAG, and its step 7 writes the golden slot through the SRAM-loaded golden design
-([the record](../setup/install-images.md#installing-the-fpgasonline-images)).
+([the record](../setup/install-images.md#steps)).
 
 `golden.bit` below is the golden build's `.bit`. The packages carry only the operational `.bit`; the golden
 one comes from the golden build (`acorn_pcie_soc.py --variant <v> --golden --build`, [a Vivado

@@ -26,7 +26,7 @@ the design is reachable two ways, with the same registers behind both:
 - The BIOS console is on the crossover UART, so it can be read through either bridge.
 
 How BAR0 has to be read from a host (aligned 32-bit reads only, memory decoding enabled first) is under
-[Installing the fpgas.online images](../setup/install-images.md#installing-the-fpgasonline-images). Where the
+[Installing the fpgas.online images](../setup/install-images.md#steps). Where the
 P2 pair lands on each carrier is on the wiring pages: [Raspberry Pi 5](../setup/rpi-5/wiring.md), [Compute
 Blade](../setup/compute-blade/wiring.md).
 
@@ -55,7 +55,7 @@ $ sudo fpgas-acorn-verify --test pcie-bar0 --test p2-uart --test scratch
 
 - **Both bridges on acorn-willow**, on a Raspberry Pi 5, last checked 2026-09-21: after a PoE power cycle
   the UART, PCIe, P2 GPIO and flash checks passed, and the BIOS log was read from the crossover UART through
-  BAR0 (steps 9 and 10 of [its install](../setup/install-images.md#installing-the-fpgasonline-images)).
+  BAR0 (steps 9 and 10 of [its install](../setup/install-images.md#steps)).
 - **Both bridges on a Compute Blade**, on pi20 at ps1 (a CM5) on 2026-09-20, with the design loaded into SRAM: the
   same identifier and device DNA over PCIe and over the UART bridge. That blade's P2 pair is wired straight to GPIO14 and GPIO15, not by the
   guide's cable; which header pins its wires sit on is not recorded by us.
