@@ -1,16 +1,21 @@
+---
+type: reference
+owner: documentation maintainers
+reader: someone looking up a PMOD connector type, its pins or its electrical figures
+review: 2026-11-10
+---
+
 # PMOD interface
 
-The PMOD (Peripheral Module) interface is a standard defined by Digilent for connecting peripheral modules to FPGA and microcontroller host boards. This document covers the standard PMOD connector types, pinouts, and the extended I2C interface.
-
-Source: [Digilent PMOD Interface Specification 1.3.1](https://digilent.com/reference/pmod/pmod-interface-specification), [High Speed PMOD Spreadsheet](https://docs.google.com/spreadsheets/d/1D-GboyrP57VVpejQzEm0P1WEORo1LAIt92hk1bZGEoo/edit?gid=0#gid=0)
+**The PMOD (Peripheral Module) interface is Digilent's standard for connecting peripheral modules to FPGA and microcontroller host boards**. This page is the reference for the standard PMOD connector types, their pins and the extended I2C interface. It follows the [Digilent PMOD Interface Specification 1.3.1](https://digilent.com/reference/pmod/pmod-interface-specification) and does not cover the pins of any one board.
 
 ## Physical Connectors
 
-PMOD connectors use standard 100 mil (2.54 mm) pitch pin headers. There are two widths:
+PMOD connectors use standard 100 mil (2.54 mm) pitch pin headers in two widths.
 
 ### Single Width (6-pin, 1×6)
 
-4 signal pins + 1 GND + 1 VCC.
+A single width connector has 4 signal pins, 1 GND and 1 VCC. The Function column names what each pin carries.
 
 ```text
 Host side (looking at board edge):
@@ -34,7 +39,7 @@ Host side (looking at board edge):
 
 ### Double Width (12-pin, 2×6)
 
-8 signal pins + 2 GND + 2 VCC. The top row (pins 1-6) matches the single width pinout.
+A double width connector has 8 signal pins, 2 GND and 2 VCC, and its top row (pins 1-6) matches the single width pinout. The two Pin and Function column pairs are the top and bottom rows.
 
 ```text
 Host side (looking at board edge):
@@ -60,6 +65,8 @@ Host side (looking at board edge):
 
 ### Electrical Characteristics
 
+The Parameter column names a property of the connector and the Value column gives it.
+
 | Parameter           | Value                       |
 | ------------------- | --------------------------- |
 | VCC voltage         | 3.3V (standard)             |
@@ -70,11 +77,11 @@ Host side (looking at board edge):
 
 ## Standard PMOD Interface Types
 
-Digilent defines 9 interface types that assign specific protocols to the signal pins. All types share pins 5/6 (and 11/12 for double width) as GND/VCC.
+Digilent defines 9 interface types that assign protocols to the signal pins. All types share pins 5 and 6 (and 11 and 12 for double width) as GND and VCC. In each table Signal is the pin's name and Direction is the pin's direction as the type below defines it.
 
 ### Type 1 — GPIO (6-pin)
 
-General-purpose I/O. All 4 signal pins are bidirectional.
+General-purpose I/O: all 4 signal pins are bidirectional.
 
 | Pin | Signal | Direction |
 | --- | ------ | --------- |
@@ -87,7 +94,7 @@ General-purpose I/O. All 4 signal pins are bidirectional.
 
 ### Type 1A — Expanded GPIO (12-pin)
 
-Double-width GPIO with 8 bidirectional I/O pins in two banks (A and B).
+Double-width GPIO: 8 bidirectional I/O pins in two banks, A and B.
 
 | Pin | Signal | Direction | Pin | Signal | Direction |
 | --- | ------ | --------- | --- | ------ | --------- |
@@ -100,7 +107,7 @@ Double-width GPIO with 8 bidirectional I/O pins in two banks (A and B).
 
 ### Type 2 — SPI (6-pin)
 
-SPI bus interface. Direction is from the host's perspective (host is SPI master).
+SPI bus interface. Direction is from the host's perspective, and the host is the SPI master. Description gives the signal's role.
 
 | Pin | Signal | Direction | Description                           |
 | --- | ------ | --------- | ------------------------------------- |
@@ -113,7 +120,7 @@ SPI bus interface. Direction is from the host's perspective (host is SPI master)
 
 ### Type 2A — Expanded SPI (12-pin)
 
-SPI with additional control signals on the bottom row.
+SPI with additional control signals on the bottom row. Direction and Description follow Type 2, with N/S for not specified.
 
 | Pin | Signal | Direction | Pin | Signal | Direction | Description                    |
 | --- | ------ | --------- | --- | ------ | --------- | ------------------------------ |
@@ -126,7 +133,7 @@ SPI with additional control signals on the bottom row.
 
 ### Type 3 — UART (6-pin)
 
-UART with hardware flow control. Direction is from the **peripheral's** perspective (peripheral sends CTS/RXD, receives RTS/TXD).
+UART with hardware flow control. Direction is from the **peripheral's** perspective: the peripheral sends CTS and RXD, and receives RTS and TXD. Out therefore means the host drives the signal, which differs from Type 4.
 
 | Pin | Signal | Direction | Description                               |
 | --- | ------ | --------- | ----------------------------------------- |
@@ -137,11 +144,9 @@ UART with hardware flow control. Direction is from the **peripheral's** perspect
 | 5   | GND    | —         |                                           |
 | 6   | VCC    | —         |                                           |
 
-Note: Type 3 is defined from a different perspective than Type 4. Type 3 "Out" means the host drives the signal.
-
 ### Type 4 — UART (6-pin)
 
-UART with hardware flow control. Direction is from the **device's** perspective (device asserts CTS when ready to receive, asserts RTS when ready to send).
+UART with hardware flow control. Direction is from the **device's** perspective: the device asserts CTS when ready to receive and RTS when ready to send.
 
 | Pin | Signal | Direction | Description                       |
 | --- | ------ | --------- | --------------------------------- |
@@ -154,7 +159,7 @@ UART with hardware flow control. Direction is from the **device's** perspective 
 
 ### Type 4A — Expanded UART (12-pin)
 
-UART (Type 4 pinout) with additional control signals on the bottom row.
+UART (Type 4 pinout) with additional control signals on the bottom row. Direction and Description follow Type 4, with N/S for not specified.
 
 | Pin | Signal | Direction | Pin | Signal | Direction | Description                    |
 | --- | ------ | --------- | --- | ------ | --------- | ------------------------------ |
@@ -167,7 +172,7 @@ UART (Type 4 pinout) with additional control signals on the bottom row.
 
 ### Type 5 — H-Bridge (6-pin)
 
-Single H-bridge motor driver interface.
+Single H-bridge motor driver interface. Description gives the signal's role.
 
 | Pin | Signal | Direction | Description                |
 | --- | ------ | --------- | -------------------------- |
@@ -180,7 +185,7 @@ Single H-bridge motor driver interface.
 
 ### Type 6 — Dual H-Bridge (6-pin)
 
-Two H-bridge motor/phase drivers on a single 6-pin connector (no feedback).
+Two H-bridge motor or phase drivers on a single 6-pin connector, with no feedback. Description gives the signal's role.
 
 | Pin | Signal | Direction | Description                           |
 | --- | ------ | --------- | ------------------------------------- |
@@ -193,7 +198,7 @@ Two H-bridge motor/phase drivers on a single 6-pin connector (no feedback).
 
 ## Extended Interface: I2C (8-pin)
 
-The I2C PMOD interface is not part of the standard Digilent PMOD specification but is defined as an extension. It uses an 8-pin connector with paired signals for improved signal integrity.
+The I2C PMOD interface is an extension that the standard Digilent PMOD specification does not define, listed in the [High Speed PMOD Spreadsheet](https://docs.google.com/spreadsheets/d/1D-GboyrP57VVpejQzEm0P1WEORo1LAIt92hk1bZGEoo/edit?gid=0#gid=0). It uses an 8-pin connector with each signal on two pins. The pairing lowers impedance, which suits 400 kHz Fast Mode and 1 MHz Fast Mode Plus.
 
 ```text
   ┌───┬───┬───┬───┬───┬───┬───┬───┐
@@ -209,11 +214,9 @@ The I2C PMOD interface is not part of the standard Digilent PMOD specification b
 | 5   | GND    | 6   | GND    |
 | 7   | VCC    | 8   | VCC    |
 
-Each signal has two pins for lower impedance and better signal integrity at higher I2C speeds (400 kHz Fast Mode, 1 MHz Fast Mode Plus).
-
-Source: [High Speed PMOD Spreadsheet](https://docs.google.com/spreadsheets/d/1D-GboyrP57VVpejQzEm0P1WEORo1LAIt92hk1bZGEoo/edit?gid=0#gid=0)
-
 ## Summary Table
+
+Width is single (6-pin) or double (12-pin), Pins is the pin count and Protocol is what the signal pins carry.
 
 | Type | Name           | Width  | Pins | Protocol          |
 | ---- | -------------- | ------ | ---- | ----------------- |
@@ -238,3 +241,7 @@ Source: [High Speed PMOD Spreadsheet](https://docs.google.com/spreadsheets/d/1D-
 ## Board-specific pinouts
 
 How the PMOD signals map onto the Raspberry Pi HAT and onto Tiny Tapeout demo boards:
+
+- [Raspberry Pi PMOD HAT](rpi-hat.md): the Raspberry Pi GPIOs behind each PMOD pin of the HAT.
+- [Tiny Tapeout PMOD layouts](tinytapeout.md): the PMOD layouts of the Tiny Tapeout demo boards.
+

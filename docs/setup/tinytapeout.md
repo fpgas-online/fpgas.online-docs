@@ -8,8 +8,8 @@ WebSerial. The bytes come from `fpgas-tt`, a daemon on that board's Raspberry Pi
 which owns the demo board's USB serial port and fans it out to every viewer at
 once. This page covers the software: the daemon, the board catalogue the daemon
 and the site share, the demo bitstreams, and the Commander fork. The hardware is
-on [Tiny Tapeout FPGA demo board](../boards/tt-fpga.md) and
-[Tiny Tapeout ASIC demo boards](../boards/tt-asic.md); the Django side of the
+on [Tiny Tapeout FPGA demo board](../boards/tt-fpga/index.md) and
+[Tiny Tapeout ASIC demo boards](../boards/tt-asic/index.md); the Django side of the
 site is [The web application](webapp.md).
 
 ## Overview
@@ -57,8 +57,9 @@ that creates it ships in the same package and is described under
 [Serial consoles](pi.md#serial-consoles). What the daemon holding that port open
 means for anything else that wants it — and how to take it back, and why to give
 it straight back — is under
-[Serial port ownership](../boards/tt-fpga.md#serial-port-ownership) and
-[Connection to the Pi](../boards/tt-asic.md#connection-to-the-pi).
+[Serial port ownership](../boards/tt-fpga/overview/serial-port.md). The steps for an FPGA demo board are
+[How to stop the fpgas-tt daemon and start it again](../boards/tt-fpga/setup/stop-daemon.md). Those for a chip board are
+[How to free a Tiny Tapeout board's serial port from fpgas-tt](../boards/tt-asic/setup/free-the-serial-port.md).
 
 One object owns that port. `WS /serial` is the bridge: every connected client
 receives the same bytes from the board and may write bytes to it, with no
@@ -329,8 +330,8 @@ The fork's README documents only the `embed-vX.Y.Z` release line and does not
 mention the second, legacy embed bundle that the `ttsite` role also downloads
 and that the catalogue's `commander` key selects — see
 [Deployment](webapp.md#deployment). Meanwhile
-[Firmware](../boards/tt-asic.md#firmware) still records the pre-2.x board as
-camera-only pending that work. Confirm which is current and document the legacy
+[Tiny Tapeout shuttles and their demo boards](../boards/tt-asic/overview/shuttles.md) still records the pre-2.x
+board as unsupported by the Commander pending that work. Confirm which is current and document the legacy
 bundle in `README.fpgas-online.md`, or drop it here.
 :::
 

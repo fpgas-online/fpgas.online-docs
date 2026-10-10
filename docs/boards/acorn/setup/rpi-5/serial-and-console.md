@@ -11,7 +11,7 @@ This page explains why a Raspberry Pi 5 that carries an Acorn is set up as [the 
 
 ## The serial pair is a crossover
 
-The serial pair is a null-modem crossover. The FPGA's transmitter (K2) lands on the Pi's receiver (GPIO15 / RXD0), and the FPGA's receiver (J2) lands on the Pi's transmitter (GPIO14 / TXD0). This is the Raspberry Pi header convention that `/dev/ttyAMA0` uses, and the one the NeTV2 boards use ([NeTV2 primary UART](/boards/netv2.md#primary-uart-via-rpi-gpio)).
+The serial pair is a null-modem crossover. The FPGA's transmitter (K2) lands on the Pi's receiver (GPIO15 / RXD0), and the FPGA's receiver (J2) lands on the Pi's transmitter (GPIO14 / TXD0). This is the Raspberry Pi header convention that `/dev/ttyAMA0` uses, and the one the NeTV2 boards use ([NeTV2 primary UART](/boards/netv2/setup/wiring.md#primary-uart)).
 
 The RP1 chip of a Pi 5 offers its hardware UART0 only as GPIO14 = `TXD0` and GPIO15 = `RXD0`. `pinctrl funcs 14,15` lists no alternative where they swap. The RP1's PIO block (`/dev/pio0`, the `rp1_pio` module) could run a UART on any pin, but no driver for that exists in the test scripts. So the fleet uses the crossover everywhere, and one cable design works on every host.
 

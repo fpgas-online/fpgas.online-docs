@@ -234,7 +234,7 @@ first, then a per-host override, then the board default.
 | Fomu | `openFPGALoader -b fomu <bitstream>` | USB DFU. |
 | Acorn | `rmmod spidev spi_bcm2835 2>&1; openFPGALoader -c rp1pio --pins 10:9:11:8 <bitstream>` | GPIO bit-bang JTAG on the Pi's SPI0 pins, which is why the SPI modules come out first. openFPGALoader's pin order is TDI:TDO:TCK:TMS, so GPIO 10 (SPI0 MOSI) is TDI and GPIO 11 (SCLK) is TCK; see [Acorn wiring on a Raspberry Pi 5](../boards/acorn/setup/rpi-5/wiring.md). As configured in the runner. On a host without `/dev/pio0` (the Welland Pi 5s) the `rp1pio` cable cannot run; use `--cable libgpiod` with the `gpiochip0` link, see [P1: JTAG](../boards/acorn/setup/rpi-5/pi-settings.md#jtag-from-the-pi). |
 | TT FPGA | `python3 ~/tt_fpga_program.py /dev/ttyACM0 <bitstream>` | Through the RP2350 over USB CDC. The PMOD loopback design appends `--gpio-release`. |
-| NeTV2 on `rpi5-netv2` | `sudo openFPGALoader -c rp1pio --pins 27:22:4:17 <bitstream>` | RP1 GPIO bit-bang JTAG on the 40-pin header, in openFPGALoader's TDI:TDO:TCK:TMS pin order; see [JTAG via RPi GPIO](../boards/netv2.md#jtag-via-rpi-gpio). As configured in the runner. On a host without `/dev/pio0` (the Welland Pi 5s) the `rp1pio` cable cannot run; use `--cable libgpiod` with the `gpiochip0` link, see [P1: JTAG](../boards/acorn/setup/rpi-5/pi-settings.md#jtag-from-the-pi). |
+| NeTV2 on `rpi5-netv2` | `sudo openFPGALoader -c rp1pio --pins 27:22:4:17 <bitstream>` | RP1 GPIO bit-bang JTAG on the 40-pin header, in openFPGALoader's TDI:TDO:TCK:TMS pin order; see [NeTV2 wiring to a Raspberry Pi](../boards/netv2/setup/wiring.md#jtag). As configured in the runner. On a host without `/dev/pio0` (the Welland Pi 5s) the `rp1pio` cable cannot run; use `--cable libgpiod` with the `gpiochip0` link, see [P1: JTAG](../boards/acorn/setup/rpi-5/pi-settings.md#jtag-from-the-pi). |
 | NeTV2 on `rpi3-netv2` | `sudo openocd -f ~/netv2/alphamax-rpi.cfg -c 'init; pld load 0 <bitstream>; exit'` | BCM2835 GPIO bit-bang JTAG. `pld load 0` is OpenOCD 0.10.x syntax, device index 0. |
 | NeTV2 on the Welland pool hosts | the same OpenOCD command **without** `sudo` | The gateway hop already lands as root on those Pis. |
 
@@ -278,10 +278,10 @@ host keys were prefixed with a site name.
 
 ### TT FPGA programming
 
-The mechanism — the RP2350 taking the bitstream over `mpremote`, programming
-the iCE40 over SPI and then releasing the shared pins to high-Z — is on the
-[TT FPGA board page](../boards/tt-fpga.md#programming), with the pin numbers
-under [Pin mapping](../boards/tt-fpga.md#pin-mapping) and the HAT side on
+The mechanism — the RP2350 programming the iCE40 over SPI and then releasing
+the shared pins to high-Z — is on the
+[TT FPGA board page](../boards/tt-fpga/overview/programming.md), with the pin numbers
+under [Pin mapping](../boards/tt-fpga/overview/pin-mapping.md) and the HAT side on
 [Raspberry Pi PMOD HAT](../boards/pmod/rpi-hat.md).
 
 What the runner does differently is which of the two entry points it calls. For
@@ -296,9 +296,8 @@ programming is the only board-specific step.
 
 :::{note}
 The upstream `verify-hardware.md` carries its own iCE40 ↔ PMOD HAT ↔ Pi GPIO pin
-tables, and they do not agree with the measured tables on the board page. That
-disagreement is tracked in the todo under
-[Pin mapping](../boards/tt-fpga.md#pin-mapping); use the board page's tables.
+tables, and they do not agree with the tables on the board page. Which is right is [test-designs issue #58](https://github.com/fpgas-online/fpgas.online-test-designs/issues/58). That disagreement is also tracked in [test-designs issue #19](https://github.com/fpgas-online/fpgas.online-test-designs/issues/19); use the tables on the
+[Pin mapping](../boards/tt-fpga/overview/pin-mapping.md) page.
 :::
 
 ### Result detection and exit code
@@ -334,7 +333,7 @@ PMOD design's `--gpio-release` programming override (line 253). (5) It calls
 (lines 68–71) and the variant-artifact selection at lines 407–413 is
 board-agnostic. (6) It glosses the `--pins 27:22:4:17` string as TCK:TDO:TDI:TMS;
 openFPGALoader's order is TDI:TDO:TCK:TMS, as
-[JTAG via RPi GPIO](../boards/netv2.md#jtag-via-rpi-gpio) and
+[NeTV2 wiring to a Raspberry Pi](../boards/netv2/setup/wiring.md#jtag) and
 [Acorn wiring on a Raspberry Pi 5](../boards/acorn/setup/rpi-5/wiring.md#p1-jtag) both give it for the same pin strings,
 and GPIO 10 is SPI0 MOSI (TDI) with GPIO 11 the clock. Line numbers are
 `verify_hardware.py` on `main` as read on 2026-09-04.

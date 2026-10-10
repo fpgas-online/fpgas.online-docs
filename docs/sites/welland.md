@@ -20,17 +20,17 @@ A bare host name in these docs means a host at welland. Its gateway is on [The w
 listed while the check on its host passes, so the list is what works at that moment. The lab holds these kinds of board.
 
 - [Acorn](../boards/acorn/index.md) CLE-215+ cards, each on a Raspberry Pi 5, with PCIe, JTAG and a serial port.
-- [NeTV2](../boards/netv2.md) boards, each on a Raspberry Pi, with JTAG and a serial port on the header.
-- A [Fomu EVT](../boards/fomu-evt.md), with a USB analyser between the board and its host.
-- [Arty A7](../boards/arty-a7.md) boards, each on a Raspberry Pi over USB.
+- [NeTV2](../boards/netv2/index.md) boards, each on a Raspberry Pi, with JTAG and a serial port on the header.
+- A [Fomu EVT](../boards/fomu-evt/index.md), with a USB analyser between the board and its host.
+- [Arty A7](../boards/arty-a7/index.md) boards, each on a Raspberry Pi over USB.
 
 A board's page gives a terminal in the browser, an upload for a bitstream and a camera feed of the board.
 Its reset power-cycles the host. The page also shows the command for a visitor's own `ssh` client. Whatever a
 visitor writes on a host is gone after its next reset.
 
 [The Tiny Tapeout site](https://tinytapeout.fpgas.online) has the Tiny Tapeout boards. The
-[chip boards](../boards/tt-asic.md) carry manufactured Tiny Tapeout chips, and a visitor selects a design on
-the chip and drives its pins. The [FPGA demo boards](../boards/tt-fpga.md) run a bundled demo or a visitor's
+[chip boards](../boards/tt-asic/index.md) carry manufactured Tiny Tapeout chips, and a visitor selects a design on
+the chip and drives its pins. The [FPGA demo boards](../boards/tt-fpga/index.md) run a bundled demo or a visitor's
 own bitstream. Each board has a camera feed.
 
 ## What the site plans to provide
