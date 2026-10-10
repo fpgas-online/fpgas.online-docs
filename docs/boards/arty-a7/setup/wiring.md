@@ -41,7 +41,7 @@ The Ethernet test uses a USB Ethernet adapter on the Raspberry Pi connected to t
 
 The Raspberry Pi side of these cables is on [RPi GPIO to PMOD pin mapping](../../pmod/rpi-hat.md#rpi-gpio-to-pmod-pin-mapping). It covers the HAT ports JA ([Type 2 (SPI)](../../pmod/index.md#type-2--spi-6-pin), CE0), JB ([Type 2 (SPI)](../../pmod/index.md#type-2--spi-6-pin), CE1) and JC ([Type 4 (UART)](../../pmod/index.md#type-4--uart-6-pin)). It also gives the GPIO each pin lands on and the Raspberry Pi GPIOs no port uses.
 
-The ribbon cables connect straight through: **HAT JA to Arty JA**, **HAT JB to Arty JB** and **HAT JC to Arty JC**. Arty JD is not connected, because the HAT has only 3 ports. The routing was read with the [`pmod-pin-id` design](../../pin-id.md), which sends each FPGA pin's ball name as 1200-baud UART on every PMOD pin.
+The cabling found on other boards differs from these tables: [test-designs issue #58](https://github.com/fpgas-online/fpgas.online-test-designs/issues/58) holds that survey. The ribbon cables in these tables connect straight through: **HAT JA to Arty JA**, **HAT JB to Arty JB** and **HAT JC to Arty JC**. Arty JD is not connected, because the HAT has only 3 ports. The routing was read with the [`pmod-pin-id` design](../../pin-id.md), which sends each FPGA pin's ball name as 1200-baud UART on every PMOD pin.
 
 Each table below has one row per HAT pin. RPi GPIO is the Raspberry Pi GPIO the pin lands on and Scanned FPGA Pin is the ball the scan read there. Expected is the ball the straight-through routing puts there, and Match says whether they agree.
 

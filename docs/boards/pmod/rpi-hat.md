@@ -125,9 +125,7 @@ Ribbon cables connect straight through between matching port names:
 | JC       | JC              | 12-pin PMOD |
 
 Straight through is the design, not a guarantee for any individual cable:
-pin-level crossovers have been measured on deployed cables. The 2026-03-17
-[PMOD cable routing scans](../arty-a7/setup/wiring.md#pmod-cables) found HAT
-JC pins 1 and 2 crossed relative to Arty JC pins 1 and 2 on one host. Check the
+pin-level crossovers have been measured on deployed cables. The routing tables on [Arty A7 wiring to a Raspberry Pi](../arty-a7/setup/wiring.md#pmod-cables) have HAT JC pins 1 and 2 crossed relative to Arty JC pins 1 and 2. Check the
 cable before trusting the mapping on a host that has not been scanned.
 
 The full RPi GPIO → PMOD pin → FPGA pin mappings for each board are documented in:

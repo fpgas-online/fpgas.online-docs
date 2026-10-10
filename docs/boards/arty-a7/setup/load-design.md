@@ -11,6 +11,8 @@ review: 2026-11-10
 
 This is a volatile load: the design is lost at the next power cycle. To keep a design, use [How to write a design into an Arty A7's flash](write-flash.md).
 
+What a correct run prints is waiting for a run: [test-designs issue #248](https://github.com/fpgas-online/fpgas.online-test-designs/issues/248).
+
 ## What you need
 
 - The Arty A7 joined to the Raspberry Pi by its USB cable ([Arty A7 wiring to a Raspberry Pi](wiring.md#the-usb-cable)).
@@ -19,22 +21,20 @@ This is a volatile load: the design is lost at the next power cycle. To keep a d
 
 ## Steps
 
-1. On the Raspberry Pi, list the USB serial devices with `ls /dev/ttyUSB*`, and two appear: the JTAG channel and the UART channel.
-2. On the Raspberry Pi, load the design with `openFPGALoader -b arty design.bit`, and the FPGA runs it from SRAM.
+1. On the Raspberry Pi, load the design with `openFPGALoader -b arty design.bit`, and the FPGA runs it from SRAM.
 
 ```console
-$ ls /dev/ttyUSB*
 $ openFPGALoader -b arty design.bit
 ```
 
 ## Check
 
-- `ls /dev/ttyUSB*` prints `/dev/ttyUSB0  /dev/ttyUSB1`.
-- `openFPGALoader` ends without an error and the shell prompt returns.
+- The board appears on the Raspberry Pi as two `/dev/ttyUSB*` devices, the JTAG channel and the UART channel.
+- `openFPGALoader` ends without an error.
 
 ## If it fails
 
-- You see no `/dev/ttyUSB*` devices at all. The Arty's FTDI is disconnected, and a board in that state cannot be programmed or reached on its console. Reconnect the USB cable and list the devices again.
+- You see no `/dev/ttyUSB*` devices at all. The Arty's FTDI is disconnected, and a board in that state cannot be programmed or reached on its console. 
 
 ## Next
 

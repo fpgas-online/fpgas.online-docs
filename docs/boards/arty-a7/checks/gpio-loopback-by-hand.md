@@ -13,6 +13,8 @@ The loopback gateware computes `pmodb = ~pmoda`, a per-bit inversion. The Raspbe
 
 Only five of the eight lanes can be loop-tested from the Pi. HAT JA pins 2-4 and HAT JB pins 2-4 are the same three GPIO lines (the SPI0 bus). On those three lanes the Pi cannot drive an Arty PMODA pin and read the matching PMODB pin independently.
 
+This procedure is waiting for its run: [test-designs issue #248](https://github.com/fpgas-online/fpgas.online-test-designs/issues/248).
+
 ## What you need
 
 - The three PMOD ribbon cables, HAT JA to Arty JA, JB to JB and JC to JC ([Arty A7 wiring to a Raspberry Pi](../setup/wiring.md#pmod-cables)).
@@ -37,7 +39,7 @@ The SPI kernel modules claim GPIO7-11. Those carry HAT JA pin 1 (GPIO8) and HAT 
 
 ## If it fails
 
-- A lane reads back wrong. The cable on that lane may be crossed. Compare the lane with the routing tables on [Arty A7 wiring to a Raspberry Pi](../setup/wiring.md#pmod-cables), where HAT JC pins 1 and 2 are swapped.
+- A lane reads back wrong. Compare the lane with the routing tables on [Arty A7 wiring to a Raspberry Pi](../setup/wiring.md#pmod-cables), where HAT JC pins 1 and 2 are swapped.
 
 ## Next
 
