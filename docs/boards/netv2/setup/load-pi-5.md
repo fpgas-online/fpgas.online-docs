@@ -11,7 +11,7 @@ review: 2026-11-10
 
 The load goes to the FPGA's SRAM and is lost at power-off. A NeTV2 on a Raspberry Pi 3B+ is on [its own page](load-pi-3b-plus.md).
 
-This procedure is waiting for its run: ISSUE-04.
+This procedure is waiting for its run: [test-designs issue #246](https://github.com/fpgas-online/fpgas.online-test-designs/issues/246).
 
 :::{warning}
 Reconfiguring the FPGA over JTAG while its PCIe endpoint is enumerated is a surprise removal, and it crashes the BCM2712 root complex. Detach the endpoint before every JTAG command on this page.

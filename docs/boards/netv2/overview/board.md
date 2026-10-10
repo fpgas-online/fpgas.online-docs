@@ -11,12 +11,12 @@ review: 2026-11-10
 
 Its pins and figures are on [NeTV2 specifications](specifications.md). Its wires are on [NeTV2 wiring to a Raspberry Pi](../setup/wiring.md). How a design reaches it is on [Programming a NeTV2](programming.md).
 
-The NeTV2 is a Xilinx Artix-7 video overlay and processing board designed by bunnie (Andrew Huang) and produced by Alphamax/Kosagi. It stacks on a Raspberry Pi's 40-pin header. These pages cover it on a Raspberry Pi 3B+ and on a Raspberry Pi 5.
+The NeTV2 is a Xilinx Artix-7 video overlay and processing board produced by Alphamax (Kosagi). It stacks on a Raspberry Pi's 40-pin header. These pages cover it on a Raspberry Pi 3B+ and on a Raspberry Pi 5.
 
 :::{admonition} Figure to come
 :class: placeholder
 
-The whole NeTV2 from above and from below, with each part named on the page numbered on the board. Tracked in ISSUE-02.
+The whole NeTV2 from above and from below, with each part named on the page numbered on the board. Tracked in [test-designs issue #244](https://github.com/fpgas-online/fpgas.online-test-designs/issues/244).
 :::
 
 ## What is on the board

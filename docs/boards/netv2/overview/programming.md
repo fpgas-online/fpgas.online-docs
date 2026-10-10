@@ -14,7 +14,7 @@ This page keeps the protocol, the connection and the tool apart. The commands ar
 :::{admonition} Figure to come
 :class: placeholder
 
-The three layers of programming a NeTV2: JTAG as the protocol, the Pi's GPIO header as the connection, openFPGALoader as the tool. Tracked in ISSUE-03.
+The three layers of programming a NeTV2: JTAG as the protocol, the Pi's GPIO header as the connection, openFPGALoader as the tool. Tracked in [test-designs issue #245](https://github.com/fpgas-online/fpgas.online-test-designs/issues/245).
 :::
 
 ## The protocol
