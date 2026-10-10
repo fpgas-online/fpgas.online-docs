@@ -13,12 +13,11 @@ are.
 
 ## What the site provides
 
-welland is a private test lab in South Australia. Its boards are open to visitors through two public sites.
+welland is a private test lab in South Australia. Its boards are open to visitors through the public sites named here.
 A bare host name in these docs means a host at welland.
 
 [The welland site](https://welland.fpgas.online/fpgas/) lists the FPGA boards a visitor can use. A board is
-listed while the check on its host passes, so the list is what works at that moment. The lab holds four kinds
-of board.
+listed while the check on its host passes, so the list is what works at that moment. The lab holds these kinds of board.
 
 - [Acorn](../boards/acorn/index.md) CLE-215+ cards, each on a Raspberry Pi 5, with PCIe, JTAG and a serial port.
 - [NeTV2](../boards/netv2.md) boards, each on a Raspberry Pi, with JTAG and a serial port on the header.
@@ -36,13 +35,14 @@ own bitstream. Each board has a camera feed.
 
 ## What the site plans to provide
 
-Each item names the issue that tracks it.
+
 
 - Arty A7 boards a visitor can use again: [infra issue #125](https://github.com/fpgas-online/fpgas.online-infra/issues/125).
 - NeTV2 boards that pass their memory test: [test-designs issue #86](https://github.com/fpgas-online/fpgas.online-test-designs/issues/86) and [test-designs issue #91](https://github.com/fpgas-online/fpgas.online-test-designs/issues/91).
-- Two more Acorn cards: [test-designs issue #209](https://github.com/fpgas-online/fpgas.online-test-designs/issues/209).
+- The Acorn cards that are installed and not in service: [test-designs issue #209](https://github.com/fpgas-online/fpgas.online-test-designs/issues/209).
+- The Tiny Tapeout boards whose hosts are down, back in service: [infra issue #274](https://github.com/fpgas-online/fpgas.online-infra/issues/274).
 - The Tiny Tapeout chip boards tt09 and tt10: [tt issue #20](https://github.com/fpgas-online/fpgas.online-tt/issues/20).
-- The oldest chip board driven from the browser, where it has a camera feed only: [tt issue #12](https://github.com/fpgas-online/fpgas.online-tt/issues/12).
+- Driving the oldest chip board from the browser, which shows a camera feed only: [tt-commander-app issue #9](https://github.com/fpgas-online/tt-commander-app/issues/9).
 
 ```{toctree}
 :hidden:

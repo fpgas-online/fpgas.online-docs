@@ -59,7 +59,7 @@ Two disagreements between the sources, neither resolved:
   board v3 with an RP2350. The table above follows the version rule. No TT09
   board is deployed, so nothing has been measured either way.
 - The README's PS1 column has a pending TT08, while the PS1 board summary counts
-  seven pending ASIC boards, "one each: TT02-TT09 except TT08" The PS1 column above follows the README, so it totals **eight** pending boards where the summary says seven.
+  seven pending ASIC boards, "one each: TT02-TT09 except TT08". The PS1 column above follows the README, so it totals **eight** pending boards where that summary says seven ([tt issue #19](https://github.com/fpgas-online/fpgas.online-tt/issues/19)).
 :::
 
 :::{todo}

@@ -270,7 +270,7 @@ and the RPi host.
 The host names `pi17` and `pi21` here are the flat `piNN` names used before the
 2026-08-23 renumbering, and neither host has been re-probed since the survey.
 The old addresses no longer resolve; derive the current name and address of each
-host from its switch port ([Network and power](../setup/network.md)). pi21's Cythion/LUNA and its Fomu were recorded offline at that survey.
+host from its switch port ([Network and power](../setup/network.md)). pi21's Cythion/LUNA and its Fomu were recorded offline at that survey ([infra issue #276](https://github.com/fpgas-online/fpgas.online-infra/issues/276)).
 :::
 
 Source: dnsmasq `pibs.conf` on tweed, verified 2026-03-17.

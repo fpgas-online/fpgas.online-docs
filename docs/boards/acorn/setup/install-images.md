@@ -11,9 +11,7 @@ review: 2026-11-10
 the fpgas.online golden and operational images, and how the operational image is updated.** This page is
 the dated record of one card's install (acorn-willow, last checked 2026-09-21) with what each step gave,
 and the update commands. It is not yet a procedure with every command: the commands for the SRAM loads and
-the ICAP warm boots of that record are not on this page. What the two images are is on [the fpgas.online LiteX
-SoC](../overview/design.md); what to do when an image is bad is on [Recovery and safety
-rules](../troubleshooting/recovery.md).
+the ICAP warm boots of that record are not on this page. What the two images are is on [the fpgas.online Acorn design](../overview/design.md); what to do when an image is bad is on [How to recover an Acorn with a bad image](../troubleshooting/recovery.md).
 
 ## The tool and the files
 

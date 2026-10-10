@@ -177,6 +177,10 @@ class Repo:
         return {w.lead.path for w in self.WRAPPERS if isinstance(w.lead, Lead)}
 
 
+# The pages under a cables page, listed on it: the landing page above holds only the cables page itself.
+_CABLE_PAGES = Toctree(("parts", "jtag-wires", "jtag-housing", "uart-wires", "uart-housing", "bench-check"),
+                       heading="The pages that build the cables", maxdepth=1, hidden=False)
+
 _PS1_LOGIN = Include("docs/sites/ps1-login.inc", docs_owned=True)
 
 TEST_DESIGNS = Repo(
@@ -393,7 +397,7 @@ TEST_DESIGNS = Repo(
                     'fit them and check them.** An Acorn on a Raspberry Pi 5 has [its own '
                     'guide](../rpi-5/cables.md); nothing there is for a Compute Blade.'),
             (Include('docs/boards/acorn/generated/acorn-build-blade-overview.md', relative_images=True),),
-            toctree=Toctree(("parts", "jtag-wires", "jtag-housing", "uart-wires", "uart-housing", "bench-check")),
+            toctree=_CABLE_PAGES,
             kind='explanation',
             reader='someone with an Acorn and a Compute Blade who is about to build the two cables',
             own_dir=False,
@@ -527,7 +531,7 @@ TEST_DESIGNS = Repo(
                     'fit them and check them.** An Acorn on a Compute Blade has [its own '
                     'guide](../compute-blade/cables.md); nothing there is for a Raspberry Pi 5.'),
             (Include('docs/boards/acorn/generated/acorn-build-pi5-overview.md', relative_images=True),),
-            toctree=Toctree(("parts", "jtag-wires", "jtag-housing", "uart-wires", "uart-housing", "bench-check")),
+            toctree=_CABLE_PAGES,
             kind='explanation',
             reader='someone with an Acorn and a Raspberry Pi 5 who is about to build the two cables',
             own_dir=False,

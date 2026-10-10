@@ -16,8 +16,10 @@ review: 2026-11-10
 :relative-images:
 ```
 
+## The pages that build the cables
+
 ```{toctree}
-:hidden:
+:maxdepth: 1
 
 parts
 jtag-wires

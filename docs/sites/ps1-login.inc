@@ -1,11 +1,8 @@
-From any machine with `ssh`, as the visitor. The port is `1NN22`, where `NN` is the number in the blade's name: `11422` for pi14 at ps1, `11622` for pi16 at ps1, `11822` for pi18 at ps1, `12022` for pi20 at ps1.
+1. Work out the blade's port. It is `1NN22`, where `NN` is the number in the blade's name: `11622` for pi16 at ps1.
+2. Connect as `pi` from your own machine. `ssh` prints a banner that holds the password, then asks for it.
 
-```console
-$ ssh -p 11622 pi@ps1.fpgas.online
-```
+   ```console
+   $ ssh -p 11622 pi@ps1.fpgas.online
+   ```
 
-The password is in the banner that `ssh` prints when you connect, before it asks for one: the board pages of
-<https://ps1.fpgas.online/fpgas/> say so under "Use your own ssh client" (read on 6 October 2026 on
-`pi3.html`, the page of pi3 at ps1, port `10322`). `sudo` asks for the same one. The blades have no board page
-of their own there. On 7 October 2026 this login was run as written on all four blades (pi14 at ps1, pi16 at ps1,
-pi18 at ps1 and pi20 at ps1), with the password from the banner.
+3. Type the password from the banner. The blade's shell prompt appears, and `sudo` takes the same password.

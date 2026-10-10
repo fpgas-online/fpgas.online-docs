@@ -9,8 +9,7 @@ review: 2026-11-10
 
 **You have an Acorn wired to a Compute Blade with a CM4 or CM5 and want to know what each pin of the
 blade's two headers is, what follows from JTAG and the serial pair sharing one line, and what the blade must
-have set for the serial pair and the kernel console.** How JTAG is run on a blade is on [JTAG on a Compute
-Blade](../../checks/compute-blade-jtag-by-hand.md). Which wire goes where is on [Acorn wiring on a Compute
+have set for the serial pair and the kernel console.** How JTAG is run on a blade is on [How to run JTAG by hand on a Compute Blade](../../checks/compute-blade-jtag-by-hand.md). Which wire goes where is on [Acorn wiring on a Compute
 Blade](wiring.md).
 
 ## The blade's connectors and their GPIOs
@@ -113,7 +112,7 @@ design drives every P2 ball, so it does this every time. The way back is a PoE
 cycle of the blade's switch port, which restores everything in about 60 s: the
 flash bitstream reloads and `--detect`, the DNA read and the PCIe endpoint all
 come back. See [PoE power control](../../../../setup/network.md#poe-power-control) and,
-for the ps1 blades, [Power control](../../../../sites/ps1-gateway.md#power-control). No ps1 blade has the resistor yet: [test-designs issue #216](https://github.com/fpgas-online/fpgas.online-test-designs/issues/216).
+for the ps1 blades, [Power control](../../../../sites/ps1-gateway.md#power-control). Which ps1 blades have the resistor: [test-designs issue #216](https://github.com/fpgas-online/fpgas.online-test-designs/issues/216).
 :::
 
 ```{include} ../../inc/kernel-console.inc
