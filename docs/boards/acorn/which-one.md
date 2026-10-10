@@ -7,50 +7,60 @@ review: 2026-11-10
 
 # Acorn variants
 
-**You have a card of the Acorn family (an Acorn CLE-215+, CLE-215 or CLE-101, a LiteFury or a NiteFury) and
-want to know which it is and what differs between them.**
+This page tells the cards of the Acorn family apart: the Acorn CLE-215+, CLE-215 and CLE-101, the LiteFury and the
+NiteFury. It lists what differs between them and what you can read from a card to identify it.
+
+:::{admonition} Figure to come
+:class: placeholder
+
+The five variants side by side, in the same orientation and at the same scale, with the difference between them marked. Tracked in [docs issue #123](https://github.com/fpgas-online/fpgas.online-docs/issues/123).
+:::
 
 ## Compatible boards
 
-All boards share the same PCB layout and pin assignments. The LiteX platform
-file `sqrl_acorn.py` works for all variants — change only the device string.
+All five share one PCB layout and pin assignments. The LiteX platform file `sqrl_acorn.py` works for all of them: change
+only the device string. Board names the card, and the other columns are its FPGA, speed grade, DDR3 size and PCIe link.
 
-| Board          | FPGA            | Speed Grade | DDR3   | PCIe    |
-| -------------- | --------------- | ----------- | ------ | ------- |
+| Board          | FPGA     | Speed Grade | DDR3   | PCIe    |
+| -------------- | -------- | ----------- | ------ | ------- |
 | LiteFury       | XC7A100T-FBG484 | -2          | 512 MB | Gen2 x4 |
 | NiteFury       | XC7A200T-FBG484 | -2          | 512 MB | Gen2 x4 |
 | Acorn CLE-101  | XC7A100T-FBG484 | -2          | 512 MB | Gen2 x4 |
 | Acorn CLE-215  | XC7A200T-FBG484 | -2          | 1 GB   | Gen2 x4 |
 | Acorn CLE-215+ | XC7A200T-FBG484 | -3          | 1 GB   | Gen2 x4 |
 
-The CLE-215+ is equivalent to the RHSResearchLLC NiteFury board but with 1 GB
-DDR3 (vs 512 MB).
+The CLE-215+ is equivalent to the NiteFury but with 1 GB DDR3 (against 512 MB).
 
-The CLE-101 package is listed as FBG484 here, but `sqrl_acorn.py` builds it as
-`xc7a100t-fgg484-2` and passes `fgg484` to openFPGALoader — only the CLE-215 and
-CLE-215+ are `fbg484` there (checked 2026-09-03). The LiteFury row carries the
-same FBG484 claim and is the same board. The package marking has not been confirmed against a
-CLE-101 in hand.
+The table gives the package as FBG484 for every card. The file `sqrl_acorn.py` disagrees for the CLE-101. It builds it as `xc7a100t-fgg484-2` and passes `fgg484` to
+openFPGALoader. Only the CLE-215 and CLE-215+ are `fbg484` there ([docs issue #2](https://github.com/fpgas-online/fpgas.online-docs/issues/2)).
 
-Source: [NiteFury and
-LiteFury](https://github.com/RHSResearchLLC/NiteFury-and-LiteFury), [LiteX Acorn
-CLE-215
-wiki](https://github.com/enjoy-digital/litex/wiki/Use-LiteX-on-the-Acorn-CLE-215)
+The LiteFury is the same board as the CLE-101. Sources are the [NiteFury and LiteFury repository](https://github.com/RHSResearchLLC/NiteFury-and-LiteFury) and the
+[LiteX Acorn CLE-215 wiki](https://github.com/enjoy-digital/litex/wiki/Use-LiteX-on-the-Acorn-CLE-215).
 
 ## Telling the variants apart
 
-- **By the PCI ID as sold** (SQRL's factory firmware in flash): `1e24:021f` is an Acorn CLE-215+ and
-  `1e24:0101` a CLE-101 (the PCIe table of [Acorn specifications](overview/specifications.md#pcie-interface); `lspci -nn`
-  on [How to check an Acorn's PCIe link by hand](checks/pcie-by-hand.md)). A card on the fpgas.online design shows `10ee:7021` and carries
-  the same pair as its PCI subsystem ID ([The fpgas.online Acorn design](overview/design.md#images)).
-- **By the JTAG IDCODE**: `0x3636093` is an XC7A200T (CLE-215+, CLE-215, NiteFury) and `0x3631093` an
-  XC7A100T (CLE-101, LiteFury) (the `--detect` blocks of [How to run JTAG by hand on an Acorn](checks/jtag-by-hand.md); `0x3631093`
-  was read on pi20 at ps1 on 2026-09-20).
+Tell names what is read, Reads is the value it shows, and Identifies is the card or cards it points to.
 
-Neither tells a CLE-215+ from a CLE-215 or a NiteFury: not on these pages.
+| Tell                                                           | Reads         | Identifies                         |
+| -------------------------------------------------------------- | ------------- | ---------------------------------- |
+| PCI ID as sold, with SQRL's factory firmware in flash          | `1e24:021f`   | Acorn CLE-215+                     |
+| PCI ID as sold, with SQRL's factory firmware in flash          | `1e24:0101`   | Acorn CLE-101                      |
+| PCI ID on the fpgas.online design                              | `10ee:7021`   | the same card as its PCI subsystem ID (`1e24:021f` or `1e24:0101`) |
+| JTAG IDCODE                                                    | `0x3636093`   | XC7A200T: CLE-215+, CLE-215, NiteFury |
+| JTAG IDCODE                                                    | `0x3631093`   | XC7A100T: CLE-101, LiteFury        |
+
+Neither the PCI ID nor the IDCODE tells a CLE-215+ from a CLE-215 or a NiteFury ([docs issue #123](https://github.com/fpgas-online/fpgas.online-docs/issues/123)).
+
+Where to read each tell:
+
+- The PCI ID: the PCIe table of [Acorn specifications](overview/specifications.md#pcie-interface). Reading it is on
+  [How to check an Acorn's PCIe link by hand on a Raspberry Pi 5](checks/pcie-by-hand.md).
+- The fpgas.online design: [Images](overview/design.md#images).
+- The IDCODE: the `--detect` blocks of [How to run JTAG by hand on an Acorn on a Raspberry Pi 5](checks/jtag-by-hand.md).
 
 ## Wiring
 
-All variants share the PCB layout and pin assignments, so the wiring applies
-unchanged to each of them: [on a Raspberry Pi 5](setup/rpi-5/wiring.md), [on a Compute
-Blade](setup/compute-blade/wiring.md).
+All variants share the PCB layout and pin assignments, so the wiring applies unchanged to each of them.
+
+- [On a Raspberry Pi 5](setup/rpi-5/wiring.md)
+- [On a Compute Blade](setup/compute-blade/wiring.md)

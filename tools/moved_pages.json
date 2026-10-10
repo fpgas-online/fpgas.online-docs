@@ -26,7 +26,7 @@
   "boards/acorn/designs/install-images": "boards/acorn/setup/install-images",
   "boards/acorn/designs/jtag": "boards/acorn/checks/jtag-by-hand",
   "boards/acorn/designs/litex-soc": "boards/acorn/overview/design",
-  "boards/acorn/designs/litex-soc#generating-multiboot-bitstreams-by-hand": "boards/acorn/setup/install-images#generating-multiboot-bitstreams-by-hand",
+  "boards/acorn/designs/litex-soc#generating-multiboot-bitstreams-by-hand": "boards/acorn/setup/multiboot-bitstreams",
   "boards/acorn/designs/pcie": "boards/acorn/checks/pcie-by-hand",
   "boards/acorn/designs/pin-id": "boards/acorn/checks/pin-id",
   "boards/acorn/designs/recovery": "boards/acorn/troubleshooting/recovery",

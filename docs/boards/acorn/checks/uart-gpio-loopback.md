@@ -1,84 +1,84 @@
 ---
 type: how-to
 owner: documentation maintainers
-reader: someone with a wired Acorn who wants to test its serial pair and spare wires
+reader: someone with an Acorn on a Raspberry Pi 5 who wants to test its serial pair
 review: 2026-11-10
 ---
 
-# How to run the UART and GPIO loopback on an Acorn
+# How to run the Acorn UART and GPIO loopback on a Raspberry Pi 5
 
-**You have an Acorn wired to a Raspberry Pi 5 and want to see by hand, with the loopback design, that the
-serial pair of P2 (J2 and K2) carries in both directions.** On a Compute Blade this cannot be done by hand
-today; the last section says why and what checks the pair instead. On a card that runs the fpgas.online
-design the boot check tests the same wires without this design (`p2-uart`, `p2-serial`): [Installing the
-Acorn packages](../setup/packages.md#installing-the-acorn-packages).
+**You have an Acorn wired to a Raspberry Pi 5 and want to see that the serial pair of P2 carries in both directions.**
 
-The loopback design (`pmod-loopback`) returns on K2 the inverse of what it sees
-on J2, and nothing else: GPIO14 → J2 → inverted → K2 → GPIO15. It does not touch
-J5 or H5; on a Raspberry Pi 5 those two wires are tested by `fpgas-verify`
-(`p2-gpio`) on a card that runs the fpgas.online design.
+The loopback design (`pmod-loopback`) returns on K2 the inverse of what it sees on J2, and nothing else: GPIO14 to J2, inverted, K2, GPIO15. It does not touch J5 or H5; the boot check tests those two wires with `p2-gpio`. On a card that runs the fpgas.online design the boot check tests the same wires without this design (`p2-uart`, `p2-serial`): [Installing the Acorn packages](../setup/packages.md#installing-the-acorn-packages).
 
-## The design this page loads
+On a Compute Blade this cannot be done by hand in one boot. The load needs the header's serial port off, and the test needs it on ([why](jtag-and-the-pcie-endpoint.md#why-a-blade-needs-its-serial-port-off-for-jtag)). The check tests the pair there with `p2-uart` and `p2-serial`.
 
-```{include} ../inc/release-designs.inc
-```
+This procedure is waiting for its run: [test-designs issue #230](https://github.com/fpgas-online/fpgas.online-test-designs/issues/230).
 
-Set `LOOPBACK` to the file you downloaded or built. `<variant>` is `cle-215p`, `cle-215` or `cle-101`; for a
-CLE-215+ and the release's file:
+## What you need
 
-```console
-$ LOOPBACK=pmod-loopback_acorn-cle-215p_vivado-vivado_sqrl_acorn.bit
-```
+- An Acorn wired as on [Acorn wiring on a Raspberry Pi 5](../setup/rpi-5/wiring.md), in the M.2 HAT slot, where the card is at `0001:01:00.0`.
+- The kernel console off the FPGA's serial port, and SysRq disabled: [A Raspberry Pi 5's settings for an Acorn](../setup/rpi-5/pi-settings.md#kernel-console-on-the-fpga-uart). Check `cat /proc/cmdline` before the load.
+- `openFPGALoader` with the `libgpiod` cable, and the pin order `10:9:11:8` for `--pins`.
+- The loopback bitstream in `LOOPBACK`; for a CLE-215+ and the release's file the name is `pmod-loopback_acorn-cle-215p_vivado-vivado_sqrl_acorn.bit`:
 
-## Before loading: the console and the getty must be off the FPGA's serial port
+  ```{include} ../inc/release-designs.inc
+  ```
 
-The loopback design drives serial TX. Check the host's kernel command line (`cat /proc/cmdline`) against
-this before the load:
+  `<variant>` is `cle-215p`, `cle-215` or `cle-101`.
 
-```{include} ../inc/kernel-console.inc
-:heading-offset: 1
-```
+## Steps
 
-## On a Raspberry Pi 5
+1. On the Pi, stop and mask the getty on the FPGA's serial port; the port is free for the test.
 
-```console
-$ sudo systemctl stop serial-getty@ttyAMA0
-$ sudo systemctl mask serial-getty@ttyAMA0
-# Detach the endpoint first, as before every JTAG load, then load the loopback bitstream
-$ echo 1 | sudo tee /sys/bus/pci/devices/0001:01:00.0/remove
-# The libgpiod cable opens gpiochip0, the header is gpiochip15
-$ sudo ln -sfn /dev/gpiochip15 /dev/gpiochip0
-$ openFPGALoader --cable libgpiod --pins 10:9:11:8 $LOOPBACK
-# The loopback inverts each bit, so what comes back is not what was sent
-$ stty -F /dev/ttyAMA0 115200 raw -echo
-$ (sleep 1; echo test > /dev/ttyAMA0) &
-$ timeout 3 cat /dev/ttyAMA0 | od -An -tx1
-```
+   ```console
+   $ sudo systemctl stop serial-getty@ttyAMA0
+   $ sudo systemctl mask serial-getty@ttyAMA0
+   ```
 
-Some bytes arriving means J2 and K2 both carry; they are not the bytes sent,
-and because the design holds the line inverted while idle the UART may report
-framing errors or a break as well. No bytes at all means K2 or GPIO15 is not
-connected. These commands are written from the design's source: not yet run by
-us in this form.
+2. On the Pi, detach the card's PCIe endpoint, as before every JTAG load ([why](jtag-and-the-pcie-endpoint.md#why-the-endpoint-is-detached-before-a-load)); the card no longer shows in `lspci`.
 
-## On a Compute Blade
+   ```console
+   $ echo 1 | sudo tee /sys/bus/pci/devices/0001:01:00.0/remove
+   ```
 
-Under kernel 6.18 this check cannot be done by hand in one
-boot: the
-loopback design has to be loaded over JTAG, which needs the header's serial
-port off, and the test itself needs the serial port on ([JTAG on a
-blade](compute-blade-jtag-by-hand.md#jtag-on-a-blade)). The serial pair of a blade is checked by
-`fpgas-verify` (`p2-uart`, `p2-serial`) once the card runs the fpgas.online
-design from its flash. No card on a ps1 blade does yet: [test-designs issue #213](https://github.com/fpgas-online/fpgas.online-test-designs/issues/213).
+3. On the Pi, link the header's GPIO chip as `gpiochip0`, because the `libgpiod` cable opens `gpiochip0` and the header is `gpiochip15`.
 
-## If it goes wrong
+   ```console
+   $ sudo ln -sfn /dev/gpiochip15 /dev/gpiochip0
+   ```
 
-The last row sends you to the pin-ID design. Before loading that one:
+4. On the Pi, load the loopback bitstream into SRAM; the load ends with the done message of openFPGALoader.
+
+   ```console
+   $ openFPGALoader --cable libgpiod --pins 10:9:11:8 $LOOPBACK
+   ```
+
+5. On the Pi, send a word to the port and read what comes back. The loopback inverts each bit, so the bytes are not the bytes sent.
+
+   ```console
+   $ stty -F /dev/ttyAMA0 115200 raw -echo
+   $ (sleep 1; echo test > /dev/ttyAMA0) &
+   $ timeout 3 cat /dev/ttyAMA0 | od -An -tx1
+   ```
+
+## Check
+
+Some bytes arrive. That means J2 and K2 both carry. The design holds the line inverted while idle, so the UART may also report framing errors or a break.
+
+## If it fails
+
+- **No bytes at all:** K2 or GPIO15 is not connected; run pin ID and check that GPIO15 reads `K2`.
+- **No UART output:** serial-getty holds the port, the baud is wrong, or K2 and J2 are not crossed over. Mask serial-getty, use 115200, and run pin ID.
+- **The Pi reboots when the design loads:** the kernel console is on the FPGA's serial port; fix it as in [the Pi's settings](../setup/rpi-5/pi-settings.md#kernel-console-on-the-fpga-uart).
+
+The first two items send you to the pin-ID design. Read its hazard first:
 
 ```{include} ../inc/gpio-contention.inc
 ```
 
+## Next
 
-| Problem | Likely cause | Fix |
-|---------|--------------|-----|
-| No UART output | serial-getty holding the port, wrong baud, or K2/J2 not crossed over | Mask serial-getty, use 115200, run pin-ID and check GPIO15 reads `K2` |
+- [How to run the pin ID test on an Acorn on a Raspberry Pi 5](pin-id.md)
+- [Acorn wiring faults on a Raspberry Pi 5](../troubleshooting/rpi-5-wiring.md)
+- [How to run JTAG by hand on an Acorn on a Raspberry Pi 5](jtag-by-hand.md)

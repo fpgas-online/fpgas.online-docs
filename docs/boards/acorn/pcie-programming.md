@@ -17,7 +17,7 @@ This page has been split by task. Each part of it is now on the page named here;
 
 (detach-the-pcie-endpoint-before-any-jtag-reconfiguration)=
 (bring-the-endpoint-back-after-a-jtag-load)=
-**Detach the PCIe endpoint before any JTAG reconfiguration, and bring it back after a JTAG load**: [How to check an Acorn's PCIe link by hand](checks/pcie-by-hand.md#detach-the-pcie-endpoint-before-any-jtag-reconfiguration).
+**Detach the PCIe endpoint before any JTAG reconfiguration, and bring it back after a JTAG load**: [JTAG loads and the PCIe endpoint](checks/jtag-and-the-pcie-endpoint.md#why-the-endpoint-is-detached-before-a-load).
 
 (images)=
 (what-the-flash-holds)=
@@ -32,4 +32,4 @@ This page has been split by task. Each part of it is now on the page named here;
 
 (programming-paths)=
 (future-flash-over-jtag)=
-**The programming paths**: [Programming an Acorn](overview/programming.md#programming). **References**: [Acorn references](overview/references.md).
+**The programming paths**: [Programming an Acorn](overview/programming.md). **References**: [Acorn references](overview/references.md).

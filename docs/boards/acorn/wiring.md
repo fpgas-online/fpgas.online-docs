@@ -23,7 +23,7 @@ whole tree is on [SQRL Acorn and LiteFury](index.md).
 (p2-serial-pair-on-the-uart-header)=
 (housings)=
 (jtag-on-a-blade)=
-**On a Compute Blade** (the wiring sheet, pin numbering, P1, P2, housings, the shared line and the 470 Ω resistor, JTAG on a blade): [Acorn wiring on a Compute Blade](setup/compute-blade/wiring.md) and [the blade's pins, shared line and settings](setup/compute-blade/blade-settings.md) and [How to run JTAG by hand on a Compute Blade](checks/compute-blade-jtag-by-hand.md).
+**On a Compute Blade** (the wiring sheet, pin numbering, P1, P2, housings, the shared line and the 470 Ω resistor, JTAG on a blade): [Acorn wiring on a Compute Blade](setup/compute-blade/wiring.md) and [A Compute Blade's pins and settings for an Acorn](setup/compute-blade/blade-settings.md) and [The line JTAG and the serial port share on a Compute Blade](setup/compute-blade/shared-line.md) and [How to run JTAG by hand on an Acorn on a Compute Blade](checks/compute-blade-jtag-by-hand.md).
 
 (board-connectors)=
 **The card's two connectors, P1 and P2**: on both wiring pages, [Raspberry Pi 5](setup/rpi-5/wiring.md#board-connectors) and [Compute Blade](setup/compute-blade/wiring.md#board-connectors).
@@ -40,13 +40,13 @@ whole tree is on [SQRL Acorn and LiteFury](index.md).
 (step-3-uart-and-gpio-loopback)=
 (step-4-pin-id)=
 (step-5-pcie-design)=
-**Verification by hand**: one page for each step, each with a block for each carrier: [PCIe](checks/pcie-by-hand.md) (steps 1 and 5), [JTAG](checks/jtag-by-hand.md) (step 2), [UART and GPIO loopback](checks/uart-gpio-loopback.md) (step 3), [pin ID](checks/pin-id.md) (step 4). The check that needs none of this is in the building guides: [How to run the Acorn check on a Raspberry Pi 5](checks/rpi-5.md), [How to run the Acorn check on a Compute Blade](checks/compute-blade.md).
+**Verification by hand**: one page for each step and carrier: PCIe ([Raspberry Pi 5](checks/pcie-by-hand.md), [Compute Blade](checks/pcie-by-hand-compute-blade.md); steps 1 and 5), JTAG ([Raspberry Pi 5](checks/jtag-by-hand.md), [Compute Blade](checks/compute-blade-jtag-by-hand.md); step 2), [UART and GPIO loopback](checks/uart-gpio-loopback.md) (step 3), pin ID ([Raspberry Pi 5](checks/pin-id.md), [Compute Blade](checks/pin-id-compute-blade.md); step 4). The check that needs none of this is in the building guides: [How to run the Acorn check on a Raspberry Pi 5](checks/rpi-5.md), [How to run the Acorn check on a Compute Blade](checks/compute-blade.md).
 
 (kernel-console-on-the-fpga-uart)=
 **Kernel console on the FPGA UART**: for each carrier, [Raspberry Pi 5](setup/rpi-5/pi-settings.md#kernel-console-on-the-fpga-uart) and [Compute Blade](setup/compute-blade/blade-settings.md#kernel-console-on-the-fpga-uart).
 
 (troubleshooting)=
-**Troubleshooting**: each row is on the page of the thing it is about: the wiring pages, [the Pi's settings](troubleshooting/rpi-5-wiring.md), [the blade's settings](troubleshooting/compute-blade-wiring.md), and [PCIe](checks/pcie-by-hand.md#if-it-goes-wrong), [JTAG](checks/jtag-by-hand.md#if-it-goes-wrong), [UART and GPIO loopback](checks/uart-gpio-loopback.md#if-it-goes-wrong) and [pin ID](checks/pin-id.md#if-it-goes-wrong).
+**Troubleshooting**: each row is on the page of the thing it is about: the wiring pages, [the Pi's settings](troubleshooting/rpi-5-wiring.md), [the blade's settings](troubleshooting/compute-blade-wiring.md), and [PCIe](checks/pcie-by-hand.md#if-it-fails), [JTAG](checks/jtag-by-hand.md#if-it-fails), [UART and GPIO loopback](checks/uart-gpio-loopback.md#if-it-fails) and [pin ID](checks/pin-id.md#if-it-fails).
 
 (compatible-boards)=
 **Compatible boards**: [Acorn variants](which-one.md). **References**: [Acorn references](overview/references.md).

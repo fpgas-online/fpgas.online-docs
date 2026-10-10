@@ -8,7 +8,9 @@ review: 2026-11-10
 # Roadmap
 
 This page says what is planned across fpgas.online, beyond what one site plans. It is for someone deciding
-whether to wait for something. It gives no dates. Each line is one planned thing and the issue or pull request
+whether to wait for something. It gives no dates.
+
+Each line is one planned thing and the issue or pull request
 that tracks it. A thing leaves this page once it is in service. What one site plans is on that site's page,
 under [Sites](sites/index.md).
 
@@ -18,7 +20,6 @@ under [Sites](sites/index.md).
 - More Fomu hosts: [infra issue #280](https://github.com/fpgas-online/fpgas.online-infra/issues/280).
 - HDMI, HDCP and USB on the NeTV2 boards: [test-designs issue #234](https://github.com/fpgas-online/fpgas.online-test-designs/issues/234).
 - Designs to use from a board's page, with nothing to build: [test-designs issue #236](https://github.com/fpgas-online/fpgas.online-test-designs/issues/236).
-- A check for the Tiny Tapeout chip boards: [test-designs issue #235](https://github.com/fpgas-online/fpgas.online-test-designs/issues/235).
 - A check for other PCIe Xilinx cards: [test-designs issue #238](https://github.com/fpgas-online/fpgas.online-test-designs/issues/238).
 - A check of every function of each board type: [test-designs issue #87](https://github.com/fpgas-online/fpgas.online-test-designs/issues/87).
 
