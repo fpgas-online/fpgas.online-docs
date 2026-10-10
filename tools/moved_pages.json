@@ -69,6 +69,8 @@
   "boards/arty-a7#installing-the-arty-packages": "boards/arty-a7/setup/packages#installing-the-arty-packages",
   "boards/netv2": "boards/netv2/index",
   "boards/netv2#installing-the-netv2-packages": "boards/netv2/setup/packages#installing-the-netv2-packages",
+  "boards/fomu-evt": "boards/fomu-evt/index",
+  "boards/fomu-evt#installing-the-fomu-packages": "boards/fomu-evt/setup/packages#installing-the-fomu-packages",
   "sites/ps1-boards": "sites/ps1",
   "sites/welland-boards": "sites/welland",
   "sites/welland-boards#what-was-up-on-6-october-2026": "sites/welland",

@@ -28,7 +28,7 @@ the package for the board, which brings `fpgas-verify` with it:
 [Acorn](boards/acorn/setup/packages.md#installing-the-acorn-packages),
 [Arty](boards/arty-a7/setup/packages.md#installing-the-arty-packages),
 [NeTV2](boards/netv2/setup/packages.md#installing-the-netv2-packages),
-[Fomu](boards/fomu-evt.md#installing-the-fomu-packages),
+[Fomu](boards/fomu-evt/setup/packages.md#installing-the-fomu-packages),
 [Tiny Tapeout FPGA](boards/tt-fpga.md#installing-the-tt-fpga-packages).
 [Checking a board: fpgas-verify](verify/fpgas-verify.md) covers running it and
 reading the result.

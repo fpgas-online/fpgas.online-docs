@@ -352,7 +352,7 @@ TEST_DESIGNS = Repo(
         ("docs/hardware/netv2.md", "Installing the NeTV2 Packages"):
             ("docs/boards/generated/install-netv2.md", "docs/boards/netv2/setup/packages.md"),
         ("docs/hardware/fomu-evt.md", "Installing the Fomu Packages"):
-            ("docs/boards/generated/install-fomu-evt.md", "docs/boards/fomu-evt.md"),
+            ("docs/boards/generated/install-fomu-evt.md", "docs/boards/fomu-evt/setup/packages.md"),
         ("docs/hardware/tt-fpga.md", "Installing the TT FPGA Packages"):
             ("docs/boards/generated/install-tt-fpga.md", "docs/boards/tt-fpga.md"),
     },
