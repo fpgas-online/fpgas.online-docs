@@ -32,4 +32,4 @@ This page has been split by task. Each part of it is now on the page named here;
 
 (programming-paths)=
 (future-flash-over-jtag)=
-**The programming paths**: [Programming an Acorn](overview/programming.md#programming). **References**: [Acorn references](overview/references.md).
+**The programming paths**: [Programming an Acorn](overview/programming.md). **References**: [Acorn references](overview/references.md).

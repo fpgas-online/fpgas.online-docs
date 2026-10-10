@@ -7,49 +7,56 @@ review: 2026-11-10
 
 # Acorn specifications
 
-**You want to look up a figure or a pin of an Acorn: its FPGA, PCIe interface, clock, LEDs, serial pins, flash or memory.** The card as a whole, with its picture, is on [The Acorn card](card.md).
+This page lists the figures and FPGA pins of the Acorn: FPGA, PCIe interface, clock, LEDs, serial pins, flash and
+memory. It does not describe the card as a whole: that is [The Acorn card](card.md).
+
+:::{admonition} Figure to come
+:class: placeholder
+
+Each part in its own crop of the whole-card picture: the LEDs, the flash chip, the DDR3 and the two connectors. Tracked in [docs issue #121](https://github.com/fpgas-online/fpgas.online-docs/issues/121).
+:::
 
 ## Key specifications
 
-The table describes the CLE-215+. The CLE-215 has the same FPGA in speed grade -2. A CLE-101 or a LiteFury
-has an XC7A100T (speed grade -2) and 512 MB of DDR3, and a NiteFury an XC7A200T with 512 MB: [Acorn
-variants](../which-one.md#compatible-boards).
+Parameter names a property and Value is its figure for the CLE-215+. The figures come from the [LiteX platform file](https://github.com/litex-hub/litex-boards/blob/master/litex_boards/platforms/sqrl_acorn.py).
+The other cards are in [Acorn variants](../which-one.md#compatible-boards).
 
-| Parameter        | Value                            |
-| ---------------- | -------------------------------- |
-| FPGA             | Xilinx Artix-7 XC7A200T-FBG484-3 |
-| Package          | FBG484 (484-ball BGA)            |
-| Logic cells      | 215,360                          |
-| CLB flip-flops   | 269,200                          |
-| DSP slices       | 740                              |
-| Block RAM        | 13,140 Kib                       |
-| GTP transceivers | 4 (up to 6.6 Gb/s each)          |
-| DDR3 SDRAM       | 1 GiB (one MT41K512M16, 16-bit)  |
-| SPI Flash        | S25FL256S (256 Mbit, quad SPI)   |
-| PCIe             | Gen2 x4 (M.2 M-key)              |
-| Form factor      | M.2 2280                         |
-| Power            | Via M.2 / mPCIe slot (3.3V)      |
-| Process          | 28 nm HPL                        |
-
-Source: [LiteX platform file for the SQRL
-Acorn](https://github.com/litex-hub/litex-boards/blob/master/litex_boards/platforms/sqrl_acorn.py)
+| Parameter        | Value                                                              |
+| ---------------- | ------------------------------------------------------------------ |
+| FPGA             | Xilinx Artix-7 XC7A200T-FBG484-3                                   |
+| Package          | FBG484 (484-ball BGA)                                              |
+| Logic cells      | 215,360                                                            |
+| CLB flip-flops   | 269,200                                                            |
+| DSP slices       | 740                                                                |
+| Block RAM        | 13,140 Kib                                                         |
+| GTP transceivers | 4 (up to 6.6 Gb/s each)                                            |
+| DDR3 SDRAM       | 1 GiB (one MT41K512M16, 16-bit)                                    |
+| SPI Flash        | Spansion S25FL256S (256 Mbit, quad SPI, multiboot with fallback and operational regions) |
+| PCIe             | Gen2 x4 (M.2 M-key)                                                |
+| Form factor      | M.2 2280                                                           |
+| Power            | Via M.2 / mPCIe slot (3.3V)                                        |
+| Process          | 28 nm HPL                                                          |
 
 ## PCIe interface
 
-| Parameter       | Value                                    |
-| --------------- | ---------------------------------------- |
-| Link            | Gen2 x4 (4-lane GTP transceivers)        |
-| Connector       | M.2 M-key                                |
-| Reference clock | Differential (FPGA pins F6/E6)           |
-| Reset           | LVCMOS33 (FPGA pin J1, internal pull-up) |
-| Vendor:Device   | `1e24:021f` Squirrels Research Labs "Acorn CLE-215+" with the factory (mining) firmware in flash; `1e24:0101` for a CLE-101; `10ee:7011` (Xilinx) is the vendor (RHS Research) XDMA sample image, as on pi20 at ps1; a LiteX x1 PCIe design is `10ee:7021` |
+Parameter names a property and Value is what the card or the host shows for it.
 
-On a Raspberry Pi 5 the Acorn connects via an M.2 HAT and appears on PCIe bus
-`0001:01:00.0` (the RP1 south bridge is `0002:01:00.0`). Reconfiguring the FPGA
-over JTAG while that endpoint is enumerated crashes a Pi 5 host — detach it
-first, see [why the endpoint is detached before a load](../checks/jtag-and-the-pcie-endpoint.md#why-the-endpoint-is-detached-before-a-load).
+| Parameter                                  | Value                                    |
+| ------------------------------------------ | ---------------------------------------- |
+| Link                                       | Gen2 x4 (4-lane GTP transceivers)        |
+| Connector                                  | M.2 M-key                                |
+| Reference clock                            | Differential (FPGA pins F6/E6)           |
+| Reset                                      | LVCMOS33 (FPGA pin J1, internal pull-up) |
+| Vendor:Device, CLE-215+ factory (mining) firmware | `1e24:021f` (Squirrels Research Labs "Acorn CLE-215+") |
+| Vendor:Device, CLE-101 factory firmware    | `1e24:0101`                              |
+| Vendor:Device, vendor (RHS Research) XDMA sample image | `10ee:7011` (Xilinx)         |
+| Vendor:Device, LiteX x1 PCIe design        | `10ee:7021`                              |
+| PCIe bus address on a Raspberry Pi 5       | `0001:01:00.0`                           |
+| PCIe bus address of the RP1 south bridge on a Raspberry Pi 5 | `0002:01:00.0`         |
 
 ## Clock
+
+Signal names the clock, FPGA Pins are its balls, Standard is its I/O standard, Frequency its rate.
 
 | Signal         | FPGA Pins | Standard    | Frequency |
 | -------------- | --------- | ----------- | --------- |
@@ -57,6 +64,8 @@ first, see [why the endpoint is detached before a load](../checks/jtag-and-the-p
 | PCIe ref clock | F6 / E6   | —           | 100 MHz   |
 
 ## User LEDs
+
+LED is the LED's number and FPGA Pin the ball that drives it.
 
 | LED | FPGA Pin |
 | --- | -------- |
@@ -67,18 +76,16 @@ first, see [why the endpoint is detached before a load](../checks/jtag-and-the-p
 
 ## Serial (UART)
 
-On the P2 connector:
+Signal is the line on the P2 connector and FPGA Pin the ball behind it.
 
 | Signal | FPGA Pin |
 | ------ | -------- |
 | RX     | J2       |
 | TX     | K2       |
 
-The board carries no USB serial adapter of its own, so P2 has to be wired to the
-host's own GPIO UART with an adapted Pico-EZmate cable; see the wiring [on a Raspberry Pi
-5](../setup/rpi-5/wiring.md) or [on a Compute Blade](../setup/compute-blade/wiring.md).
-
 ## SPI Flash
+
+Signal is the flash line and FPGA Pin the ball behind it.
 
 | Signal | FPGA Pin |
 | ------ | -------- |
@@ -88,14 +95,19 @@ host's own GPIO UART with an adapted Pico-EZmate cable; see the wiring [on a Ras
 | WP     | P21      |
 | HOLD   | R21      |
 
-Flash part: Spansion S25FL256S (256 Mbit). Supports multiboot with separate
-fallback and operational bitstream regions.
-
 ## DDR3 SDRAM
 
-1 GiB in one MT41K512M16, an x16 part: 16 bits wide, two byte lanes, driven by
-the 7-series DDR PHY (A7DDRPHY). The fpgas.online Acorn design runs it at
-800 MT/s. Pins as in the LiteX platform file `sqrl_acorn.py`:
+Parameter names a property of the memory and Value is its figure.
+
+| Parameter                          | Value                         |
+| ---------------------------------- | ----------------------------- |
+| Part                               | MT41K512M16 (x16)             |
+| Capacity                           | 1 GiB                         |
+| Data width                         | 16 bits, two byte lanes       |
+| PHY                                | 7-series DDR PHY (A7DDRPHY)   |
+| Rate in the fpgas.online Acorn design | 800 MT/s                   |
+
+Signal is the DDR3 line and FPGA pins are the balls behind it, as in the LiteX platform file `sqrl_acorn.py`.
 
 | Signal       | FPGA pins |
 | ------------ | --------- |
@@ -113,6 +125,12 @@ the 7-series DDR PHY (A7DDRPHY). The fpgas.online Acorn design runs it at
 | CAS_N        | K18 |
 | WE_N         | L16 |
 | RESET_N      | K16 (LVCMOS15) |
+| CS_N         | none in the platform file |
 
-The platform file has no CS_N. Everything except RESET_N is SSTL15 (the DQS and
-clock pairs DIFF_SSTL15).
+Lines is the group of DDR3 lines and I/O standard the standard they use.
+
+| Lines                              | I/O standard |
+| ---------------------------------- | ------------ |
+| Every line except RESET_N, DQS and the clock pairs | SSTL15 |
+| DQS and clock pairs                | DIFF_SSTL15  |
+| RESET_N                            | LVCMOS15     |

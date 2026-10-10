@@ -7,24 +7,39 @@ review: 2026-11-10
 
 # The Acorn card
 
-**You have a SQRL Acorn CLE-215+, CLE-215 or CLE-101 (or a LiteFury or NiteFury) and want to know what the card is.**
-What differs between the cards of the family is on [Acorn variants](../which-one.md); the two connectors and their wires
-are on the wiring pages, [on a Raspberry Pi 5](../setup/rpi-5/wiring.md) and [on a Compute
-Blade](../setup/compute-blade/wiring.md).
+This page shows the Acorn as a whole and says what each part of the card is for. It is for someone holding an
+SQRL Acorn CLE-215+, CLE-215 or CLE-101, or a LiteFury or NiteFury. What differs between the cards is on
+[Acorn variants](../which-one.md); the figures and pins of each part are on [Acorn specifications](specifications.md).
 
-The SQRL Acorn CLE-215+ is an M.2 form factor PCIe FPGA accelerator card,
-pin-compatible with the [NiteFury and
-LiteFury](https://github.com/RHSResearchLLC/NiteFury-and-LiteFury) boards. In
-the fpgas.online fleet it sits either in an M.2 HAT on a Raspberry Pi 5 or in
-a Compute Blade's own M.2 slot, with JTAG and UART carried on adapted
-Pico-EZmate cables to the host's GPIO header (a Pi 5) or to a Compute Blade's
-Extension Port (P1) and 4-pin UART header (P2).
+:::{admonition} Figure to come
+:class: placeholder
 
-## The card
+The whole Acorn, top and bottom, with numbered callouts that match the sections of this page. Tracked in [docs issue #121](https://github.com/fpgas-online/fpgas.online-docs/issues/121).
+:::
 
-![The connector end of the card from the underside, in a photograph of a LiteFury (the same PCB as the Acorn): the two 6-pin sockets P1 and P2 with pin 1 of each marked, and the half-round plated mounting pad at the card's end](../generated/acorn-card-underside.png){.only-light}
-![The connector end of the card from the underside, in a photograph of a LiteFury (the same PCB as the Acorn): the two 6-pin sockets P1 and P2 with pin 1 of each marked, and the half-round plated mounting pad at the card's end](../generated/acorn-card-underside-dark.png){.only-dark}
+## The card and its hosts
 
-The photograph shows the connector end of the underside, which is the end the two cables plug into.
+The SQRL Acorn CLE-215+ is an M.2 PCIe FPGA accelerator card. It is pin-compatible with the
+[NiteFury and LiteFury](https://github.com/RHSResearchLLC/NiteFury-and-LiteFury) boards. On fpgas.online it sits in an
+M.2 HAT on a Raspberry Pi 5, or in a Compute Blade's own M.2 slot.
 
-The figures and the pins of each part are on [Acorn specifications](specifications.md).
+## The connector end
+
+![The connector end of a LiteFury (the Acorn PCB), underside: sockets P1 and P2, pin 1 marked, and the half-round pad.](../generated/acorn-card-underside.png){.only-light}
+
+![The connector end of a LiteFury (the Acorn PCB), underside: sockets P1 and P2, pin 1 marked, and the half-round pad.](../generated/acorn-card-underside-dark.png){.only-dark}
+
+The two 6-pin sockets P1 and P2 sit at the end of the card that the two cables plug into. P1 carries JTAG and P2 carries
+the serial pair and spare pins. The card has no USB serial adapter of its own. P2 is therefore wired to the host's own
+GPIO UART with an adapted Pico-EZmate cable. The wiring is on the pages for [a Raspberry Pi 5](../setup/rpi-5/wiring.md)
+and for [a Compute Blade](../setup/compute-blade/wiring.md).
+
+## The FPGA and its memory
+
+The card carries a Xilinx Artix-7 FPGA, DDR3 SDRAM, and a quad-SPI flash chip. The flash holds the images that
+configure the FPGA when the card powers on. How an image reaches the FPGA is on [Programming an Acorn](programming.md).
+
+## The PCIe edge and the LEDs
+
+The card plugs into an M.2 M-key slot, which gives it PCIe and its power. The card also has four user LEDs and a 200 MHz system clock. The
+pins of each are in [Acorn specifications](specifications.md).

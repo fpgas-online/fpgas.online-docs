@@ -31,7 +31,7 @@ So try the rescan first, and re-probe only when `lspci` still shows nothing. The
 
 ## Why a blade needs its serial port off for JTAG
 
-On a blade the JTAG pin TMS is GPIO14, which is also the serial port's TX pin. The J2 wire of the serial pair shares that line through a 470 Ω resistor ([the shared line](../setup/compute-blade/blade-settings.md#the-shared-line-and-the-470-ω-resistor)). With `enable_uart=1` the kernel's serial driver holds GPIO14, whether or not a console or a getty uses the port.
+On a blade the JTAG pin TMS is GPIO14, which is also the serial port's TX pin. The J2 wire of the serial pair shares that line through a 470 Ω resistor ([the shared line](../setup/compute-blade/shared-line.md)). With `enable_uart=1` the kernel's serial driver holds GPIO14, whether or not a console or a getty uses the port.
 
 Kernel 6.18 refuses a request for a pin that a driver holds. openFPGALoader does not check the refusal, so it stops with `gpiod_line_request_set_values_subset: Assertion 'request' failed`. Under kernel 6.12 JTAG also answers with the serial port on.
 

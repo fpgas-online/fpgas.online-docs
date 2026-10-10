@@ -24,7 +24,7 @@ When the load finishes, the design drives J2, which is on GPIO14. openFPGALoader
 
 ## What you need
 
-- An Acorn wired as on [Acorn wiring on a Compute Blade](../setup/compute-blade/wiring.md), with the 470 Ω resistor in the J2 wire ([the shared line](../setup/compute-blade/blade-settings.md#the-shared-line-and-the-470-ω-resistor)).
+- An Acorn wired as on [Acorn wiring on a Compute Blade](../setup/compute-blade/wiring.md), with the 470 Ω resistor in the J2 wire ([the shared line](../setup/compute-blade/shared-line.md)).
 - `openFPGALoader` with the `libgpiod` cable, the pin order `2:3:4:14` for `--pins`, and the header's chip as `gpiochip0`.
 - The header's serial port off in this boot:
 
