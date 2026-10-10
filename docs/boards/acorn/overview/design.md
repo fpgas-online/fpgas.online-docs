@@ -103,4 +103,4 @@ address to `WBSTAR`, then `IPROG` to the ICAPE2 command register. The PCIe link
 drops and retrains once the new image is loaded. LiteX's `ICAP` core
 (`self.icap = ICAP(); self.icap.add_reload()`) exposes it.
 
-To build the two flavours of another design by hand: [generating multiboot bitstreams by hand](../setup/install-images.md#generating-multiboot-bitstreams-by-hand).
+To build the two flavours of another design by hand: [generating multiboot bitstreams by hand](../setup/multiboot-bitstreams.md).
