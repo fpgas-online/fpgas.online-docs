@@ -14,23 +14,23 @@ The board drops off the public site until the daemon is started again. Why the d
 ## What you need
 
 - A shell on the Raspberry Pi that has the board, with `sudo`. A Pi that is not routable from your machine is reached through its site's gateway, as [The welland gateway](../../../sites/welland-gateway.md#reaching-a-pi) shows.
-- The check's debug tool, `fpgas-tt-fpga-debug`, from [How to install the Tiny Tapeout FPGA packages](../setup/packages.md). It needs `--variant tt-fpga` said out loud: [fpgas-verify: the Tiny Tapeout demo boards](../../../verify/tt-fpga.md#which-tiny-tapeout-board-it-is).
+- The tool you want to run, one that opens `/dev/ttyACM0` itself.
 
 ## Steps
 
 1. On the Pi, run `sudo systemctl stop fpgas-tt` to stop the daemon, which releases `/dev/ttyACM0`.
-2. On the Pi, run the check's debug tool, `sudo fpgas-tt-fpga-debug test uart`, and wait for it to finish.
+2. On the Pi, run your tool on `/dev/ttyACM0`, and wait until it has closed the port.
 3. On the Pi, run `sudo systemctl start fpgas-tt` to start the daemon again, whether or not step 2 succeeded, which puts the board back on the public site.
 
 ## Check
 
-With the daemon running, `fuser /dev/ttyACM0` shows the daemon's python3 process. After step 1 it prints nothing. After step 3 the board's `status.json` on the [Tiny Tapeout site](https://tinytapeout.fpgas.online) reports the daemon's `/health` and `reachable` again.
+After step 3, `fuser /dev/ttyACM0` shows the daemon's python3 process again. The board's `status.json`, whose address is on [The Tiny Tapeout stack](../../../setup/tinytapeout.md), reports the daemon's `/health` and `reachable`.
 
 ## If it fails
 
 | What you see | Likely cause | Fix |
 |---|---|---|
-| Your tool cannot open `/dev/ttyACM0` | The daemon still holds the port | Run step 1 again |
+| Your tool cannot open `/dev/ttyACM0` | The daemon holds the port | Stop the daemon first, as in step 1 |
 | The board is missing from the public site after your tool ended | The daemon was not started again | Run step 3 |
 
 ## Next

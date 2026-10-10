@@ -35,7 +35,7 @@ HAT Port is the connector on the PMOD HAT. TT Bus is the signal group on it, and
 
 ## Shared GPIOs of JA and JB
 
-HAT JB pins 2-4 and HAT JA pins 2-4 are the [same RPi GPIO lines](../../pmod/rpi-hat.md), the shared SPI0 bus. RPi GPIO is the shared line. HAT JA Pin and HAT JB Pin are the two connector pins on it, and TT Signal the signal on each.
+HAT JB pins 2-4 and HAT JA pins 2-4 are the [same RPi GPIO lines](../../pmod/rpi-hat.md), the shared SPI0 bus. That sharing is a property of the HAT. Which Tiny Tapeout signals sit on those pins follows the cabling table of the section before, which [test-designs issue #58](https://github.com/fpgas-online/fpgas.online-test-designs/issues/58) contests. RPi GPIO is the shared line. HAT JA Pin and HAT JB Pin are the two connector pins on it, and TT Signal the signal on each.
 
 | RPi GPIO | HAT JA Pin | TT Signal (uo_out) | HAT JB Pin | TT Signal (uio) | Conflict |
 | -------- | ---------- | ------------------ | ---------- | --------------- | -------- |
@@ -45,11 +45,11 @@ HAT JB pins 2-4 and HAT JA pins 2-4 are the [same RPi GPIO lines](../../pmod/rpi
 
 ## Effect of the shared GPIOs
 
-Three `uo_out` signals and three `uio` signals are electrically connected at the Raspberry Pi side. When the FPGA drives `uo_out[1,2,3]` and `uio[1,2,3]` with different values, the outputs fight each other. Test names what runs, and Effect what happens.
+Three `uo_out` signals and three `uio` signals are electrically connected at the Raspberry Pi side. When the FPGA drives `uo_out[1,2,3]` and `uio[1,2,3]` with different values, the outputs fight each other. The ports named in this table follow the same contested cabling ([test-designs issue #58](https://github.com/fpgas-online/fpgas.online-test-designs/issues/58)). Test names what runs, and Effect what happens.
 
 | Test | Effect |
 |------|--------|
 | GPIO loopback test | works: it drives only `ui_in` (JC) and reads `uo_out` (JA), and the `uio` pins (JB) are not driven, so no conflict occurs |
 | Bidirectional I/O test | cannot test `uio[1,2,3]` independently, because they are shorted to `uo_out[1,2,3]` respectively; if the FPGA drives both buses, the outputs may cause contention or incorrect readings |
-| SPI kernel modules | `rmmod spidev spi_bcm2835` unloads them, because GPIO7-11 overlap with HAT JA pins 1-4 and JB pins 1-4: [How to free the Raspberry Pi's SPI pins before a PMOD test](../checks/free-spi-pins.md) |
+| SPI kernel modules | `rmmod spidev spi_bcm2835` unloads them, because GPIO7-11 overlap with HAT JA pins 1-4 and JB pins 1-4 |
 | Unshared `uio` bits | `uio[0]` and `uio[4:7]` are on JB pins 1 and 7-10, use unique RPi GPIOs and work correctly |

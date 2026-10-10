@@ -11,11 +11,11 @@ review: 2026-11-10
 - [fpgas-verify: what an Arty, NeTV2, Fomu or TT FPGA check tests](../../../verify/tests.md): what each test of the check does, and when it passes.
 - [How to install the Tiny Tapeout FPGA packages](../setup/packages.md): the check on the host, and how to run it by hand.
 - [Tiny Tapeout FPGA demo board test designs](test-designs.md): the designs under `designs/` and the scripts that load them. Whether the breakout has a flash for its SPI Flash ID design is [test-designs issue #258](https://github.com/fpgas-online/fpgas.online-test-designs/issues/258).
-- [How to free the Raspberry Pi's SPI pins before a PMOD test](free-spi-pins.md): unload the kernel modules that hold GPIO7-11.
+
 
 ```{toctree}
 :hidden:
 
 test-designs
-free-spi-pins
+
 ```

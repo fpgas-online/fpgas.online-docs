@@ -93,7 +93,7 @@ Item names the part of the GPIO loopback test, and Value gives it.
 | GPIOs contended with SPI0 | GPIO7-11, which carry JB1/`uio[0]` and JA1-4/`uo_out[0:3]` |
 | RP2350 GPIOs | released to high impedance after FPGA programming, by the tools that load the design |
 
-The step that frees the SPI pins is [How to free the Raspberry Pi's SPI pins before a PMOD test](../checks/free-spi-pins.md).
+The command that frees the SPI pins is on [Tiny Tapeout FPGA demo board faults on the Raspberry Pi](../troubleshooting/pi-faults.md).
 
 ## SPI flash
 
