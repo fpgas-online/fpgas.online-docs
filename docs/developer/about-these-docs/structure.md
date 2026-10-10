@@ -9,7 +9,7 @@ review: 2026-11-10
 
 This page explains how docs.fpgas.online is organised: its sections, its page types, its sidebar, and where a
 page's source lives. It is for someone about to add or move a page. It does not give the rules for a page's
-content or its review; those are [What a page contains](page-contents.md) and
+content or its review. Those are on [What a page contains](page-contents.md) and
 [Review and verification of a page](review.md).
 
 ## Sections by audience
@@ -22,8 +22,11 @@ of contents.
 |---|---|---|
 | User documentation | a visitor to a site, with no hardware | using a board from the website |
 | Admin documentation | someone who runs a site, with a bench | how the system works, its upkeep, setting up sites and devices |
-| Developer documentation | someone with a checkout | changing the code and these docs |
+| Developer documentation | someone with a checkout | the API; how each part is tested; where to make which kind of change; the packages used and how; changing these docs |
 | Resources | anyone looking something up | pinouts, pin numbering, other reference |
+
+A page goes where its reader is. A guide that sets a device up goes under Admin documentation. A page that a
+reader looks something up in, such as a pinout, goes under Resources.
 
 A section exists only when a real page sits under it. An empty heading tells the reader that something is there
 when nothing is. So the structure is built by re-nesting pages that exist, never by adding headings first.
@@ -53,18 +56,19 @@ else. Its front matter says `landing`, and only an index page uses it.
 ## The sidebar
 
 The sidebar nests exactly like the headings of the index page above it. A heading with more than seven entries
-gets sub-headings, so a reader can scan any one group. Within a group, pages follow the order in which the reader
-works: what it is, which one I have, set it up, check it, look it up.
+gets sub-headings, so a reader can scan any one group. A page joins the sidebar through its line on the index
+page above it. Within a group, pages follow the reader's order of work: what it is, which one I have, set it
+up, check it, look it up.
 
 ## Where a page lives
 
 A page's source lives in the repository it is about. A page about a board's wiring lives with the wiring
-generator, and a page about the gateway lives with the gateway's code. The documentation repository holds only
-the pages about the site as a whole, such as this section.
+generator, and a page about the gateway lives with the gateway's code. Pages about the site as a whole, such as
+this section, live in the documentation repository.
 
-The docs build pulls each page in from its own repository, and nothing is copied by hand. A pulled page names
-its source repository in its opening lines, so a reader knows where to change it. A change to that page is made
-there, in the same pull request as the code change that made the page wrong.
+The docs build pulls each page in from its own repository, and nothing is copied by hand. A change to a pulled
+page is made in its own repository. It travels in the same pull request as the code change that made the page
+wrong.
 
 A moved or renamed page leaves a redirect. Readers arrive from search and from old links, so an address that
 once worked keeps working. The build refuses a rename that has no redirect.

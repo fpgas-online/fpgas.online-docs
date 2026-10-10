@@ -9,8 +9,9 @@ review: 2026-11-10
 
 This page lists what a docs.fpgas.online page must contain, by page type, with the limits and the diagram set.
 It is for someone writing a page or checking one against the rules. It does not explain the reasons or the
-review; the sources are in [References on writing documentation](references.md), and the review is in
-[Review and verification of a page](review.md).
+review. Those are on [References on writing documentation](references.md) and
+[Review and verification of a page](review.md). In each table, the first column names the part and the last
+column gives what it must be.
 
 ## Every page
 
@@ -24,11 +25,15 @@ review; the sources are in [References on writing documentation](references.md),
 | Smallest size | more than links alone; more than two sentences |
 | Feedback | a "was this useful" control, routed to the issue tracker |
 
-Three kinds of content are not on a reader page:
+## Content with another home
 
-- Plans. They sit on a site's "what this site provides and plans" page and on one roadmap page, each item naming its issue or milestone.
-- Dated records of work. They are not pages.
-- Broken things. They are issues.
+| Content | Home |
+|---|---|
+| A plan | the site's "what this site provides and plans" page, or the roadmap page |
+| A planned item's anchor | its issue or its milestone |
+| A dated record of work | no page |
+| A broken thing | an issue |
+| Questions and answers | no page: there is no FAQ |
 
 ## A how-to
 
@@ -38,23 +43,22 @@ Three kinds of content are not on a reader page:
 | Headings | What you need · Steps · Check · If it fails · Next; this order; no others |
 | What you need, bench page | every part with quantity and picture; every tool |
 | What you need, software page | the non-obvious prerequisites only, as plain text |
-| Steps | numbered; one imperative sentence each: the place, the action, the result |
+| Steps | numbered; one bullet to a step; one imperative sentence: the place, the action, then the result in the same paragraph |
 | Check | what success looks like, pictured or quoted |
 | If it fails | at the step where it happens: what you see, the likely cause, the fix |
 | Next | five links at most |
 
-## The other page types
+## Other pages
 
-| Type | Title | Body |
+| Page | Title | Body |
 |---|---|---|
 | Tutorial | the first success it reaches | one path from nothing; each step with a visible result; the success state pictured first |
 | Explanation | a noun phrase | prose; one idea to a paragraph; no numbered steps |
 | Explanation of a board's programming | the board and "programming" | one page for each board, in three layers: protocol, connection, tool |
-| Reference | the thing looked up | a table or list, generated from source data where a data file exists; no steps |
+| Reference | the thing looked up | a table or list, generated from source data where a data file exists; no steps; no prose beyond the scope sentences and the column definitions |
 | Orientation | the object | the whole object, then a master picture whose numbered callouts are the sections, each with its own crop |
 | Identification | the variants | the variants side by side at one orientation and scale; the difference marked; a table of the tells |
-| Landing | the section | one line for each destination |
-| FAQ | none | none: there is no FAQ page |
+| Landing | the section | one line for each destination and nothing else |
 
 ## Limits
 
@@ -64,7 +68,8 @@ Three kinds of content are not on a reader page:
 | Sentence | 25 words |
 | Paragraph | 3 to 5 sentences |
 | List | 2 to 7 items |
-| Callouts on a page | 2; none carrying a step or a prerequisite |
+| Callouts on a page | 2 |
+| Steps or prerequisites inside a callout | 0 |
 | Links on a page | 15 |
 | Heading levels | 5 |
 | Entries under one sidebar heading | 7 |
@@ -82,10 +87,10 @@ Three kinds of content are not on a reader page:
 
 - Detail: full where the reader acts; a summary only where the reader orients.
 - The future, the unproven and the unused: none on a reader page. An unknown becomes an issue.
-- Names: one name for each thing, as printed on the part. "GPIO 4", never "pin 4".
-- Board markings: in bold, as printed.
+- Names: one name for each thing, as printed on the part, with board markings in bold. "GPIO 4", never "pin 4".
 - Pin 1 and directions: by a visible marker or feature, never by colour, "left" or "above".
-- Numbers and dates: none that drift. A version or an issue number anchors what changes.
+- Numbers and dates: no number that drifts, and no date except on a fact that is itself dated.
+- What changes: anchored by a version or an issue number.
 - A source: one descriptive link in the sentence that needs it. No sources line, section or footnote.
 
 ## Pictures
@@ -150,3 +155,31 @@ Three kinds of content are not on a reader page:
 | Wiring | the cable as the ribbon lies |
 | Programming | the three layers: protocol, connection, tool |
 | Variants | the comparison, side by side |
+
+## What the build checks
+
+| Check | Result |
+|---|---|
+| A banned word or a forbidden phrase on a reader page | fails |
+| A title over 65 characters | fails |
+| A title that is not unique | fails |
+| A step sentence over 25 words | fails |
+| A how-to with a heading missing | fails |
+| A how-to with an extra heading | fails |
+| A bench step with no figure | fails |
+| Missing alt text | fails |
+| A light and dark pair outside a switched figure | fails |
+| A sidebar group over seven | fails |
+| More than five heading levels | fails |
+| A link-only page | fails |
+| A rename without a redirect | fails |
+| Missing front matter | fails |
+| Generated reference older than its source data | fails |
+| A broken internal link | fails |
+| A bench page whose print splits a step | fails |
+| One figure used twice with the same view | warns |
+| More than 15 links on a page | warns |
+| More than two callouts on a page | warns |
+| An expired review date | warns |
+| A broken external link | checked on a schedule, not on each change |
+

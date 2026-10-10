@@ -9,7 +9,7 @@ review: 2026-11-10
 
 This page lists the published work the docs.fpgas.online rules are built on, with what each one gives us. It is
 for someone who wants to read a rule's source before following or changing the rule. It does not restate the
-rules, and it quotes each source only briefly.
+rules. Each row gives a source, what the rules take from it, and one line in the source's own words.
 
 ## Page types and structure
 
@@ -19,8 +19,8 @@ rules, and it quotes each source only briefly.
 | [What nobody tells you about documentation, a PyCon AU talk](https://pyvideo.org/pycon-au-2017/what-nobody-tells-you-about-documentation.html) | the problem the four types solve | "Often, it's not for want of effort ... It simply turns out to be not very good" |
 | [Every Page is Page One](https://everypageispageone.com/the-book/) | a page that stands alone; the scope sentences | "Because a reader can arrive at an Every Page is Page One topic from anywhere, the topic must establish its context" |
 | [Red Hat modular documentation](https://redhat-documentation.github.io/modular-docs/) | fixed headings on a procedure page | "Do not change or embellish these subheadings. Do not create additional subheadings" |
-| [The DITA task topic](https://docs.oasis-open.org/dita/dita/v1.3/os/part3-all-inclusive/archSpec/technicalContent/dita-task-topic.html) | the order of a task's parts: prerequisites, steps, result | `<prereq>`, `<context>`, `<steps>`, `<steps-unordered>`, `<result>`, `<example>`, `<postreq>` |
-| [Carroll and van der Meij on minimalism](https://ris.utwente.nl/ws/files/249663536/Caroll1996ten.pdf) | action before explanation; brevity that serves the task | "Brevity is a key element of minimalism, but only because it can facilitate task-oriented activity and learner-initiated reasoning, not as a self-sufficient end in itself" |
+| [The DITA task topic](https://docs.oasis-open.org/dita/dita/v1.3/os/part3-all-inclusive/archSpec/technicalContent/dita-task-topic.html) | the fixed order of a task's parts | "these optional elements in the following order:" |
+| [Carroll and van der Meij on minimalism](https://ris.utwente.nl/ws/files/249663536/Caroll1996ten.pdf) | brevity that serves the task, not brevity for itself | "Brevity is a key element of minimalism, but only because it can facilitate task-oriented activity and learner-initiated reasoning, not as a self-sufficient end in itself" |
 
 ## Style and limits
 
@@ -28,7 +28,7 @@ rules, and it quotes each source only briefly.
 |---|---|---|
 | [Google developer documentation style guide: tables](https://developers.google.com/style/tables) | sources as links, not footnotes | "Avoid using footnotes when possible" |
 | [Google technical writing course: documents](https://developers.google.com/tech-writing/one/documents) | scope and audience in the opening lines | "A better document additionally defines its non-scope" |
-| [GOV.UK: use clear language](https://guidance.publishing.service.gov.uk/writing-to-gov-uk-standards/writing-guidelines/clear-language/) | the sentence and paragraph limits | "Try to split up sentences that are over 25 words long" |
+| [GOV.UK: use clear language](https://guidance.publishing.service.gov.uk/writing-to-gov-uk-standards/writing-guidelines/clear-language/) | the 25-word sentence | "Try to split up sentences that are over 25 words long" |
 | [Microsoft Learn Markdown reference](https://learn.microsoft.com/en-us/contribute/content/markdown-reference) | the limit of two callouts | "Readers tend to skip over them" |
 
 ## Pictures and assembly instructions
