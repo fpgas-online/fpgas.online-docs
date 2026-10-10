@@ -8,7 +8,7 @@ review: 2026-11-10
 # Fomu EVT troubleshooting
 
 - [Fomu EVT programming faults](programming-faults.md): a board missing from USB, a design that is gone.
-- [Fomu EVT test faults](test-faults.md): a UART or loopback test that cannot reach the board.
+- [Fomu EVT test faults](test-faults.md): a UART test that cannot reach the board, and the two tests that cannot pass on an EVT.
 
 ```{toctree}
 :hidden:

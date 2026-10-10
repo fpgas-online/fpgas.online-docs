@@ -210,7 +210,6 @@ for:
 | Arty | UART, DDR, Ethernet, SPI flash | none | The Arty's UART is on its own FTDI channel, so nothing on the Pi contends for it. |
 | Fomu | UART | `systemctl mask serial-getty@ttyAMA0`, then `stop`, then `fuser -k /dev/serial0` and `chmod 666 /dev/serial0` | `stop` alone is not enough — systemd restarts the getty — so the unit is masked to `/dev/null` first. `fuser` clears anything else holding the port, and the permissions revert to root-only when the getty lets go. |
 | Fomu | SPI flash | `systemctl stop 'serial-getty@*'`, `fuser -k`, `chmod 666`, then `pinctrl set 14 a4; pinctrl set 15 a4` if `pinctrl` exists | Same port cleanup, plus the Pi 5 GPIO fix below. |
-| Fomu | PMOD loopback | `rmmod spidev spi_bcm2835` | Same GPIO 7–11 clash as the Arty. |
 | NeTV2 | UART | `systemctl stop 'serial-getty@*'`; `pm2 stop all`; `pkill -f netv2-status`; `fuser -k`; `chmod 666`; `pinctrl set 14 a4; pinctrl set 15 a4` | Three different things hold the port: the serial login console, a pm2-managed `netv2-status.js` monitor that keeps sending `json on` to the FPGA BIOS, and whatever `fuser` finds left. On a Pi 5, GPIO 14/15 fall back to plain GPIO when the getty stops, so `pinctrl` puts them back on ALT4 (TXD0/RXD0); a Pi 3's mini-UART pins do not change function and need no such fix. |
 | NeTV2 | DDR, Ethernet, SPI flash | `systemctl stop serial-getty@ttyAMA0` | Only the login console is in the way. |
 | NeTV2 | PMOD loopback | none | The NeTV2 loopback is a one-bit serial loopback rather than a PMOD-HAT GPIO test, so it does not touch GPIO 7–11. |
@@ -291,7 +290,7 @@ and SPI-flash designs it does not program separately at all: it calls
 `tt_test_wrapper.py`, which programs the board, bridges its serial port and
 runs the test in one invocation, with a 240-second timeout instead of the
 120-second one that programming alone gets. Once the FPGA is configured the Pi
-reaches it through the PMOD HAT exactly as it does an Arty or a Fomu, so
+reaches it through the PMOD HAT exactly as it does an Arty, so
 programming is the only board-specific step.
 
 :::{note}

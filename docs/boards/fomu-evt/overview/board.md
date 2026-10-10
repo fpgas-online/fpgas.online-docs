@@ -19,7 +19,7 @@ The whole Fomu EVT, top and bottom, with the USB contacts, the RGB LED, the touc
 
 ## How it sits on its Raspberry Pi
 
-The Fomu EVT connects to the Pi in two ways. The first is the GPIO header: the Fomu sits directly on the Pi's GPIO header as a standard HAT, and carries UART and GPIO signals. The second is USB: the Fomu's USB-A connector plugs into the Pi's USB port, through an inline [USB analyser](usb-analysers.md) when one is fitted.
+The Fomu EVT connects to the Pi in two ways. The first is the GPIO header: the Fomu sits on the Pi's 40-pin header, which carries reset, CDONE, the SPI flash and the UART. The second is USB: the Fomu's USB-A connector plugs into the Pi's USB port, through an inline [USB analyser](usb-analysers.md) when one is fitted.
 
 The USB interface is live only when the DFU bootloader or a USB-enabled bitstream is loaded. The custom test bitstreams (UART echo, GPIO loopback) do not include USB, so the Fomu disappears from USB after programming. That is expected, not a fault. The board then has no USB serial device. It does have a serial port: two pins on the GPIO header, opened as `/dev/serial0` on the Pi.
 
