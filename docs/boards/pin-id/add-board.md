@@ -9,7 +9,7 @@ review: 2026-11-10
 
 **You have an FPGA board with a LiteX platform and want the pin-id design to build for it**. This page adds the board's build script, scanner GPIO list and Makefile targets. The scan itself is on [How to scan a board's wiring with the pin-id design](scan.md).
 
-This procedure is waiting for its run: ISSUE-01.
+This procedure is waiting for its run: [test-designs issue #262](https://github.com/fpgas-online/fpgas.online-test-designs/issues/262).
 
 ## What you need
 
