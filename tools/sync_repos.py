@@ -649,16 +649,14 @@ TEST_DESIGNS = Repo(
         Wrapper(
             'docs/boards/acorn/setup/packages.md',
             'How to install the Acorn packages',
-            Interim('**You have an Acorn on its host (a Raspberry Pi 5 with an M.2 HAT, or a CM4 or CM5 on a '
-                    'Compute Blade) and\nwant to install the fpgas.online packages for it, run the check, and '
-                    'identify or verify its flash with the\nflash tool (`id` and `verify`; writing the flash '
-                    'is on [Installing and updating the\nimages](install-images.md)).**\n\nOn a '
-                    'Raspberry Pi 5, before the check is run: its `p2-uart` and `p2-serial` tests need the '
+            Interim('**You have an Acorn on a Raspberry Pi 5 with an M.2 HAT and want to install the '
+                    'fpgas.online packages for it and run the check.**\n\nBefore '
+                    'the check is run: its `p2-uart` and `p2-serial` tests need the '
                     "header's serial\nport on (`/dev/ttyAMA0`) and the kernel console off it: [the Pi's "
                     'settings](rpi-5/pi-settings.md#the-serial-port).'),
             (Include('docs/boards/generated/install-acorn.md'),),
             kind='how-to',
-            reader='someone with an Acorn on its host who wants to install the fpgas.online packages for it',
+            reader='someone with an Acorn on a Raspberry Pi 5 who wants to install the fpgas.online packages for it',
             own_dir=False,
         ),
     ],
