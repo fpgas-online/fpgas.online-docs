@@ -48,7 +48,7 @@ On a Raspberry Pi 5 the Acorn connects via an M.2 HAT and appears on PCIe bus
 `0001:01:00.0` (the RP1 south bridge is `0002:01:00.0`). Reconfiguring the FPGA
 over JTAG while that endpoint is enumerated crashes a Pi 5 host — detach it
 first, see [detach the PCIe endpoint before any JTAG
-reconfiguration](../checks/pcie-by-hand.md#detach-the-pcie-endpoint-before-any-jtag-reconfiguration).
+reconfiguration](../checks/jtag-and-the-pcie-endpoint.md#why-the-endpoint-is-detached-before-a-load).
 
 ## Clock
 

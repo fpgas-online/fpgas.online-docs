@@ -9,7 +9,7 @@ review: 2026-11-10
 
 **You have an Acorn and want to know what the fpgas.online Acorn design is: what is in it, which cards it
 is built for, its two images, and how they sit in the card's flash.** To load it into SRAM by hand on
-either carrier: [How to check an Acorn's PCIe link by hand](../checks/pcie-by-hand.md). To put it in a card's flash: [How to install the fpgas.online images on an Acorn](../setup/install-images.md). What the boot check tests of it: [Installing the Acorn
+either carrier: [How to check an Acorn's PCIe link by hand on a Raspberry Pi 5](../checks/pcie-by-hand.md). To put it in a card's flash: [How to install the fpgas.online images on an Acorn](../setup/install-images.md). What the boot check tests of it: [Installing the Acorn
 packages](../setup/packages.md#installing-the-acorn-packages).
 
 ## Images
@@ -81,7 +81,7 @@ The Acorn has a Spansion S25FL256S (256 Mbit = 32 MB) quad-SPI NOR flash.
 └──────────────────────────────────────────────────┘
 ```
 
-The safety rules are on [How to recover an Acorn with a bad image](../troubleshooting/recovery.md#safety-rules).
+The safety rules are on [How to recover an Acorn with a bad image](../troubleshooting/recovery.md).
 
 ## Multiboot
 

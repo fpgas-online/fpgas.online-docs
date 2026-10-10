@@ -1,92 +1,74 @@
 ---
 type: how-to
 owner: documentation maintainers
-reader: someone with a wired Acorn who wants to load a design over JTAG by hand
+reader: someone with an Acorn on a Raspberry Pi 5 who wants to run JTAG by hand
 review: 2026-11-10
 ---
 
-# How to run JTAG by hand on an Acorn
+# How to run JTAG by hand on an Acorn on a Raspberry Pi 5
 
-**You have an Acorn wired to a Raspberry Pi 5 or to a Compute Blade and want to see by hand that its JTAG
-answers, and load a design into the FPGA over it.** The boot check reads the IDCODE and the device DNA over
-P1 by itself (`jtag`): [Installing the Acorn packages](../setup/packages.md#installing-the-acorn-packages). A load
-over JTAG lands in SRAM and works on every variant; the IDCODE tells an XC7A200T (CLE-215+, CLE-215,
-NiteFury) from an XC7A100T (CLE-101, LiteFury).
+**You have an Acorn wired to a Raspberry Pi 5 and want to see its JTAG answer, then load a design over it.**
 
-## What differs between the carriers
+The boot check reads the IDCODE and the device DNA over P1 by itself (`jtag`): [Installing the Acorn packages](../setup/packages.md#installing-the-acorn-packages). On a Compute Blade the commands differ: [How to run JTAG by hand on an Acorn on a Compute Blade](compute-blade-jtag-by-hand.md).
 
-The steps are the same on both carriers; the commands are not. What differs:
+## What you need
 
-| | Raspberry Pi 5 | Compute Blade, CM4 | Compute Blade, CM5 |
-|---|---|---|---|
-| JTAG `--pins` (TDI:TDO:TCK:TMS) | `10:9:11:8` | `2:3:4:14` | `2:3:4:14` |
-| GPIO chip for the `libgpiod` cable, which opens `/dev/gpiochip0` | `gpiochip15` under kernel 6.12 at Welland: link it as `gpiochip0` first | not read by us: run `gpiodetect` and link the chip labelled `pinctrl-bcm2711` as `gpiochip0` only if it is not that already | `pinctrl-rp1` was `gpiochip0` already on pi16 at ps1 and pi20 at ps1 (kernel 6.18.50, 2026-10-05): no link there |
-| PCIe address of the card (`BDF` below) | `0001:01:00.0` | `0000:01:00.0` (pi14 at ps1) | `0001:01:00.0` (pi16 at ps1, pi20 at ps1) |
-| Root complex behind the slot | `1000110000.pcie` | not read by us: find it with the `readlink` line of [How to check an Acorn's PCIe link by hand](pcie-by-hand.md#on-a-compute-blade) | `1000110000.pcie` (pi20 at ps1, kernel 6.12.75) |
-| FPGA serial port | `/dev/ttyAMA0`, GPIO14/15 at `a4` | `/dev/ttyAMA0`, GPIO14/15 at `a0` | `/dev/ttyAMA0`, GPIO14/15 at `a4`, but only in a boot with the header's serial port on, in which JTAG cannot run (kernel 6.18) |
-| J5 and H5 | wired to GPIO3 and GPIO4 | not wired | not wired |
-| Boot configuration for the JTAG steps | as the fleet boots | not read by us on a CM4 | `enable_uart=0` and no `console=serial0`: on pi16 at ps1 (kernel 6.18.50, 2026-10-05) JTAG cannot run with `enable_uart=1`. Not yet run by us on this hardware |
+- An Acorn wired as on [Acorn wiring on a Raspberry Pi 5](../setup/rpi-5/wiring.md), in the M.2 HAT slot, where the card is at `0001:01:00.0`.
+- `openFPGALoader` on the Pi, with the `libgpiod` cable.
+- The pin order `10:9:11:8` (TDI:TDO:TCK:TMS) for the `--pins` option.
+- The fpgas.online Acorn design's `.bit` file in `SOC`:
 
-:::{warning}
-**Detach the PCIe endpoint before every JTAG reconfiguration**, on either
-carrier. Reconfiguring the FPGA while its endpoint is enumerated is a surprise
-removal that the BCM2712 root complex (Pi 5, CM5) does not survive: the Pi drops
-SSH and reboots. With the endpoint removed first the load completes and the host
-is unaffected. Not measured on a CM4 (BCM2711); detach there too.
-:::
+  ```{include} ../inc/soc-file.inc
+  ```
 
-```{include} ../inc/soc-file.inc
+## Steps
+
+1. On the Pi, detach the card's PCIe endpoint, so that the load cannot remove it under the host ([why](jtag-and-the-pcie-endpoint.md#why-the-endpoint-is-detached-before-a-load)); `lspci` no longer lists the card.
+
+   ```console
+   $ echo 1 | sudo tee /sys/bus/pci/devices/0001:01:00.0/remove
+   ```
+
+2. On the Pi, link the header's GPIO chip as `gpiochip0`, because the `libgpiod` cable opens `/dev/gpiochip0` and the header is `gpiochip15` under kernel 6.12.
+
+   ```console
+   $ sudo ln -sfn /dev/gpiochip15 /dev/gpiochip0
+   ```
+
+3. On the Pi, read the IDCODE with a read-only `--detect`, which is safe without step 1; it prints the IDCODE of the chip.
+
+   ```console
+   $ openFPGALoader --cable libgpiod --pins 10:9:11:8 --detect
+   ```
+
+4. On the Pi, load the design into SRAM, which takes about 16 s for a 1.6 MB XC7A200T bitstream over `libgpiod`.
+
+   ```console
+   $ openFPGALoader --cable libgpiod --pins 10:9:11:8 $SOC
+   ```
+
+5. On the Pi, bring the endpoint back with `echo 1 | sudo tee /sys/bus/pci/rescan`, or reboot; the card is enumerated again.
+
+## Check
+
+The IDCODE from step 3 tells the chip: `0x3636093` for an XC7A200T (CLE-215+, CLE-215, NiteFury) and `0x3631093` for an XC7A100T (CLE-101, LiteFury).
+
+```text
+idcode 0x3636093 (XC7A200T)
 ```
 
-## On a Raspberry Pi 5
+A load over JTAG lands in SRAM and works on every variant. An SRAM load is lost at power-off, so a reboot restores whatever is in flash. Never pass `--write-flash` here: [How to install the fpgas.online images on an Acorn](../setup/install-images.md) writes the flash.
 
-```console
-# 0. Detach the endpoint (bring it back afterwards with: echo 1 | sudo tee /sys/bus/pci/rescan, or reboot)
-$ echo 1 | sudo tee /sys/bus/pci/devices/0001:01:00.0/remove
-# The libgpiod cable opens gpiochip0, the header is gpiochip15
-$ sudo ln -sfn /dev/gpiochip15 /dev/gpiochip0
-# 1. Read-only check (safe without step 0)
-$ openFPGALoader --cable libgpiod --pins 10:9:11:8 --detect
-# Expected: idcode 0x3636093 (XC7A200T)
-# 2. Load to SRAM. About 16 s for a 1.6 MB XC7A200T bitstream over libgpiod.
-$ openFPGALoader --cable libgpiod --pins 10:9:11:8 $SOC
-```
+## If it fails
 
-## On a Compute Blade
+- **`JTAG init failed with: Unable to open gpio chip`:** the `gpiochip0` link of step 2 is missing; link the chip again.
+- **`--detect` says `found 0 devices` but PCIe enumerates:** the P1 cable is unmated or miswired; check TCK for the Acorn's pull-up and reseat P1.
+- **`Open file … FAIL` in under 0.1 s:** the bitstream is gone, because `/home/pi` is a memory overlay that loses its files at reboot; copy it again.
+- **The Pi drops SSH and reboots during the load:** the endpoint was still enumerated; detach it (step 1) before every load.
+- **JTAG programming fails:** the pin order is wrong; use `--pins 10:9:11:8`.
 
-```{include} ../inc/blade-first.inc
-```
+## Next
 
-```{include} ../inc/blade-jtag-serial-off.inc
-```
-
-Booted with the header's serial port off:
-
-```{include} ../inc/blade-jtag-commands.inc
-```
-
-## After the load
-
-Never pass `--write-flash` here: an SRAM load is lost at power-off, so a reboot
-restores whatever is in flash, which makes every experiment safe. Writing the
-flash is covered in [How to install the fpgas.online images on an Acorn](../setup/install-images.md).
-
-:::{warning}
-**Files staged under `/home/pi` do not survive a reboot** on a host whose root
-is an overlay in memory (`overlayroot=tmpfs` on a read-only NFS root, as on the
-fleet). The symptom is openFPGALoader printing `Open file … FAIL` in under
-0.1 s: copy the bitstream again.
-:::
-
-## If it goes wrong
-
-| Problem | Likely cause | Fix |
-|---------|--------------|-----|
-| JTAG programming fails | wrong pins | check the pin order |
-| `gpiod_line_request_set_values_subset: Assertion 'request' failed` on a Compute Blade | The serial driver holds GPIO14 (`enable_uart=1`; `dmesg`: `pin gpio14 already requested by 1f00030000.serial`) | JTAG needs the header's serial port off at boot ([JTAG on a blade](compute-blade-jtag-by-hand.md#jtag-on-a-blade)); not yet run by us on this hardware |
-| `--detect` says `found 0 devices` but PCIe enumerates | P1 (JTAG) cable unmated or miswired | Check TCK for the Acorn's pull-up; reseat P1 |
-| `Open file … FAIL` in < 0.1 s | The bitstream is gone: `/home/pi` is a tmpfs overlay, lost at reboot | Copy the file again |
-| JTAG fails on a Compute Blade | Wrong pin order | Use `--pins 2:3:4:14`, not `--pins 10:9:11:8` |
-
-On a Raspberry Pi 5, `JTAG init failed with: Unable to open gpio chip` means the `gpiochip0` link of the
-block above is missing.
+- [How to check an Acorn's PCIe link by hand on a Raspberry Pi 5](pcie-by-hand.md)
+- [JTAG loads and the PCIe endpoint](jtag-and-the-pcie-endpoint.md)
+- [Acorn wiring faults on a Raspberry Pi 5](../troubleshooting/rpi-5-wiring.md)

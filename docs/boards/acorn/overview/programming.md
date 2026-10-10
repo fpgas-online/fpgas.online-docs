@@ -56,7 +56,7 @@ $ openFPGALoader --cable libgpiod --pins 10:9:11:8 <bitstream.bit>
 
 **On a Compute Blade do not make this `gpiochip0` link and do not use these commands.** There the JTAG pins are
 `2:3:4:14` (P1 lands on GPIO2, 3, 4 and 14: the I²C pair, GPIO4 and the UART TX
-line), and the PCIe bus address differs per blade; see [JTAG on a blade](../checks/compute-blade-jtag-by-hand.md#jtag-on-a-blade).
+line), and the PCIe bus address differs per blade; see [How to run JTAG by hand on an Acorn on a Compute Blade](../checks/compute-blade-jtag-by-hand.md).
 
 :::{warning}
 Detach the PCIe endpoint before loading a bitstream. Reconfiguring the FPGA
@@ -64,11 +64,11 @@ underneath an enumerated endpoint is a surprise removal, and the BCM2712 root
 complex does not survive it: the host crashes. The rule, the per-host bus
 address and bringing the endpoint back are in [detach the PCIe endpoint before
 any JTAG
-reconfiguration](../checks/pcie-by-hand.md#detach-the-pcie-endpoint-before-any-jtag-reconfiguration).
+reconfiguration](../checks/jtag-and-the-pcie-endpoint.md#why-the-endpoint-is-detached-before-a-load).
 :::
 
 Pin order and the Pi 5 `gpiochip15` link are in [JTAG from the Pi](../setup/rpi-5/pi-settings.md#jtag-from-the-pi), and the
-`overlayroot=tmpfs` trap in [How to run JTAG by hand on an Acorn](../checks/jtag-by-hand.md). Which bitstreams
+`overlayroot=tmpfs` trap in [How to run JTAG by hand on an Acorn on a Raspberry Pi 5](../checks/jtag-by-hand.md). Which bitstreams
 to use, and which prebuilt ones not to, is under
 [Images](design.md#images).
 
@@ -92,7 +92,7 @@ JTAG.
 
 | Method | Speed | Persistent? | Requires | Notes |
 |--------|-------|-------------|----------|-------|
-| GPIO JTAG → SRAM | about 16 s for a 1.6 MB XC7A200T bitstream over libgpiod; 24 s for the 2.3 MB fpgas.online SoC over OpenOCD | No (lost at power-off) | the P1 JTAG wiring | Works whatever is loaded. **[Detach the PCIe endpoint first](../checks/pcie-by-hand.md#detach-the-pcie-endpoint-before-any-jtag-reconfiguration)** |
+| GPIO JTAG → SRAM | about 16 s for a 1.6 MB XC7A200T bitstream over libgpiod; 24 s for the 2.3 MB fpgas.online SoC over OpenOCD | No (lost at power-off) | the P1 JTAG wiring | Works whatever is loaded. **[Detach the PCIe endpoint first](../checks/jtag-and-the-pcie-endpoint.md#why-the-endpoint-is-detached-before-a-load)** |
 | PCIe → SPI flash, `spi_flash.py` | 32 MiB read in 58 s; a 4 MiB slot erased, written and verified in about 20 s | Yes | the fpgas.online Acorn design running (from flash, or loaded into SRAM over JTAG) | Stdlib Python over BAR0, no kernel module. The proven path |
 | PCIe → SPI flash, `litepcie_util` | — | Yes | a LiteX PCIe design and the `litepcie` kernel module | Not yet run on fleet hardware |
 

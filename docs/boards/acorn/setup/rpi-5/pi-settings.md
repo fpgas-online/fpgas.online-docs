@@ -65,7 +65,7 @@ build has `--read-dna`, `--read-xadc` and `--read-register`, all read-only.
 
 `--detect` is read-only and safe against a live PCIe endpoint. Loading a
 bitstream is not: [detach the PCIe endpoint
-first](../../checks/pcie-by-hand.md#detach-the-pcie-endpoint-before-any-jtag-reconfiguration).
+first](../../checks/jtag-and-the-pcie-endpoint.md#why-the-endpoint-is-detached-before-a-load).
 
 ```{include} ../../inc/kernel-console.inc
 ```

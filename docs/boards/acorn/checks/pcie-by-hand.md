@@ -1,169 +1,92 @@
 ---
 type: how-to
 owner: documentation maintainers
-reader: someone with an Acorn in its host who wants to check its PCIe link by hand
+reader: someone with an Acorn in a Raspberry Pi 5 who wants to check its PCIe link
 review: 2026-11-10
 ---
 
-# How to check an Acorn's PCIe link by hand
+# How to check an Acorn's PCIe link by hand on a Raspberry Pi 5
 
-**You have an Acorn on a Raspberry Pi 5 or in a Compute Blade and want to see by hand that the card is on
-the PCIe bus, detach it before a JTAG load, load the fpgas.online design and bring the card back on the
-bus.** The boot check does the reading part by itself (`pcie-link`, `pcie-bar0`): [Installing the Acorn
-packages](../setup/packages.md#installing-the-acorn-packages). The design is built for the CLE-215+, the CLE-215
-and the CLE-101.
+**You have an Acorn on a Raspberry Pi 5 and want to load the fpgas.online design and bring the card back.**
 
-## Detach the PCIe endpoint before any JTAG reconfiguration
+The boot check does the reading part by itself (`pcie-link`, `pcie-bar0`): [Installing the Acorn packages](../setup/packages.md#installing-the-acorn-packages). The design is built for the CLE-215+, the CLE-215 and the CLE-101. On a Compute Blade the addresses and the way back differ: [How to check an Acorn's PCIe link by hand on a Compute Blade](pcie-by-hand-compute-blade.md).
 
-:::{warning}
-**Detach the PCIe endpoint before any JTAG reconfiguration.** Reconfiguring the
-FPGA over JTAG while its endpoint is enumerated is a PCIe surprise removal, and
-the Pi 5's BCM2712 root complex does not survive it: the host drops SSH and
-reboots. With the endpoint removed first the load completes and the host is
-unaffected.
-:::
+## What you need
 
-The rule is the root complex's, not the Acorn's: it applies to any PCIe FPGA on
-a Pi 5, the NeTV2 on `rpi5-netv2` included ([PCIe
-detection](../../netv2.md#pcie-detection-rpi5-netv2)).
+- An Acorn in the M.2 slot of a Pi 5 with the M.2 HAT, where the card is at `0001:01:00.0`.
+- The JTAG wiring of [Acorn wiring on a Raspberry Pi 5](../setup/rpi-5/wiring.md), and `openFPGALoader` with the `libgpiod` cable.
+- The fpgas.online Acorn design's `.bit` file in `SOC`:
 
-Every `openFPGALoader … <bitstream>` on these pages assumes the endpoint is detached.
-Read-only operations (`--detect`, `--read-dna`, `--read-xadc`) do not
-reconfigure the device and are safe on a live endpoint.
+  ```{include} ../inc/soc-file.inc
+  ```
 
-```{include} ../inc/soc-file.inc
+## Steps
+
+1. On the Pi, list the card with `lspci`; it shows one line, whose ID says which image it runs.
+
+   ```console
+   $ lspci -nn -s 0001:01:00.0
+   ```
+
+   ```{include} ../inc/lspci-ids.inc
+   ```
+
+2. On the Pi, detach the card's PCIe endpoint before any JTAG load ([why](jtag-and-the-pcie-endpoint.md#why-the-endpoint-is-detached-before-a-load)); the card no longer shows in `lspci`.
+
+   ```console
+   $ echo 1 | sudo tee /sys/bus/pci/devices/0001:01:00.0/remove
+   ```
+
+3. On the Pi, link the header's GPIO chip as `gpiochip0`, because the `libgpiod` cable opens `gpiochip0` and the header is `gpiochip15`.
+
+   ```console
+   $ sudo ln -sfn /dev/gpiochip15 /dev/gpiochip0
+   ```
+
+4. On the Pi, load the design into SRAM; the load ends with the done message of openFPGALoader.
+
+   ```console
+   $ openFPGALoader --cable libgpiod --pins 10:9:11:8 $SOC
+   ```
+
+5. On the Pi, rescan the bus; the link is up the moment the load finishes, so the rescan enumerates the card.
+
+   ```console
+   $ echo 1 | sudo tee /sys/bus/pci/rescan
+   ```
+
+6. On the Pi, list the Xilinx devices; the card is back, as the LitePCIe default for one lane.
+
+   ```console
+   $ lspci -nn -d 10ee:
+   ```
+
+## Check
+
+Step 6 shows the fpgas.online design's ID.
+
+```text
+Xilinx Corporation Device [10ee:7021]
 ```
 
-## On a Raspberry Pi 5
+## If it fails
 
-On a Raspberry Pi 5 with the M.2 HAT the card is at `0001:01:00.0` (so on every welland Pi 5 read on 2026-09-03).
+- **The Acorn is not in step 1:** the M.2 card or the HAT's FPC cable is loose; reseat both and read `dmesg | grep -i pci`.
+- **The Pi reboots or SSH drops during the load:** the endpoint was still enumerated; detach it (step 2) before every load.
+- **Step 6 shows nothing:** the card did not link; re-probe the slot's root complex with the lines below, then run step 6 again.
+- **`bind` fails with `No such device`:** the link was down, so the root port `0001:00:00.0` is gone. Load a design that links (or `openFPGALoader --reset`), then `bind` again.
+- **The card still does not link:** check that the build's I/O report has the lane on B10 and B6.
 
-### Is the card on the bus?
+The re-probe finds the platform device behind the slot, then unbinds and binds it:
 
 ```console
-$ lspci -nn -s 0001:01:00.0
-```
-
-```{include} ../inc/lspci-ids.inc
-```
-
-If the Acorn doesn't appear, check the M.2 seating and the HAT's FPC
-cable, and `dmesg | grep -i pci`.
-
-### Detach the endpoint
-
-```console
-# Detach the endpoint first, before openFPGALoader
-$ echo 1 | sudo tee /sys/bus/pci/devices/0001:01:00.0/remove
-# ... load ...
-# then bring it back: the next step
-```
-
-### Load the design and bring the endpoint back
-
-```console
-$ echo 1 | sudo tee /sys/bus/pci/devices/0001:01:00.0/remove   # detach first
-# The libgpiod cable opens gpiochip0, the header is gpiochip15
-$ sudo ln -sfn /dev/gpiochip15 /dev/gpiochip0
-$ openFPGALoader --cable libgpiod --pins 10:9:11:8 $SOC
-$ echo 1 | sudo tee /sys/bus/pci/rescan
-$ lspci -nn -d 10ee:
-# Expected: Xilinx Corporation Device [10ee:7021] (the LitePCIe default for one lane)
-```
-
-## On a Compute Blade
-
-```{include} ../inc/blade-first.inc
-```
-
-```{include} ../inc/blade-jtag-serial-off.inc
-```
-
-### Is the card on the bus?
-
-```console
-$ lspci -nn -s $BDF
-```
-
-```{include} ../inc/lspci-ids.inc
-```
-
-If the Acorn doesn't appear, check the M.2 seating, and `dmesg | grep -i pci`.
-
-### Detach the endpoint
-
-At ps1 the address differs per blade, so read it with `lspci` on the blade.
-
-```{include} ../inc/blade-detach.inc
-```
-
-### Load the design and bring the endpoint back
-
-The load, rescan and re-probe are as measured on pi20 at ps1, a
-CM5; the `pinctrl` line as run on pi16 at ps1; the root complex's name on a CM4 is not
-read by us, so take it from the `readlink` line:
-
-```console
-$ echo 1 | sudo tee /sys/bus/pci/devices/$BDF/remove   # detach first
-$ openFPGALoader --cable libgpiod --pins 2:3:4:14 $SOC
-$ pinctrl set 2,4 no pu
-$ echo 1 | sudo tee /sys/bus/pci/rescan
-$ lspci -nn -d 10ee:
-# Nothing? On pi20 at ps1 a rescan was not enough: re-probe the root complex of the slot.
-$ RC=$(readlink -f /sys/bus/pci/devices/${BDF%%:*}:00:00.0 | grep -o '[0-9a-f]*\.pcie')
-$ echo $RC
-1000110000.pcie
+$ RC=$(readlink -f /sys/bus/pci/devices/0001:00:00.0 | grep -o '[0-9a-f]*\.pcie')
 $ echo $RC | sudo tee /sys/bus/platform/drivers/brcm-pcie/unbind
 $ echo $RC | sudo tee /sys/bus/platform/drivers/brcm-pcie/bind
-$ lspci -nn -d 10ee:
-# Expected: Xilinx Corporation Device [10ee:7021]
 ```
 
-When the rescan is enough and when the re-probe is needed is under [Bring the
-endpoint back after a JTAG
-load](#bring-the-endpoint-back-after-a-jtag-load).
+## Next
 
-## Bring the endpoint back after a JTAG load
-
-Measured on pi20 at ps1 (CM5 on a Compute Blade, kernel 6.12.75):
-
-| Design loaded over JTAG | `echo 1 > /sys/bus/pci/rescan` | Root-complex re-probe |
-|---|---|---|
-| Vendor XDMA image (reloaded from flash with `openFPGALoader --reset`) | re-links at 5 GT/s x1 and enumerates | works |
-| LiteX `acorn-pcie` SoC | nothing: the core's LTSSM sits at `0x2d`, and a root-port retrain or secondary-bus reset changes nothing | **links at 5 GT/s x1, enumerates as `10ee:7021`** |
-
-Measured on a Raspberry Pi 5 with an M.2 HAT (kernel 6.12.96; the host was then named pi-sw2-p48; our record of this measurement carries no date):
-
-| Design loaded over JTAG | `echo 1 > /sys/bus/pci/rescan` | Root-complex re-probe |
-|---|---|---|
-| LiteX `acorn-pcie` SoC (CLE-215+) | **enough**: the link is up (LTSSM `0x16`, L0, 5 GT/s x1) as soon as the load finishes, and the rescan enumerates `10ee:7021` | not needed |
-
-So try the rescan first, and re-probe the root complex only when `lspci` still
-shows nothing. The re-probe toggles PERST# by unbinding and rebinding the slot's
-root complex; that touches only the FPGA's PCI domain, because the RP1
-southbridge (Ethernet, USB, GPIO) hangs off a different platform device. The
-platform device behind the FPGA slot is `1000110000.pcie` on both kinds of host.
-Why the CM5 blade needs PERST# and the Pi 5 does not is not understood.
-
-```console
-# Which platform device is behind the FPGA slot?
-$ readlink -f /sys/bus/pci/devices/0001:00:00.0 | grep -o '[0-9a-f]*\.pcie'
-1000110000.pcie
-$ echo 1000110000.pcie | sudo tee /sys/bus/platform/drivers/brcm-pcie/unbind
-$ echo 1000110000.pcie | sudo tee /sys/bus/platform/drivers/brcm-pcie/bind
-$ lspci -nn -s 0001:01:00.0
-0001:01:00.0 Memory controller [0580]: Xilinx Corporation Device [10ee:7021]
-```
-
-If the link is down when `bind` runs, the driver logs `link down`, `bind` fails
-with `No such device`, and the root port `0001:00:00.0` disappears until a later
-`bind` succeeds. That is recoverable: load a design that links (or
-`openFPGALoader --reset` to reload the flash image) and `bind` again.
-
-## If it goes wrong
-
-| Problem | Likely cause | Fix |
-|---------|--------------|-----|
-| Acorn not on PCIe | M.2 not seated, FPC cable loose | Reseat the M.2 card, check the FPC |
-| Pi reboots or SSH drops during a JTAG load | FPGA reconfigured while its PCIe endpoint was enumerated | `echo 1 > /sys/bus/pci/devices/0001:01:00.0/remove` before loading (`0000:01:00.0` on a CM4 blade) |
-| PCIe device missing after loading a design | Not rescanned, or (on a CM5 blade) a LiteX design that needs PERST# | Rescan; if still missing, re-probe the slot's root complex ([procedure](#bring-the-endpoint-back-after-a-jtag-load)); if it still does not link, check the build's I/O report has the lane on B10/B6 |
+- [How to run JTAG by hand on an Acorn on a Raspberry Pi 5](jtag-by-hand.md)
+- [JTAG loads and the PCIe endpoint](jtag-and-the-pcie-endpoint.md)
+- [How to recover an Acorn with a bad image](../troubleshooting/recovery.md)

@@ -91,7 +91,7 @@ resistor: GPIO15 is not a JTAG pin on this carrier.
 The serial port and JTAG cannot both have GPIO14 in one boot of a host on
 kernel 6.18: with the header's serial port on (`enable_uart=1`) the kernel's
 serial driver holds GPIO14 and JTAG cannot run, and with it off there is no
-`/dev/ttyAMA0` for the serial pair (see [JTAG on a blade](../../checks/compute-blade-jtag-by-hand.md#jtag-on-a-blade)).
+`/dev/ttyAMA0` for the serial pair (see [why a blade needs its serial port off for JTAG](../../checks/jtag-and-the-pcie-endpoint.md#why-a-blade-needs-its-serial-port-off-for-jtag)).
 Under kernel 6.12.75 pi20 at ps1 ran JTAG and then used `/dev/ttyAMA0` in the same
 boot.
 
