@@ -5,7 +5,7 @@ decodes that name on every Raspberry Pi GPIO in turn, so a cable's actual pin
 mapping is read off directly rather than assumed from documentation or
 datasheets. Several board pages defer their open wiring questions to this
 method, including the Arty A7's
-[PMOD cable routing](arty-a7.md#pmod-cable-routing-hat--arty), the Acorn's
+[PMOD cable routing](arty-a7/setup/wiring.md#pmod-cables), the Acorn's
 [P2 wiring check](acorn/checks/pin-id.md),
 and the TT FPGA's [pin mapping](tt-fpga.md#pin-mapping).
 
@@ -259,7 +259,7 @@ connector position), the mapping is verified. Any disagreement points to a
 bug in the connector table, a cable swap, or a documentation error.
 
 This is how the
-[Arty A7 mapping](arty-a7.md#pmod-cable-routing-hat--arty) was verified in the
+[Arty A7 mapping](arty-a7/setup/wiring.md#pmod-cables) was verified in the
 fpgas.online infrastructure: 17 of 21 unique GPIOs decoded correctly in both
 scans, and the 4 that garbled in one scan were confirmed via the other.
 
@@ -297,5 +297,5 @@ page.
 - Gateware source: [the pin-id gateware](https://github.com/fpgas-online/fpgas.online-test-designs/tree/main/designs/pmod-pin-id/gateware/)
 - Host scanner: [the pin-id host scanner](https://github.com/fpgas-online/fpgas.online-test-designs/blob/main/designs/pmod-pin-id/host/identify_pmod_pins.py)
 - PMOD HAT pin mapping: [Raspberry Pi PMOD HAT](pmod/rpi-hat.md)
-- Arty A7 pin mapping (with scan results): [Digilent Arty A7](arty-a7.md#wiring-to-the-raspberry-pi)
+- Arty A7 pin mapping (with scan results): [Arty A7 wiring to a Raspberry Pi](arty-a7/setup/wiring.md)
 - TinyTapeout PMOD standards: [Tiny Tapeout PMOD layouts](pmod/tinytapeout.md)

@@ -17,7 +17,7 @@ switch belong to the site's own operator, and fpgas.online does not deploy to th
 written with its site in these docs, as in "pi20 at ps1". Its gateway is on [The ps1 gateway and switch](ps1-gateway.md), for someone who runs the site.
 
 [The ps1 site](https://ps1.fpgas.online/fpgas/) lists the boards a visitor can use. They are
-[Arty A7](../boards/arty-a7.md) boards, each on a Raspberry Pi over USB. A board's page gives a terminal in the
+[Arty A7](../boards/arty-a7/index.md) boards, each on a Raspberry Pi over USB. A board's page gives a terminal in the
 browser, an upload for a bitstream and a camera feed of the board. Its reset power-cycles the host.
 
 ps1 also has Compute Blades, each with a Raspberry Pi Compute Module and an M.2 slot for an
