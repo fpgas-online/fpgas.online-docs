@@ -20,13 +20,13 @@ in fpgas.online-test-designs. It has PCIe Gen2 x1 (`10ee:7021`), a UART bridge o
 core and ICAP. The board is named in the PCI subsystem ID: `1e24:021f` for a CLE-215+ and `1e24:0101` for a CLE-101.
 It builds with Vivado, because the XC7A200T is too large for openXC7, in two images.
 
-Image names the build, File is the file that goes into the flash, and Flash slot is where it sits. The build commands
-are in [generating multiboot bitstreams by hand](../setup/install-images.md#generating-multiboot-bitstreams-by-hand).
+Image names the image and Build is the command that makes it. File is the file that goes into the flash, and Flash
+slot is where it sits.
 
-| Image       | File                                                          | Flash slot |
-|-------------|---------------------------------------------------------------|------------|
-| Golden      | `sqrl_acorn_fallback.bin` (chain-loads 0x400000)              | 0x0        |
-| Operational | `sqrl_acorn_operational.bin` (with the watchdog)              | 0x400000   |
+| Image | Build | File | Flash slot |
+|---|---|---|---|
+| Golden | `acorn_pcie_soc.py --variant <v> --golden --build` | `sqrl_acorn_fallback.bin` (chain-loads 0x400000) | 0x0 |
+| Operational | `acorn_pcie_soc.py --variant <v> --build` | `sqrl_acorn_operational.bin` (with the watchdog) | 0x400000 |
 
 The golden image has no DDR3 and no P2 GPIO, so nothing in it can fail calibration. The `.bit` of each build is for a
 JTAG SRAM load.

@@ -8,27 +8,30 @@ review: 2026-11-10
 # Acorn references
 
 This page lists the vendor's and LiteX's documents, our own repositories, and the source of the generated wiring.
+The wiring sheets, the pin tables and the cable pages are generated from that one source.
 Each list gives one link per document, with a description of what it holds.
 
 ## Our repositories
 
-The wiring has one source, the table `wiring.toml`. The wiring sheets, the pin tables and the building guide's pages are
-generated from it.
-
-- Wiring source: [fpgas.online-test-designs `docs/wiring/acorn/`](https://github.com/fpgas-online/fpgas.online-test-designs/tree/main/docs/wiring/acorn)
+- Wiring source, the table `wiring.toml` and its generator: [fpgas.online-test-designs `docs/wiring/acorn/`](https://github.com/fpgas-online/fpgas.online-test-designs/tree/main/docs/wiring/acorn)
 - The fpgas.online Acorn design: [`designs/acorn-pcie`](https://github.com/fpgas-online/fpgas.online-test-designs/tree/main/designs/acorn-pcie)
 
 ## LiteX
 
-The LiteX target `litex_boards/targets/sqrl_acorn.py` provides a PCIe Gen2 x4 endpoint with DMA and a DDR3 SDRAM
-controller (LiteDRAM). It also provides SPI flash access (LiteSPI), ICAP for warm-boot and multiboot, and optional
-Ethernet via a PCIe bridge.
-
 - Platform definition: [`litex_boards/platforms/sqrl_acorn.py`](https://github.com/litex-hub/litex-boards/blob/master/litex_boards/platforms/sqrl_acorn.py)
 - Target definition: [`litex_boards/targets/sqrl_acorn.py`](https://github.com/litex-hub/litex-boards/blob/master/litex_boards/targets/sqrl_acorn.py)
+- The target's build command: `python3 -m litex_boards.targets.sqrl_acorn --build`
 - Wiki: [Use LiteX on the Acorn CLE-215](https://github.com/enjoy-digital/litex/wiki/Use-LiteX-on-the-Acorn-CLE-215)
 - PCIe core: [LitePCIe](https://github.com/enjoy-digital/litepcie)
 - ICAP core: [LiteX `icap.py`](https://github.com/enjoy-digital/litex/blob/master/litex/soc/cores/icap.py)
+
+## What the LiteX target provides
+
+- A PCIe Gen2 x4 endpoint with DMA.
+- A DDR3 SDRAM controller (LiteDRAM).
+- SPI flash access (LiteSPI).
+- ICAP for warm-boot and multiboot.
+- Optional Ethernet through a PCIe bridge.
 
 ## The card and its documents
 

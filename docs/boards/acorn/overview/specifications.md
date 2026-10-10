@@ -10,6 +10,12 @@ review: 2026-11-10
 This page lists the figures and FPGA pins of the Acorn: FPGA, PCIe interface, clock, LEDs, serial pins, flash and
 memory. It does not describe the card as a whole: that is [The Acorn card](card.md).
 
+:::{admonition} Figure to come
+:class: placeholder
+
+Each part in its own crop of the whole-card picture: the LEDs, the flash chip, the DDR3 and the two connectors. Tracked in [docs issue #121](https://github.com/fpgas-online/fpgas.online-docs/issues/121).
+:::
+
 ## Key specifications
 
 Parameter names a property and Value is its figure for the CLE-215+. The figures come from the [LiteX platform file](https://github.com/litex-hub/litex-boards/blob/master/litex_boards/platforms/sqrl_acorn.py).
@@ -25,7 +31,7 @@ The other cards are in [Acorn variants](../which-one.md#compatible-boards).
 | Block RAM        | 13,140 Kib                                                         |
 | GTP transceivers | 4 (up to 6.6 Gb/s each)                                            |
 | DDR3 SDRAM       | 1 GiB (one MT41K512M16, 16-bit)                                    |
-| SPI Flash        | S25FL256S (256 Mbit, quad SPI, multiboot with fallback and operational regions) |
+| SPI Flash        | Spansion S25FL256S (256 Mbit, quad SPI, multiboot with fallback and operational regions) |
 | PCIe             | Gen2 x4 (M.2 M-key)                                                |
 | Form factor      | M.2 2280                                                           |
 | Power            | Via M.2 / mPCIe slot (3.3V)                                        |

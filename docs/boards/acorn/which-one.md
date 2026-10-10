@@ -29,8 +29,11 @@ only the device string. Board names the card, and the other columns are its FPGA
 | Acorn CLE-215  | XC7A200T-FBG484 | -2          | 1 GB   | Gen2 x4 |
 | Acorn CLE-215+ | XC7A200T-FBG484 | -3          | 1 GB   | Gen2 x4 |
 
-The CLE-215+ is equivalent to the NiteFury but with 1 GB DDR3 (against 512 MB). The file `sqrl_acorn.py` builds the
-CLE-101 as `xc7a100t-fgg484-2` and passes `fgg484` to openFPGALoader; only the CLE-215 and CLE-215+ are `fbg484` there.
+The CLE-215+ is equivalent to the NiteFury but with 1 GB DDR3 (against 512 MB).
+
+The table gives the package as FBG484 for every card. The file `sqrl_acorn.py` disagrees for the CLE-101. It builds it as `xc7a100t-fgg484-2` and passes `fgg484` to
+openFPGALoader. Only the CLE-215 and CLE-215+ are `fbg484` there
+([docs issue #2](https://github.com/fpgas-online/fpgas.online-docs/issues/2)).
 The LiteFury is the same board as the CLE-101. Sources are the [NiteFury and LiteFury repository](https://github.com/RHSResearchLLC/NiteFury-and-LiteFury) and the
 [LiteX Acorn CLE-215 wiki](https://github.com/enjoy-digital/litex/wiki/Use-LiteX-on-the-Acorn-CLE-215).
 
@@ -45,6 +48,8 @@ Tell names what is read, Reads is the value it shows, and Identifies is the card
 | PCI ID on the fpgas.online design                              | `10ee:7021`   | the same card as its PCI subsystem ID (`1e24:021f` or `1e24:0101`) |
 | JTAG IDCODE                                                    | `0x3636093`   | XC7A200T: CLE-215+, CLE-215, NiteFury |
 | JTAG IDCODE                                                    | `0x3631093`   | XC7A100T: CLE-101, LiteFury        |
+
+Neither the PCI ID nor the IDCODE tells a CLE-215+ from a CLE-215 or a NiteFury ([docs issue #123](https://github.com/fpgas-online/fpgas.online-docs/issues/123)).
 
 Where to read each tell:
 
