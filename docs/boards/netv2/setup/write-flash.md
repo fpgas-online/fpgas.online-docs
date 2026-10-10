@@ -11,6 +11,8 @@ review: 2026-11-10
 
 The write overwrites whatever bitstream the flash holds. Loading into SRAM only is on [the Raspberry Pi 3B+ page](load-pi-3b-plus.md) and [the Raspberry Pi 5 page](load-pi-5.md).
 
+This procedure is waiting for its run: [test-designs issue #249](https://github.com/fpgas-online/fpgas.online-test-designs/issues/249).
+
 ## What you need
 
 - A NeTV2 wired as on [NeTV2 wiring to a Raspberry Pi](wiring.md#jtag), with openFPGALoader on the Pi.

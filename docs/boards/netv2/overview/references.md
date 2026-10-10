@@ -14,5 +14,5 @@ review: 2026-11-10
 - NeTV2 FPGA reference design: [AlphamaxMedia/netv2-fpga](https://github.com/AlphamaxMedia/netv2-fpga).
 - NeTV2 MVP scripts: [alphamaxmedia/netv2mvp-scripts](https://github.com/alphamaxmedia/netv2mvp-scripts), whose [alphamax-rpi OpenOCD configuration](https://github.com/alphamaxmedia/netv2mvp-scripts/blob/master/alphamax-rpi.cfg) is the source of the JTAG pin mapping on [NeTV2 wiring to a Raspberry Pi](../setup/wiring.md).
 - The RP1 PIO JTAG support: [mithro/openFPGALoader (feature/rp1-jtag-netv2)](https://github.com/mithro/openFPGALoader/tree/feature/rp1-jtag-netv2) and [mithro/rp1-jtag](https://github.com/mithro/rp1-jtag).
-- The designer's blog on the NeTV2 design: [bunnie's blog](https://www.bunniestudios.com/blog/?p=4842).
+- The designer's blog on the NeTV2 design: [the designer's blog](https://www.bunniestudios.com/blog/?p=4842).
 - The board's campaign page: [Crowd Supply NeTV2](https://www.crowdsupply.com/alphamax/netv2).
