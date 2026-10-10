@@ -42,7 +42,7 @@ the page. Generator or tooling code in the same change gets a code review as wel
 ## The shortcuts a reviewer hunts for
 
 Every reviewer is given one sentence in so many words: "Hunt for places where a shortcut was taken and the work
-was not completed." A shortcut passes a fact check, which is why a fact check alone never finds one. The list
+was not completed". A shortcut passes a fact check, which is why a fact check alone never finds one. The list
 names the shortcuts a reviewer hunts for.
 
 - The overview figure reused as a step view; the same figure repeated.
