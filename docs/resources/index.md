@@ -10,10 +10,7 @@ review: 2026-11-10
 - [PMOD interface](../boards/pmod/index.md): the PMOD connector types and their pins.
 - [Raspberry Pi PMOD HAT](../boards/pmod/rpi-hat.md): the Raspberry Pi GPIOs behind each PMOD pin of the HAT.
 - [Tiny Tapeout PMOD layouts](../boards/pmod/tinytapeout.md): the PMOD layouts of the Tiny Tapeout demo boards.
-- [The pin-id design](../boards/pin-id.md): how a design makes each FPGA pin send its own name.
-- [How to scan a board's wiring with the pin-id design](../boards/pin-id/scan.md): run a scan on an Arty A7.
-- [Pin-id scanner options](../boards/pin-id/scanner-options.md): the options of the host scanner.
-- [How to add a board to the pin-id design](../boards/pin-id/add-board.md): build the design for another board.
+- [The pin-id design](../boards/pin-id.md): how a design makes each FPGA pin send its own name, and the pages that scan with it.
 
 ```{toctree}
 :hidden:
