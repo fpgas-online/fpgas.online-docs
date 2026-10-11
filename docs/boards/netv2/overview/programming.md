@@ -31,7 +31,7 @@ On a Raspberry Pi 5 the PCIe link matters for another reason. Reconfiguring the 
 
 openFPGALoader drives the JTAG signals, and its `--pins` order is `TDI:TDO:TCK:TMS`. On a Raspberry Pi 3B+ it uses the `libgpiod` cable, which drives the pins through the Linux GPIO subsystem. That is bit-banging, and its effective JTAG clock is about 5 MHz.
 
-On a Raspberry Pi 5 the same `libgpiod` cable works but is slower, because the RP1 I/O controller adds latency to sysfs GPIO access. The `rp1pio` cable drives JTAG through the RP1's PIO peripheral instead, which is much faster. It is not in upstream openFPGALoader. It is installed from the `openfpgaloader-rp1pio` package, which brings the `librp1jtag0` shared library with it, and [the NeTV2 packages](../setup/packages.md) say where the package comes from.
+On a Raspberry Pi 5 the same `libgpiod` cable works but is slower, because the RP1 I/O controller adds latency to sysfs GPIO access. The `rp1pio` cable drives JTAG through the RP1's PIO peripheral instead, which is much faster. It is not in upstream openFPGALoader. It comes in the `openfpgaloader-fpgasonline-git` package ([What runs on a Pi host](../../../setup/pi.md)).
 
 The check on the host uses a second tool on a Raspberry Pi 3 or 4. There it runs OpenOCD with the `bcm2835gpio` adapter, both to find the NeTV2 and to load a bitstream. On a Raspberry Pi 5 the check uses openFPGALoader with the `rp1pio` cable, and the NeTV2 tools package installs both tools.
 

@@ -30,7 +30,7 @@ $ openFPGALoader -b arty design.bit
 ## Check
 
 - The board appears on the Raspberry Pi as two `/dev/ttyUSB*` devices, the JTAG channel and the UART channel.
-- `openFPGALoader` ends without an error.
+- The load's last line ends with `done 1`. With `done 0` the FPGA is not configured, whatever the exit status; the STAT register printed under it says why.
 
 ## If it fails
 

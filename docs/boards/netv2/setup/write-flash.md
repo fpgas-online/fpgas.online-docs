@@ -20,9 +20,8 @@ This procedure is waiting for its run: [test-designs issue #249](https://github.
 
 ## Steps
 
-1. On a Raspberry Pi 5, run `lspci -d 10ee:7011` to find the NeTV2's PCIe address, `0001:01:00.0` on a Pi 5.
-   If it printed nothing, there is nothing to detach: go to step 3.
-2. On a Raspberry Pi 5, detach the endpoint: `echo 1 | sudo tee /sys/bus/pci/devices/0001:01:00.0/remove`, with the address from step 1.
+1. On a Raspberry Pi 5, run `lspci -D -s 0001:01:00.0`, the Pi 5's PCIe slot. A line there is an endpoint to detach; no line, go to step 3.
+2. On a Raspberry Pi 5, detach it with `echo 1 | sudo tee /sys/bus/pci/devices/0001:01:00.0/remove`. Run `lspci -D -s 0001:01:00.0` again: it prints nothing. If it still prints the line, stop.
 3. On the Pi, run `sudo openFPGALoader --cable libgpiod --pins 27:22:4:17 --write-flash design.bit` to write the bitstream to the flash over GPIO bit-banged JTAG. On a Raspberry Pi 3B+ this is the only step.
 
 The pin order is `TDI:TDO:TCK:TMS`.

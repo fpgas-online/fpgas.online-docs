@@ -49,7 +49,7 @@ This procedure is waiting for its run: [test-designs issue #230](https://github.
    $ sudo ln -sfn /dev/gpiochip15 /dev/gpiochip0
    ```
 
-4. On the Pi, load the loopback bitstream into SRAM; the load ends with the done message of openFPGALoader.
+4. On the Pi, load the loopback bitstream into SRAM; the load's last line ends with `done 1`.
 
    ```console
    $ openFPGALoader --cable libgpiod --pins 10:9:11:8 $LOOPBACK
