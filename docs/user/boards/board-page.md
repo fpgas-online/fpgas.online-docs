@@ -12,10 +12,10 @@ has the same page; only its heading names the board. The Tiny Tapeout boards on 
 own page, with the Tiny Tapeout Commander in it.
 
 ```{figure} screenshots/welland-board-page.png
-:alt: An Acorn's board page on welland. At the top, the heading names the host and the board, with the file chooser and upload button beside it. Under it are the Reset, reconnect, reset video player, reset ssh and ping buttons, and the Demos buttons. The camera shows the card with its LEDs lit, beside the terminal at a shell prompt. Below are the status box with its Send and Check PoE buttons, the Accessing directly box with the vlc, ssh and scp lines, and the Useful links.
+:alt: An Acorn's board page on welland, under the site's Under construction banner and the Home and Edit this page links. The heading names the host and the board, with the file chooser and upload button beside it. Under it are the Reset, reconnect, reset video player, reset ssh and ping buttons, and the Demos buttons. The camera, with its clock and rewind button, shows the card with green LEDs lit beside a QR-code label. It sits beside the terminal at a shell prompt. Below are the status box with its Send and Check PoE buttons, the Accessing directly box with the vlc, ssh and scp lines, and the start of the Useful links, where the picture ends.
 
-An Acorn's page on welland, 11 Oct 2026. The parts are in the table below, from the top. The password in Accessing
-directly is hidden in this picture.
+An Acorn's page on welland, 11 Oct 2026. Each part is a row of the table below. The password in Accessing directly
+is hidden in this picture.
 ```
 
 ## The parts of the page on welland

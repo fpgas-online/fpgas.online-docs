@@ -61,7 +61,7 @@ def annotated():
 
 
 def needs_twin(src):
-    if "screenshots" in Path(src).parts:
+    if "screenshots" in Path(src).parts and src.endswith(".png"):  # a site as it looks; never a drawing
         return False
     return src.endswith(DRAWING) or Path(src).name in annotated()
 
@@ -126,6 +126,15 @@ class EveryPicture(unittest.TestCase):
             self.assertTrue((FIGURES / dark(name)).exists(), f"{dark(name)}: run make_figures.py")
             if f"bootloader-eeprom/{name}" in on_pages:
                 self.assertIn(f"bootloader-eeprom/{dark(name)}", on_pages, f"{name} is shown without its twin")
+
+
+class Screenshots(unittest.TestCase):
+    def test_a_screenshots_folder_holds_only_png_screenshots(self):
+        folders = [p for p in DOCS.rglob("screenshots") if p.is_dir() and "_build" not in p.parts]
+        self.assertTrue(folders)
+        for folder in folders:
+            for f in folder.iterdir():
+                self.assertEqual(f.suffix, ".png", f"{f}: a screenshots folder holds PNG screenshots only")
 
 
 class SyncedDrawings(unittest.TestCase):
