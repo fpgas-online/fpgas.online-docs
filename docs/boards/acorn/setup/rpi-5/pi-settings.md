@@ -34,9 +34,9 @@ Each row of the next table is a setting of JTAG from a Pi 5 and its value. To ru
 |---------|-------|
 | Pins | SPI0, GPIO8-11 |
 | SPI modules | need not be unloaded: `pinctrl` shows GPIO8-11 unclaimed with them loaded |
-| The 40-pin header's GPIO chip | `/dev/gpiochip15` |
+| The 40-pin header's GPIO chip | the one `gpiodetect` lists as `pinctrl-rp1`, numbered 11 to 15: `/dev/gpiochip15` under kernel 6.12 |
 | Cable these pages use | `libgpiod`, which always opens `/dev/gpiochip0` |
-| Link before the `libgpiod` cable runs | `/dev/gpiochip15` as `/dev/gpiochip0`, made again at each boot |
+| Link before the `libgpiod` cable runs | the header's chip as `/dev/gpiochip0`, made again at each boot |
 | Package in the Welland NFS root | `openfpgaloader-fpgasonline-git`, from [fpgas.online-fpga-tools](https://github.com/fpgas-online/fpgas.online-fpga-tools) ([What runs on a Pi host](../../../../setup/pi.md)) |
 | Other cable of that package | `rp1pio` (RP1 PIO-driven JTAG), which needs `/dev/pio0` |
 

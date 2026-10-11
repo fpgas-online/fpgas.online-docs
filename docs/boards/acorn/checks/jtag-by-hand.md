@@ -29,10 +29,9 @@ The boot check reads the IDCODE and the device DNA over P1 by itself (`jtag`): [
    $ echo 1 | sudo tee /sys/bus/pci/devices/0001:01:00.0/remove
    ```
 
-2. On the Pi, link the header's GPIO chip as `gpiochip0`, because the `libgpiod` cable opens `/dev/gpiochip0` and the header is `gpiochip15` under kernel 6.12.
+2. On the Pi, make sure `gpiochip0` is the header's GPIO chip, because the `libgpiod` cable opens `/dev/gpiochip0`.
 
-   ```console
-   $ sudo ln -sfn /dev/gpiochip15 /dev/gpiochip0
+   ```{include} ../inc/gpiochip0.inc
    ```
 
 3. On the Pi, read the IDCODE with a read-only `--detect`, which is safe without step 1; it prints the IDCODE of the chip.

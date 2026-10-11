@@ -40,7 +40,7 @@ On a [Raspberry Pi 5 with an M.2 HAT](../setup/rpi-5/wiring.md) the full 40-pin 
 - P2 goes to header pins 5-10 and P1 to header pins 19-26.
 - JTAG has its own pins, `10:9:11:8` in the order TDI:TDO:TCK:TMS.
 - The serial pair is on GPIO14/15, and both spare balls (J5, H5) are wired.
-- libgpiod opens `gpiochip0`, so on a Pi 5 `/dev/gpiochip0` is a link to `/dev/gpiochip15`.
+- libgpiod opens `gpiochip0`, so on a Pi 5 `/dev/gpiochip0` must be the header's chip, the RP1's. Its number varies from 11 to 15: `gpiochip15` under kernel 6.12.
 
 On a [Compute Blade with a CM4 or CM5](../setup/compute-blade/wiring.md) only GPIO2, 3, 4, 14 and 15 are brought out:
 

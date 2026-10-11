@@ -15,7 +15,7 @@ whole tree is on [SQRL Acorn and LiteFury](index.md).
 
 (p2-serial-pair-and-spare-gpios)=
 (p1-jtag)=
-**On a Raspberry Pi 5** (the wiring sheet, P2, P1, the serial port overlay, `gpiochip15`): [Acorn wiring on a Raspberry Pi 5](setup/rpi-5/wiring.md) and [the Pi's settings](setup/rpi-5/pi-settings.md).
+**On a Raspberry Pi 5** (the wiring sheet, P2, P1, the serial port overlay, the header's GPIO chip): [Acorn wiring on a Raspberry Pi 5](setup/rpi-5/wiring.md) and [the Pi's settings](setup/rpi-5/pi-settings.md).
 
 (compute-blade)=
 (pin-numbering)=
