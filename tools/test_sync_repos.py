@@ -34,12 +34,12 @@ def repos_with(**infra):
 class RewriteLinks(unittest.TestCase):
     def test_link_to_another_pulled_page_goes_to_it_and_keeps_the_fragment(self):
         self.assertEqual(rewrite("[i](identity.md#tiny-tapeout-fields)"), "[i](identity.md#tiny-tapeout-fields)")
-        self.assertEqual(rewrite("[g](verify-goals.md)"), "[g](goals.md)")
+        self.assertEqual(rewrite("[g](verify-goals.md)"), f"[g]({GH}/blob/main/docs/verify-goals.md)")
 
     def test_a_link_from_the_repository_root_is_resolved_there(self):
-        self.assertEqual(rewrite("[g](/docs/verify-goals.md#x)"), "[g](goals.md#x)")
+        self.assertEqual(rewrite("[g](/docs/verify-goals.md#x)"), f"[g]({GH}/blob/main/docs/verify-goals.md#x)")
         self.assertEqual(rewrite("[r](/verify/src/runner.py)"), f"[r]({GH}/blob/main/verify/src/runner.py)")
-        self.assertEqual(copied("[g](/docs/verify-goals.md)"), "[g](/verify/goals.md)")
+        self.assertEqual(copied("[g](/docs/identity.md)"), "[g](/verify/identity.md)")
         with self.assertRaises(s.Stop):
             rewrite("[x](/../elsewhere.md)")
 
@@ -68,15 +68,15 @@ class RewriteLinks(unittest.TestCase):
         self.assertEqual(rewrite(text), f"```bash\necho '[x](../verify/)'\n```\n[y]({GH}/tree/main/verify)")
 
     def test_a_fence_closes_only_with_its_own_character_and_length(self):
-        self.assertEqual(rewrite("~~~\n```\n~~~\n[g](verify-goals.md)"), "~~~\n```\n~~~\n[g](goals.md)")
+        self.assertEqual(rewrite("~~~\n```\n~~~\n[g](verify-goals.md)"), f"~~~\n```\n~~~\n[g]({GH}/blob/main/docs/verify-goals.md)")
         self.assertEqual(rewrite("````\n```\n[g](verify-goals.md)\n````\n[g](verify-goals.md)"),
-                         "````\n```\n[g](verify-goals.md)\n````\n[g](goals.md)")
+                         f"````\n```\n[g](verify-goals.md)\n````\n[g]({GH}/blob/main/docs/verify-goals.md)")
         self.assertEqual(rewrite("```\n~~~\n[g](verify-goals.md)\n```\n[g](verify-goals.md)"),
-                         "```\n~~~\n[g](verify-goals.md)\n```\n[g](goals.md)")
+                         f"```\n~~~\n[g](verify-goals.md)\n```\n[g]({GH}/blob/main/docs/verify-goals.md)")
 
     def test_a_link_whose_label_began_on_the_line_before_is_rewritten(self):
         self.assertEqual(rewrite("see [the\ngoals](verify-goals.md) and [x](identity.md)"),
-                         "see [the\ngoals](goals.md) and [x](identity.md)")
+                         f"see [the\ngoals]({GH}/blob/main/docs/verify-goals.md) and [x](identity.md)")
 
     def test_section_links_resolve_from_the_including_page(self):
         out = rewrite("[v](../verify.md#installing) [b](#via-jtag) [o](#own)", "docs/hardware/acorn.md",
@@ -114,7 +114,7 @@ class RewriteLinks(unittest.TestCase):
             "[d](https://github.com/fpgas-online/fpgas.online-test-designs/issues/127)\n"
             "```\n[e](https://docs.fpgas.online/en/latest/index.html)\n```\n"
             "https://docs.fpgas.online/en/latest/verify/fpgas-verify.html#common-failures as bare text\n"
-            "[f](../../../verify-goals.md) [g](gen.py) [h](#own) [i](#other)\n\n## Own")
+            "[f](../../../identity.md) [g](gen.py) [h](#own) [i](#other)\n\n## Own")
         self.assertEqual(
             copied(text),
             "[a](/verify/fpgas-verify.md#common-failures) [b](/boards/acorn/pcie-programming.md) "
@@ -122,7 +122,7 @@ class RewriteLinks(unittest.TestCase):
             "[d](https://github.com/fpgas-online/fpgas.online-test-designs/issues/127)\n"
             "```\n[e](https://docs.fpgas.online/en/latest/index.html)\n```\n"
             "https://docs.fpgas.online/en/latest/verify/fpgas-verify.html#common-failures as bare text\n"
-            f"[f](/verify/goals.md) [g]({GH}/blob/main/docs/wiring/acorn/generated/gen.py) [h](#own) "
+            f"[f](/verify/identity.md) [g]({GH}/blob/main/docs/wiring/acorn/generated/gen.py) [h](#own) "
             f"[i]({GH}/blob/main/docs/wiring/acorn/generated/x.md#other)\n\n## Own")
 
     def test_a_copied_file_shows_only_pictures_copied_beside_it(self):
@@ -414,7 +414,7 @@ class LinksAcrossRepositories(unittest.TestCase):
 class Labels(unittest.TestCase):
     TITLES = {("repo", "test-designs", "docs/plans/design.md"): "The design",
               ("repo", "infra", "docs/deploy.md"): "Deploying",
-              ("page", "docs/verify/goals.md"): "fpgas-verify: what it must do",
+              ("page", "docs/verify/identity.md"): "Board identity",
               ("page", "docs/index.md"): "fpgas.online"}
 
     def titles(self, opens):
@@ -424,7 +424,7 @@ class Labels(unittest.TestCase):
         return rewrite(text, titles=self.titles, notes=notes)
 
     def test_a_file_name_as_link_text_becomes_the_title_of_the_page_the_link_opens(self):
-        self.assertEqual(self.page("[verify-goals.md](verify-goals.md#x)"), "[fpgas-verify: what it must do](goals.md#x)")
+        self.assertEqual(self.page("[identity.md](identity.md#x)"), "[Board identity](identity.md#x)")
         self.assertEqual(self.page("[`plans/design.md`](plans/design.md)"),
                          f"[The design]({GH}/blob/main/docs/plans/design.md)")
         self.assertEqual(self.page(f"[docs/deploy.md]({INFRA}/blob/main/docs/deploy.md)"),
@@ -465,16 +465,16 @@ class Labels(unittest.TestCase):
         self.assertIn("not point at a file of a repository", notes[2])
 
     def test_other_labels_and_code_are_left_alone(self):
-        for text in ("[Goals](verify-goals.md)", "```\n[verify-goals.md](verify-goals.md)\n```"):
+        for text in ("[Goals](identity.md)", "```\n[identity.md](identity.md)\n```"):
             out = self.page(text)
             self.assertNotIn("what it must do", out, text)
-        self.assertEqual(rewrite("[verify-goals.md](verify-goals.md)"), "[verify-goals.md](goals.md)")
+        self.assertEqual(rewrite("[verify-goals.md](verify-goals.md)"), f"[verify-goals.md]({GH}/blob/main/docs/verify-goals.md)")
 
     def test_a_copied_file_s_labels_too(self):
         notes = []
-        self.assertEqual(copied(f"[verify-goals.md]({GH}/blob/main/docs/verify-goals.md)", titles=self.titles,
+        self.assertEqual(copied(f"[identity.md]({GH}/blob/main/docs/identity.md)", titles=self.titles,
                                 notes=notes),
-                         "[fpgas-verify: what it must do](/verify/goals.md)")
+                         "[Board identity](/verify/identity.md)")
         self.assertEqual(notes, [])
 
     def test_title_of_is_the_first_level_one_heading_outside_code(self):
