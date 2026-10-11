@@ -10,7 +10,7 @@ review: 2026-11-10
 This page says what the fpgas.online Acorn design is, its two images and how they sit in the card's flash.
 It does not say how to load or write it. Loading into SRAM is on [How to check an Acorn's PCIe link by hand on a Raspberry Pi 5](../checks/pcie-by-hand.md).
 Writing the flash is on [How to install the fpgas.online images on an Acorn](../setup/install-images.md). What the boot check tests
-of it is under [Installing the Acorn packages](../setup/packages.md#installing-the-acorn-packages).
+of it is under [What the Acorn check tests](../checks/what-it-tests.md).
 
 ## Images
 

@@ -9,7 +9,7 @@ review: 2026-11-10
 
 **You have an Acorn wired to a Raspberry Pi 5 and want each P2 ball to send its own name.**
 
-The boot check names a wrong wire without this design on a card that runs the fpgas.online design: [on a Raspberry Pi 5](rpi-5.md). On a Compute Blade the load differs: [How to run the pin ID test on an Acorn on a Compute Blade](pin-id-compute-blade.md).
+A card that runs the fpgas.online design needs no pin-ID design. Its boot check names a wrong wire: [How to run the Acorn check on a Raspberry Pi 5](rpi-5.md). On a Compute Blade the load differs: [How to run the pin ID test on an Acorn on a Compute Blade](pin-id-compute-blade.md).
 
 This procedure is waiting for its run: [test-designs issue #229](https://github.com/fpgas-online/fpgas.online-test-designs/issues/229).
 
@@ -49,7 +49,7 @@ This procedure is waiting for its run: [test-designs issue #229](https://github.
 
 4. On the Pi, run the host scanner with GPIO14 kept an input throughout, and read the name each pin sends. The scanner's options are on [Pin-id scanner options](../../pin-id/scanner-options.md).
 
-   Only GPIO15 can be a hardware UART receiver on a Pi 5, so the scanner decodes the other three from edge timestamps. It requests both-edge events through gpiod (v1 or v2) and finds the header chip by label. It rebuilds the 1200-baud frames from the kernel timestamps: 833 µs per bit against nanosecond stamps.
+   The scanner decodes every pin in software, from edge timestamps, so no pin needs a UART. It requests both-edge events through gpiod (v1 or v2) and finds the header chip by label. It rebuilds the 1200-baud frames from the kernel timestamps: 833 µs per bit against nanosecond stamps.
 
 5. On the Pi, check the method on a positive control before you trust a negative: drive a spare GPIO and confirm the monitor sees it.
 

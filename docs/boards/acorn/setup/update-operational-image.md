@@ -13,7 +13,7 @@ This procedure is waiting for its run: [test-designs issue #223](https://github.
 
 ## What you need
 
-- The Acorn running the fpgas.online Acorn design from flash, and the flash tool from [Installing the Acorn packages](packages.md#installing-the-acorn-packages).
+- The Acorn running the fpgas.online Acorn design from flash, and the flash tool from [How to install the Acorn packages](packages.md).
 - The replacement image as `sqrl_acorn_operational.bin`, and its `.bit`.
 - The load command of [How to run JTAG by hand on an Acorn on a Raspberry Pi 5](../checks/jtag-by-hand.md).
 - The rescan command of [How to check an Acorn's PCIe link by hand on a Raspberry Pi 5](../checks/pcie-by-hand.md).
