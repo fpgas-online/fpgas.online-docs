@@ -4,19 +4,19 @@ This procedure is waiting for its bench run: [issue #219](https://github.com/fpg
 
 ## What you will have
 
-Two short cables from the Acorn's two connectors to the Compute Blade: the P1 cable carries JTAG, the P2 cable carries the serial port.
+Two short cables from the Acorn's two connectors to the Compute Blade. The P1 cable carries JTAG. The P2 cable carries the serial port.
 
-GND, TCK, TDO, TMS, TDI, J2 and K2 are the names on the pictures for each wire; J2 and K2 are the FPGA's pin names.
+GND, TCK, TDO, TMS, TDI, J2 and K2 are the names on the pictures for each wire. J2 and K2 are the FPGA's pin names.
 
 ![The finished wiring: Acorn to Compute Blade](acorn-wiring-computeblade.png){.only-light}
 ![The finished wiring: Acorn to Compute Blade](acorn-wiring-computeblade-dark.png){.only-dark}
 
-Nothing in this guide cuts a wire to length. The bought cable is cut in half, once (step 2 of [How to prepare the JTAG cable's wires (Compute Blade)](/boards/acorn/setup/compute-blade/jtag-wires.md), before the meter check, which needs the cut faces); each half is then used at the length it has, apart from the wires that are cut back at the plug and the one wire that is cut to take the resistor. Step 3 of that page checks that each half reaches from the card to the Compute Blade's headers, before any wire is cut back or crimped.
+Nothing in this guide cuts a wire to length. The bought cable is cut in half, once, in step 2 of [How to prepare the JTAG cable's wires (Compute Blade)](/boards/acorn/setup/compute-blade/jtag-wires.md). That is before the meter check, which needs the cut faces. Each half is then used at the length it has. The exception is the wires that are cut back at the plug and the one wire that is cut to take the resistor. Step 3 of that page checks that each half reaches from the card to the Compute Blade's headers. That is before any wire is cut back or crimped.
 
 ## The order of work
 
 1. [Parts and tools for the Compute Blade cables](/boards/acorn/setup/compute-blade/parts.md): the list to tick off before starting.
-2. [How to prepare the JTAG cable's wires (Compute Blade)](/boards/acorn/setup/compute-blade/jtag-wires.md): the cable cut in half and each half checked for reach; the P1 cable's wires flagged, checked with a meter, cut back and crimped.
+2. [How to prepare the JTAG cable's wires (Compute Blade)](/boards/acorn/setup/compute-blade/jtag-wires.md): the cable cut in half and each half checked for reach. Then the P1 cable's wires flagged, checked with a meter, cut back and crimped.
 3. [How to fill the JTAG cable's housing (Compute Blade)](/boards/acorn/setup/compute-blade/jtag-housing.md): the P1 cable's housing filled and checked.
 4. [How to prepare the UART cable's wires (Compute Blade)](/boards/acorn/setup/compute-blade/uart-wires.md): the P2 cable's wires flagged, checked with a meter, cut back and crimped.
 5. [How to fill the UART cable's housing (Compute Blade)](/boards/acorn/setup/compute-blade/uart-housing.md): the P2 cable's housing filled and checked.

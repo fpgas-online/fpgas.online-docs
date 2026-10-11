@@ -6,7 +6,7 @@
 ## What you need
 
 - a Raspberry Pi with the Tiny Tapeout demo board on one of its USB ports
-- the fpgas.online apt repository added on the Pi ([fpgas-verify: installing it](../../../verify/installing.md#installing))
+- the fpgas.online apt repository added on the Pi ([fpgas-verify: installing it, step 1](../../../verify/installing.md#installing))
 - a network that reaches `mith.ro`, where rpi-hwid's apt repository is, and on bookworm `deb.debian.org`
 
 `grep VERSION_CODENAME /etc/os-release` says which release the Pi runs.
