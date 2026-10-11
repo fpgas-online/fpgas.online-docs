@@ -17,7 +17,7 @@ The three layers of programming a Fomu EVT side by side. They are the protocol (
 
 ## The protocol: USB DFU
 
-The Fomu boots from its SPI flash into a DFU bootloader (DFU Bootloader v2.0.4). The DFU (Device Firmware Upgrade) protocol then loads a replacement bitstream into the iCE40's volatile SRAM over USB. The bootloader resides in the SPI flash. It provides the USB DFU interface when no valid application is present or when the user triggers DFU mode. The iCE40UP5K otherwise loads its bitstream from the flash automatically on power-up.
+The Fomu boots from its SPI flash into a DFU bootloader (DFU Bootloader v2.0.4). The DFU (Device Firmware Upgrade) protocol then writes a replacement bitstream into the flash's user image over USB and starts it. The bootloader resides in the SPI flash. It provides the USB DFU interface when no valid application is present or when the user triggers DFU mode. The iCE40UP5K otherwise loads its bitstream from the flash automatically on power-up.
 
 The Fomu is programmed over USB DFU rather than over JTAG. The same USB interface can act as a CDC-ACM serial port or a custom USB device, depending on the loaded design.
 
@@ -29,10 +29,10 @@ The test bitstreams contain no USB core, so the Fomu leaves USB the moment one i
 
 ## The tool: openFPGALoader
 
-fpgas.online loads the board from its Raspberry Pi with `openFPGALoader -b fomu`, which speaks DFU itself and needs nothing else installed on the Fomu side. That is the path the test harness takes. It loads a `.bin` bitstream, which is a volatile SRAM load, so a power cycle of the Fomu discards it. The check's own text says a DFU load writes the flash's user image: [test-designs issue #260](https://github.com/fpgas-online/fpgas.online-test-designs/issues/260) is to settle which.
+fpgas.online loads the board from its Raspberry Pi with `openFPGALoader -b fomu`, which speaks DFU itself and needs nothing else installed on the Fomu side. That is the path the test harness takes. It loads a `.bin` bitstream. The bootloader writes it to the flash's user image at offset 0x40000 (262144) and starts it, as the [foboot README](https://github.com/im-tomu/foboot#loading-and-running-other-bitstreams) describes. A power cycle starts the bootloader again, and the user image stays in the flash until the next DFU load.
 
 ## The bootloader's window
 
 The bootloader waits only for a limited window. If no DFU activity occurs within it, the bootloader warm-boots the iCE40 to load the user bitstream from the SPI flash. The user bitstream typically has no USB, so the Fomu then disappears from USB. The window is about 3 minutes.
 
-A PoE power cycle of the Pi resets the Fomu and restarts the DFU bootloader. It also discards the volatile SRAM load, so whatever was programmed is gone and the window starts over. A Fomu missing from USB is therefore usually not broken: the fixes are on [Fomu EVT programming faults](../troubleshooting/programming-faults.md).
+A PoE power cycle of the Pi resets the Fomu and restarts the DFU bootloader. The user image stays in the flash until the next DFU load, and the window starts over. A Fomu missing from USB is therefore usually not broken: the fixes are on [Fomu EVT programming faults](../troubleshooting/programming-faults.md).

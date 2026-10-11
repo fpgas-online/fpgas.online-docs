@@ -24,7 +24,7 @@ Test names the test, Bitstream its design, Wrapper the script that loads it, and
 | Test | Bitstream | Wrapper | What it verifies |
 |------|-----------|---------|------------------|
 | UART echo | [`uart/.../tt_fpga_platform.bin`](https://github.com/fpgas-online/fpgas.online-test-designs/tree/main/designs/uart/) | `tt_test_wrapper.py` | Serial TX/RX via RP2350 bridge |
-| SPI Flash ID ([test-designs issue #258](https://github.com/fpgas-online/fpgas.online-test-designs/issues/258)) | [`spi-flash-id/.../tt_fpga_platform.bin`](https://github.com/fpgas-online/fpgas.online-test-designs/tree/main/designs/spi-flash-id/) | `tt_test_wrapper.py` | JEDEC ID readback from on-board flash |
+| SPI Flash ID | [`spi-flash-id/.../tt_fpga_platform.bin`](https://github.com/fpgas-online/fpgas.online-test-designs/tree/main/designs/spi-flash-id/) | `tt_test_wrapper.py` | Does not apply to this board, which has no flash |
 | PMOD loopback | [`pmod-loopback/.../top.bin`](https://github.com/fpgas-online/fpgas.online-test-designs/tree/main/designs/pmod-loopback/) | `tt_pmod_wrapper.py` | GPIO inversion across wired pin pairs |
 | PMOD pin ID | [`pmod-pin-id/.../top.bin`](https://github.com/fpgas-online/fpgas.online-test-designs/tree/main/designs/pmod-pin-id/) | `tt_pmod_wrapper.py` | UART TX on each GPIO pin |
 

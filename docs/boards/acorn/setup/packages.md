@@ -1,7 +1,7 @@
 ---
 type: how-to
 owner: test-designs maintainers
-reader: someone with an Acorn on a Raspberry Pi 5 who wants to install the fpgas.online packages for it
+reader: someone installing the packages for an Acorn on a Raspberry Pi 5
 review: 2026-11-10
 ---
 
@@ -10,10 +10,9 @@ review: 2026-11-10
 
 # How to install the Acorn packages
 
-**You have an Acorn on a Raspberry Pi 5 with an M.2 HAT and want to install the fpgas.online packages for it and run the check.**
+**You have an Acorn on a Raspberry Pi 5 and want its fpgas.online packages and its check.**
 
-Before the check is run: its `p2-uart` and `p2-serial` tests need the header's serial
-port on (`/dev/ttyAMA0`) and the kernel console off it: [the Pi's settings](rpi-5/pi-settings.md#the-serial-port).
+The check's `p2-uart` and `p2-serial` tests need the header's serial port on (`/dev/ttyAMA0`) and the kernel console off it. Both are set as [the Pi's settings](rpi-5/pi-settings.md#the-serial-port) show.
 
 ```{include} ../../generated/install-acorn.md
 ```

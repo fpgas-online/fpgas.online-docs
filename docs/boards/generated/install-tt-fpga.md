@@ -1,9 +1,9 @@
 % This section ("Installing the TT FPGA Packages") is copied from https://github.com/fpgas-online/fpgas.online-test-designs/blob/main/docs/hardware/tt-fpga.md
 % by tools/sync_repos.py. Do not edit it here: change it in test-designs.
 
-## Installing the TT FPGA Packages
+(installing-the-tt-fpga-packages)=
 
-### What you need
+## What you need
 
 - a Raspberry Pi with the Tiny Tapeout demo board on one of its USB ports
 - the fpgas.online apt repository added on the Pi ([fpgas-verify: installing it](../../../verify/installing.md#installing))
@@ -11,7 +11,7 @@
 
 `grep VERSION_CODENAME /etc/os-release` says which release the Pi runs.
 
-### Steps
+## Steps
 
 **1.** Add [rpi-hwid](https://github.com/mithro/rpi-hwid)'s apt repository and install rpi-hwid. Without it the check cannot ask the board which Tiny Tapeout board it is, and its result is `error`.
 
@@ -44,11 +44,11 @@ sudo apt install fpgas-online-tt-fpga
 sudo fpgas-tt-fpga-verify --no-publish
 ```
 
-### Check
+## Check
 
 The first line of the output starts with `fpgas-verify: pass`. The board's line under it ends in `pass`, and so does the line of each test.
 
-### If it fails
+## If it fails
 
 - The first line names the result, and the output ends with `RESULT:` and `What to do:`. [fpgas-verify: reading the result](../../../verify/reading-the-result.md#reading-the-result) says what each result means.
 - [fpgas-verify: common failures](../../../verify/common-failures.md#common-failures) lists the messages and what to do about each.
@@ -58,7 +58,7 @@ The first line of the output starts with `fpgas-verify: pass`. The board's line 
 sudo fpgas-tt-fpga-debug test uart
 ```
 
-### Next
+## Next
 
 - [The TT FPGA check at boot](../../../verify/tt-fpga.md#the-tt-fpga-check-at-boot): what the check does, test by test.
 - [TT FPGA packages](../../../verify/installing.md#tt-fpga-packages): what each package installs.

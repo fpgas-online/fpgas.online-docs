@@ -21,7 +21,7 @@ Each row gives a parameter of the board and its value.
 | Package              | SG48 (48-pin QFN)                         |
 | Logic cells          | 5,280 LUT4s                               |
 | SPRAM                | 128 KB (4 x 32 KB blocks)                 |
-| DPRAM (EBR)          | 120 Kbit (15 x 8 Kbit blocks; [docs issue #5](https://github.com/fpgas-online/fpgas.online-docs/issues/5) has the datasheet's 30 x 4 Kbit) |
+| DPRAM (EBR)          | 120 Kbit (30 blocks of 4 Kbit, per the [iCE40 UltraPlus data sheet](https://www.latticesemi.com/view_document?document_id=51968)) |
 | DSP blocks           | 8 (16x16 multiply-accumulate)             |
 | System clock         | 48 MHz (pin 44, LVCMOS33)                 |
 | Internal oscillators | 48 MHz HFOSC, 10 kHz LFOSC                |
@@ -160,10 +160,10 @@ Each row gives a parameter of the DFU interface that loads a design and its valu
 
 | Parameter      | Value                                |
 | -------------- | ------------------------------------ |
-| Interface      | USB DFU (iCE40 SRAM load)            |
+| Interface      | USB DFU (flash user image)           |
 | USB VID:PID    | `1209:5bf0` (DFU bootloader)         |
 | Tool           | `openFPGALoader -b fomu <bitstream>` |
-| Bitstream type | `.bin` (volatile SRAM load)          |
+| Bitstream type | `.bin` (flash user image, 0x40000)  |
 | Bootloader     | DFU Bootloader v2.0.4                |
 
 ## LiteX integration
