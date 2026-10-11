@@ -220,7 +220,7 @@ Digilent has fitted three 128 Mbit parts over the board's life, and they differ 
 | Spansion/Infineon | `S25FL128SAG[M\|N]FI00` | after C and up to E with no sticker, or E or later with a sticker | `FL128SAIF00` |
 | Spansion/Infineon | `S25FL127SABMFx00` | E or later with a sticker | `FL127SxF00` |
 
-The S25FL128S and the S25FL127S both answer JEDEC ID `0x012018`, so a JEDEC read tells the Micron part from the Spansion parts and no more. How to read the ID from the board is in the [test-designs Arty A7 page](https://github.com/fpgas-online/fpgas.online-test-designs/blob/main/docs/hardware/arty-a7.md#which-flash-part-a-board-has).
+The S25FL128S and the S25FL127S both answer JEDEC ID `0x012018`, so a JEDEC read tells the Micron part from the Spansion parts and no more. The two Spansion parts are told apart by the package marking or the sticker, read by eye. How to read the ID from the board is in the [test-designs Arty A7 page](https://github.com/fpgas-online/fpgas.online-test-designs/blob/main/docs/hardware/arty-a7.md#which-flash-part-a-board-has).
 
 ### Secondary SPI
 
