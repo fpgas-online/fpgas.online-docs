@@ -27,11 +27,18 @@ next boot.
 
 ## What the site plans to provide
 
-
-
 - The Arty A7 boards whose hosts do not answer, back in service: [infra issue #272](https://github.com/fpgas-online/fpgas.online-infra/issues/272).
 - Acorn CLE-101 cards on the Compute Blades, wired by the cable guide: [test-designs issue #216](https://github.com/fpgas-online/fpgas.online-test-designs/issues/216).
 - Those cards running the fpgas.online design: [test-designs issue #213](https://github.com/fpgas-online/fpgas.online-test-designs/issues/213) and [test-designs issue #214](https://github.com/fpgas-online/fpgas.online-test-designs/issues/214).
 - A card for the blade that has none: [test-designs issue #217](https://github.com/fpgas-online/fpgas.online-test-designs/issues/217).
 - Tiny Tapeout chip boards and FPGA demo boards: [tt issue #19](https://github.com/fpgas-online/fpgas.online-tt/issues/19).
 - A page for each host that stays when its board changes: [site issue #65](https://github.com/fpgas-online/fpgas.online-site/issues/65).
+
+For running the site and its gateway:
+
+- A record of which hosts the shared boot directory serves, with every host named once: [infra issue #273](https://github.com/fpgas-online/fpgas.online-infra/issues/273).
+- Which blade is which host, and how the boot files set the blades' serial port: [infra issue #269](https://github.com/fpgas-online/fpgas.online-infra/issues/269) and [infra issue #270](https://github.com/fpgas-online/fpgas.online-infra/issues/270).
+- `fpgas-verify` in the shared root, so a blade keeps its packages across a boot: [infra issue #271](https://github.com/fpgas-online/fpgas.online-infra/issues/271).
+- A trixie root that fpgas.online-infra builds: [infra issue #72](https://github.com/fpgas-online/fpgas.online-infra/issues/72).
+- The switch model settled, among the three that `host_vars` names: [infra issue #73](https://github.com/fpgas-online/fpgas.online-infra/issues/73).
+- The site notes brought up to date with the gateway, and the Arty hosts' root stated: [test-designs issue #294](https://github.com/fpgas-online/fpgas.online-test-designs/issues/294).

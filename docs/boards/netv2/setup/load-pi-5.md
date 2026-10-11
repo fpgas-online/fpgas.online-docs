@@ -14,7 +14,7 @@ The load goes to the FPGA's SRAM and is lost at power-off. A NeTV2 on a Raspberr
 This procedure is waiting for its run: [test-designs issue #246](https://github.com/fpgas-online/fpgas.online-test-designs/issues/246).
 
 :::{warning}
-Reconfiguring the FPGA over JTAG while its PCIe endpoint is enumerated is a surprise removal, and it crashes the BCM2712 root complex. Detach the endpoint before every JTAG command on this page.
+Reconfiguring the FPGA over JTAG while its PCIe endpoint is enumerated is a surprise removal, and it crashes the BCM2712 root complex. Step 2 detaches it.
 :::
 
 ## What you need
@@ -26,7 +26,7 @@ Reconfiguring the FPGA over JTAG while its PCIe endpoint is enumerated is a surp
 ## Steps
 
 1. On the Pi, run `lspci -d 10ee:7011` to find the NeTV2's PCIe address, which on a Pi 5 is `0001:01:00.0`, the slot the Acorn hosts use.
-2. On the Pi, run `echo 1 | sudo tee /sys/bus/pci/devices/0001:01:00.0/remove` with the address from step 1 to detach the endpoint; if `lspci` printed nothing, there is nothing to detach.
+2. On the Pi, run `echo 1 | sudo tee /sys/bus/pci/devices/0001:01:00.0/remove` with the address from step 1 to detach the endpoint. If `lspci` printed nothing, there is nothing to detach.
 3. On the Pi, run `sudo openFPGALoader --cable rp1pio --pins 27:22:4:17 design.bit` to load the bitstream through the RP1's PIO peripheral.
 4. On the Pi, run `echo 1 | sudo tee /sys/bus/pci/rescan` to bring the endpoint back, or reboot.
 

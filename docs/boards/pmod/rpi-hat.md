@@ -118,7 +118,7 @@ The PMOD HAT has no level shifters or buffers, so signals pass directly from the
 
 ## Boards that use the HAT
 
-The HAT is fitted to hosts with an Arty A7, a Tiny Tapeout FPGA demo board or a [Tiny Tapeout ASIC demo board](../tt-asic/index.md) attached. It connects the Raspberry Pi's GPIO pins to the PMOD connectors on these boards. The Raspberry Pi can then drive and read their I/O pins for GPIO loopback, SPI and UART tests.
+The HAT is fitted to hosts with an Arty A7, a Tiny Tapeout FPGA demo board or a [Tiny Tapeout chip demo board](../tt-asic/index.md) attached. It connects the Raspberry Pi's GPIO pins to the PMOD connectors on these boards. The Raspberry Pi can then drive and read their I/O pins for GPIO loopback, SPI and UART tests.
 
 ### Wiring
 
@@ -135,10 +135,11 @@ Straight through is the design, not a guarantee for any individual cable. The [P
 The full Raspberry Pi GPIO to PMOD pin to FPGA pin mappings for each board are on these pages:
 
 - [Arty A7 wiring to a Raspberry Pi](../arty-a7/setup/wiring.md)
-- [Tiny Tapeout FPGA demo board](../tt-fpga/index.md)
+- [Tiny Tapeout FPGA demo board pin mapping](../tt-fpga/overview/pin-mapping.md)
+- [Tiny Tapeout chip demo board wiring to a Raspberry Pi](../tt-asic/setup/wiring.md)
 
 ## References
 
 - [PMOD interface](index.md)
-- Digilent PMOD HAT Reference Manual: <https://digilent.com/reference/add-ons/pmod-hat/reference-manual>
+- [Digilent PMOD HAT reference manual](https://digilent.com/reference/add-ons/pmod-hat/reference-manual): the HAT's own manual.
 - Digilent PMOD HAT Product Page: <https://digilent.com/shop/pmod-hat-adapter/>

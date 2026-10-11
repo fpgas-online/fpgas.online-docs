@@ -20,7 +20,11 @@ The login console holds that port open and eats or corrupts the design's output.
 
 1. On the Pi, run `sudo systemctl stop 'serial-getty@*'` to stop the serial login console.
 2. On a Raspberry Pi 5, run `pinctrl set 14 a4; pinctrl set 15 a4` to restore the UART function of GPIO14 and GPIO15, which is ALT4 (TXD0/RXD0).
-3. On the Pi, run the test with `sudo`, giving it the port and the board: `--port /dev/ttyAMA0 --board netv2 --skip-banner`. The device for your Pi model and the baud rate are in [UART test parameters](../overview/specifications.md#uart-test-parameters).
+3. On the Pi, run the UART test on your Pi model's device, from [UART test parameters](../overview/specifications.md#uart-test-parameters). It loads the UART design over JTAG first. `/dev/ttyAMA0` is the default:
+
+   ```console
+   $ sudo fpgas-netv2-debug --port /dev/ttyAMA0 test uart
+   ```
 
 ## Check
 

@@ -9,7 +9,7 @@ review: 2026-11-10
 
 **You have a Tiny Tapeout FPGA demo board and want to know what it is and how it sits on its Raspberry Pi.**
 
-Its figures are on [Tiny Tapeout FPGA demo board specifications](specifications.md), and its pins are on [Tiny Tapeout FPGA demo board pin mapping](pin-mapping.md). The board with a manufactured chip instead of an FPGA is on [Tiny Tapeout ASIC demo boards](../../tt-asic/index.md).
+Its figures are on [Tiny Tapeout FPGA demo board specifications](specifications.md), and its pins are on [Tiny Tapeout FPGA demo board pin mapping](pin-mapping.md). The board with a manufactured chip instead of an FPGA is on [Tiny Tapeout chip demo boards](../../tt-asic/index.md).
 
 The Tiny Tapeout (TT) FPGA demo board is a Lattice iCE40UP5K "FabricFox" FPGA breakout. It plugs into a Tiny Tapeout demo PCB, in place of the Tiny Tapeout ASIC the demo PCB was designed for. The FPGA presents the same `ui_in` / `uo_out` / `uio` interface as a real Tiny Tapeout chip. A design can therefore be emulated on real hardware before, or instead of, silicon. The demo PCB is the demo board v3 (TTDBv3), with an RP2350B controller.
 

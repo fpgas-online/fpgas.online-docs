@@ -9,7 +9,7 @@ which owns the demo board's USB serial port and fans it out to every viewer at
 once. This page covers the software: the daemon, the board catalogue the daemon
 and the site share, the demo bitstreams, and the Commander fork. The hardware is
 on [Tiny Tapeout FPGA demo board](../boards/tt-fpga/index.md) and
-[Tiny Tapeout ASIC demo boards](../boards/tt-asic/index.md); the Django side of the
+[Tiny Tapeout chip demo boards](../boards/tt-asic/index.md); the Django side of the
 site is [The web application](webapp.md).
 
 ## Overview

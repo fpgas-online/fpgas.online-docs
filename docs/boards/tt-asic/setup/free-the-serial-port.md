@@ -7,14 +7,16 @@ review: 2026-11-10
 
 # How to free a Tiny Tapeout board's serial port from fpgas-tt
 
-You have a Tiny Tapeout chip demo board on a Raspberry Pi and a program, such as `mpremote`, that needs its serial port.
-The `fpgas-tt` daemon holds that port open, so the program cannot open it until the daemon stops.
+**You want to run a program on the serial port of a Tiny Tapeout chip demo board, and the `fpgas-tt` daemon holds that port.**
+
+The program cannot open the port until the daemon stops, and the board drops off the public site until the daemon starts again.
 This page does not cover installing the daemon: [The Tiny Tapeout stack](../../../setup/tinytapeout.md).
 
 ## What you need
 
 - A shell on the board's Raspberry Pi, with `sudo`.
-- The program that needs the port, ready to run on `/dev/ttboard`.
+- The program that needs the port, ready to run on `/dev/ttboard`, the udev link to the board's USB serial port.
+- A program that copies, replaces or deletes no file on the board ([The Tiny Tapeout stack](../../../setup/tinytapeout.md)).
 
 ## Steps
 
@@ -24,7 +26,7 @@ This page does not cover installing the daemon: [The Tiny Tapeout stack](../../.
 
 ## Check
 
-The daemon runs again: `systemctl is-active fpgas-tt` prints `active`.
+The daemon runs again: `systemctl is-active fpgas-tt` prints `active`, and `sudo fuser /dev/ttboard` shows its python3 process.
 
 ```console
 $ systemctl is-active fpgas-tt
@@ -35,8 +37,10 @@ The board's `https://tinytapeout.fpgas.online/board/<slug>/status.json` reports 
 
 ## If it fails
 
-- **Your program cannot open the port.** The daemon still holds it. Repeat step 1.
-- **The board is missing from the public site.** The daemon is stopped. Run step 3.
+| What you see | Likely cause | Fix |
+|---|---|---|
+| Your program cannot open `/dev/ttboard` | The daemon holds the port | Stop the daemon first, as in step 1 |
+| The board is missing from the public site after your program ended | The daemon was not started again | Run step 3 |
 
 ## Next
 

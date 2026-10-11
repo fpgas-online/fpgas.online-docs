@@ -32,8 +32,10 @@ $ sudo fpgas-arty-debug test uart
 
 ## If it fails
 
-- You see no `/dev/ttyUSB1`. The Arty's FTDI is disconnected, and a board in that state cannot be programmed or reached on its console.
-- The test talks to the wrong device. `/dev/ttyUSB0` is the JTAG channel and `/dev/ttyUSB1` is the UART channel. Name the port before `test`: `sudo fpgas-arty-debug --port /dev/ttyUSB1 test uart`.
+| What you see | Likely cause | Fix |
+|---|---|---|
+| no `/dev/ttyUSB1` | the Arty's FTDI is not on USB; a board in that state cannot be programmed or reached on its console | run `lsusb`. If it does not list the FT2232H, `0403:6010`, check the USB cable between the board and the Pi |
+| the test talks to the wrong device | `/dev/ttyUSB0` is the JTAG channel and `/dev/ttyUSB1` the UART channel | name the port before `test`: `sudo fpgas-arty-debug --port /dev/ttyUSB1 test uart` |
 
 ## Next
 

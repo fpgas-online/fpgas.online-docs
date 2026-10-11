@@ -34,7 +34,9 @@ $ openFPGALoader -b arty --write-flash design.bit
 
 ## If it fails
 
-- You see no `/dev/ttyUSB*` devices at all. The Arty's FTDI is disconnected, and a board in that state cannot be programmed or reached on its console. 
+| What you see | Likely cause | Fix |
+|---|---|---|
+| no `/dev/ttyUSB*` device at all | the Arty's FTDI is not on USB; a board in that state cannot be programmed or reached on its console | run `lsusb`. If it does not list the FT2232H, `0403:6010`, check the USB cable between the board and the Pi |
 
 ## Next
 

@@ -21,12 +21,11 @@ Why the board leaves USB afterwards is on [Programming a Fomu EVT](../overview/p
 
 1. On the Pi, run `lsusb` and find `1209:5bf0`; the Fomu is in its DFU bootloader.
 2. On the Pi, run `openFPGALoader -b fomu design.bin`, where `design.bin` is your bitstream; the bootloader writes the bitstream to the flash's user image and starts it.
-3. If the design has no USB core, run `lsusb` again; the Fomu is gone from USB, and the design talks over the GPIO header pins.
 
 ## Check
 
 - `openFPGALoader` ends without an error message.
-- A test bitstream such as the UART echo has no USB core, so `lsusb` no longer lists `1209:5bf0`.
+- A design with no USB core, such as the UART echo, leaves USB: `lsusb` no longer lists `1209:5bf0`. It talks over the GPIO header pins.
 - The design answers on `/dev/serial0` once the [serial login console is stopped](../checks/stop-serial-console.md).
 
 ## If it fails
