@@ -29,15 +29,24 @@ Steps 5, 8 and 10 give no command: [docs issue #126](https://github.com/fpgas-on
 
 1. On the Pi, prove JTAG with `--detect`, detach the endpoint and load the operational `.bit` into SRAM, then rescan: PCIe enumerates `10ee:7021`.
 
-The `libgpiod` cable opens `gpiochip0`, which must be the header's GPIO chip.
+   The `libgpiod` cable opens `gpiochip0`, which must be the header's GPIO chip.
 
-```{include} ../inc/gpiochip0.inc
-```
+   ```{include} ../inc/gpiochip0.inc
+   ```
 
-```console
-$ openFPGALoader --cable libgpiod --pins 10:9:11:8 --detect
-# Expected on a CLE-215+: idcode 0x3636093 (XC7A200T). No idcode line, or no output: stop here.
-```
+   Then prove JTAG, detach the endpoint, load the operational `.bit` and rescan. The file is the CLE-215+ one. For a
+   CLE-101 put `cle-101` in place of `cle-215p`. `openFPGALoader` leaves the JTAG pins driven, so they go back to inputs.
+
+   ```console
+   $ openFPGALoader --cable libgpiod --pins 10:9:11:8 --detect
+   # Expected on a CLE-215+: idcode 0x3636093 (XC7A200T). No idcode line, or no output: stop here.
+   $ echo 1 | sudo tee /sys/bus/pci/devices/0001:01:00.0/remove
+   $ sudo openFPGALoader --cable libgpiod --pins 10:9:11:8 /usr/share/fpgas-online/acorn-pcie/images/acorn-cle-215p-sqrl_acorn.bit
+   $ for p in 8 9 10 11; do sudo pinctrl set $p ip pd; done
+   $ echo 1 | sudo tee /sys/bus/pci/rescan
+   $ lspci -nn -s 0001:01:00.0
+   # Expected: 10ee:7021
+   ```
 
 2. Read the flash ID with `sudo python3 spi_flash.py id`: S25FL256S, RDID `01 02 19 4d 01 80`, 32 MiB, QUAD bit set.
 3. Dump the flash twice with `sudo python3 spi_flash.py dump factory.bin` and compare the two dumps: their SHA-256 is identical. Keep one as the backup of the factory contents, which is the only copy.
