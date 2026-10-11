@@ -122,7 +122,7 @@ This procedure is waiting for its run: [test-designs issue #229](https://github.
    A pin that step 1 printed as `ip` or `no` stays as step 3 left it.
 
    ```console
-   $ sudo pinctrl set 14 a4 pn
+   $ sudo pinctrl set 14 a4 pn   # only after lspci showed 10ee:7021
    $ sudo pinctrl set 15 a4 pu
    ```
 
@@ -142,7 +142,7 @@ Expect and Got on each row.
 
 Check whether step 2 detached the card: `lspci -nn -s 0001:01:00.0` then prints nothing. If it did, do steps 6 and 7 before you leave the Pi, whatever failed. If it did not, nothing was loaded: stop.
 
-- **The Pi crashes when a GPIO is set to output:** pin ID drives all four P2 balls, so a Pi output fights an FPGA output. Keep GPIO3, GPIO4 and GPIO14 inputs, as step 3 sets them, until `lspci` shows the card in step 7.
+- **The Pi crashes when a GPIO is set to output:** pin ID drives all four P2 balls, so a Pi output fights an FPGA output. Keep GPIO3, GPIO4 and GPIO14 inputs, as step 3 sets them, until `lspci` shows the card in step 7. A reboot of the Pi does not reload the FPGA, but it drops the lock, the `gpiochip0` link and step 3's inputs. After a reboot, take the lock again, then do step 3 at once, then the link from step 2, then steps 6 and 7.
 - **Got shows `(none)` on one row:** no signal reached that GPIO. The wire to that ball is open or on another pin: [Acorn wiring faults on a Raspberry Pi 5](../troubleshooting/rpi-5-wiring.md).
 - **Got shows a name that starts with `?`:** a signal reached that GPIO but did not decode. The wire is noisy or shared with another: [Acorn wiring faults on a Raspberry Pi 5](../troubleshooting/rpi-5-wiring.md).
 - **Got shows another row's name:** two wires are swapped: [Acorn wiring faults on a Raspberry Pi 5](../troubleshooting/rpi-5-wiring.md).
