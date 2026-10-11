@@ -5,7 +5,7 @@ reader: someone with an Arty A7 on a Raspberry Pi with a PMOD HAT
 review: 2026-11-10
 ---
 
-# How to scan a board's wiring with the pin-id design
+# How to scan an Arty A7's wiring with the pin-id design
 
 **You have an Arty A7 joined to a Raspberry Pi through a PMOD HAT and want to read which FPGA pin each GPIO reaches**. The commands on this page are for the Arty A7. Other boards need their own build and program targets: [How to add a board to the pin-id design](add-board.md). How the design works is on [The pin-id design](../pin-id.md).
 

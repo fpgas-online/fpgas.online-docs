@@ -7,7 +7,7 @@ review: 2026-11-10
 
 # How to add a board to the pin-id design
 
-**You have an FPGA board with a LiteX platform and want the pin-id design to build for it**. This page adds the board's build script, scanner GPIO list and Makefile targets. The scan itself is on [How to scan a board's wiring with the pin-id design](scan.md).
+**You have an FPGA board with a LiteX platform and want the pin-id design to build for it**. This page adds the board's build script, scanner GPIO list and Makefile targets. The scan itself is on [How to scan an Arty A7's wiring with the pin-id design](scan.md).
 
 This procedure is waiting for its run: [test-designs issue #262](https://github.com/fpgas-online/fpgas.online-test-designs/issues/262).
 
@@ -68,6 +68,6 @@ A garbled or "no signal" line in the scan has its cause and fix in the table und
 
 ## Next
 
-- [How to scan a board's wiring with the pin-id design](scan.md)
+- [How to scan an Arty A7's wiring with the pin-id design](scan.md)
 - [Pin-id scanner options](scanner-options.md)
 - [The pin-id design](../pin-id.md)

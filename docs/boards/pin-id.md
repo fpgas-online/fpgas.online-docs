@@ -7,7 +7,7 @@ review: 2026-11-10
 
 # The pin-id design
 
-**The pin-id design makes each FPGA pin send its own name over a slow UART**. A host scanner then reads a cable's pin mapping off the wire. This page explains how the design works and why. The commands to scan are on [How to scan a board's wiring with the pin-id design](pin-id/scan.md). Adding a board is on [How to add a board to the pin-id design](pin-id/add-board.md).
+**The pin-id design makes each FPGA pin send its own name over a slow UART**. A host scanner then reads a cable's pin mapping off the wire. This page explains how the design works and why. The commands to scan are on [How to scan an Arty A7's wiring with the pin-id design](pin-id/scan.md). Adding a board is on [How to add a board to the pin-id design](pin-id/add-board.md).
 
 Several board pages defer their open wiring questions to this method. They include the Arty A7's [PMOD cable routing](arty-a7/setup/wiring.md#pmod-cables), the Acorn's [P2 wiring check](acorn/checks/pin-id.md) and the TT FPGA's [pin mapping](tt-fpga/overview/pin-mapping.md).
 

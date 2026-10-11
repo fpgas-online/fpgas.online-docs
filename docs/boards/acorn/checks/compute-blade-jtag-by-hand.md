@@ -94,7 +94,7 @@ Never pass `--write-flash` here. An SRAM load is lost at power-off, so a reboot 
 ## If it fails
 
 - **`gpiod_line_request_set_values_subset: Assertion 'request' failed`:** the serial driver holds GPIO14 (`enable_uart=1`; `dmesg` says `pin gpio14 already requested by 1f00030000.serial`); boot with the header's serial port off ([why](jtag-and-the-pcie-endpoint.md#why-a-blade-needs-its-serial-port-off-for-jtag)).
-- **`--detect` says `found 0 devices`:** the P1 cable is unmated or miswired; check TCK for the Acorn's pull-up and reseat P1.
+- **`--detect` lists no `idcode` line, or prints nothing:** the P1 cable is unmated or miswired; check TCK for the Acorn's pull-up and reseat P1.
 - **JTAG fails with `--pins 10:9:11:8`:** that is the Pi 5's pin order; use `--pins 2:3:4:14`.
 - **`Open file … FAIL` in under 0.1 s:** the bitstream is gone, because `/home/pi` is a memory overlay that loses its files at reboot; copy it again.
 - **The UART is dead after JTAG:** openFPGALoader left GPIO14 an output; run step 6 for your module.

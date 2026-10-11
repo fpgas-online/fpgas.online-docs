@@ -23,15 +23,13 @@ This procedure is waiting for its run: [test-designs issue #248](https://github.
 
 ## Steps
 
-1. On the Raspberry Pi, unload the SPI kernel modules with `sudo rmmod spidev spi_bcm2835`, which frees GPIO7-11.
+1. On the Raspberry Pi, unload the SPI kernel modules with `sudo rmmod spidev spi_bcm2835`, which frees GPIO7-11. Those carry HAT JA pin 1 (GPIO8) and HAT JB pins 1-4 (GPIO7 and the shared GPIO9, GPIO10 and GPIO11).
 2. On the Raspberry Pi, run the test with `sudo fpgas-arty-debug test pmod`, which loads the loopback design and runs its host script.
 
 ```console
 $ sudo rmmod spidev spi_bcm2835
 $ sudo fpgas-arty-debug test pmod
 ```
-
-The SPI kernel modules claim GPIO7-11. Those carry HAT JA pin 1 (GPIO8) and HAT JB pins 1-4 (GPIO7 and the shared GPIO9, GPIO10 and GPIO11).
 
 ## Check
 

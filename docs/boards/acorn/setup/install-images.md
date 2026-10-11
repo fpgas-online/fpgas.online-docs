@@ -33,7 +33,7 @@ Steps 5, 8 and 10 give no command: [docs issue #126](https://github.com/fpgas-on
 # Pi 5: the libgpiod cable opens gpiochip0; the 40-pin header is gpiochip15
 $ sudo ln -sfn /dev/gpiochip15 /dev/gpiochip0
 $ openFPGALoader --cable libgpiod --pins 10:9:11:8 --detect
-# Expected on a CLE-215+: idcode 0x3636093 (XC7A200T). "found 0 devices": stop here.
+# Expected on a CLE-215+: idcode 0x3636093 (XC7A200T). No idcode line, or no output: stop here.
 ```
 
 2. Read the flash ID with `sudo python3 spi_flash.py id`: S25FL256S, RDID `01 02 19 4d 01 80`, 32 MiB, QUAD bit set.
@@ -64,7 +64,7 @@ The card passes when each of these shows:
 
 ## If it fails
 
-- **`found 0 devices` at step 1.** JTAG does not answer. Stop, and follow [Acorn wiring faults on a Raspberry Pi 5](../troubleshooting/rpi-5-wiring.md).
+- **No `idcode` line at step 1, or no output.** JTAG does not answer. Stop, and follow [Acorn wiring faults on a Raspberry Pi 5](../troubleshooting/rpi-5-wiring.md).
 - **`spi_flash.py` refuses a write before erasing.** The image does not match the slot. The golden slot wants the flavour that chain-loads `0x400000`, and the operational slot the one with the watchdog. Both need the IDCODE of the part that is there. Address `0x0` also needs `--i-know-this-writes-golden`. Use the right file.
 - **The old configuration still runs after `sudo reboot`.** A reboot need not drop the M.2 rail, so the FPGA can keep its configuration. PoE-cycle the host's switch port, as in step 9.
 - **An image is bad after a write.** Follow [How to recover an Acorn with a bad image](../troubleshooting/recovery.md).

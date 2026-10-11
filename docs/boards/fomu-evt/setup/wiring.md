@@ -18,22 +18,32 @@ The Fomu connects to the Pi in two ways.
 
 ## Serial (UART) on the GPIO header
 
-The FPGA's serial pins connect to the Pi's GPIO UART through the GPIO header. This is a direct connection, not through USB. Each row of the first table gives a signal, its iCE40 pin, its direction and its I/O standard.
+The FPGA's serial pins connect to the Pi's GPIO UART through the GPIO header. This is a direct connection, not through USB.
+
+### The FPGA's serial pins
+
+Each row gives a signal, its iCE40 pin, its direction and its I/O standard.
 
 | Signal          | iCE40 Pin | Direction | I/O Standard      |
 | --------------- | --------- | --------- | ----------------- |
 | TX (FPGA → RPi) | 13        | Output    | LVCMOS33 (PULLUP) |
 | RX (RPi → FPGA) | 21        | Input     | LVCMOS33          |
 
-Each row of the second table gives a parameter of the Pi's side and its value.
+### The Pi's side
+
+Each row gives a parameter of the Pi's side and its value.
 
 | Parameter  | Value                                            |
 | ---------- | ------------------------------------------------ |
-| RPi device | `/dev/serial0`, which is `/dev/ttyAMA0` or `/dev/ttyS0` (the third table) |
+| RPi device | `/dev/serial0`, which is `/dev/ttyAMA0` or `/dev/ttyS0` ([below](#which-uart-the-header-uses)) |
 | Baud rate  | 115200                                           |
 | Test args  | `--port /dev/serial0 --board fomu --skip-banner` |
 
-The model-agnostic form to use is `--port /dev/serial0`. The device `/dev/serial0` is the symlink the Pi points at whichever UART is on GPIO14/GPIO15. It is right on every host, whichever kernel device that turns out to be. Which one a Fomu's Raspberry Pi has is [test-designs issue #252](https://github.com/fpgas-online/fpgas.online-test-designs/issues/252). Each row of the third table gives a Pi UART, the kernel device it is and when the GPIO header uses it.
+The model-agnostic form to use is `--port /dev/serial0`. The device `/dev/serial0` is the symlink the Pi points at whichever UART is on GPIO14/GPIO15. It is right on every host, whichever kernel device that turns out to be. Which one a Fomu's Raspberry Pi has is [test-designs issue #252](https://github.com/fpgas-online/fpgas.online-test-designs/issues/252).
+
+### Which UART the header uses
+
+Each row gives a Pi UART, the kernel device it is and when the GPIO header uses it.
 
 | Pi UART   | Kernel device    | When it is the GPIO UART                                        |
 | --------- | ---------------- | --------------------------------------------------------------- |
