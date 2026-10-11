@@ -18,6 +18,7 @@ This procedure is waiting for its run: [test-designs issue #230](https://github.
 ## What you need
 
 - An Acorn wired as on [Acorn wiring on a Raspberry Pi 5](../setup/rpi-5/wiring.md), in the M.2 HAT slot, where the card is at `0001:01:00.0`.
+- The fpgas.online images in the card's flash, so that it comes back after step 7. They go in as on [How to install the fpgas.online images on an Acorn](../setup/install-images.md).
 - The kernel console off the FPGA's serial port, and SysRq disabled: [A Raspberry Pi 5's settings for an Acorn](../setup/rpi-5/pi-settings.md#kernel-console-on-the-fpga-uart). Check `cat /proc/cmdline` before the load.
 - `openFPGALoader` with the `libgpiod` cable, and the pin order `10:9:11:8` for `--pins`.
 - The loopback bitstream in `LOOPBACK`; for a CLE-215+ and the release's file the name is `pmod-loopback_acorn-cle-215p_vivado-vivado_sqrl_acorn.bit`:
@@ -54,7 +55,7 @@ This procedure is waiting for its run: [test-designs issue #230](https://github.
    $ openFPGALoader --cable libgpiod --pins 10:9:11:8 $LOOPBACK
    ```
 
-5. On the Pi, set the port and read it for three seconds without sending anything. Keep what it prints.
+5. On the Pi, set the port and read it for three seconds without sending anything. Keep what it prints: none or a few `00` bytes.
 
    ```console
    $ stty -F /dev/ttyAMA0 115200 raw -echo
@@ -68,22 +69,22 @@ This procedure is waiting for its run: [test-designs issue #230](https://github.
    $ timeout 3 cat /dev/ttyAMA0 | od -An -tx1
    ```
 
-7. At the switch, PoE-cycle the host's port. The card loads its flash image again and comes back on the PCIe bus. The Pi's root is thrown away at every reboot ([Netboot and the NFS root](../../../setup/netboot.md)). Step 1's mask, the `gpiochip0` link and the port settings go with it.
+7. At the switch, PoE-cycle the host's port and wait more than 90 s. The card loads its flash images again, and `lspci -nn -s 0001:01:00.0` lists it. The Pi's root is thrown away at every reboot ([Netboot and the NFS root](../../../setup/netboot.md)). On a netbooted Pi, step 1's mask, the `gpiochip0` link and the port settings go with it. On a Pi that boots from its own card, run `sudo systemctl unmask serial-getty@ttyAMA0` first.
 
 ## Check
 
-Step 6 prints something different from step 5. That means J2 and K2 both carry. Step 5 alone shows only that K2 is driven: the design holds the idle line low, which the Pi reads as a break, `00` bytes.
+Step 6 prints more bytes than step 5. That means J2 and K2 both carry. Step 5 alone shows at most that K2 is driven: the design holds the idle line low, which the Pi reads as a break. The inverted bytes may arrive as framing errors, so the check counts bytes and cannot compare them; a loopback that can is [test-designs issue #297](https://github.com/fpgas-online/fpgas.online-test-designs/issues/297).
 
 ## If it fails
 
-Three items below send you to the pin-ID design. Read its hazard first:
+Two items below send you to the pin-ID design. Read its hazard first:
 
 ```{include} ../inc/gpio-contention.inc
 ```
 
-- **No bytes at all in step 5:** K2 or GPIO15 is not connected; run pin ID and check that GPIO15 reads `K2`.
-- **Step 6 prints the same as step 5:** nothing reached J2. J2 or GPIO14 is not connected, or K2 and J2 are not crossed over; run pin ID and check that GPIO14 reads `J2`.
-- **No UART output at all:** serial-getty holds the port, the baud is wrong, or K2 and J2 are not crossed over. Mask serial-getty, use 115200, and run pin ID.
+- **Step 6 prints no more than step 5:** nothing reached J2. J2 or GPIO14 is not connected, or K2 and J2 are not crossed over. Run pin ID and check that GPIO14 reads `J2`, then give GPIO14 back with `pinctrl set 14 a4` before steps 4 to 6 again.
+- **Step 6 prints nothing either:** K2 or GPIO15 is not connected, serial-getty holds the port, or the baud is wrong. Check that step 1 ran and step 5 set 115200. Then run pin ID and check that GPIO15 reads `K2`.
+- **After any failure:** step 7's PoE cycle puts the card and the Pi back.
 - **The Pi reboots when the design loads:** the kernel console is on the FPGA's serial port; fix it as in [the Pi's settings](../setup/rpi-5/pi-settings.md#kernel-console-on-the-fpga-uart).
 
 ## Next
