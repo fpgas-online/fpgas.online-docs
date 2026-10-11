@@ -443,7 +443,8 @@ TEST_DESIGNS = Repo(
             'docs/boards/acorn/setup/compute-blade/jtag-wires.md',
             "How to prepare the JTAG cable's wires (Compute Blade)",
             Interim('**You have the parts for an Acorn on a Compute Blade and are making the first of its two '
-                    "cables, from the Acorn's P1 socket (JTAG). On this page: cut the bought cable in half, "
+                    "cables, from the Acorn's P1 socket (JTAG). On this page: check that each half reaches, cut the bought "
+                    "cable in half, "
                     'find wire 1, check it with a meter, cut back the wires that are not used, crimp the '
                     'rest.**'),
             (Include('docs/boards/acorn/generated/acorn-build-blade-jtag-1.md', relative_images=True),),
@@ -563,7 +564,8 @@ TEST_DESIGNS = Repo(
                     '{.only-light}\n\n'
                     "![The M.2 HAT from above, with its M.2 slot marked](../../views/pi5-hat.top.m2-slot-dark.png)"
                     '{.only-dark}\n\n'
-                    "The housings go on the HAT's 40-pin header, marked here with its pin 1:\n\n"
+                    "The housings go on the HAT's 40-pin header, marked here with its pin 1. With the stacking header "
+                    "fitted, they go on the pins that come up through the HAT at these places:\n\n"
                     "![The M.2 HAT from above, with its 40-pin header and pin 1 marked]"
                     '(../../views/pi5-hat.top.header.png){.only-light width="400px"}\n\n'
                     "![The M.2 HAT from above, with its 40-pin header and pin 1 marked]"
@@ -589,8 +591,8 @@ TEST_DESIGNS = Repo(
             'docs/boards/acorn/setup/rpi-5/jtag-wires.md',
             "How to prepare the JTAG cable's wires (Raspberry Pi 5)",
             Interim('**You have the parts for an Acorn on a Raspberry Pi 5 and are making the first of its '
-                    "two cables, from the Acorn's P1 socket (JTAG). On this page: cut the bought cable in "
-                    'half, find wire 1, check it with a meter, cut back the wires that are not used, crimp '
+                    "two cables, from the Acorn's P1 socket (JTAG). On this page: check that each half reaches, cut the "
+                    'bought cable in half, find wire 1, check it with a meter, cut back the wires that are not used, crimp '
                     'the rest.**'),
             (Include('docs/boards/acorn/generated/acorn-build-pi5-jtag-1.md', relative_images=True),),
             kind='how-to',

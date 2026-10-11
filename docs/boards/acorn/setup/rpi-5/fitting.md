@@ -18,7 +18,7 @@ The card goes in the M.2 slot of the HAT, marked here:
 
 ![The M.2 HAT from above, with its M.2 slot marked](../../views/pi5-hat.top.m2-slot-dark.png){.only-dark}
 
-The housings go on the HAT's 40-pin header, marked here with its pin 1:
+The housings go on the HAT's 40-pin header, marked here with its pin 1. With the stacking header fitted, they go on the pins that come up through the HAT at these places:
 
 ![The M.2 HAT from above, with its 40-pin header and pin 1 marked](../../views/pi5-hat.top.header.png){.only-light width="400px"}
 
