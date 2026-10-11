@@ -13,13 +13,13 @@ package.
 
 ## Using the repository
 
-The repository's key and the line for apt are step 1 of
-[fpgas-verify: installing it](verify/installing.md#installing), which picks the suite for your Debian release.
+The repository's key and the line for apt are step 1 of the Installing section of
+[fpgas-verify: installing it](verify/installing.md#installing). It picks the suite for your Debian release.
 
 ## Checking a board
 
-Each board's install page adds the repository and installs its package, with
-`fpgas-verify`:
+Add the repository first, as above. Then each board's install page installs its package,
+which brings `fpgas-verify`:
 [Acorn](boards/acorn/setup/packages.md#installing-the-acorn-packages),
 [Arty](boards/arty-a7/setup/packages.md#installing-the-arty-packages),
 [NeTV2](boards/netv2/setup/packages.md#installing-the-netv2-packages),
@@ -36,7 +36,7 @@ and no source repository needs a token for the APT repository.
 
 1. A push to `main` builds the package and attaches it to a rolling GitHub
    Release in the source repository.
-2. The `apt` repository pulls every `.deb` it has not seen across all such releases,
+2. The `apt` repository pulls every `.deb` not already in its pool from all such releases,
    regenerates the index, signs it, and republishes.
 
 Versions come from `git describe`: `X.Y` exactly at a `vX.Y` tag, `X.Y.postN`
