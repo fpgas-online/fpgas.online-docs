@@ -1308,6 +1308,9 @@ def take(repo, ref, commit, titles_for, notes):
             body = rewrite_links(texts[src], src, dest, ref, repo=repo.name, titles=titles, notes=notes)
             body = anchors_to_targets(alerts_to_admonitions(body), shared)
             wanted[DOCS / dest] = (marker(repo, src, "This page", ref) + body + toctree(dest, repo)).encode("utf-8")
+    stray = sorted(repo.BODIES - {page for _, page in repo.SECTIONS.values()})
+    if stray:
+        raise Stop(f"{repo.name}: BODIES names pages that no SECTIONS row writes: {', '.join(stray)}")
     for (src, heading), (dest, page) in repo.SECTIONS.items():
         if src in texts:
             try:
