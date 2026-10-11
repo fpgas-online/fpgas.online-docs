@@ -7,6 +7,7 @@ review: 2026-11-10
 
 # Tiny Tapeout FPGA demo board
 
+- Using this board on fpgas.online: [Tiny Tapeout FPGA demo board](../../user/boards/tt-fpga/index.md), under User documentation.
 - [Tiny Tapeout FPGA demo board overview](overview/index.md): what the board is, its pins, and how a design reaches it.
 - [Setting up a Tiny Tapeout FPGA demo board](setup/index.md): the wiring, the packages, and the serial port when you work by hand.
 - [Tiny Tapeout FPGA demo board checks](checks/index.md): the check that runs on the host, its test designs, and the Raspberry Pi side of a PMOD test.

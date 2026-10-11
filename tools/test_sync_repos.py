@@ -287,10 +287,12 @@ class Ownership(unittest.TestCase):
 
     def test_the_tables_as_they_are_agree(self):
         s.check_tables()
-        self.assertEqual(list(s.REPOS), ["test-designs", "infra", "site", "tt", "setup-pi", "poe", "cam", "mechanical"])
+        self.assertEqual(list(s.REPOS), ["test-designs", "infra", "site", "tt", "setup-pi", "poe", "cam", "mechanical",
+                                          "tinytapeout-fpga-demos"])
         for name, repo in s.REPOS.items():
-            self.assertEqual(repo.full, f"fpgas-online/fpgas.online-{name}")
-            self.assertEqual(repo.empty(), name not in ("test-designs", "infra", "cam"), name)
+            want = f"fpgas-online/{name}" if repo.full_name else f"fpgas-online/fpgas.online-{name}"
+            self.assertEqual(repo.full, want)
+            self.assertEqual(repo.empty(), name not in ("test-designs", "infra", "cam", "tinytapeout-fpga-demos"), name)
 
     def test_a_toctree_lists_only_what_some_row_writes(self):
         a = s.Repo("a", PAGES={"x.md": s.Page("docs/a.md", own_dir=False)}, TOCTREES={"docs/a.md": [("G", "a/gone")]})
@@ -670,3 +672,45 @@ class Alerts(unittest.TestCase):
 
 if __name__ == "__main__":
     unittest.main()
+
+
+class GeneratedTables(unittest.TestCase):
+    INFO = """project:
+  title: "Counter"
+  description: "Counts up"
+  clock_hz: {clock}
+  top_module: "tt_um_{name}"
+pinout:
+  ui[0]: "Rate"
+  ui[1]: ""
+  uo[0]: "LED"
+"""
+
+    def table(self, **designs):
+        texts = {f"demos/tt_um_{n}/info.yaml": self.INFO.format(name=n, clock=c) for n, c in designs.items()}
+        return s.tt_demo_designs(texts, "fpgas-online/tinytapeout-fpga-demos", "abc123")
+
+    def test_one_row_per_design_with_its_used_inputs_clock_and_source(self):
+        rows = self.table(counter=10, other=1000000).splitlines()
+        self.assertEqual(len(rows), 4)
+        self.assertIn("Counter (`tt_um_counter`)", rows[2])
+        self.assertIn("`ui[0]`: Rate", rows[2])
+        self.assertNotIn("ui[1]", rows[2])  # an unused input is not listed
+        self.assertNotIn("uo[0]", rows[2])  # outputs are not inputs
+        self.assertIn("| 10 Hz |", rows[2])
+        self.assertIn("| 1,000,000 Hz |", rows[3])
+        self.assertIn("(https://github.com/fpgas-online/tinytapeout-fpga-demos/tree/abc123/demos/tt_um_counter)", rows[2])
+
+    def test_a_clock_of_zero_is_not_set(self):
+        self.assertIn("| not set |", self.table(free=0))
+
+    def test_a_field_a_cell_cannot_hold_stops_the_sync(self):
+        texts = {"demos/tt_um_x/info.yaml": self.INFO.format(name="x", clock=1).replace("Counts up", "a | b")}
+        with self.assertRaises(s.Stop):
+            s.tt_demo_designs(texts, "fpgas-online/tinytapeout-fpga-demos", "abc123")
+
+    def test_a_repository_with_its_own_name_keeps_it(self):
+        self.assertEqual(s.TT_DEMOS.full, "fpgas-online/tinytapeout-fpga-demos")
+        self.assertEqual(s.INFRA.full, "fpgas-online/fpgas.online-infra")
+        self.assertIn("docs/user/boards/tt-fpga/generated/designs.md", s.TT_DEMOS.dests())
+        self.assertIn("docs/user/boards/tt-fpga/generated", s.TT_DEMOS.owned_dirs())

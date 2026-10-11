@@ -6,7 +6,8 @@ needs nothing else.
 Usage: sync_repos.py [--repo NAME ...] [--ref REF] [--check]
 
 Docs content lives in the repository it is about; these docs import it and keep only what has no other
-home. REPOS below has one entry per repository (fpgas-online/fpgas.online-<name>). For each one taken
+home. REPOS below has one entry per repository (fpgas-online/fpgas.online-<name>, unless a
+row gives its full name). For each one taken
 (every one, or those named with --repo), this resolves REF (default main; --ref only with exactly one
 --repo) to a commit, downloads every listed file at that commit, and makes each destination directory an
 exact copy: changed files are rewritten, files no longer listed are removed, and SOURCE records the
@@ -81,6 +82,8 @@ import urllib.request
 from dataclasses import dataclass, field
 from pathlib import Path
 
+import yaml
+
 DOCS = Path(__file__).resolve().parent.parent
 ORG = "fpgas-online"
 SOURCE = "SOURCE"
@@ -154,13 +157,17 @@ class Repo:
     ALSO_HERE: dict = field(default_factory=dict)  # source document: the page here on the same subject
     TOCTREES: dict = field(default_factory=dict)   # page here: [(navigation title, document relative to it)]
     WRAPPERS: list = field(default_factory=list)   # [Wrapper]
+    # page here: (function, [source files]): a table made from the repository's data files, not copied text.
+    # The function takes ({source file: text}, full name, commit) and returns the Markdown.
+    TABLES: dict = field(default_factory=dict)
+    full_name: str = ""  # a repository not named fpgas.online-<name>
 
     @property
     def full(self):
-        return f"{ORG}/fpgas.online-{self.name}"
+        return self.full_name or f"{ORG}/fpgas.online-{self.name}"
 
     def empty(self):
-        return not (self.FILES or self.PAGES or self.SECTIONS or self.WRAPPERS)
+        return not (self.FILES or self.PAGES or self.SECTIONS or self.WRAPPERS or self.TABLES)
 
     def pages(self):
         """{source document: Page} of PAGES."""
@@ -170,13 +177,14 @@ class Repo:
         """Every path this repository's rows write here."""
         out = [f"{d}/{n}" for d, (_, names) in self.FILES.items() for n in names]
         out += [*(p.dest for p in self.pages().values()), *(d for d, _ in self.SECTIONS.values()),
-                *(w.dest for w in self.WRAPPERS)]
+                *(w.dest for w in self.WRAPPERS), *self.TABLES]
         return out
 
     def owned_dirs(self):
         return sorted({*self.FILES, *(posixpath.dirname(p.dest) for p in self.pages().values() if p.own_dir),
                        *(posixpath.dirname(d) for d, _ in self.SECTIONS.values()),
-                       *(posixpath.dirname(w.dest) for w in self.WRAPPERS if w.own_dir)})
+                       *(posixpath.dirname(w.dest) for w in self.WRAPPERS if w.own_dir),
+                       *(posixpath.dirname(d) for d in self.TABLES)})
 
     def lead_sources(self):
         return {w.lead.path for w in self.WRAPPERS if isinstance(w.lead, Lead)}
@@ -771,6 +779,35 @@ CAM = Repo(
     PAGES={"docs/camera.md": Page("docs/setup/pi/camera.md", **_SHARED)},
 )
 
+def tt_demo_designs(texts, full, commit):
+    """The Tiny Tapeout FPGA demo board's bundled designs, one row each, from their info.yaml."""
+    rows = ["| Design | What it does | Inputs | Clock | Source |", "|---|---|---|---|---|"]
+    for src in sorted(texts):
+        info = yaml.safe_load(texts[src])
+        project, pinout = info["project"], info["pinout"]
+        name = project["top_module"]
+        inputs = "; ".join(f"`{pin}`: {use}" for pin, use in pinout.items() if pin.startswith("ui[") and use)
+        where = f"https://github.com/{full}/tree/{commit}/{posixpath.dirname(src)}"
+        cells = [f"{project['title']} (`{name}`)", project["description"], inputs or "none",
+                 f"{project['clock_hz']:,} Hz" if project["clock_hz"] else "not set",
+                 f"[{posixpath.dirname(src)}]({where})"]
+        if any("|" in c or "\n" in c for c in cells):
+            raise Stop(f"{src}: a field holds a line break or a '|', which a table cell cannot")
+        rows.append("| " + " | ".join(cells) + " |")
+    return "\n".join(rows) + "\n"
+
+
+# The designs bundled with the Tiny Tapeout FPGA demo boards' daemon, from their own repository.
+TT_DEMOS = Repo(
+    "tinytapeout-fpga-demos",
+    full_name=f"{ORG}/tinytapeout-fpga-demos",
+    TABLES={
+        "docs/user/boards/tt-fpga/generated/designs.md": (tt_demo_designs, [
+            f"demos/{name}/info.yaml" for name in ("tt_um_counter_7seg", "tt_um_factory_test", "tt_um_pwm_breathe",
+                                                 "tt_um_uart_hello", "tt_um_vga_pattern")]),
+    },
+)
+
 REPOS = {repo.name: repo for repo in (
     TEST_DESIGNS,
     INFRA,
@@ -780,6 +817,7 @@ REPOS = {repo.name: repo for repo in (
     Repo("poe"),
     CAM,
     Repo("mechanical"),
+    TT_DEMOS,
 )}
 
 
@@ -1182,6 +1220,11 @@ def marker(repo, src, what, ref):
             f"% by tools/sync_repos.py. Do not edit it here: change it in {repo.name}.\n\n")
 
 
+def table_marker(repo, srcs):
+    return (f"% This table is generated by tools/sync_repos.py from {', '.join(srcs)}\n"
+            f"% of https://github.com/{repo.full}. Do not edit it here: change those files.\n\n")
+
+
 def wrapper_marker(repo):
     return (f"% This page is generated by tools/sync_repos.py from its row in WRAPPERS ({repo.name}), from files\n"
             f"% of https://github.com/{repo.full}. Do not edit it here: change the row, or those files.\n\n")
@@ -1293,6 +1336,15 @@ def take(repo, ref, commit, titles_for, notes):
                                      own_fragments=fragments_in(text), files=set(names), titles=titles,
                                      notes=notes).encode("utf-8")
             wanted[DOCS / dest / name] = data
+    for dest, (make, srcs) in repo.TABLES.items():
+        data = {}
+        for src in srcs:
+            try:
+                data[src] = fetch(repo.full, commit, src).decode("utf-8")
+            except Missing as e:
+                missing.append(str(e))
+        if len(data) == len(srcs):
+            wanted[DOCS / dest] = (table_marker(repo, srcs) + make(data, repo.full, commit)).encode("utf-8")
     seen = collections.Counter(i for src in pages if src in texts for i in anchor_ids(texts[src]))
     shared = {i for i, n in seen.items() if n > 1}
     for src, dest in pages.items():
