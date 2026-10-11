@@ -4,12 +4,14 @@
 
 Find the failing line in the table, then the wire in the two cavity pictures under it. The number in a cavity is the number on the wire's flag.
 
-To move a wire, the cable goes through the same checks as a new one before any boot:
+To move a wire, the cable goes through the same checks as when the cable was built, before any boot:
 
 1. Power off the Raspberry Pi 5: unplug its power, and its network cable if it is powered over PoE.
 2. Take the card out and pull both plugs from its sockets.
 3. Move the wire.
-4. Check that cable's plug contacts against its housing with the meter. Do that check as steps 3 and 4 of [How to fill the JTAG cable's housing (Raspberry Pi 5)](/boards/acorn/setup/rpi-5/jtag-housing.md) do for the JTAG cable. Do that check as steps 3 and 4 of [How to fill the UART cable's housing (Raspberry Pi 5)](/boards/acorn/setup/rpi-5/uart-housing.md) do for the UART cable.
+4. Check that cable's plug contacts against its housing with the meter, as when the cable was built:
+   * the JTAG cable: steps 3 and 4 of [How to fill the JTAG cable's housing (Raspberry Pi 5)](/boards/acorn/setup/rpi-5/jtag-housing.md);
+   * the UART cable: steps 3 and 4 of [How to fill the UART cable's housing (Raspberry Pi 5)](/boards/acorn/setup/rpi-5/uart-housing.md).
 5. Run the bench check, with the card out: [How to check the cables on the bench (Raspberry Pi 5)](/boards/acorn/setup/rpi-5/bench-check.md).
 6. Fit the cables: [How to fit the cables and the card (Raspberry Pi 5)](/boards/acorn/setup/rpi-5/fitting.md).
 7. Boot the Pi and run the check again.
