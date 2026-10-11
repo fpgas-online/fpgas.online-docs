@@ -12,7 +12,7 @@ review: 2026-11-10
 The load goes to the FPGA's SRAM and is lost at power-off; [How to write a design into a NeTV2's flash](write-flash.md) keeps it. A NeTV2 on a Raspberry Pi 5 is on [its own page](load-pi-5.md).
 
 :::{warning}
-On these hosts the FPGA's serial TX pin is the Pi's kernel console UART. A bitstream that drives that line crashes a netbooted Pi through SysRq. A host is safe when `kernel.sysrq` reads 0 and the kernel command line has no `console=serial0`.
+On these hosts the FPGA's serial TX pin is the Pi's kernel console UART. A bitstream that drives that line crashes a netbooted Pi through SysRq. Step 1 checks for it.
 :::
 
 ## What you need
@@ -23,9 +23,9 @@ On these hosts the FPGA's serial TX pin is the Pi's kernel console UART. A bitst
 
 ## Steps
 
-1. On the Pi, run `sysctl kernel.sysrq` and `cat /proc/cmdline`, and confirm that `kernel.sysrq` reads 0 and the command line has no `console=serial0`.
+1. On the Pi, run `sysctl kernel.sysrq` and `cat /proc/cmdline`. If `kernel.sysrq` does not read 0, run `sudo sysctl -w kernel.sysrq=0`. If the command line has `console=serial0`, do not load: the host is safe only without it.
 2. On the Pi, run `sudo openFPGALoader --cable libgpiod --pins 27:22:4:17 --detect` to see the FPGA answer on JTAG.
-3. On the Pi, run `sudo openFPGALoader --cable libgpiod --pins 27:22:4:17 design.bit` to load the bitstream; the effective JTAG clock is about 5 MHz, so a load is slow.
+3. On the Pi, run `sudo openFPGALoader --cable libgpiod --pins 27:22:4:17 design.bit` to load the bitstream. The effective JTAG clock is about 5 MHz, so a load is slow.
 
 The pin order is `TDI:TDO:TCK:TMS`.
 
@@ -33,11 +33,13 @@ The pin order is `TDI:TDO:TCK:TMS`.
 
 Step 2 lists the FPGA of an XC7A35T board as `idcode 0x0362d093` with IR length 6. The part and its IDCODE are in [FPGA device variants](../overview/specifications.md#fpga-device-variants).
 
+Step 3's `openFPGALoader` ends without an error.
+
 ## If it fails
 
 | What you see | Likely cause | Fix |
 |---|---|---|
-| The Pi crashes or drops off when the design starts | The design drives the serial TX line while the Pi's kernel console and SysRq are on | Run `sudo sysctl -w kernel.sysrq=0` before loading |
+| The Pi crashes or drops off when the design starts | The design drives the serial TX line while the Pi's kernel console and SysRq are on | Make both checks of step 1 before loading again |
 
 ## Next
 
