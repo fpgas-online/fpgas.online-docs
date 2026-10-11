@@ -9,7 +9,7 @@ review: 2026-11-10
 
 **You have an Acorn wired to a Raspberry Pi 5 and want to see its JTAG answer, then load a design over it.**
 
-The boot check reads the IDCODE and the device DNA over P1 by itself (`jtag`): [Installing the Acorn packages](../setup/packages.md#installing-the-acorn-packages). On a Compute Blade the commands differ: [How to run JTAG by hand on an Acorn on a Compute Blade](compute-blade-jtag-by-hand.md).
+The boot check reads the IDCODE and the device DNA over P1 by itself (`jtag`): [Acorn tests and their wires on a Raspberry Pi 5](rpi-5-tests.md). On a Compute Blade the commands differ: [How to run JTAG by hand on an Acorn on a Compute Blade](compute-blade-jtag-by-hand.md).
 
 ## What you need
 

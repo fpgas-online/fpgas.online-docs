@@ -37,7 +37,7 @@ the minimum is 1100 MB/s for writing and for reading, on both the CLE-215+ and t
 16-bit DDR3 at 400 MHz (DDR3-800), so the peak is 1600 MB/s.
 
 The test reads and writes only the DRAM. The check never writes the card's flash and never reconfigures
-the FPGA (from [Installing the Acorn packages](../setup/packages.md#installing-the-acorn-packages)).
+the FPGA ([The Acorn check](about.md)).
 
 The check runs the `ddr` test alone as `sudo fpgas-acorn-verify --test ddr`, on either carrier: [on a Raspberry Pi 5](rpi-5.md), [on a Compute Blade](compute-blade.md).
 

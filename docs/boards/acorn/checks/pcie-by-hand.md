@@ -9,7 +9,7 @@ review: 2026-11-10
 
 **You have an Acorn on a Raspberry Pi 5 and want to load the fpgas.online design and bring the card back.**
 
-The boot check does the reading part by itself (`pcie-link`, `pcie-bar0`): [Installing the Acorn packages](../setup/packages.md#installing-the-acorn-packages). The design is built for the CLE-215+, the CLE-215 and the CLE-101. On a Compute Blade the addresses and the way back differ: [How to check an Acorn's PCIe link by hand on a Compute Blade](pcie-by-hand-compute-blade.md).
+The boot check does the reading part by itself (`pcie-link`, `pcie-bar0`): [Acorn tests and their wires on a Raspberry Pi 5](rpi-5-tests.md). The design is built for the CLE-215+, the CLE-215 and the CLE-101. On a Compute Blade the addresses and the way back differ: [How to check an Acorn's PCIe link by hand on a Compute Blade](pcie-by-hand-compute-blade.md).
 
 ## What you need
 
