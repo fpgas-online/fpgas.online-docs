@@ -21,7 +21,7 @@ The `--pins` numbers at the top right of the sheet are GPIO numbers, not header 
 
 ## P2: serial pair and spare GPIOs
 
-P2 goes to a 2×3 Dupont housing on header pins 5-10, and the cavity over pin 9 (GND) stays empty. The outline in the header picture is the whole housing. Each row is one wire: a P2 pin, the header pin it lands on, its GPIO and the direction.
+P2 goes to a 2×3 Dupont housing on header pins 5-10. The outline in the first header picture is the whole housing. The second marks the header pins that carry a wire: a cavity over an unmarked pin stays empty. Each row of the table is one wire: a P2 pin, the header pin it lands on, its GPIO and the direction.
 
 ![The Acorn's connector end from below, with socket P2 and its pin 1 marked; P1 and the pad greyed](../../views/acorn.bottom.p2.png){.only-light}
 
@@ -31,12 +31,16 @@ P2 goes to a 2×3 Dupont housing on header pins 5-10, and the cavity over pin 9 
 
 ![The M.2 HAT's 40-pin header from above, with pins 5 to 10 marked: where the 2×3 housing goes](../../views/pi5-hat.top.pins-5-10-dark.png){.only-dark width="400px"}
 
+![The M.2 HAT's header, pins 3 to 12, with the pins that carry a P2 wire marked: 5, 6, 7, 8 and 10](../../views/pi5-hat.top.p2-pins.png){.only-light width="400px"}
+
+![The M.2 HAT's header, pins 3 to 12, with the pins that carry a P2 wire marked: 5, 6, 7, 8 and 10](../../views/pi5-hat.top.p2-pins-dark.png){.only-dark width="400px"}
+
 ```{include} ../../generated/acorn-pi5-p2.md
 ```
 
 ## P1: JTAG
 
-P1 goes to a 2×4 Dupont housing on header pins 19-26. The cavities over pins 20 (GND), 22 (GPIO25) and 26 (GPIO7) stay empty. The outline in the header picture is the whole housing. Each row is one wire: a P1 pin, the header pin it lands on, its GPIO and the direction.
+P1 goes to a 2×4 Dupont housing on header pins 19-26. The outline in the first header picture is the whole housing. The second marks the header pins that carry a wire: a cavity over an unmarked pin stays empty. Each row of the table is one wire: a P1 pin, the header pin it lands on, its GPIO and the direction.
 
 ![The Acorn's connector end from below, with socket P1 and its pin 1 marked; P2 and the pad greyed](../../views/acorn.bottom.p1.png){.only-light}
 
@@ -45,6 +49,10 @@ P1 goes to a 2×4 Dupont housing on header pins 19-26. The cavities over pins 20
 ![The M.2 HAT's 40-pin header from above, with pins 19 to 26 marked: where the 2×4 housing goes](../../views/pi5-hat.top.pins-19-26.png){.only-light width="400px"}
 
 ![The M.2 HAT's 40-pin header from above, with pins 19 to 26 marked: where the 2×4 housing goes](../../views/pi5-hat.top.pins-19-26-dark.png){.only-dark width="400px"}
+
+![The M.2 HAT's header, pins 17 to 28, with the pins that carry a P1 wire marked: 19, 21, 23, 24 and 25](../../views/pi5-hat.top.p1-pins.png){.only-light width="400px"}
+
+![The M.2 HAT's header, pins 17 to 28, with the pins that carry a P1 wire marked: 19, 21, 23, 24 and 25](../../views/pi5-hat.top.p1-pins-dark.png){.only-dark width="400px"}
 
 ```{include} ../../generated/acorn-pi5-p1.md
 ```
