@@ -19,24 +19,25 @@ included.
 
 ## Steps
 
-1. On welland or ps1, press **Reset**, next to "Turn it off and on again". On tinytapeout.fpgas.online, press
-   **Power-cycle board** and confirm.
-2. Wait about two minutes for the host to come back. A Raspberry Pi 5 host can take more than 90 s.
+1. On welland or ps1, press **Reset**, next to "Turn it off and on again".
+2. On tinytapeout.fpgas.online, press **Power-cycle board** instead, and confirm.
+3. Wait about two minutes for the host to come back.
 
 ## Check
 
-On welland or ps1, the status box shows the host's boot messages, and **Check PoE** writes a line that starts
-`status: PoE`. The terminal connects again by itself. On tinytapeout.fpgas.online, the status log shows
+On welland, the status box shows the host's boot messages, and the terminal connects again by itself. On ps1, press
+**reconnect** and **reset ssh**: the terminal shows a prompt. On tinytapeout.fpgas.online, the status log shows
 `power-cycle: done`, and the status pill shows the board again.
 
 ## If it fails
 
 | What you see | Likely cause | Fix |
 |---|---|---|
-| The status log shows `power-cycle refused`, with a reason | the board was power-cycled a moment ago, or the switch did not answer | wait, then press it again |
-| An upload says the board is not answering | the host is still starting | wait a little longer, then upload again |
+| `reset failed (429)`, or `power-cycle refused (HTTP 429)` | the board was power-cycled a moment ago | wait a minute, then press it again |
+| `power-cycle refused`, with another reason | the switch did not answer | press it again later |
+| An upload says the host "did not answer, so nothing was uploaded" | the host is still starting | wait a little longer, then upload again |
 
 ## Next
 
 - [The board page on welland and ps1](board-page.md)
-- [Boards](index.md)
+- [Using a board](index.md)
