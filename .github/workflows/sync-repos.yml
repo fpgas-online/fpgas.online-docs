@@ -39,6 +39,10 @@ jobs:
           cache: pip
           cache-dependency-path: docs/requirements.txt
 
+      # The sync reads YAML data files (PyYAML), so it needs the docs' requirements before it runs.
+      - name: Install the sync's requirements
+        run: pip install -r docs/requirements.txt
+
       # A failing repository does not stop the others (exit 2 after writing theirs), so this step records the
       # status instead of failing: the pull request is still opened for what synced, and "Fail the run" below
       # turns the run red.
