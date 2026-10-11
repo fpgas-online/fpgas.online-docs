@@ -13,13 +13,13 @@ setting one up, which is [Digilent Arty A7](../../../boards/arty-a7/index.md) un
 :::{admonition} No Arty A7 was in service when this was checked
 :class: warning
 
-On 26 September 2026 no Arty A7 was online at welland.fpgas.online. The recorded ports were down, and none of the
-reachable hosts showed the board's USB chip
+On 11 October 2026 the welland list showed no Arty A7; a board is listed only while its check passes. Four Arty A7
+boards at welland were found on 27 September 2026, with parts of their check failing
 ([infra issue #125](https://github.com/fpgas-online/fpgas.online-infra/issues/125)). At ps1.fpgas.online, seven of eight
 Arty A7 hosts did not answer the gateway on 6 October 2026
 ([infra issue #272](https://github.com/fpgas-online/fpgas.online-infra/issues/272)). Both issues are open.
 
-The board type on each site's list says whether one is back. Read the pages below as what a visitor will find then.
+On welland the list shows each board's type, so it shows when an Arty A7 is back. The ps1 list shows host names only.
 :::
 
 ## The board

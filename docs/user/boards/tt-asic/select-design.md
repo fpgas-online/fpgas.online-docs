@@ -41,7 +41,7 @@ The Commander's Config and Interact tabs on a chip board's page. Tracked in [doc
 ## Check
 
 At the bottom of the Commander, the **Debug log** shows a line that starts `> select_design(`, with the project's
-number in it. The **Index** field then shows that number. With **uo_out** ticked, its row shows the project's output as
+number in it: Select was sent. With **uo_out** ticked, its row shows the project's output as
 a decimal number, a hexadecimal number and eight binary digits. The row changes as you set the inputs.
 
 ## If it fails

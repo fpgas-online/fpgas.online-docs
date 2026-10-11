@@ -42,13 +42,14 @@ wiring also drives. To avoid that clash, the host puts the board into a safe sta
 It does so only if nobody has connected within 30 seconds and the board is still on that start project.
 
 The project clock is stopped, the controller's `uio` pins are released and `ui_in` is driven to 0. A project you
-select stays until the board is power-cycled. Then the SDK starts again on its start project, the factory test
+select stays until the board's SDK starts again, for example after a power cycle. The SDK then starts on its start
+project, the factory test
 ([fpgas.online-tt README](https://github.com/fpgas-online/fpgas.online-tt/blob/main/README.md)).
 
 ## What a visitor changes
 
-A visitor selects a project that is already in the chip, and sets its clock. Nothing a visitor does writes, replaces or
-deletes a file on the board.
+A visitor selects a project that is already in the chip, and sets its clock. Nothing these pages ask of a visitor writes,
+replaces or deletes a file on the board.
 
 ## Next
 

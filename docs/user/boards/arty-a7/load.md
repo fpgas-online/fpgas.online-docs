@@ -14,11 +14,10 @@ run**. The load goes into the FPGA's SRAM, so a reset or a power cycle ends it. 
 :::{admonition} No Arty A7 was in service when this was checked
 :class: warning
 
-On 26 September 2026 no Arty A7 was online at welland.fpgas.online
-([infra issue #125](https://github.com/fpgas-online/fpgas.online-infra/issues/125)). At ps1.fpgas.online, seven of eight
-Arty A7 hosts did not answer the gateway on 6 October 2026
-([infra issue #272](https://github.com/fpgas-online/fpgas.online-infra/issues/272)). Both issues are open. The steps
-below are the ones for a board that is back.
+On 11 October 2026 the welland list showed no Arty A7; a board is listed only while its check passes
+([infra issue #125](https://github.com/fpgas-online/fpgas.online-infra/issues/125)). The steps below are for a board
+that is back on that list. They cover welland only: the ps1 list shows host names, not board types
+([infra issue #272](https://github.com/fpgas-online/fpgas.online-infra/issues/272)).
 :::
 
 ## What you need
@@ -39,7 +38,7 @@ below are the ones for a board that is back.
 
 - The load's last line ends with `done 1`. With `done 0` the FPGA is not configured, whatever the exit status; the
   STAT register printed under it says why.
-- The board shows in the terminal as two `/dev/ttyUSB*` devices, the JTAG channel and the UART channel.
+- In the terminal, `ls /dev/ttyUSB*` lists two devices, the JTAG channel and the UART channel.
 
 ## If it fails
 
