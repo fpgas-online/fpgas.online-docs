@@ -40,8 +40,14 @@ A host with no camera of its own can send the picture of a USB HDMI grabber inst
 board's HDMI output, not a view of the board. Which NeTV2 hosts have which, and what the other boards' cameras show, are
 [docs issue #189](https://github.com/fpgas-online/fpgas.online-docs/issues/189).
 
-:::{admonition} Figure to come
-:class: placeholder
+```{figure} screenshots/camera-live.png
+:alt: The low-latency view of a Tiny Tapeout FPGA board: the purple board with a green LED lit, above a blue board. A clock is burned into the top left corner, and a rewind button sits at the top right.
 
-The board page's camera in its two views, with the rewind and live buttons. Tracked in [docs issue #188](https://github.com/fpgas-online/fpgas.online-docs/issues/188).
-:::
+The low-latency view, with its **rewind** button. A Tiny Tapeout FPGA board, 11 Oct 2026.
+```
+
+```{figure} screenshots/camera-rewind.png
+:alt: The same board in the slower view after rewind was pressed, with the clock in the top left corner and a live button at the top right in place of rewind.
+
+The slower view after **rewind**, with its **live** button.
+```
