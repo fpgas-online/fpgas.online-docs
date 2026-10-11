@@ -76,7 +76,8 @@ $ sudo fpgas-fomu-debug reset
 |---|---|---|
 | `no GPIO UART on this host` | `/dev/serial0` does not exist on this Pi | Run the test on a Pi that has the GPIO UART |
 | The test cannot load the design; `lsusb` does not list `1209:5bf0` | The Fomu is out of its DFU bootloader | [Fomu EVT programming faults](../troubleshooting/programming-faults.md) |
-| `fpgas-fomu-debug reset` says foboot did not come back on USB | The reset through the header did not restart foboot | Ask the site operator, then power-cycle the Fomu's host, and check `lsusb` again |
+| `fpgas-fomu-debug reset: fail: foboot (1209:5bf0) did not come back on USB within 10 s` | The reset through the header did not restart foboot | Ask the site operator, then power-cycle the Fomu's host. Then check that `lsusb` lists `1209:5bf0` |
+| `fpgas-fomu-debug reset: error: the closing reset could not be done` | The Pi could not drive the Fomu's header: the host is not a Raspberry Pi, the header read failed, or a header line was left an output | Ask the site operator, then power-cycle the Fomu's host. Then check that `lsusb` lists `1209:5bf0` |
 | The test reads nothing, or the output is corrupt | The login console came back and consumes the serial data: `serial-getty` was stopped but not masked | Run the block again; the `mask` line keeps systemd from restarting it |
 
 ## Next
