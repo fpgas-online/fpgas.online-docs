@@ -9,6 +9,8 @@ review: 2026-11-10
 
 **You have an Acorn wired to a Compute Blade and want the P2 balls to send their own names.**
 
+This page is for a blade the site operator has taken out of service for it; on a blade in the fleet the load is not run ([test-designs #241](https://github.com/fpgas-online/fpgas.online-test-designs/issues/241), [#237](https://github.com/fpgas-online/fpgas.online-test-designs/issues/237)).
+
 Only K2 and J2 answer on a blade, because J5 and H5 are not connected. On a Raspberry Pi 5 the load differs: [How to run the pin ID test on an Acorn on a Raspberry Pi 5](pin-id.md).
 
 This procedure is waiting for its run: [test-designs issue #237](https://github.com/fpgas-online/fpgas.online-test-designs/issues/237).
@@ -16,7 +18,7 @@ This procedure is waiting for its run: [test-designs issue #237](https://github.
 :::{warning}
 **Never load pin ID on a blade whose J2 wire has no 470 Ω resistor.**
 
-When the load finishes, the design drives J2, which is on GPIO14. openFPGALoader has left GPIO14 an output. With the resistor that is about 7 mA for a moment. Without it, two outputs are shorted together, which costs JTAG until a power cycle and can crash the host.
+When the load finishes, the design drives J2, which is on GPIO14. openFPGALoader has left GPIO14 an output. With the resistor that is about 7 mA for a moment. Without it, two outputs are shorted together, which costs JTAG until a power cycle (ask the site operator first) and can crash the host.
 :::
 
 ```{include} ../inc/gpio-contention.inc
@@ -74,8 +76,8 @@ GPIO14 -> "J2"
 ## If it fails
 
 - **The blade crashes when a GPIO is set to output:** pin ID drives all four P2 balls, so a blade output fights an FPGA output. Keep GPIO14 an input (`pinctrl set 14 ip pn`) while pin ID runs.
-- **JTAG is lost after the load:** the J2 wire has no 470 Ω resistor, and the design drives J2 against TMS on GPIO14. Power-cycle the blade and fit the resistor.
-- **`gpiod_line_request_set_values_subset: Assertion 'request' failed`:** the serial driver holds GPIO14; boot with the header's serial port off.
+- **JTAG is lost after the load:** the J2 wire has no 470 Ω resistor, and the design drives J2 against TMS on GPIO14. Ask the site operator, then power-cycle the blade, and fit the resistor.
+- **`gpiod_line_request_set_values_subset: Assertion 'request' failed`:** the serial driver holds GPIO14. Ask the site operator, then boot with the header's serial port off.
 
 ## Next
 
