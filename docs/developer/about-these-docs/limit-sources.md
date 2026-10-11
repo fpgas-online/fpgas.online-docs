@@ -21,5 +21,5 @@ Rule is the rule's number, Limit what it allows, and Source the guide that gives
 | 5.6 | no step or prerequisite in a callout | [Google developer documentation style guide: notices](https://developers.google.com/style/notices) |
 | 5.7 | 15 links | [GitLab documentation style guide](https://docs.gitlab.com/development/documentation/styleguide/) |
 | 5.8 | 5 heading levels | GitLab documentation style guide |
-| 5.9 | 7 entries under a sidebar heading | [Mintlify: navigation](https://www.mintlify.com/docs/guides/navigation) |
+| 5.9 | 7 entries under a sidebar heading | [Mintlify: navigation](https://www.mintlify.com/docs/guides/navigation), which says top-level sections; the rule applies it to every sidebar heading |
 | 5.10 | alt text of 150 characters | [Microsoft style guide: alternative text](https://learn.microsoft.com/en-us/style-guide/accessibility/alternative-text) |

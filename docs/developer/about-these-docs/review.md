@@ -64,7 +64,7 @@ difference between a page that is true and a page that can be followed.
 
 The build fails a pull request on anything a machine can decide, so that reviewers spend their time on what it
 cannot. A warning does not stop a merge, but the author explains it or removes its cause. Each check is listed
-under [what the build checks](page-contents.md#what-the-build-checks).
+under [what the build checks](page-contents.md#10-what-the-build-checks).
 
 ## The merge gate
 

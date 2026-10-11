@@ -16,7 +16,7 @@ column gives what it must be.
 Every rule carries a number in bold, such as 5.2: the section, then the rule within it. A review finding cites a
 rule by that number. Later rules take the next free number in their section, so a cited number keeps its meaning.
 
-## Every page
+## 1. Every page
 
 | Part | Value |
 |---|---|
@@ -28,7 +28,7 @@ rule by that number. Later rules take the next free number in their section, so 
 | **1.6** Smallest size | more than links alone; more than two sentences |
 | **1.7** Feedback | a "was this useful" control, routed to the issue tracker |
 
-## Content with another home
+## 2. Content with another home
 
 | Content | Home |
 |---|---|
@@ -38,7 +38,7 @@ rule by that number. Later rules take the next free number in their section, so 
 | **2.4** A broken thing | an issue |
 | **2.5** Questions and answers | no page: there is no FAQ |
 
-## A how-to
+## 3. A how-to
 
 | Part | Value |
 |---|---|
@@ -51,7 +51,7 @@ rule by that number. Later rules take the next free number in their section, so 
 | **3.7** If it fails | at the step where it happens: what you see, the likely cause, the fix |
 | **3.8** Next | five links at most |
 
-## Other pages
+## 4. Other pages
 
 | Page | Type | Title | Body |
 |---|---|---|---|
@@ -63,7 +63,7 @@ rule by that number. Later rules take the next free number in their section, so 
 | **4.6** Identification | reference | the variants | the variants side by side at one orientation and scale; the difference marked; a table of the tells |
 | **4.7** Landing | landing | the section | one line for each destination and nothing else |
 
-## Limits
+## 5. Limits
 
 | Item | Limit |
 |---|---|
@@ -78,7 +78,7 @@ rule by that number. Later rules take the next free number in their section, so 
 | **5.9** Entries under one sidebar heading | 7 |
 | **5.10** Alt text | 150 characters |
 
-## Words
+## 6. Words
 
 | Class | Words |
 |---|---|
@@ -86,7 +86,7 @@ rule by that number. Later rules take the next free number in their section, so 
 | **6.2** Watched: allowed when not about time | `new`, `now`, `latest` |
 | **6.3** Forbidden phrases | `Future:`, `Sources:`, `unverified`, `TODO`, `not yet`, `as read on` |
 
-## Text
+## 7. Text
 
 - **7.1** Detail: full where the reader acts; a summary only where the reader orients.
 - **7.2** The future, the unproven and the unused: none on a reader page. An unknown becomes an issue.
@@ -96,7 +96,7 @@ rule by that number. Later rules take the next free number in their section, so 
 - **7.6** What changes: anchored by a version or an issue number.
 - **7.7** A source: one descriptive link in the sentence that needs it. No sources line, section or footnote.
 
-## Pictures
+## 8. Pictures
 
 | Aspect | Value |
 |---|---|
@@ -116,7 +116,7 @@ rule by that number. Later rules take the next free number in their section, so 
 | **8.14** Terminal output | text, never an image |
 | **8.15** Information in one diagram | one paragraph's worth |
 
-## Diagrams
+## 9. Diagrams
 
 | Aspect | Value |
 |---|---|
@@ -138,18 +138,22 @@ rule by that number. Later rules take the next free number in their section, so 
 
 ### The build-guide diagram set
 
-| Slot | Shows |
+Its rows are rules of section 9 too, and each names its slot.
+
+| Rule and slot | Shows |
 |---|---|
-| **9.16** 1 | the finished cable in place |
-| **9.17** 2 | the cable and its internals |
-| **9.18** 3 | the connectors and the function of every pin |
-| **9.19** 4 | the assembly steps |
-| **9.20** 5 | the verification steps |
-| **9.21** 6 | the plugging-in steps |
-| **9.22** 7 | the result after each major group of steps |
-| **9.23** 8 | the wrong configurations: what you see, the cause, the fix |
+| **9.16** slot 1 | the finished cable in place |
+| **9.17** slot 2 | the cable and its internals |
+| **9.18** slot 3 | the connectors and the function of every pin |
+| **9.19** slot 4 | the assembly steps |
+| **9.20** slot 5 | the verification steps |
+| **9.21** slot 6 | the plugging-in steps |
+| **9.22** slot 7 | the result after each major group of steps |
+| **9.23** slot 8 | the wrong configurations: what you see, the cause, the fix |
 
 ### The figures every board gets
+
+Its rows are rules of section 9 too.
 
 | Figure | Shows |
 |---|---|
@@ -159,7 +163,7 @@ rule by that number. Later rules take the next free number in their section, so 
 | **9.27** Programming | the three layers: protocol, connection, tool |
 | **9.28** Variants | the comparison, side by side |
 
-## What the build checks
+## 10. What the build checks
 
 | Check | Result |
 |---|---|
