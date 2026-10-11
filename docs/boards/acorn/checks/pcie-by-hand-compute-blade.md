@@ -49,7 +49,7 @@ This procedure is waiting for its run: [test-designs issue #237](https://github.
    ```{include} ../inc/blade-detach.inc
    ```
 
-3. On the blade, load the design into SRAM and put the pins back; the load ends with the done message of openFPGALoader.
+3. On the blade, load the design into SRAM and put the pins back; the load's last line ends with `done 1`.
 
    ```console
    $ openFPGALoader --cable libgpiod --pins 2:3:4:14 $SOC

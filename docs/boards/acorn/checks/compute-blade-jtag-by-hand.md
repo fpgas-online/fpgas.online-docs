@@ -59,7 +59,7 @@ This procedure is waiting for its run: [test-designs issue #237](https://github.
    $ pinctrl set 2,4 no pu
    ```
 
-5. On the blade, load the design into SRAM and put the pins back again; the load ends with the done message of openFPGALoader.
+5. On the blade, load the design into SRAM and put the pins back again; the load's last line ends with `done 1`.
 
    ```console
    $ openFPGALoader --cable libgpiod --pins 2:3:4:14 $SOC
