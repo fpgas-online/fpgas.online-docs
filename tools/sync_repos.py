@@ -22,6 +22,8 @@ PAGES      whole Markdown documents, published as pages here. A value is the des
            in that directory: it claims only its own path.
 SECTIONS   one "## heading" section of a Markdown document, written as a fragment that a page here
            includes (each board's "Installing the ... Packages").
+BODIES     the pages among those whose whole body is the section: its own heading becomes a target and
+           the headings below it rise one level, so that they sit under the page's title.
 ALSO_HERE  documents not taken whole that have a page here on the same subject (a link to one goes there).
 TOCTREES   the hidden toctree appended to a pulled landing page.
 WRAPPERS   pages here that are only a title, a lead and includes of synced files. A wrapper may exist only
@@ -148,6 +150,7 @@ class Repo:
     PAGES: dict = field(default_factory=dict)      # source document: the page it becomes here (or a Page)
     # (source document, "## " heading): (fragment here, page including it)
     SECTIONS: dict = field(default_factory=dict)
+    BODIES: frozenset = frozenset()  # pages here whose whole body is one of the SECTIONS (see as_body)
     ALSO_HERE: dict = field(default_factory=dict)  # source document: the page here on the same subject
     TOCTREES: dict = field(default_factory=dict)   # page here: [(navigation title, document relative to it)]
     WRAPPERS: list = field(default_factory=list)   # [Wrapper]
@@ -356,6 +359,12 @@ TEST_DESIGNS = Repo(
         ("docs/hardware/tt-fpga.md", "Installing the TT FPGA Packages"):
             ("docs/boards/generated/install-tt-fpga.md", "docs/boards/tt-fpga/setup/packages.md"),
     },
+    # Each install section is the whole body of its board's "How to install …" how-to.
+    BODIES=frozenset({
+        "docs/boards/acorn/setup/packages.md", "docs/boards/arty-a7/setup/packages.md",
+        "docs/boards/netv2/setup/packages.md", "docs/boards/fomu-evt/setup/packages.md",
+        "docs/boards/tt-fpga/setup/packages.md",
+    }),
     # A link to one of them with no #fragment goes to that page; with a fragment it goes there only if the
     # fragment is a section taken above (the page's other headings are not the source's).
     ALSO_HERE={
@@ -649,14 +658,13 @@ TEST_DESIGNS = Repo(
         Wrapper(
             'docs/boards/acorn/setup/packages.md',
             'How to install the Acorn packages',
-            Interim('**You have an Acorn on a Raspberry Pi 5 with an M.2 HAT and want to install the '
-                    'fpgas.online packages for it and run the check.**\n\nBefore '
-                    'the check is run: its `p2-uart` and `p2-serial` tests need the '
-                    "header's serial\nport on (`/dev/ttyAMA0`) and the kernel console off it: [the Pi's "
-                    'settings](rpi-5/pi-settings.md#the-serial-port).'),
+            Interim('**You have an Acorn on a Raspberry Pi 5 and want its fpgas.online packages and its check.**'
+                    "\n\nThe check's `p2-uart` and `p2-serial` tests need the header's serial port on "
+                    "(`/dev/ttyAMA0`) and the kernel console off it. Both are set as [the Pi's "
+                    'settings](rpi-5/pi-settings.md#the-serial-port) show.'),
             (Include('docs/boards/generated/install-acorn.md'),),
             kind='how-to',
-            reader='someone with an Acorn on a Raspberry Pi 5 who wants to install the fpgas.online packages for it',
+            reader='someone installing the packages for an Acorn on a Raspberry Pi 5',
             own_dir=False,
         ),
     ],
@@ -1133,6 +1141,19 @@ def section(text, heading, src):
     return "\n".join(lines[start:]).rstrip() + "\n"
 
 
+def as_body(part, heading):
+    """A section that is the whole body of a page here: its own "## heading" line, which would repeat the
+    page's title, gives way to a target of the same name, so that links to it still land, and every heading
+    below it rises one level, so that the section's "### " headings sit directly under the page's title."""
+    lines = part.split("\n")
+    code = in_code(lines)
+    out = [f"({slug(heading)})="]
+    for i, line in enumerate(lines[1:], start=1):
+        m = None if code[i] else re.match(r"(#{3,6}) ", line)
+        out.append(line[1:] if m else line)
+    return "\n".join(out)
+
+
 def headings_twice(text):
     """The "## " headings that text has more than once, outside fenced code."""
     lines = text.split("\n")
@@ -1287,6 +1308,9 @@ def take(repo, ref, commit, titles_for, notes):
             body = rewrite_links(texts[src], src, dest, ref, repo=repo.name, titles=titles, notes=notes)
             body = anchors_to_targets(alerts_to_admonitions(body), shared)
             wanted[DOCS / dest] = (marker(repo, src, "This page", ref) + body + toctree(dest, repo)).encode("utf-8")
+    stray = sorted(repo.BODIES - {page for _, page in repo.SECTIONS.values()})
+    if stray:
+        raise Stop(f"{repo.name}: BODIES names pages that no SECTIONS row writes: {', '.join(stray)}")
     for (src, heading), (dest, page) in repo.SECTIONS.items():
         if src in texts:
             try:
@@ -1294,6 +1318,8 @@ def take(repo, ref, commit, titles_for, notes):
             except Missing as e:
                 missing.append(str(e))
                 continue
+            if page in repo.BODIES:
+                part = as_body(part, heading)
             body = alerts_to_admonitions(rewrite_links(part, src, page, ref, repo=repo.name,
                                                        own_fragments=fragments_in(part), titles=titles, notes=notes))
             wanted[DOCS / dest] = (marker(repo, src, f'This section ("{heading}")', ref) + body).encode("utf-8")

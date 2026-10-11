@@ -167,6 +167,11 @@ class Section(unittest.TestCase):
             s.section(self.TEXT + "\n## Next\n", "Next", "x.md")
         self.assertEqual(s.headings_twice(self.TEXT + "\n## Next\n```\n## Installing\n```\n"), ["## Next"])
 
+    def test_a_section_that_is_a_page_s_body_keeps_its_anchor_and_raises_its_headings(self):
+        part = "## Installing\n\n```bash\n### fenced\n#### deeper fenced\n```\n\n### Sub\n\n#### Deeper\n\nbody\n"
+        self.assertEqual(s.as_body(part, "Installing"),
+                         "(installing)=\n\n```bash\n### fenced\n#### deeper fenced\n```\n\n## Sub\n\n### Deeper\n\nbody\n")
+
     def test_fragments_in_ignores_fenced_code_and_reads_targets(self):
         self.assertEqual(s.fragments_in(self.TEXT + "(kept-id)=\n"), {"board", "installing", "sub", "next", "kept-id"})
 

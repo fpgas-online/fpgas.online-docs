@@ -1,17 +1,17 @@
 % This section ("Installing the Acorn Packages") is copied from https://github.com/fpgas-online/fpgas.online-test-designs/blob/main/docs/hardware/acorn.md
 % by tools/sync_repos.py. Do not edit it here: change it in test-designs.
 
-## Installing the Acorn Packages
+(installing-the-acorn-packages)=
 
 This is for an Acorn on a Raspberry Pi 5. On a Compute Blade, follow [How to run the Acorn check on a Compute Blade](../checks/compute-blade.md) instead: there the packages are installed after each boot.
 
-### What you need
+## What you need
 
 - a Raspberry Pi 5 with the Acorn and both cables fitted ([How to fit the cables and the card (Raspberry Pi 5)](rpi-5/fitting.md))
 - the fpgas.online apt repository added on the Pi ([fpgas-verify: installing it](../../../verify/installing.md#installing))
 - on bookworm: the fpgas.online-fpga-tools apt repository added too (the same page). Debian bookworm's openFPGALoader is too old for the check
 
-### Steps
+## Steps
 
 **1.** Install the Acorn's packages. This also turns the check at boot on (`fpgas-verify.service`).
 
@@ -25,11 +25,11 @@ sudo apt install fpgas-online-acorn
 sudo fpgas-acorn-verify --no-publish
 ```
 
-### Check
+## Check
 
 The first line of the output starts with `fpgas-verify: pass`. The board's line under it ends in `pass`, and so does the line of each test (`jtag       pass`, for one). The result is `pass` only when every test passes. [fpgas-verify: reading the result](../../../verify/reading-the-result.md#reading-the-result) shows a whole pass as the tool prints it.
 
-### If it fails
+## If it fails
 
 - The first line names the result, and the output ends with `RESULT:` and `What to do:`. [fpgas-verify: reading the result](../../../verify/reading-the-result.md#reading-the-result) says what each result means.
 - [A failing Acorn test on a Raspberry Pi 5](../troubleshooting/rpi-5-failing-test.md) goes from a failing line to the wire.
@@ -41,7 +41,7 @@ sudo fpgas-acorn-debug detect       # the Acorn-family endpoints on PCI
 sudo fpgas-acorn-debug identify     # the running build and the flash's part, JEDEC ID and unique ID, read live
 ```
 
-### Next
+## Next
 
 - [How to run the Acorn check on a Raspberry Pi 5](../checks/rpi-5.md): reading the result, test by test.
 - [fpgas-verify: what an Acorn check tests](../../../verify/acorn.md#acorn): each test, and when it passes.

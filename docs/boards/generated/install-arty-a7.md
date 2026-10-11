@@ -1,9 +1,9 @@
 % This section ("Installing the Arty Packages") is copied from https://github.com/fpgas-online/fpgas.online-test-designs/blob/main/docs/hardware/arty-a7.md
 % by tools/sync_repos.py. Do not edit it here: change it in test-designs.
 
-## Installing the Arty Packages
+(installing-the-arty-packages)=
 
-### What you need
+## What you need
 
 - a Raspberry Pi with the Arty on one of its USB ports
 - the fpgas.online apt repository added on the Pi ([fpgas-verify: installing it](../../../verify/installing.md#installing))
@@ -11,7 +11,7 @@
 
 `grep VERSION_CODENAME /etc/os-release` says which release the Pi runs.
 
-### Steps
+## Steps
 
 **1.** Install the Arty's packages. This also turns the check at boot on (`fpgas-verify.service`).
 
@@ -25,11 +25,11 @@ sudo apt install fpgas-online-arty
 sudo fpgas-arty-verify --no-publish
 ```
 
-### Check
+## Check
 
 The first line of the output starts with `fpgas-verify: pass`. The board's line under it ends in `pass`, and so does the line of each test.
 
-### If it fails
+## If it fails
 
 - The first line names the result, and the output ends with `RESULT:` and `What to do:`. [fpgas-verify: reading the result](../../../verify/reading-the-result.md#reading-the-result) says what each result means.
 - [fpgas-verify: common failures](../../../verify/common-failures.md#common-failures) lists the messages and what to do about each.
@@ -39,7 +39,7 @@ The first line of the output starts with `fpgas-verify: pass`. The board's line 
 sudo fpgas-arty-debug test ddr
 ```
 
-### Next
+## Next
 
 - [The Arty A7 check at boot](../../../verify/tests.md#the-arty-a7-check-at-boot): what the check does, test by test.
 - [Arty A7 packages](../../../verify/installing.md#arty-a7-packages): what each package installs.

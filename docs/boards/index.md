@@ -16,7 +16,7 @@ what the board carries. Interface is how the board reaches its Raspberry Pi.
 
 | Board | Page | FPGA | Features | Interface |
 |---|---|---|---|---|
-| [Digilent Arty A7-35T](https://digilent.com/shop/arty-a7-artix-7-fpga-development-board/) | [Digilent Arty A7](arty-a7/index.md) | Xilinx XC7A35T | DDR3, Ethernet, PMOD, USB JTAG and UART | USB to an FTDI FT2232: JTAG on `ttyUSB0`, a 115200 baud UART on `ttyUSB1`; PMOD HAT |
+| [Digilent Arty A7-35T](https://digilent.com/reference/programmable-logic/arty-a7/start) | [Digilent Arty A7](arty-a7/index.md) | Xilinx XC7A35T | DDR3, Ethernet, PMOD, USB JTAG and UART | USB to an FTDI FT2232: JTAG on `ttyUSB0`, a 115200 baud UART on `ttyUSB1`; PMOD HAT |
 | [Kosagi NeTV2](https://www.crowdsupply.com/alphamax/netv2) | [Kosagi NeTV2](netv2/index.md) | Xilinx XC7A35T | DDR3, Ethernet, PCIe, HDMI | GPIO JTAG; GPIO UART; on a Raspberry Pi 5 also PCIe Gen2 x1 and a second UART on the PCIe "hax" pins |
 | [SQRL Acorn CLE-215+](https://github.com/enjoy-digital/litex/wiki/Use-LiteX-on-the-Acorn-CLE-215) | [SQRL Acorn and LiteFury](acorn/index.md) | Xilinx XC7A200T | DDR3, PCIe, SPI flash | GPIO JTAG (P1); GPIO UART (P2) on `/dev/ttyAMA0`; PCIe through an M.2 slot |
 | [LiteFury](https://github.com/RHSResearchLLC/NiteFury-and-LiteFury) and Acorn CLE-101 | [SQRL Acorn and LiteFury](acorn/index.md) | Xilinx XC7A100T | DDR3, PCIe, SPI flash | GPIO JTAG (P1); GPIO UART (P2) on `/dev/ttyAMA0`; PCIe through an M.2 slot |
