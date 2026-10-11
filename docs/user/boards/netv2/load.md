@@ -123,7 +123,7 @@ output, not the board. Which hosts have one is not settled ([docs issue #189](ht
 
 | What you see | Likely cause | Fix |
 |---|---|---|
-| The host crashes or drops off during the load on a Pi 5 | the endpoint was still enumerated | wait for the host to come back (press Reset, as on [How to reset a board](../reset.md), if it does not), then follow the steps again from step 1: the reboot emptied `Uploads` |
+| The host crashes or drops off during the load on a Pi 5 | the endpoint was still enumerated | wait for the host to come back (press Reset, as on [How to reset a board](../reset.md), if it does not), then follow the steps again from step 1. If the host rebooted or you pressed Reset, `Uploads` is empty: upload the file again |
 | openFPGALoader does not know the `rp1pio` cable | the host's openFPGALoader build lacks it; only the `openfpgaloader-fpgasonline-git` package has the cable | choose another NeTV2 from the list: this host cannot load over `rp1pio` |
 | The Pi 3B+ drops off when the design starts | the design drives the serial TX line while the kernel console and SysRq are on | make both checks of step 1 before loading again |
 | `done 0` | the FPGA did not configure | read the STAT register printed under it, and check that the file was built for the board's FPGA |
