@@ -37,10 +37,9 @@ The boot check does the reading part by itself (`pcie-link`, `pcie-bar0`): [Acor
    $ echo 1 | sudo tee /sys/bus/pci/devices/0001:01:00.0/remove
    ```
 
-3. On the Pi, link the header's GPIO chip as `gpiochip0`, because the `libgpiod` cable opens `gpiochip0` and the header is `gpiochip15`.
+3. On the Pi, make sure `gpiochip0` is the header's GPIO chip, because the `libgpiod` cable opens `gpiochip0`.
 
-   ```console
-   $ sudo ln -sfn /dev/gpiochip15 /dev/gpiochip0
+   ```{include} ../inc/gpiochip0.inc
    ```
 
 4. On the Pi, load the design into SRAM; the load's last line ends with `done 1`.
