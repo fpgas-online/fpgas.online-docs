@@ -21,7 +21,7 @@ Parameter names the figure, and Value gives it.
 | Package | SG48 (48-pin QFN) |
 | Logic cells | 5,280 LUT4s |
 | SPRAM | 128 KB (4 x 32 KB blocks) |
-| Block RAM (EBR) | 120 Kbit (15 KB total) |
+| Block RAM (EBR) | 120 Kbit (30 blocks of 4 Kbit, 15 KB total, per the [iCE40 UltraPlus data sheet](https://www.latticesemi.com/view_document?document_id=51968)) |
 | Clock | 50 MHz from RP2350 PWM (GPIO16) |
 | Toolchain | icestorm / nextpnr-ice40 (open source); Yosys + nextpnr-ice40, IceStorm flow |
 | Controller | RP2350B (on demo PCB) |
