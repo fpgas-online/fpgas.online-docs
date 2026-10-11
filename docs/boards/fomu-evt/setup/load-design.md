@@ -28,11 +28,21 @@ Why the board leaves USB afterwards is on [Programming a Fomu EVT](../overview/p
 - A design with no USB core, such as the UART echo, leaves USB: `lsusb` no longer lists `1209:5bf0`. It talks over the GPIO header pins.
 - The design answers on `/dev/serial0` once the [serial login console is stopped](../checks/stop-serial-console.md).
 
+A design with no USB core keeps the Fomu off USB, so no other design can be loaded over DFU. The test designs that
+`fpgas-fomu-debug program` and `test` load are such designs. To put foboot back, run `sudo fpgas-fomu-debug reset` from the
+`fpgas-online-fomu-debug` package. It resets the Fomu through the header and waits for foboot (`1209:5bf0`) on USB. A
+power cycle does the same.
+
+```console
+$ sudo fpgas-fomu-debug reset
+```
+
 ## If it fails
 
 | What you see | Likely cause | Fix |
 |---|---|---|
-| `1209:5bf0` is not in `lsusb` before the load | The bootloader timed out of DFU after about 3 minutes, or a bitstream with no USB core is running | PoE power cycle the Pi, which restarts the DFU bootloader, then load again inside the 3 minutes |
+| `fpgas-fomu-debug reset` says foboot did not come back on USB | the reset through the header did not restart foboot | ask the site operator, then power-cycle the Fomu's host, and check `lsusb` again |
+| `1209:5bf0` is not in `lsusb` before the load | The bootloader timed out of DFU after about 3 minutes, or a bitstream with no USB core is running | run `sudo fpgas-fomu-debug reset`, or PoE power cycle the Pi; either restarts the DFU bootloader. Then load again inside the 3 minutes |
 
 More faults are on [Fomu EVT programming faults](../troubleshooting/programming-faults.md).
 
