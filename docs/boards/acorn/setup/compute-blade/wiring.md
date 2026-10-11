@@ -32,12 +32,20 @@ Each row of the table is a header of the blade and the pin numbers it prints. Th
 
 ## P1: JTAG, on the Extension Port
 
+![The Acorn's connector end from below, with socket P1 and its pin 1 marked; P2 and the pad greyed](../../views/acorn.bottom.p1.png){.only-light}
+
+![The Acorn's connector end from below, with socket P1 and its pin 1 marked; P2 and the pad greyed](../../views/acorn.bottom.p1-dark.png){.only-dark}
+
 Each row is one wire: a P1 pin, its Extension Port pin, GPIO and direction, resistor and shared line.
 
 ```{include} ../../generated/acorn-blade-p1.md
 ```
 
 ## P2: serial pair, on the UART header
+
+![The Acorn's connector end from below, with socket P2 and its pin 1 marked; P1 and the pad greyed](../../views/acorn.bottom.p2.png){.only-light}
+
+![The Acorn's connector end from below, with socket P2 and its pin 1 marked; P1 and the pad greyed](../../views/acorn.bottom.p2-dark.png){.only-dark}
 
 Each row is one wire: a P2 pin, its UART pin, GPIO and direction, resistor and shared line. The 470 Ω resistor is soldered into the J2 wire near its housing end. Why it is there: [The line JTAG and the serial port share on a Compute Blade](shared-line.md). Fitting it: [How to prepare the UART cable's wires (Compute Blade)](uart-wires.md).
 
