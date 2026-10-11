@@ -14,7 +14,7 @@ What the two images are is on [the fpgas.online Acorn design](../overview/design
 ## What you need
 
 - The Acorn on a Raspberry Pi 5 with the M.2 HAT, wired for JTAG ([Acorn wiring on a Raspberry Pi 5](rpi-5/wiring.md)).
-- The packages `fpgas-online-acorn-tools` and `fpgas-online-acorn-bitstreams` ([Installing the Acorn packages](packages.md#installing-the-acorn-packages)). The tools package installs `spi_flash.py` as `/usr/bin/fpgas-acorn-flash`, so on a host with the packages `sudo fpgas-acorn-flash id` is `sudo python3 spi_flash.py id`.
+- The packages `fpgas-online-acorn-tools` and `fpgas-online-acorn-bitstreams` ([How to install the Acorn packages](packages.md)). The tools package installs `spi_flash.py` as `/usr/bin/fpgas-acorn-flash`, so on a host with the packages `sudo fpgas-acorn-flash id` is `sudo python3 spi_flash.py id`.
 - The images in `/usr/share/fpgas-online/acorn-pcie/images/`, where `manifest.json` lists them. For a CLE-215+ the operational image (`sqrl_acorn_operational.bin` below) is `acorn-cle-215p-sqrl_acorn_operational.bin` there. The golden image (`sqrl_acorn_fallback.bin` below) is `acorn-cle-215p-golden-sqrl_acorn_fallback.bin`. For a CLE-101 put `cle-101` in place of `cle-215p`.
 - The card's PCIe address, `<bdf>` below: `0001:01:00.0` on a Raspberry Pi 5 with the M.2 HAT.
 - A way to PoE-cycle the host's switch port, for step 9.
