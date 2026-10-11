@@ -14,14 +14,14 @@ The images and the flash layout are on [the fpgas.online Acorn design](../overvi
 This procedure is waiting for its run: [test-designs issue #228](https://github.com/fpgas-online/fpgas.online-test-designs/issues/228).
 
 :::{danger}
-**Never write flash address 0x0 during normal operation.** The golden image there is the recovery mechanism. Overwrite it badly and the only way back is the SRAM bootstrap below. On a board whose JTAG does not answer, there is no way back at all. `spi_flash.py` refuses 0x0 without `--i-know-this-writes-golden`; `litepcie_util` does not check. Use 0x400000 for operational updates.
+**Never write flash address 0x0 during normal operation.** The golden image there is the recovery mechanism. Overwrite it badly and the only way back is the SRAM bootstrap below. On a board whose JTAG does not answer, there is no way back at all. `fpgas-acorn-flash` refuses 0x0 without `--i-know-this-writes-golden`; `litepcie_util` does not check. Use 0x400000 for operational updates.
 :::
 
 ## What you need
 
 - JTAG wired and answering `--detect` on the Pi (step 1). A card whose JTAG does not answer cannot be rescued, and its golden slot must not be written. The cards known not to answer: [test-designs issue #209](https://github.com/fpgas-online/fpgas.online-test-designs/issues/209) and [test-designs issue #214](https://github.com/fpgas-online/fpgas.online-test-designs/issues/214).
 - The JTAG wiring left connected on every deployed board. Without JTAG a bad golden image bricks the board until JTAG is reconnected.
-- `openFPGALoader` with the `libgpiod` cable, and `spi_flash.py`.
+- `openFPGALoader` with the `libgpiod` cable, and the flash tool `fpgas-acorn-flash` from [How to install the Acorn packages](../setup/packages.md).
 - `golden.bit`, the golden build's `.bit` (`acorn_pcie_soc.py --variant <v> --golden --build`, [a Vivado build](../overview/design.md#images)); the packages carry only the operational `.bit`. In the design's release it is `acorn-cle-215p-golden-sqrl_acorn.bit` for a CLE-215+.
 - `sqrl_acorn_fallback.bin` and `sqrl_acorn_operational.bin`, the golden and operational flash images.
 - A copy of every file on the Pi after each reboot, because files under `/home/pi` do not survive one.
@@ -56,11 +56,11 @@ This procedure is waiting for its run: [test-designs issue #228](https://github.
 4. On the Pi, write the golden image to 0x0, then the operational one to 0x400000; both writes complete.
 
    ```console
-   $ sudo python3 spi_flash.py write sqrl_acorn_fallback.bin 0x0 --idcode 0x3636093 --i-know-this-writes-golden
+   $ sudo fpgas-acorn-flash write sqrl_acorn_fallback.bin 0x0 --idcode 0x3636093 --i-know-this-writes-golden
    ```
 
    ```console
-   $ sudo python3 spi_flash.py write sqrl_acorn_operational.bin 0x400000 --idcode 0x3636093
+   $ sudo fpgas-acorn-flash write sqrl_acorn_operational.bin 0x400000 --idcode 0x3636093
    ```
 
 5. At the switch, PoE-cycle the host's port; the golden image boots from flash and chain-loads the operational one.
@@ -75,11 +75,18 @@ Memory controller [0580]: Xilinx Corporation Device [10ee:7021]
 
 ## If it fails
 
-- **`found 0 devices` in step 1:** this board cannot be rescued over JTAG; stop and repair the JTAG wiring.
+- **Step 1 lists no `idcode` line, or prints nothing:** this board cannot be rescued over JTAG; stop and repair the JTAG wiring.
 - **Step 3 shows the SQRL ID `1e24:021f`, or no device:** the JTAG load did not take; go back to step 2 rather than writing flash.
 - **`Open file … FAIL` after a reboot:** the bitstream is gone, because `/home/pi` is a memory overlay (`overlayroot=tmpfs`); copy it again before each attempt.
 - **The board lost power before step 4 completed:** the flash still holds the corrupt golden image; start again from step 2.
-- **The rescan in step 3 finds nothing:** re-probe the slot's root complex. The re-probe commands are under "If it fails" on [How to check an Acorn's PCIe link by hand on a Raspberry Pi 5](../checks/pcie-by-hand.md#if-it-fails).
+- **The rescan in step 3 finds nothing:** with no link at boot, the PCIe host bridge removed itself, so there is nothing to rescan. Bind it again, without an unbind first, then list the card. This command waits for its run on a Pi 5 (test-designs issue #228):
+
+  ```console
+  $ echo 1000110000.pcie | sudo tee /sys/bus/platform/drivers/brcm-pcie/bind
+  $ lspci -nn -s 0001:01:00.0
+  ```
+
+  If the bind reports `No such device`, the card still has no link: go back to step 2.
 
 ## Next
 
