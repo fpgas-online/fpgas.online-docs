@@ -27,10 +27,11 @@ write_bitstream -force golden.bit
 write_cfgmem -force -format bin -interface spix4 -size 16 -loadbit "up 0x0 golden.bit" -file golden.bin
 ```
 
-2. In Vivado, build the operational image, which has the watchdog and the fallback.
+2. In the same Vivado session, clear step 1's chain-load, then build the operational image, which has the watchdog and the fallback.
 
 ```tcl
-# Operational: watchdog and fallback
+# Operational: no chain-load, then the watchdog and the fallback
+reset_property BITSTREAM.CONFIG.NEXT_CONFIG_ADDR [current_design]
 set_property BITSTREAM.CONFIG.TIMER_CFG 0x0001fbd0 [current_design]
 set_property BITSTREAM.CONFIG.CONFIGFALLBACK Enable [current_design]
 write_bitstream -force operational.bit
@@ -39,11 +40,11 @@ write_cfgmem -force -format bin -interface spix4 -size 16 -loadbit "up 0x0 opera
 
 ## Check
 
-The working directory holds `golden.bit`, `golden.bin`, `operational.bit` and `operational.bin`.
+The working directory holds `golden.bit`, `golden.bin`, `operational.bit` and `operational.bin`. The images are checked when they are written: `fpgas-acorn-flash write` checks each one against its slot before it erases anything.
 
 ## If it fails
 
-- **The golden image is built with openXC7.** openXC7 does not support `NEXT_CONFIG_ADDR`. Build golden images with Vivado, which suits an image written once and rarely changed.
+- **`fpgas-acorn-flash` refuses `operational.bin`: "this image chain-loads another one (the golden flavour)".** Step 1's `NEXT_CONFIG_ADDR` was still set when step 2 wrote it. Run step 2 again, with its `reset_property` line.
 
 ## Next
 
