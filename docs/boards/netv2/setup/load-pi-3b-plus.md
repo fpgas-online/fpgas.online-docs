@@ -33,7 +33,7 @@ The pin order is `TDI:TDO:TCK:TMS`.
 
 Step 2 lists the FPGA of an XC7A35T board as `idcode 0x0362d093` with IR length 6. The part and its IDCODE are in [FPGA device variants](../overview/specifications.md#fpga-device-variants).
 
-Step 3's `openFPGALoader` ends without an error.
+In step 3, the load's last line ends with `done 1`. With `done 0` the FPGA is not configured, whatever the exit status; the STAT register printed under it says why.
 
 ## If it fails
 
