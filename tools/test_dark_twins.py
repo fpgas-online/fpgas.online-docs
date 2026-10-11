@@ -2,7 +2,8 @@
 # SPDX-License-Identifier: Apache-2.0
 """Every drawing and every annotated photograph on the site has a dark twin, and every page shows the light one in
 the light theme and the dark one in the dark theme (Furo's only-light / only-dark classes). A plain photograph is
-the same in both.
+the same in both. So is a screenshot of a site, kept in a screenshots/ folder: it shows the site as it looks, and the
+sites have one theme.
 
 Run: python -m unittest discover -s tools -p 'test_*.py'
 """
@@ -60,6 +61,8 @@ def annotated():
 
 
 def needs_twin(src):
+    if "screenshots" in Path(src).parts:
+        return False
     return src.endswith(DRAWING) or Path(src).name in annotated()
 
 

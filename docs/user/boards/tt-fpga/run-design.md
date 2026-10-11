@@ -25,11 +25,18 @@ Everyone on the page drives the same board, so a design you run replaces the one
    press the ones the design uses.
 4. Tick **uo_out** to see the design's outputs.
 
-:::{admonition} Figure to come
-:class: placeholder
+```{figure} ../screenshots/tt-board-page.png
+:alt: The top of a Tiny Tapeout FPGA board's page. The heading reads TT FPGA emulation board 1, with an FPGA emulation tag, a board present status pill, and the Power-cycle board and Reset video buttons. Below, the camera is on the left. On the right is the Commander, with Shuttle FPGA and Firmware 3.1.0, a Reconnect button, and the Config, Interact, Pinout and REPL tabs. The Config tab shows the Project field, Load design, Clock speed, Preset and Set, above the board's log.
 
-The Tiny Tapeout board page with Designs on this board and the Commander's Interact tab. Tracked in [docs issue #188](https://github.com/fpgas-online/fpgas.online-docs/issues/188).
-:::
+The top of a Tiny Tapeout FPGA board's page, 11 Oct 2026. **Designs on this board** and its **Run** buttons are
+below this part of the page.
+```
+
+```{figure} ../screenshots/tt-commander-interact.png
+:alt: The Commander's Interact tab, with Shuttle FPGA, Firmware 3.1.0 and Reconnect above the tabs. The ui_in checkbox has buttons 0 to 7 beside it, greyed because it is not ticked. Under it is the uo_out checkbox, also not ticked, so no output row shows. Below are the Reset (R) and Clock once (C) buttons, then the board's log.
+
+The Commander's **Interact** tab before step 3: **ui_in** and **uo_out** are not ticked yet.
+```
 
 ## Check
 
