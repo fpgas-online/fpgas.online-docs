@@ -789,6 +789,8 @@ def tt_demo_designs(texts, full, commit):
             name = project["top_module"]
             for key in ("title", "description", "clock_hz"):
                 project[key]
+            if not isinstance(pinout, dict) or not isinstance(project["clock_hz"], int):
+                raise TypeError("a pinout mapping and a whole clock_hz")
         except yaml.YAMLError as e:
             raise Stop(f"{src} is not YAML: {e}") from e
         except (KeyError, TypeError) as e:

@@ -42,7 +42,7 @@ outputs change as you set the inputs.
 |---|---|---|
 | `another task is running` | the board was busy with another load | wait a moment, then press Run again |
 | `board not present` | the board is not on its Pi's USB | press **Power-cycle board** ([How to reset a board](../reset.md)), then try again |
-| `Pi unreachable`, or `HTTP 502 Bad Gateway` | the board's Pi is restarting or off | wait two minutes, then reload the page |
+| `Pi unreachable`, or `HTTP 502` | the board's Pi is restarting or off | wait two minutes, then reload the page |
 | `Could not reach the Pi` | your browser's connection to the site failed | check your connection, then reload the page |
 
 ## Next
