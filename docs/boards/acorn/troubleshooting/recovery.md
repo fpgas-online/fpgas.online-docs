@@ -79,7 +79,7 @@ Memory controller [0580]: Xilinx Corporation Device [10ee:7021]
 - **Step 3 shows the SQRL ID `1e24:021f`, or no device:** the JTAG load did not take; go back to step 2 rather than writing flash.
 - **`Open file … FAIL` after a reboot:** the bitstream is gone, because `/home/pi` is a memory overlay (`overlayroot=tmpfs`); copy it again before each attempt.
 - **The board lost power before step 4 completed:** the flash still holds the corrupt golden image; start again from step 2.
-- **The rescan in step 3 finds nothing:** re-probe the slot's root complex. The four commands are under "If it fails" on [How to check an Acorn's PCIe link by hand on a Raspberry Pi 5](../checks/pcie-by-hand.md#if-it-fails).
+- **The rescan in step 3 finds nothing:** re-probe the slot's root complex. The re-probe commands are under "If it fails" on [How to check an Acorn's PCIe link by hand on a Raspberry Pi 5](../checks/pcie-by-hand.md#if-it-fails).
 
 ## Next
 
