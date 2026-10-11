@@ -20,21 +20,23 @@ Reconfiguring the FPGA over JTAG while its PCIe endpoint is enumerated is a surp
 ## What you need
 
 - A NeTV2 wired as on [NeTV2 wiring to a Raspberry Pi](wiring.md#jtag), with its PCIe link in the Pi 5's PCIe connector.
-- The `openfpgaloader-fpgasonline-git` package, which carries the `rp1pio` cable ([What runs on a Pi host](../../../setup/pi.md)).
+- The `openfpgaloader-fpgasonline-git` package, which carries the `rp1pio` cable ([What runs on a Pi host](../../../setup/pi.md)). The apt repository is added as on [fpgas-verify: installing it](../../../verify/installing.md).
 - A bitstream, here `design.bit`.
 
 ## Steps
 
-1. On the Pi, run `lspci -D -d 10ee:` to list any Xilinx device. On a Pi 5 the NeTV2's address is `0001:01:00.0`, the slot the Acorn hosts use.
-2. On the Pi, run `echo 1 | sudo tee /sys/bus/pci/devices/0001:01:00.0/remove` with the address from step 1 to detach the endpoint. If `lspci` printed nothing, there is nothing to detach.
+1. On the Pi, run `lspci -D -s 0001:01:00.0`, the Pi 5's PCIe slot. A line there is an endpoint to detach; no line, go to step 3.
+2. On the Pi, detach it with `echo 1 | sudo tee /sys/bus/pci/devices/0001:01:00.0/remove`. Run `lspci -D -s 0001:01:00.0` again: it prints nothing. If it still prints the line, stop.
 3. On the Pi, run `sudo openFPGALoader --cable rp1pio --pins 27:22:4:17 design.bit` to load the bitstream through the RP1's PIO peripheral.
-4. On the Pi, run `echo 1 | sudo tee /sys/bus/pci/rescan` to bring the endpoint back. If the Pi booted with no link to the card, the PCIe host bridge removed itself, and a rescan finds nothing. Bind it again instead, with no unbind first: `echo 1000110000.pcie | sudo tee /sys/bus/platform/drivers/brcm-pcie/bind`.
+4. On the Pi, run `echo 1 | sudo tee /sys/bus/pci/rescan` to bring the endpoint back. If `ls /sys/bus/platform/drivers/brcm-pcie/` lists no `1000110000.pcie`, the host bridge removed itself at boot, with no link. Bind it again, with no unbind first: `echo 1000110000.pcie | sudo tee /sys/bus/platform/drivers/brcm-pcie/bind`. This bind waits for its run on a Pi 5 (test-designs issue #246).
 
 The pin order is `TDI:TDO:TCK:TMS`. The FPGA enumerates only after a bitstream is loaded, and from then on step 2 is mandatory.
 
 ## Check
 
-After step 4, `lspci -D -d 10ee:` lists the NeTV2 as a Xilinx device on a Gen2 x1 link, if the design has a PCIe endpoint.
+The load's last line in step 3 ends with `done 1`. With `done 0` the FPGA is not configured, whatever the exit status; the STAT register printed under it says why.
+
+After step 4, `lspci -D -s 0001:01:00.0` lists the NeTV2 as a Xilinx device, if the design has a PCIe endpoint. `sudo lspci -vv -s 0001:01:00.0 | grep LnkSta` shows the Gen2 x1 link.
 
 ## If it fails
 
