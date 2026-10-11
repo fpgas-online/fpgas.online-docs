@@ -16,7 +16,7 @@ The gateway, its switch and its tooling are the site operator's own install. The
 [pici](https://github.com/CarlFK/pici) playbooks and the `pib` web application.
 None of it is built by fpgas.online-infra.
 fpgas.online reads the gateway and does not deploy to it. The site notes, `docs/hardware/site-ps1.md` in
-fpgas.online-test-designs, call it val2. They describe it before its reinstall of about 25 September 2026
+fpgas.online-test-designs, call it val2. They differ from the read below
 ([test-designs issue #294](https://github.com/fpgas-online/fpgas.online-test-designs/issues/294)).
 
 The table and the root below are from a read on the gateway on 6 October 2026.
