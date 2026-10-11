@@ -55,7 +55,7 @@ After step 5, `ls Uploads` on the host lists the files you copied.
 
 | What you see | Likely cause | Fix |
 |---|---|---|
-| `Connection refused`, or no answer | the host is not up, for example just after a reset | wait a few minutes, then connect again |
+| `Connection refused`, or no answer | the host is not up, for example after a reset | wait a few minutes, then connect again |
 | `Permission denied` | the password was mistyped | copy it again from the page or the banner |
 
 ## Next
