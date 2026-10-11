@@ -651,10 +651,7 @@ TEST_DESIGNS = Repo(
         Wrapper(
             'docs/boards/acorn/setup/packages.md',
             'How to install the Acorn packages',
-            Interim('**You have an Acorn on a Raspberry Pi 5 and want its fpgas.online packages and its check.**'
-                    "\n\nThe check's `p2-uart` and `p2-serial` tests need the header's serial port on "
-                    "(`/dev/ttyAMA0`) and the kernel console off it. Both are set as [the Pi's "
-                    'settings](rpi-5/pi-settings.md#the-serial-port) show.'),
+            Interim('**You have an Acorn on a Raspberry Pi 5 and want its fpgas.online packages and its check.**'),
             (Include('docs/boards/generated/install-acorn.md'),),
             kind='how-to',
             reader='someone installing the packages for an Acorn on a Raspberry Pi 5',

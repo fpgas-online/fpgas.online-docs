@@ -44,14 +44,11 @@ Install **one** of these. They conflict, so a host is never set up for two board
 * The packages are `Architecture: all`: they install on Raspberry Pi OS and on an x86 machine alike. The NeTV2
   and the Acorn need a Pi's GPIO header, and so does the Fomu EVT, which sits on it; the Arty and TT FPGA board
   need only USB.
-* Versions are `0.0.postN` from `git describe` (for example `0.0.post771`). Each package depends on the others'
+* Versions are `0.0.postN` from `git describe`. Each package depends on the others'
   exact version, so `sudo apt upgrade` moves them together.
-* What each board's packages pull in is listed [below](#what-each-boards-packages-install).
-* CI builds every package and checks its install rules in clean bookworm and trixie
-  ([`collect-bitstreams.yml`](https://github.com/fpgas-online/fpgas.online-test-designs/blob/main/.github/workflows/collect-bitstreams.yml),
-  [`build_debs.py`](https://github.com/fpgas-online/fpgas.online-test-designs/blob/main/packaging/debs/build_debs.py), [`install_test.sh`](https://github.com/fpgas-online/fpgas.online-test-designs/blob/main/packaging/debs/install_test.sh)).
+* What each board's packages pull in is listed [below](#what-the-packages-of-each-board-install).
 
-## What each board's packages install
+## What the packages of each board install
 
 ### Acorn packages
 

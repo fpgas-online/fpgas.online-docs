@@ -32,7 +32,7 @@ Blade](../setup/compute-blade/wiring.md).
 
 ## How the check tests it
 
-From the check's document ([what each board's check tests](../../../verify/fpgas-verify.md#what-each-boards-check-tests)):
+From the check's document ([fpgas-verify: what an Acorn check tests](../../../verify/acorn.md)):
 
 | Test | Over | Passes when |
 |---|---|---|

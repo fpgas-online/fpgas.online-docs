@@ -26,7 +26,7 @@ There is no separate DDR design for the Acorn: the memory test is part of the op
 
 ## How the check tests it
 
-From the check's document ([what each board's check tests](../../../verify/fpgas-verify.md#what-each-boards-check-tests)):
+From the check's document ([fpgas-verify: what an Acorn check tests](../../../verify/acorn.md)):
 the `ddr` test runs over BAR0. After the BIOS console is read out, the DRAM BIST makes two passes over the
 whole DRAM. The test passes with no errors and a write and a read bandwidth of at least the variant's
 minimum.
