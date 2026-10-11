@@ -21,15 +21,14 @@ under [Sites](sites/index.md).
 - HDMI, HDCP and USB on the NeTV2 boards: [test-designs issue #234](https://github.com/fpgas-online/fpgas.online-test-designs/issues/234).
 - Designs to use from a board's page, with nothing to build: [test-designs issue #236](https://github.com/fpgas-online/fpgas.online-test-designs/issues/236).
 - A check for other PCIe Xilinx cards: [test-designs issue #238](https://github.com/fpgas-online/fpgas.online-test-designs/issues/238).
-- A check of every function of each board type: [test-designs issue #87](https://github.com/fpgas-online/fpgas.online-test-designs/issues/87).
 
 ## The check of each board
 
-- A full test design for every board type, booted from flash, with every function checked at boot: [test-designs issue #89](https://github.com/fpgas-online/fpgas.online-test-designs/issues/89) and [test-designs issue #90](https://github.com/fpgas-online/fpgas.online-test-designs/issues/90).
+- A full test design for every board type, with every function checked at boot: [test-designs issue #87](https://github.com/fpgas-online/fpgas.online-test-designs/issues/87), with [#89](https://github.com/fpgas-online/fpgas.online-test-designs/issues/89) and [#90](https://github.com/fpgas-online/fpgas.online-test-designs/issues/90).
 - Every GPIO pin checked in both directions: [test-designs issue #271](https://github.com/fpgas-online/fpgas.online-test-designs/issues/271).
 - Transfer rates measured against expected figures, for DDR, PCIe and Ethernet: [test-designs issue #274](https://github.com/fpgas-online/fpgas.online-test-designs/issues/274).
-- The flash checked against the golden full test design, and restored when a user changed it: [test-designs issue #275](https://github.com/fpgas-online/fpgas.online-test-designs/issues/275) and [test-designs issue #68](https://github.com/fpgas-online/fpgas.online-test-designs/issues/68).
-- Everything a board can report read and reported, with labels made from it: [test-designs issue #26](https://github.com/fpgas-online/fpgas.online-test-designs/issues/26) and [test-designs issue #76](https://github.com/fpgas-online/fpgas.online-test-designs/issues/76).
+- On the Arty A7 and the NeTV2, the flash checked against the golden full test design: [test-designs issue #275](https://github.com/fpgas-online/fpgas.online-test-designs/issues/275). Flash a user changed is restored: [test-designs issue #68](https://github.com/fpgas-online/fpgas.online-test-designs/issues/68).
+- The flash's identifiers read on every board, and everything a board can report sent with its labels: [test-designs issue #26](https://github.com/fpgas-online/fpgas.online-test-designs/issues/26) and [test-designs issue #76](https://github.com/fpgas-online/fpgas.online-test-designs/issues/76).
 - What a board reports compared with the site's records of it: [test-designs issue #276](https://github.com/fpgas-online/fpgas.online-test-designs/issues/276).
 - Candidate bitstreams checked on one board of each setup before they become golden: [test-designs issue #277](https://github.com/fpgas-online/fpgas.online-test-designs/issues/277).
 

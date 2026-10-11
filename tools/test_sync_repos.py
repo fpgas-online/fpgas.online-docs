@@ -34,10 +34,10 @@ def repos_with(**infra):
 class RewriteLinks(unittest.TestCase):
     def test_link_to_another_pulled_page_goes_to_it_and_keeps_the_fragment(self):
         self.assertEqual(rewrite("[i](identity.md#tiny-tapeout-fields)"), "[i](identity.md#tiny-tapeout-fields)")
-        self.assertEqual(rewrite("[g](identity.md)"), "[g](identity.md)")
+        self.assertEqual(rewrite("[g](verify-goals.md)"), f"[g]({GH}/blob/main/docs/verify-goals.md)")
 
     def test_a_link_from_the_repository_root_is_resolved_there(self):
-        self.assertEqual(rewrite("[g](/docs/identity.md#x)"), "[g](identity.md#x)")
+        self.assertEqual(rewrite("[g](/docs/verify-goals.md#x)"), f"[g]({GH}/blob/main/docs/verify-goals.md#x)")
         self.assertEqual(rewrite("[r](/verify/src/runner.py)"), f"[r]({GH}/blob/main/verify/src/runner.py)")
         self.assertEqual(copied("[g](/docs/identity.md)"), "[g](/verify/identity.md)")
         with self.assertRaises(s.Stop):
@@ -68,15 +68,15 @@ class RewriteLinks(unittest.TestCase):
         self.assertEqual(rewrite(text), f"```bash\necho '[x](../verify/)'\n```\n[y]({GH}/tree/main/verify)")
 
     def test_a_fence_closes_only_with_its_own_character_and_length(self):
-        self.assertEqual(rewrite("~~~\n```\n~~~\n[g](identity.md)"), "~~~\n```\n~~~\n[g](identity.md)")
-        self.assertEqual(rewrite("````\n```\n[g](identity.md)\n````\n[g](identity.md)"),
-                         "````\n```\n[g](identity.md)\n````\n[g](identity.md)")
-        self.assertEqual(rewrite("```\n~~~\n[g](identity.md)\n```\n[g](identity.md)"),
-                         "```\n~~~\n[g](identity.md)\n```\n[g](identity.md)")
+        self.assertEqual(rewrite("~~~\n```\n~~~\n[g](verify-goals.md)"), f"~~~\n```\n~~~\n[g]({GH}/blob/main/docs/verify-goals.md)")
+        self.assertEqual(rewrite("````\n```\n[g](verify-goals.md)\n````\n[g](verify-goals.md)"),
+                         f"````\n```\n[g](verify-goals.md)\n````\n[g]({GH}/blob/main/docs/verify-goals.md)")
+        self.assertEqual(rewrite("```\n~~~\n[g](verify-goals.md)\n```\n[g](verify-goals.md)"),
+                         f"```\n~~~\n[g](verify-goals.md)\n```\n[g]({GH}/blob/main/docs/verify-goals.md)")
 
     def test_a_link_whose_label_began_on_the_line_before_is_rewritten(self):
-        self.assertEqual(rewrite("see [the\ngoals](identity.md) and [x](identity.md)"),
-                         "see [the\ngoals](identity.md) and [x](identity.md)")
+        self.assertEqual(rewrite("see [the\ngoals](verify-goals.md) and [x](identity.md)"),
+                         f"see [the\ngoals]({GH}/blob/main/docs/verify-goals.md) and [x](identity.md)")
 
     def test_section_links_resolve_from_the_including_page(self):
         out = rewrite("[v](../verify.md#installing) [b](#via-jtag) [o](#own)", "docs/hardware/acorn.md",
@@ -463,7 +463,7 @@ class Labels(unittest.TestCase):
         for text in ("[Goals](identity.md)", "```\n[identity.md](identity.md)\n```"):
             out = self.page(text)
             self.assertNotIn("what it must do", out, text)
-        self.assertEqual(rewrite("[identity.md](identity.md)"), "[identity.md](identity.md)")
+        self.assertEqual(rewrite("[verify-goals.md](verify-goals.md)"), f"[verify-goals.md]({GH}/blob/main/docs/verify-goals.md)")
 
     def test_a_copied_file_s_labels_too(self):
         notes = []
