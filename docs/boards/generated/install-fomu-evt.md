@@ -7,6 +7,9 @@
 
 - a Raspberry Pi with the Fomu EVT on its GPIO header ([Fomu EVT wiring to a Raspberry Pi](wiring.md#connections-to-the-pi))
 - the fpgas.online apt repository added on the Pi ([fpgas-verify: installing it](../../../verify/installing.md#installing))
+- on bookworm: the fpgas.online-fpga-tools apt repository added too ([fpgas-verify: installing it](../../../verify/installing.md#installing) has it). Debian bookworm's openFPGALoader is too old for the check
+
+`grep VERSION_CODENAME /etc/os-release` says which release the Pi runs.
 
 ## Steps
 

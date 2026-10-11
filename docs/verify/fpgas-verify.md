@@ -8,18 +8,12 @@
 `fpgas-verify` answers one question per Pi: **is this Pi and its FPGA board ready for users?** It finds the
 board, tests the board and its wiring to the Pi, and gives one result, pass or fail, with every fault it found.
 
-* What the tool must do: [fpgas-verify: what it must do](https://github.com/fpgas-online/fpgas.online-test-designs/blob/main/docs/verify-goals.md). Where this page and that one disagree,
-  verify-goals.md says what the tool should do.
 * The code: [`verify/`](https://github.com/fpgas-online/fpgas.online-test-designs/tree/main/verify).
 * `verify_hardware.py` ([verify_hardware.py — How the Hardware Verification Script Works](https://github.com/fpgas-online/fpgas.online-test-designs/blob/main/docs/verify-hardware.md)) is a different tool: a developer's script
   that loads freshly built bitstreams from a workstation over SSH.
 
-This page has two parts:
-
-1. [Using verify as a standalone tool](#using-verify-as-a-standalone-tool): installing, running, reading the
-   result, and what each board's check tests.
-2. [How the fleet uses verify](#how-the-fleet-uses-verify): at every boot of every
-   netbooted Pi, the events it sends the site, and the [current results](https://github.com/fpgas-online/fpgas.online-test-designs/blob/main/docs/verify/current-results.md#current-results).
+This page lists the pages for [using verify](#using-verify-as-a-standalone-tool): installing, running, reading
+the result, and what each board's check tests.
 
 ---
 
@@ -83,10 +77,6 @@ One page for each task, in this order:
 
 * [The JTAG IDCODE and the device DNA](idcode-and-dna.md): for you if you have an Acorn, Arty or NeTV2 and want to know how its IDCODE and DNA are read and judged.
 
-(not-done-yet)=
-
-* [Not done yet](https://github.com/fpgas-online/fpgas.online-test-designs/blob/main/docs/verify/not-done-yet.md#not-done-yet): for you if you want to know what the check does not do yet.
-
 (checking-an-acorn-s-wiring)=
 
 (checking-an-acorns-wiring)=
@@ -100,24 +90,6 @@ One page for each task, in this order:
 (the-report-and-the-recorded-state)=
 
 * [The report and the recorded state](report-and-state.md#the-report-and-the-recorded-state): for you if you want to read the JSON report, or know when a board is `changed`.
-
----
-
-## How the fleet uses verify
-
-(events)=
-
-(how-a-deploy-picks-up-new-packages)=
-
-(collecting-every-pi-s-result)=
-
-(collecting-every-pis-result)=
-
-* [How it is used in fpgas.online](https://github.com/fpgas-online/fpgas.online-test-designs/blob/main/docs/verify/fleet.md): for you if you run the fleet and want to know how the check is installed and run there, its events, how a deploy reaches it and how to collect every Pi's result.
-
-(current-results)=
-
-* [Current results](https://github.com/fpgas-online/fpgas.online-test-designs/blob/main/docs/verify/current-results.md#current-results): for you if you want the last collected results of the fleet's Pis.
 
 ```{toctree}
 :hidden:
