@@ -13,7 +13,7 @@ It repeats none of their content.
 ## Outside documents
 
 - [Tiny Tapeout pinout recommendations](https://tinytapeout.com/specs/pinouts/): how a design's pins are laid out.
-- [Tiny Tapeout PCB specifications](https://tinytapeout.com/specs/pcb/): the board's connectors and signals.
+- [Tiny Tapeout PCB specifications](https://tinytapeout.com/specs/pcb/): the demo board's connectors and signals, for the TT04 to TT08 boards.
 - [Tiny Tapeout demo PCB design](https://github.com/TinyTapeout/tt-demo-pcb): the demo board's hardware repository.
 - [Tiny Tapeout MicroPython SDK](https://github.com/TinyTapeout/tt-micropython-firmware): the demo board firmware.
 - [`fpgas-tt`](https://github.com/fpgas-online/fpgas.online-tt): the Pi-side bridge daemon.

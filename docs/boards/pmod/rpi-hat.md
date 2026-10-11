@@ -118,7 +118,7 @@ The PMOD HAT has no level shifters or buffers, so signals pass directly from the
 
 ## Boards that use the HAT
 
-The HAT is fitted to hosts with an Arty A7, a Tiny Tapeout FPGA demo board or a [Tiny Tapeout ASIC demo board](../tt-asic/index.md) attached. It connects the Raspberry Pi's GPIO pins to the PMOD connectors on these boards. The Raspberry Pi can then drive and read their I/O pins for GPIO loopback, SPI and UART tests.
+The HAT is fitted to hosts with an Arty A7, a Tiny Tapeout FPGA demo board or a [Tiny Tapeout chip demo board](../tt-asic/index.md) attached. It connects the Raspberry Pi's GPIO pins to the PMOD connectors on these boards. The Raspberry Pi can then drive and read their I/O pins for GPIO loopback, SPI and UART tests.
 
 ### Wiring
 

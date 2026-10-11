@@ -54,7 +54,7 @@ $ sudo fuser -k /dev/serial0
 $ sudo chmod 666 /dev/serial0
 ```
 
-7. Run the UART test. It opens `/dev/serial0` at 115200 baud, and it is the check's `uart` test, described on the page under Next.
+7. With the Fomu in its DFU bootloader (`lsusb` lists `1209:5bf0`), run the UART test. It loads the UART echo design, then opens `/dev/serial0` at 115200 baud. It is the check's `uart` test, described on the page under Next.
 
 ```console
 $ sudo fpgas-fomu-debug test uart
@@ -70,6 +70,7 @@ $ sudo fpgas-fomu-debug test uart
 | What you see | Likely cause | Fix |
 |---|---|---|
 | `no GPIO UART on this host` | `/dev/serial0` does not exist on this Pi | Run the test on a Pi that has the GPIO UART |
+| The test cannot load the design; `lsusb` does not list `1209:5bf0` | The Fomu is out of its DFU bootloader | [Fomu EVT programming faults](../troubleshooting/programming-faults.md) |
 | The test reads nothing, or the output is corrupt | The login console came back and consumes the serial data: `serial-getty` was stopped but not masked | Run the block again; the `mask` line keeps systemd from restarting it |
 
 ## Next

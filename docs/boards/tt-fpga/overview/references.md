@@ -14,9 +14,9 @@ The pages of this site that these documents feed are listed on [Tiny Tapeout FPG
 ## Tiny Tapeout documents
 
 - [Tiny Tapeout demo PCB design](https://github.com/TinyTapeout/tt-demo-pcb): the demo board's hardware repository.
-- [Tiny Tapeout PCB specifications](https://tinytapeout.com/specs/pcb/): the board's connectors and signals.
+- [Tiny Tapeout PCB specifications](https://tinytapeout.com/specs/pcb/): the demo board's connectors and signals, for the TT04 to TT08 boards.
 - [Tiny Tapeout FPGA breakout guide](https://tinytapeout.com/guides/fpga-breakout/): the guide to the FPGA breakout.
-- [Tiny Tapeout FPGA demo repository](https://github.com/efabless/tt-fpga-demo): the demo designs.
+- [Tiny Tapeout FPGA demo repository](https://github.com/efabless/tt-fpga-demo): a template that builds an FPGA bitstream from a Wokwi design.
 - [Tiny Tapeout](https://tinytapeout.com): the project's own site.
 
 ## LiteX support
