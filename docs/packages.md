@@ -1,3 +1,10 @@
+---
+type: reference
+owner: documentation maintainers
+reader: someone installing fpgas.online packages on a host
+review: 2026-11-10
+---
+
 # Packages
 
 Debian packages for fpgas.online are served from
@@ -6,25 +13,13 @@ package.
 
 ## Using the repository
 
-```console
-$ sudo install -d -m0755 /usr/share/keyrings
-$ curl -fsSL https://apt.fpgas.online/pubkey.gpg \
-    | sudo gpg --dearmor -o /usr/share/keyrings/fpgas-online.gpg
-$ echo "deb [signed-by=/usr/share/keyrings/fpgas-online.gpg] https://apt.fpgas.online bookworm main" \
-    | sudo tee /etc/apt/sources.list.d/fpgas-online.list
-$ sudo apt update
-```
-
-:::{note}
-The published key is ASCII-armoured. Some apt versions on the Raspberry Pi NFS
-root reject an armoured file used directly as a `signed-by` keyring
-(`NO_PUBKEY`), which is why it is dearmoured above.
-:::
+The repository's key and the line for apt are step 1 of
+[fpgas-verify: installing it](verify/installing.md#installing), which picks the suite for your Debian release.
 
 ## Checking a board
 
-To check a board from its Raspberry Pi, add the repository as above and install
-the package for the board, which brings `fpgas-verify` with it:
+Each board's install page adds the repository and installs its package, with
+`fpgas-verify`:
 [Acorn](boards/acorn/setup/packages.md#installing-the-acorn-packages),
 [Arty](boards/arty-a7/setup/packages.md#installing-the-arty-packages),
 [NeTV2](boards/netv2/setup/packages.md#installing-the-netv2-packages),
@@ -41,12 +36,12 @@ and no source repository needs a token for the APT repository.
 
 1. A push to `main` builds the package and attaches it to a rolling GitHub
    Release in the source repository.
-2. The `apt` repository pulls every new `.deb` across all such releases,
+2. The `apt` repository pulls every `.deb` it has not seen across all such releases,
    regenerates the index, signs it, and republishes.
 
 Versions come from `git describe`: `X.Y` exactly at a `vX.Y` tag, `X.Y.postN`
-N commits later. Every push therefore produces a new, upgradeable version with
-no manual bump.
+N commits later. Every push therefore produces a higher version that apt upgrades to,
+with no manual bump.
 
 ## Related repositories elsewhere
 
