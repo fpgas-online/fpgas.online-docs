@@ -51,6 +51,8 @@ exclude_patterns = [
     # pages with {include}, not built as pages of their own.
     "boards/acorn/generated/*.md",
     "boards/generated/*.md",
+    # The table generated from tinytapeout-fpga-demos, included by the bundled designs page.
+    "user/boards/tt-fpga/generated/*.md",
 ]
 
 # MyST already warns (myst.xref_missing) on a Markdown link to a page or
