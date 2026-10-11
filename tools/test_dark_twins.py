@@ -2,7 +2,8 @@
 # SPDX-License-Identifier: Apache-2.0
 """Every drawing and every annotated photograph on the site has a dark twin, and every page shows the light one in
 the light theme and the dark one in the dark theme (Furo's only-light / only-dark classes). A plain photograph is
-the same in both.
+the same in both. So is a screenshot of a site, kept in a screenshots/ folder: it shows the site as it looks, and the
+sites have one theme.
 
 Run: python -m unittest discover -s tools -p 'test_*.py'
 """
@@ -60,6 +61,8 @@ def annotated():
 
 
 def needs_twin(src):
+    if "screenshots" in Path(src).parts and src.endswith(".png"):  # a site as it looks; never a drawing
+        return False
     return src.endswith(DRAWING) or Path(src).name in annotated()
 
 
@@ -123,6 +126,15 @@ class EveryPicture(unittest.TestCase):
             self.assertTrue((FIGURES / dark(name)).exists(), f"{dark(name)}: run make_figures.py")
             if f"bootloader-eeprom/{name}" in on_pages:
                 self.assertIn(f"bootloader-eeprom/{dark(name)}", on_pages, f"{name} is shown without its twin")
+
+
+class Screenshots(unittest.TestCase):
+    def test_a_screenshots_folder_holds_only_png_screenshots(self):
+        folders = [p for p in DOCS.rglob("screenshots") if p.is_dir() and "_build" not in p.parts]
+        self.assertTrue(folders)
+        for folder in folders:
+            for f in folder.iterdir():
+                self.assertEqual(f.suffix, ".png", f"{f}: a screenshots folder holds PNG screenshots only")
 
 
 class SyncedDrawings(unittest.TestCase):
