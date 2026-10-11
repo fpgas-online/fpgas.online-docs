@@ -33,8 +33,9 @@ On welland, the status box shows the host's boot messages, and the terminal conn
 
 | What you see | Likely cause | Fix |
 |---|---|---|
-| `reset failed (429)`, or `power-cycle refused (HTTP 429)` | the board was power-cycled a moment ago | wait a minute, then press it again |
-| `power-cycle refused`, with another reason | the switch did not answer | press it again later |
+| `reset failed (429)`, or `power-cycle refused (HTTP 429)` | the board was power-cycled a moment ago | wait, then press it again |
+| `power-cycle refused`, with another reason | the reason it gives | press it again later; if it repeats, the site cannot cycle this board |
+| On ps1, nothing at all after Reset, and no boot messages | ps1's page shows the answer only in the browser's console | wait two minutes, then press reconnect and reset ssh |
 | An upload says the host "did not answer, so nothing was uploaded" | the host is still starting | wait a little longer, then upload again |
 
 ## Next
