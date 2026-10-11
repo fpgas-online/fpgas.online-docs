@@ -19,44 +19,56 @@ This procedure is waiting for its run: [test-designs issue #262](https://github.
 
 ## Steps
 
-1. In `designs/pmod-pin-id/gateware`, copy `pmod_pin_id_arty.py` to `pmod_pin_id_<board>.py` and change the platform import, the connector list, the clock frequency and the I/O standard. The `build_pin_list()` function works unchanged, because it reads connector pin names from any LiteX platform.
+1. In `designs/pmod-pin-id/gateware`, copy `pmod_pin_id_arty.py` to `pmod_pin_id_<board>.py`. The `build_pin_list()`
+   function works unchanged, because it reads connector pin names from any LiteX platform.
+2. In the copy, change every line that names the Arty:
 
    ```python
-   # Change the platform import
-   from litex_boards.platforms.your_board import Platform
-
-   # Change the connector list to match your board's connectors
-   CONNECTORS = ["pmoda", "pmodb"]  # whatever your board has
-
-   # Change the clock frequency
-   SYS_CLK_FREQ = 48e6  # your board's clock
-
-   # Change the I/O standard if needed (in build_io_extensions)
-   IOStandard("LVCMOS33")  # or LVCMOS18, or another standard
+   from litex_boards.platforms.your_board import Platform   # the platform import
+   CONNECTORS = ["pmoda", "pmodb"]                          # your board's connectors
+   SYS_CLK_FREQ = 48e6                                      # your board's clock
+   IOStandard("LVCMOS33")                                   # in build_io_extensions, if your board differs
+   parser.add_argument("--variant", default="v1", choices=["v1"])  # your board's variants
+   platform = Platform(variant=args.variant, toolchain=args.toolchain)   # drop variant= if the platform has none
+   board_dir("arty", args.variant)                          # your board's name in the build directory
    ```
 
-2. In `host/identify_pmod_pins.py`, update `PMOD_HAT_PORTS` if your host uses a different GPIO-to-connector mapping than the Digilent PMOD HAT, or pass `--gpios` explicitly when you scan.
+3. If your board's device string has a dash between the part and the package, such as `xc7a35t-fgg484-2`, add the
+   two openXC7 fixups. They are in `designs/_shared/platform_fixups.py`, and they go after the platform is made, as in
+   `pmod_pin_id_acorn.py` and `pmod_pin_id_netv2.py`:
 
-3. In the `designs/pmod-pin-id` Makefile, add the build, program and scan targets for the board.
+   ```python
+   if args.toolchain == "openxc7":
+       fix_openxc7_device_name(platform)
+       ensure_chipdb_symlink(platform)
+   ```
+4. In `host/identify_pmod_pins.py`, update `PMOD_HAT_PORTS` if your host uses a different GPIO-to-connector mapping
+   than the Digilent PMOD HAT, or pass `--gpios` explicitly when you scan.
+5. In the `designs/pmod-pin-id` Makefile, add your board's variants and its build rules beside the Arty's, NeTV2's and
+   Acorn's. Copy `program-arty` and `scan-arty` for the board too: the bitstream is at
+   `build/<board>-<variant>-<flow>/gateware/<platform name>.bit`.
 
    ```makefile
-   gateware-yourboard:
-   	$(PYTHON) gateware/pmod_pin_id_yourboard.py --build
+   YOURBOARD_VARIANTS := v1
+   $(eval $(call flow_rules,yourboard,pmod_pin_id_yourboard.py,$(YOURBOARD_VARIANTS)))
 
    program-yourboard:
-   	openFPGALoader -b yourboard build/yourboard/gateware/your_board.bit
+   	openFPGALoader -b yourboard build/yourboard-$(VARIANT)-$(PROGRAM_FLOW)/gateware/your_board.bit
 
    scan-yourboard:
    	$(PYTHON) host/identify_pmod_pins.py --gpios 2 3 4 5 6 7
    ```
 
-4. Build, load and scan the board with the three targets.
+6. Build, load and scan the board.
 
    ```console
-   $ make gateware-yourboard
-   $ make program-yourboard
+   $ make gateware-yourboard-v1-yosys-nextpnr
+   $ make program-yourboard VARIANT=v1
    $ make scan-yourboard
    ```
+
+This page does not cover registering a board elsewhere in test-designs: the CI job, the scanner's board list, the
+check's board module and the packages.
 
 ## Check
 
