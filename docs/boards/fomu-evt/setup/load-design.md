@@ -34,7 +34,6 @@ Why the board leaves USB afterwards is on [Programming a Fomu EVT](../overview/p
 | What you see | Likely cause | Fix |
 |---|---|---|
 | `1209:5bf0` is not in `lsusb` before the load | The bootloader timed out of DFU after about 3 minutes, or a bitstream with no USB core is running | PoE power cycle the Pi, which restarts the DFU bootloader, then load again inside the 3 minutes |
-| The design you loaded earlier is not running after a power cycle | A power cycle starts the bootloader again; the user image stays in the flash until the next DFU load | Load it again |
 
 More faults are on [Fomu EVT programming faults](../troubleshooting/programming-faults.md).
 
