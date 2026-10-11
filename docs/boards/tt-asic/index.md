@@ -7,6 +7,7 @@ review: 2026-11-10
 
 # Tiny Tapeout chip demo boards
 
+- Using this board on fpgas.online: [Tiny Tapeout chip demo boards](../../user/boards/tt-asic/index.md), under User documentation.
 - [Tiny Tapeout chip demo board overview](overview/index.md): what the board is, the shuttles and the controller each uses, and the documents behind these pages.
 - [Setting up a Tiny Tapeout chip demo board](setup/index.md): the wiring to a Raspberry Pi, and how to free the serial port from its daemon.
 
