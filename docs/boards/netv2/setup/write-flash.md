@@ -29,7 +29,7 @@ The pin order is `TDI:TDO:TCK:TMS`.
 
 ## Check
 
-Step 3's command ends without an error. That the FPGA then starts the design from flash at power-up waits for this page's run ([test-designs issue #249](https://github.com/fpgas-online/fpgas.online-test-designs/issues/249)).
+Step 3's command ends without an error. On a Raspberry Pi 5 the endpoint stays detached until the Pi reboots. That the FPGA then starts the design from flash at power-up waits for this page's run ([test-designs issue #249](https://github.com/fpgas-online/fpgas.online-test-designs/issues/249)).
 
 ## If it fails
 
