@@ -7,7 +7,7 @@ You want to see the options and commands of `fpgas-verify`, `fpgas-arty-verify`,
 `fpgas-acorn-verify`, `fpgas-acorn-debug` and `fpgas-acorn-flash` without installing them.
 Every fpgas-verify page is listed in [fpgas-verify](fpgas-verify.md).
 
-## `--help`
+## The help of each tool
 
 ```text
 $ fpgas-verify --help

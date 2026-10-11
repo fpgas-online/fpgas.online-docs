@@ -10,21 +10,20 @@ board, tests the board and its wiring to the Pi, and gives one result, pass or f
 
 * What the tool must do: [fpgas-verify: what it must do](https://github.com/fpgas-online/fpgas.online-test-designs/blob/main/docs/verify-goals.md). Where this page and that one disagree,
   verify-goals.md says what the tool should do.
-* The code: [`verify/`](https://github.com/fpgas-online/fpgas.online-test-designs/tree/main/verify). The design notes:
-  [fpgas-online-verify: boot-time FPGA board verification, packaged per board](https://github.com/fpgas-online/fpgas.online-test-designs/blob/main/docs/plans/2026-09-26-fpgas-online-verify-design.md).
+* The code: [`verify/`](https://github.com/fpgas-online/fpgas.online-test-designs/tree/main/verify).
 * `verify_hardware.py` ([verify_hardware.py — How the Hardware Verification Script Works](https://github.com/fpgas-online/fpgas.online-test-designs/blob/main/docs/verify-hardware.md)) is a different tool: a developer's script
   that loads freshly built bitstreams from a workstation over SSH.
 
 This page has two parts:
 
-1. [Using verify as a standalone tool](#1-using-verify-as-a-standalone-tool): installing, running, reading the
+1. [Using verify as a standalone tool](#using-verify-as-a-standalone-tool): installing, running, reading the
    result, and what each board's check tests.
-2. [How verify is used in fpgas.online](#2-how-verify-is-used-in-fpgasonline): at every boot of every
+2. [How the fleet uses verify](#how-the-fleet-uses-verify): at every boot of every
    netbooted Pi, the events it sends the site, and the [current results](https://github.com/fpgas-online/fpgas.online-test-designs/blob/main/docs/verify/current-results.md#current-results).
 
 ---
 
-## 1. Using verify as a standalone tool
+## Using verify as a standalone tool
 
 One page for each task, in this order:
 
@@ -48,7 +47,7 @@ One page for each task, in this order:
 
 (help)=
 
-* [`--help`](help.md#--help): for you if you want the options and commands of each tool without installing it.
+* [`--help`](help.md#the-help-of-each-tool): for you if you want the options and commands of each tool without installing it.
 
 (what-each-board-s-check-tests)=
 
@@ -56,7 +55,7 @@ One page for each task, in this order:
 
 (arty-netv2-fomu-and-tt-fpga)=
 
-* [What each board's check tests](tests.md#what-each-boards-check-tests): for you if you have an Arty, NeTV2, Fomu or TT FPGA and want to know what each test does.
+* [What the check tests on each board](tests.md#what-the-check-tests-on-each-board): for you if you have an Arty, NeTV2, Fomu or TT FPGA and want to know what each test does.
 
 (which-tiny-tapeout-board-it-is)=
 
@@ -76,7 +75,7 @@ One page for each task, in this order:
 
 (the-acorns-power-cycle-check-opt-in)=
 
-* [The Acorn's power-cycle check](acorn-power-cycle.md#the-acorns-power-cycle-check-opt-in): for you if you have an Acorn and want to know how its opt-in power-cycle check works, and the details of its `ddr` test.
+* [The Acorn's power-cycle check](acorn-power-cycle.md#the-acorn-power-cycle-check-opt-in): for you if you have an Acorn and want to know how its opt-in power-cycle check works, and the details of its `ddr` test.
 
 (the-jtag-idcode)=
 
@@ -92,7 +91,7 @@ One page for each task, in this order:
 
 (checking-an-acorns-wiring)=
 
-* [Checking an Acorn's wiring](acorn-wiring.md#checking-an-acorns-wiring): for you if you have built an Acorn's cables and want the page that checks them.
+* [Checking an Acorn's wiring](acorn-wiring.md#checking-the-wiring-of-an-acorn): for you if you have built an Acorn's cables and want the page that checks them.
 
 (common-failures)=
 
@@ -104,7 +103,7 @@ One page for each task, in this order:
 
 ---
 
-## 2. How verify is used in fpgas.online
+## How the fleet uses verify
 
 (events)=
 
@@ -118,7 +117,7 @@ One page for each task, in this order:
 
 (current-results)=
 
-* [Current results](https://github.com/fpgas-online/fpgas.online-test-designs/blob/main/docs/verify/current-results.md#current-results): for you if you want the last collected results on the Welland Pis.
+* [Current results](https://github.com/fpgas-online/fpgas.online-test-designs/blob/main/docs/verify/current-results.md#current-results): for you if you want the last collected results of the fleet's Pis.
 
 ```{toctree}
 :hidden:

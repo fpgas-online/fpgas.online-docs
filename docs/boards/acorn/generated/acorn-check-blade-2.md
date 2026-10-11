@@ -4,7 +4,17 @@
 
 Find the failing line in the table, then the wire in the two cavity pictures under it: the number in a cavity is the number on the wire's flag.
 
-**Before you touch a cable: Ask the site operator, then power off the Compute Blade: unplug its PoE cable, and a USB-C cable if one is plugged in.** **After moving a wire, the cable goes through the same checks as a new one before any boot:** take the card out and pull both plugs from its sockets, check that cable's plug contacts against its housing with the meter as steps 3 and 4 of [How to fill the JTAG cable's housing (Compute Blade)](/boards/acorn/setup/compute-blade/jtag-housing.md) or [How to fill the UART cable's housing (Compute Blade)](/boards/acorn/setup/compute-blade/uart-housing.md) do, run the bench check ([How to check the cables on the bench (Compute Blade)](/boards/acorn/setup/compute-blade/bench-check.md)) with the card out, and fit the cables ([How to fit the cables and the card (Compute Blade)](/boards/acorn/setup/compute-blade/fitting.md)). Then ask the site operator and boot, and run the check again (on a blade the install is gone after the boot: install again, as in [How to run the Acorn check on a Compute Blade](/boards/acorn/checks/compute-blade.md)). One test can be run on its own, `sudo fpgas-acorn-verify --no-publish --test p2-serial` or `sudo fpgas-acorn-verify --no-publish --test jtag`; it prints the usual summary, then the whole report as JSON. Run `--test jtag` only in a boot with the header's serial port off, and only after steps 7 and 8 of [How to make a Compute Blade boot ready for JTAG](/boards/acorn/checks/compute-blade-jtag.md) pass (check that GPIO14 is free; check that nothing on the card drives GPIO14). In a boot with the header's serial port off, the same goes for the whole check, which runs `jtag` too ([How to run the Acorn check on a Compute Blade](/boards/acorn/checks/compute-blade.md)).
+To move a wire, the cable goes through the same checks as a new one before any boot:
+
+1. Ask the site operator, then power off the Compute Blade: unplug its PoE cable, and a USB-C cable if one is plugged in.
+2. Take the card out and pull both plugs from its sockets.
+3. Move the wire.
+4. Check that cable's plug contacts against its housing with the meter, as steps 3 and 4 of [How to fill the JTAG cable's housing (Compute Blade)](/boards/acorn/setup/compute-blade/jtag-housing.md) or [How to fill the UART cable's housing (Compute Blade)](/boards/acorn/setup/compute-blade/uart-housing.md) do.
+5. Run the bench check, with the card out: [How to check the cables on the bench (Compute Blade)](/boards/acorn/setup/compute-blade/bench-check.md).
+6. Fit the cables: [How to fit the cables and the card (Compute Blade)](/boards/acorn/setup/compute-blade/fitting.md).
+7. Ask the site operator, then boot the blade. The install is gone after the boot: install the packages again, as in [How to run the Acorn check on a Compute Blade](/boards/acorn/checks/compute-blade.md), and run the check again.
+
+One test can be run on its own: `sudo fpgas-acorn-verify --no-publish --test p2-serial`, or `sudo fpgas-acorn-verify --no-publish --test jtag`. Run `--test jtag` only in a boot with the header's serial port off, and only after steps 7 and 8 of [How to make a Compute Blade boot ready for JTAG](/boards/acorn/checks/compute-blade-jtag.md) pass (check that GPIO14 is free; check that nothing on the card drives GPIO14). In a boot with the header's serial port off, the same goes for the whole check, which runs `jtag` too ([How to run the Acorn check on a Compute Blade](/boards/acorn/checks/compute-blade.md)). Each prints the usual summary, then the whole report as JSON.
 
 | The failing line | Look at |
 |---|---|

@@ -32,7 +32,7 @@ Blade](../setup/compute-blade/wiring.md).
 
 ## How the check tests it
 
-From the check's document ([what each board's check tests](../../../verify/fpgas-verify.md#what-each-boards-check-tests)):
+From the check's document ([what each board's check tests](../../../verify/tests.md#what-the-check-tests-on-each-board)):
 
 | Test | Over | Passes when |
 |---|---|---|

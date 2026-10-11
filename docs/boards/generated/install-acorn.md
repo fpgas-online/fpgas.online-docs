@@ -9,7 +9,8 @@ This is for an Acorn on a Raspberry Pi 5. On a Compute Blade, follow [How to run
 
 - a Raspberry Pi 5 with the Acorn and both cables fitted ([How to fit the cables and the card (Raspberry Pi 5)](rpi-5/fitting.md))
 - the fpgas.online apt repository added on the Pi ([fpgas-verify: installing it](../../../verify/installing.md#installing))
-- on bookworm: the fpgas.online-fpga-tools apt repository added too (the same page). Debian bookworm's openFPGALoader is too old for the check
+- on bookworm: the fpgas.online-fpga-tools apt repository added too ([fpgas-verify: installing it](../../../verify/installing.md#installing) has it). Debian bookworm's openFPGALoader is too old for the check
+- the header's serial port on (`/dev/ttyAMA0`) and the kernel console off it, for the `p2-uart` and `p2-serial` tests ([A Raspberry Pi 5's settings for an Acorn](rpi-5/pi-settings.md#the-serial-port))
 
 ## Steps
 

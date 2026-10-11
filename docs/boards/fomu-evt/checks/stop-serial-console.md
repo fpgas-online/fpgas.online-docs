@@ -72,4 +72,4 @@ $ sudo chmod 666 /dev/serial0
 
 - [How to load a design onto a Fomu EVT with openFPGALoader](../setup/load-design.md)
 - [Fomu EVT test faults](../troubleshooting/test-faults.md)
-- [fpgas-verify: what an Arty, NeTV2, Fomu or TT FPGA check tests](../../../verify/tests.md#what-each-boards-check-tests)
+- [fpgas-verify: what an Arty, NeTV2, Fomu or TT FPGA check tests](../../../verify/tests.md#what-the-check-tests-on-each-board)
