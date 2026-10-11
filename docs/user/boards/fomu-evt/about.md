@@ -23,17 +23,27 @@ At welland the Fomu EVT is on a Raspberry Pi, with a USB analyser between the bo
 
 ## What the board page offers
 
-A Fomu's page is the page every board has, with a terminal, an upload, the camera and a Reset
-([the board page](../board-page.md)). The page does not load a design for you. You load it from the terminal, as on
-[How to load a design onto a Fomu EVT from its board page](load.md).
+A Fomu's page is the page every board has: a terminal, an upload, the camera and a Reset
+([the board page](../board-page.md)).
 
-The Fomu's bootloader waits for a load for about 3 minutes after it starts. After that the board runs the design in its
-flash. A Reset restarts the host, and with it the bootloader's window.
+## Loading a design: not possible today
 
-## After a load
+A visitor cannot load a design into the Fomu today. The only way in is the Fomu's DFU bootloader, which waits about 3
+minutes after the host powers up.
 
-A design with no USB core, such as the UART echo, leaves USB once it loads. That is expected, not a fault. It talks
-over two pins on the Pi's header, which the Pi opens as `/dev/serial0`
+At every boot the host's own check takes that window first. It loads its test design
+by DFU, and the Fomu leaves USB about 36 seconds into the boot. Your terminal connects after about two minutes, when the
+bootloader is gone. A Reset only repeats this
+([test-designs issue #135](https://github.com/fpgas-online/fpgas.online-test-designs/issues/135),
+[docs issue #203](https://github.com/fpgas-online/fpgas.online-docs/issues/203)).
+
+Once a visitor can load, a load writes the design into the Fomu's user image in its flash: the slot made for user
+designs. The next load replaces it, and the bootloader itself is untouched.
+
+## The design running now
+
+The host's check leaves its UART test design running. A design with no USB core, such as that one, is off USB, which is
+expected, not a fault. It talks over two pins on the Pi's header, which the Pi opens as `/dev/serial0`
 ([Programming a Fomu EVT](../../../boards/fomu-evt/overview/programming.md)).
 
 ## Designs on the host

@@ -25,7 +25,8 @@ run**. The Fomu's bootloader waits for a load for about 3 minutes after the host
    $ lsusb
    ```
 
-3. Load the design. The bootloader writes it to the flash's user image and starts it. Do this inside the 3 minutes.
+3. Load the design inside the 3 minutes. The bootloader writes it into the Fomu's user image in its flash and starts
+   it. The user image is the slot made for user designs: the next load replaces it, and the bootloader is untouched.
 
    ```console
    $ openFPGALoader -b fomu Uploads/design.bin

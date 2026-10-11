@@ -8,12 +8,10 @@ review: 2026-11-10
 # Fomu EVT
 
 - [A Fomu EVT on fpgas.online](about.md): what the board is, and what its board page offers.
-- [How to load a design onto a Fomu EVT from its board page](load.md): upload, load inside the bootloader's window, and see it run.
 - [Fomu EVT](../../../boards/fomu-evt/index.md), under Admin documentation: setting one up.
 
 ```{toctree}
 :hidden:
 
 about
-load
 ```

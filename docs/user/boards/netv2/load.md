@@ -11,12 +11,14 @@ review: 2026-11-10
 goes into the FPGA's SRAM and is lost at power-off. A reset or a reboot also empties `/home/pi`, uploads included. A
 visitor never writes the board's flash.
 
-The Pi 5 steps are still waiting for their first run on a host.
+The Pi 5 steps are still waiting for their first run on a host: [test-designs issue #246](https://github.com/fpgas-online/fpgas.online-test-designs/issues/246).
 
 ## What you need
 
 - A NeTV2's page, from [the welland list](https://welland.fpgas.online/fpgas/): a board whose label says NeTV2.
-- A `.bit` file for the board's FPGA, here `design.bit`.
+- A `.bit` file built for the board's FPGA, here `design.bit`. The FPGA is an XC7A35T, or an XC7A100T on the large variant.
+  On a Pi 3B+, step 2 of its part reads the IDCODE that tells them apart; the Pi 5 steps do not show it.
+  The host's own test bitstreams for both are in `/usr/share/fpgas-online/netv2/bitstreams/`.
 
 ## Steps
 
@@ -57,22 +59,32 @@ The Pi 5 steps are still waiting for their first run on a host.
    $ echo 1 | sudo tee /sys/bus/pci/rescan
    ```
 
-5. If this lists no `1000110000.pcie`, the host bridge removed itself at boot. Bind it again, with no unbind first, and
-   give the link a few seconds.
+5. List the host bridge's driver.
 
    ```console
    $ ls /sys/bus/platform/drivers/brcm-pcie/
+   ```
+
+   If it lists no `1000110000.pcie`, the host bridge removed itself at boot, with no link. Bind it again, with no unbind
+   first, and give the link a few seconds. If it lists `1000110000.pcie`, skip the bind.
+
+   ```console
    $ echo 1000110000.pcie | sudo tee /sys/bus/platform/drivers/brcm-pcie/bind
    ```
 
 ### On a Pi 3B+
 
-1. Read the two settings that make a load safe. The kernel console UART shares the FPGA's serial TX pin. If
-   `kernel.sysrq` does not read 0, set it to 0. If the command line has `console=serial0`, do not load.
+1. Read the two settings that make a load safe. The kernel console UART shares the FPGA's serial TX pin.
 
    ```console
    $ sysctl kernel.sysrq
    $ cat /proc/cmdline
+   ```
+
+   If the command line has `console=serial0`, do not load on this host: choose another NeTV2 from the list. If
+   `sysctl` does not print `kernel.sysrq = 0`, set it to 0.
+
+   ```console
    $ sudo sysctl -w kernel.sysrq=0
    ```
 
@@ -104,14 +116,15 @@ $ sudo lspci -vv -s 0001:01:00.0 | grep LnkSta
 
 On a Pi 3B+, the detect step lists an XC7A35T board as `idcode 0x0362d093` with IR length 6.
 
-A host with a USB HDMI grabber shows the board's HDMI output on the page's camera ([The camera on a board](../camera.md)).
+What the design does shows only where the host has a USB HDMI grabber. The page's camera then shows the board's HDMI
+output, not the board. Which hosts have one is not settled ([docs issue #189](https://github.com/fpgas-online/fpgas.online-docs/issues/189)).
 
 ## If it fails
 
 | What you see | Likely cause | Fix |
 |---|---|---|
 | The terminal drops during the load on a Pi 5, and the host reboots | the endpoint was still enumerated | wait for the host to come back (press Reset, as on [How to reset a board](../reset.md), if it does not), then follow the steps again from step 1: the reboot emptied `Uploads` |
-| openFPGALoader does not know the `rp1pio` cable | the openFPGALoader build lacks it | run the same command with `--cable libgpiod`, which is slower |
+| openFPGALoader does not know the `rp1pio` cable | the host's openFPGALoader build lacks it; only the `openfpgaloader-fpgasonline-git` package has the cable | choose another NeTV2 from the list: this host cannot load over `rp1pio` |
 | The Pi 3B+ drops off when the design starts | the design drives the serial TX line while the kernel console and SysRq are on | make both checks of step 1 before loading again |
 | `done 0` | the FPGA did not configure | read the STAT register printed under it, and check that the file was built for the board's FPGA |
 
