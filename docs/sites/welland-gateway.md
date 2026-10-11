@@ -22,7 +22,7 @@ Each row names a part of tweed and gives its value. The addresses are from `host
 | Serves | DHCP, DNS and TFTP (dnsmasq), the NFS root, and the web tier of welland.fpgas.online and tinytapeout.fpgas.online |
 | System | Debian 13 (trixie) |
 | Uplink | `eth-uplink`, 10.99.21.2/30 and 2404:e80:a137:9921::2/126: a point-to-point link to the site's upstream gateway, 10.99.21.1, which forwards the web ports to tweed |
-| Pi network | `eth-local`, 10.21.0.1/16: a trunk to the switches, with one VLAN sub-interface per switch port |
+| Pi network | `eth-local`, 10.21.0.1/24 on the trunk to the switches, with one VLAN sub-interface per switch port; the Pis' addresses are in 10.21.0.0/16 |
 | NFS root | `/srv/nfs/rpi/bookworm/{boot,root}`. The image it serves is named in `/srv/nfs/rpi/bookworm/.image-digest` ([Netboot and the NFS root](../setup/netboot.md)) |
 
 Which package versions the served root holds is read in the root itself, on tweed:
@@ -38,7 +38,8 @@ own operator accounts, or to the restricted `pi` jump account ([Accounts and log
 
 From outside the site, `ssh` reaches tweed over IPv6, at `2404:e80:a137:2100::1`. The name
 `tweed.welland.mithis.com` also has an IPv4 address, 87.121.95.37. That is the site's upstream gateway, which
-does not pass `ssh` to tweed. Inside the site the name gives `10.99.21.2` and `10.21.0.1`.
+does not pass `ssh` to tweed (`host_vars`). The name's other IPv6 address, `2404:e80:a137:9921::2`,
+does not answer `ssh` from outside the site. Inside the site the name gives `10.99.21.2` and `10.21.0.1`.
 
 ## Reaching a Pi
 

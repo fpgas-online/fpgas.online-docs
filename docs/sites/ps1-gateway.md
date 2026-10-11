@@ -16,7 +16,10 @@ The gateway, its switch and its tooling are the site operator's own install. The
 [pici](https://github.com/CarlFK/pici) playbooks and the `pib` web application.
 None of it is built by fpgas.online-infra.
 fpgas.online reads the gateway and does not deploy to it. The site notes, `docs/hardware/site-ps1.md` in
-fpgas.online-test-designs, call it val2.
+fpgas.online-test-designs, call it val2. They describe it before its reinstall of about 25 September 2026
+([test-designs issue #294](https://github.com/fpgas-online/fpgas.online-test-designs/issues/294)).
+
+The table and the root below are from a read on the gateway on 6 October 2026.
 
 | | |
 |---|---|
@@ -36,13 +39,15 @@ The host on port `eNN` gets `10.21.0.1NN` as its address. Anything else gets an 
 
 ### One NFS root
 
-The gateway serves one root, `/srv/nfs/rpi/trixie/{boot,root}`, exported read-only to the Pi network. Every
+The gateway serves one root, `/srv/nfs/rpi/trixie/{boot,root}`, exported read-only to the Pi network. It
+serves no bookworm root, which the site notes list for the Arty hosts (test-designs issue #294). Every
 Pi's TFTP directory, `/srv/tftp/<serial>`, is a link to the same `boot/`, so a change there changes every host
 at once. The kernel command line mounts `nfsroot=10.21.0.1:/srv/nfs/rpi/trixie/root` with a tmpfs overlay
 (`overlayroot=tmpfs`). Anything a host writes, `/home/pi` included, is gone after a reboot or a power cycle
 ([The NFS root is shared and read-only](../setup/netboot.md#the-nfs-root-is-shared-and-read-only)).
 
-The root is a 32-bit Raspberry Pi OS userspace on a `6.18.50+rpt` kernel. It did not come from
+pi16 and pi20 at ps1 ran a 32-bit Raspberry Pi OS userspace from it, on a `6.18.50+rpt` kernel
+(read on 5 October 2026). What packages the root holds was not read. It did not come from
 fpgas.online-infra, whose playbook builds a bookworm root at `/srv/nfs/rpi/bookworm`
 (`dist: bookworm` in `inventory/group_vars/all/srv.yml`).
 
@@ -79,9 +84,9 @@ held in memory.
 ## What is planned
 
 - A record of which hosts the shared boot directory serves, with every host named once: [infra issue #273](https://github.com/fpgas-online/fpgas.online-infra/issues/273).
-- Which physical Compute Blade is pi14, pi16, pi18 and pi20 at ps1: [infra issue #269](https://github.com/fpgas-online/fpgas.online-infra/issues/269).
-- How the shared boot files set the header serial port for the blades' checks and for JTAG: [infra issue #270](https://github.com/fpgas-online/fpgas.online-infra/issues/270).
+- Which blade is which host, and how the boot files set the blades' serial port: [infra issue #269](https://github.com/fpgas-online/fpgas.online-infra/issues/269) and [infra issue #270](https://github.com/fpgas-online/fpgas.online-infra/issues/270).
 - `fpgas-verify` in the shared root, so a blade keeps its packages across a boot: [infra issue #271](https://github.com/fpgas-online/fpgas.online-infra/issues/271).
 - A trixie root that fpgas.online-infra builds: [infra issue #72](https://github.com/fpgas-online/fpgas.online-infra/issues/72).
 - The switch model settled, among the three that `host_vars` names: [infra issue #73](https://github.com/fpgas-online/fpgas.online-infra/issues/73).
-- The Arty A7 hosts that do not answer, back in service: [infra issue #272](https://github.com/fpgas-online/fpgas.online-infra/issues/272).
+- The Arty A7 hosts that did not answer the gateway on 6 October 2026, back in service: [infra issue #272](https://github.com/fpgas-online/fpgas.online-infra/issues/272).
+- The site notes brought up to date with the gateway, and the Arty hosts' root stated: [test-designs issue #294](https://github.com/fpgas-online/fpgas.online-test-designs/issues/294).
