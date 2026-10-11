@@ -28,15 +28,15 @@ Reconfiguring the FPGA over JTAG while its PCIe endpoint is enumerated is a surp
 1. On the Pi, run `lspci -D -s 0001:01:00.0`, the Pi 5's PCIe slot. A line there is an endpoint to detach; no line, go to step 3.
 2. On the Pi, detach it with `echo 1 | sudo tee /sys/bus/pci/devices/0001:01:00.0/remove`. Run `lspci -D -s 0001:01:00.0` again: it prints nothing. If it still prints the line, stop.
 3. On the Pi, run `sudo openFPGALoader --cable rp1pio --pins 27:22:4:17 design.bit` to load the bitstream through the RP1's PIO peripheral.
-4. On the Pi, run `echo 1 | sudo tee /sys/bus/pci/rescan` to bring the endpoint back. If `ls /sys/bus/platform/drivers/brcm-pcie/` lists no `1000110000.pcie`, the host bridge removed itself at boot, with no link. Bind it again, with no unbind first: `echo 1000110000.pcie | sudo tee /sys/bus/platform/drivers/brcm-pcie/bind`. This bind waits for its run on a Pi 5 (test-designs issue #246).
+4. On the Pi, run `echo 1 | sudo tee /sys/bus/pci/rescan` to bring the endpoint back. If `ls /sys/bus/platform/drivers/brcm-pcie/` lists no `1000110000.pcie`, the host bridge removed itself at boot, with no link. Bind it again, with no unbind first: `echo 1000110000.pcie | sudo tee /sys/bus/platform/drivers/brcm-pcie/bind`. Give the link a few seconds before the Check. This bind waits for its run on a Pi 5 (test-designs issue #246).
 
-The pin order is `TDI:TDO:TCK:TMS`. The FPGA enumerates only after a bitstream is loaded, and from then on step 2 is mandatory.
+The pin order is `TDI:TDO:TCK:TMS`. The FPGA enumerates only after a bitstream is loaded, and from then on step 1 lists a line and step 2 is mandatory.
 
 ## Check
 
 The load's last line in step 3 ends with `done 1`. With `done 0` the FPGA is not configured, whatever the exit status; the STAT register printed under it says why.
 
-After step 4, `lspci -D -s 0001:01:00.0` lists the NeTV2 as a Xilinx device, if the design has a PCIe endpoint. `sudo lspci -vv -s 0001:01:00.0 | grep LnkSta` shows the Gen2 x1 link.
+After step 4, `lspci -D -s 0001:01:00.0` lists the NeTV2 as a Xilinx device, if the design has a PCIe endpoint. `sudo lspci -vv -s 0001:01:00.0 | grep LnkSta` shows `Speed 5GT/s, Width x1`, a Gen2 x1 link.
 
 ## If it fails
 

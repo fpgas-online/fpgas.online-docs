@@ -53,7 +53,7 @@ no manual bump.
 Several tools used on the Pi hosts are packaged outside this organisation, each
 publishing its own signed APT repository per Debian suite:
 
-`openfpgaloader-rp1pio`, `librp1jtag0`
+`openfpgaloader-rp1pio`, `openocd-rp1pio`
 : [mithro/rp1-jtag](https://github.com/mithro/rp1-jtag) — retired. The hosts
   carry `openfpgaloader-fpgasonline-git` and `openocd-fpgasonline-git` from
   [fpgas.online-fpga-tools](https://github.com/fpgas-online/fpgas.online-fpga-tools)
