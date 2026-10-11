@@ -54,34 +54,37 @@ This procedure is waiting for its run: [test-designs issue #230](https://github.
    $ openFPGALoader --cable libgpiod --pins 10:9:11:8 $LOOPBACK
    ```
 
-5. On the Pi, send a word to the port and read what comes back. The loopback inverts each bit, so the bytes are not the bytes sent.
+5. On the Pi, set the port and read it for three seconds without sending anything. Keep what it prints.
 
    ```console
    $ stty -F /dev/ttyAMA0 115200 raw -echo
+   $ timeout 3 cat /dev/ttyAMA0 | od -An -tx1
+   ```
+
+6. On the Pi, read again while a word is sent. The loopback inverts each bit, so the bytes are not the bytes sent.
+
+   ```console
    $ (sleep 1; echo test > /dev/ttyAMA0) &
    $ timeout 3 cat /dev/ttyAMA0 | od -An -tx1
    ```
 
-6. On the Pi, unmask the getty that step 1 masked, so that systemd can start it again.
-
-   ```console
-   $ sudo systemctl unmask serial-getty@ttyAMA0
-   ```
+7. At the switch, PoE-cycle the host's port. The card loads its flash image again and comes back on the PCIe bus. The Pi's root is thrown away at every reboot ([Netboot and the NFS root](../../../setup/netboot.md)). Step 1's mask, the `gpiochip0` link and the port settings go with it.
 
 ## Check
 
-Some bytes arrive. That means J2 and K2 both carry. The design holds the line inverted while idle, so the UART may also report framing errors or a break.
+Step 6 prints something different from step 5. That means J2 and K2 both carry. Step 5 alone shows only that K2 is driven: the design holds the idle line low, which the Pi reads as a break, `00` bytes.
 
 ## If it fails
 
-- **No bytes at all:** K2 or GPIO15 is not connected; run pin ID and check that GPIO15 reads `K2`.
-- **No UART output:** serial-getty holds the port, the baud is wrong, or K2 and J2 are not crossed over. Mask serial-getty, use 115200, and run pin ID.
-- **The Pi reboots when the design loads:** the kernel console is on the FPGA's serial port; fix it as in [the Pi's settings](../setup/rpi-5/pi-settings.md#kernel-console-on-the-fpga-uart).
-
-The first two items send you to the pin-ID design. Read its hazard first:
+Three items below send you to the pin-ID design. Read its hazard first:
 
 ```{include} ../inc/gpio-contention.inc
 ```
+
+- **No bytes at all in step 5:** K2 or GPIO15 is not connected; run pin ID and check that GPIO15 reads `K2`.
+- **Step 6 prints the same as step 5:** nothing reached J2. J2 or GPIO14 is not connected, or K2 and J2 are not crossed over; run pin ID and check that GPIO14 reads `J2`.
+- **No UART output at all:** serial-getty holds the port, the baud is wrong, or K2 and J2 are not crossed over. Mask serial-getty, use 115200, and run pin ID.
+- **The Pi reboots when the design loads:** the kernel console is on the FPGA's serial port; fix it as in [the Pi's settings](../setup/rpi-5/pi-settings.md#kernel-console-on-the-fpga-uart).
 
 ## Next
 
