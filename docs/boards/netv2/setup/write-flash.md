@@ -9,7 +9,7 @@ review: 2026-11-10
 
 **You want a bitstream written to a NeTV2's SPI flash, so that it survives a power cycle.**
 
-The write replaces the bitstream in the flash; step 3 keeps a copy of it first. Loading into SRAM only is on [the Raspberry Pi 3B+ page](load-pi-3b-plus.md) and [the Raspberry Pi 5 page](load-pi-5.md).
+The write replaces the bitstream in the NeTV2's own SPI flash. Step 3 first copies that bitstream region into `backup.bin` on the Pi, and you copy it to your own machine. This page is for someone setting up or looking after a NeTV2; a visitor to a site's board page never writes the flash. Loading into SRAM only is on [the Raspberry Pi 3B+ page](load-pi-3b-plus.md) and [the Raspberry Pi 5 page](load-pi-5.md).
 
 This procedure is waiting for its run: [test-designs issue #249](https://github.com/fpgas-online/fpgas.online-test-designs/issues/249).
 
@@ -25,7 +25,7 @@ This procedure is waiting for its run: [test-designs issue #249](https://github.
 
 1. On a Raspberry Pi 5, run `lspci -D -s 0001:01:00.0`, the Pi 5's PCIe slot. A line there is an endpoint to detach; no line, go to step 3.
 2. On a Raspberry Pi 5, detach it with `echo 1 | sudo tee /sys/bus/pci/devices/0001:01:00.0/remove`. Run `lspci -D -s 0001:01:00.0` again: it prints nothing. If it still prints the line, stop.
-3. On the Pi, keep a copy of the bitstream region. Put your cable, part and size in place of `CABLE`, `PART` and `SIZE`. `ls -l backup.bin` shows `SIZE` bytes. Copy `backup.bin` off the Pi.
+3. On the Pi, keep a copy of the bitstream region. Put your cable, part and size in place of `CABLE`, `PART` and `SIZE`. `ls -l backup.bin` shows `SIZE` bytes. Copy `backup.bin` to your own machine: a netbooted Pi loses it at its next reboot.
 
    ```console
    $ sudo openFPGALoader CABLE --pins 27:22:4:17 --fpga-part PART --dump-flash --file-size SIZE backup.bin
