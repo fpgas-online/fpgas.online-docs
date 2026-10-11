@@ -33,7 +33,7 @@ This procedure is waiting for its run: [test-designs issue #229](https://github.
 1. On the Pi, note how GPIO14 and GPIO15 are set, before step 3 changes GPIO14. Step 7 puts them back from this.
 
    ```console
-   $ pinctrl get 14,15
+   $ sudo pinctrl get 14,15
    ```
 
 2. On the Pi, detach the card's PCIe endpoint before the load
@@ -49,7 +49,7 @@ This procedure is waiting for its run: [test-designs issue #229](https://github.
 3. On the Pi, make GPIO14 an input. The pin-ID design drives J2, which is on GPIO14.
 
    ```console
-   $ pinctrl set 14 ip
+   $ sudo pinctrl set 14 ip
    ```
 
 4. On the Pi, load the pin-ID design; each ball then transmits its own name at 1200 baud.
@@ -79,19 +79,25 @@ This procedure is waiting for its run: [test-designs issue #229](https://github.
    $ openFPGALoader --cable libgpiod --pins 10:9:11:8 --reset
    ```
 
-7. On the Pi, put the pins and the card back:
+   If `openFPGALoader` printed an error, stop here and leave GPIO14 an input: the FPGA may still run the pin-ID design.
 
-   - Make the JTAG pins inputs with a pull-down, because `openFPGALoader` leaves them driven.
-   - Set GPIO14 and GPIO15 back to the function and pull that step 1 printed. For example, where step 1 printed
-     `14: a4 pn | hi`, run `pinctrl set 14 a4 pn`.
-   - Rescan the PCIe bus and check that the card is there. `lspci` shows `10ee:7021` for the fpgas.online design.
-   - Match the card's Max_Payload_Size to the root port's, because a rescan leaves it at its reset value.
+7. On the Pi, put the card and then the pins back, in this order:
+
+   1. Make the JTAG pins inputs with a pull-down, because `openFPGALoader` leaves them driven.
+   2. Rescan the PCIe bus and check that the card is there: `lspci` shows `10ee:7021` for the fpgas.online design.
+      Go on only when it does, because that proves the FPGA has left the pin-ID design.
+   3. Match the card's Max_Payload_Size to the root port's, because a rescan leaves it at its reset value.
+   4. Set GPIO14 and GPIO15 back to the function and pull that step 1 printed, and copy nothing after the `|`. The
+      commands below are for a Pi where step 1 printed `14: a4    pn | hi // GPIO14 = TXD0` and
+      `15: a4    pu | hi // GPIO15 = RXD0`. A pin that step 1 printed as `none` has nothing to put back.
 
    ```console
-   $ for p in 8 9 10 11; do pinctrl set $p ip pd; done
+   $ for p in 8 9 10 11; do sudo pinctrl set $p ip pd; done
    $ echo 1 | sudo tee /sys/bus/pci/rescan
    $ lspci -nn -s 0001:01:00.0
    $ sudo python3 designs/acorn-pcie/host/pcie_match_mps.py
+   $ sudo pinctrl set 14 a4 pn
+   $ sudo pinctrl set 15 a4 pu
    ```
 
 ## Check
@@ -108,10 +114,11 @@ Expect and Got on each row.
 
 ## If it fails
 
-- **The Pi crashes when a GPIO is set to output:** pin ID drives all four P2 balls, so a Pi output fights an FPGA output. Keep GPIO14 an input (`pinctrl set 14 ip`) from step 3 to step 6.
+- **The Pi crashes when a GPIO is set to output:** pin ID drives all four P2 balls, so a Pi output fights an FPGA output. Keep GPIO14 an input (`sudo pinctrl set 14 ip`) from step 3 until `lspci` shows the card in step 7.
 - **Got shows `(none)` on one row:** no signal reached that GPIO. The wire to that ball is open or on another pin: [Acorn wiring faults on a Raspberry Pi 5](../troubleshooting/rpi-5-wiring.md).
+- **Got shows a name that starts with `?`:** a signal reached that GPIO but did not decode. The wire is noisy or shared with another: [Acorn wiring faults on a Raspberry Pi 5](../troubleshooting/rpi-5-wiring.md).
 - **Got shows `(none)` on every row:** the pin-ID design is not running. Run step 4 again and read its output for an error.
-- **`lspci` shows nothing after step 7:** the FPGA did not load its flash image. Run steps 6 and 7 again. If it is still missing, a reboot of the Pi finds the card at boot.
+- **`lspci` shows nothing in step 7:** the link may not be up yet. Wait ten seconds and rescan again. If it is still missing, run step 6 again, then step 7. If it is missing after that, the FPGA is not running its flash image. Leave GPIO14 an input. Ask the site operator, then power-cycle the card.
 
 ## Next
 
