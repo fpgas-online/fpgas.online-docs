@@ -11,7 +11,7 @@ review: 2026-11-10
 
 The loopback gateware computes `pmodb = ~pmoda`, a per-bit inversion. The Raspberry Pi drives the PMODA pins and reads the inverted result on the PMODB pins.
 
-Only five of the eight lanes can be loop-tested from the Pi. HAT JA pins 2-4 and HAT JB pins 2-4 are the same three GPIO lines (the SPI0 bus). On those three lanes the Pi cannot drive an Arty PMODA pin and read the matching PMODB pin independently.
+The test checks six pin pairs, not every lane: `BOARD_CONFIGS["arty"]` in the test's [host script](https://github.com/fpgas-online/fpgas.online-test-designs/blob/main/designs/pmod-loopback/host/test_pmod_loopback.py) lists them. HAT JA pins 2-4 and HAT JB pins 2-4 are the same three GPIO lines (the SPI0 bus). On those three lanes the Pi cannot drive an Arty PMODA pin and read the matching PMODB pin independently.
 
 This procedure is waiting for its run: [test-designs issue #248](https://github.com/fpgas-online/fpgas.online-test-designs/issues/248).
 
