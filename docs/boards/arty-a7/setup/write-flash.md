@@ -9,7 +9,7 @@ review: 2026-11-10
 
 **You have an Arty A7 and a bitstream, and want the design to survive power cycles.**
 
-The write replaces whatever the on-board SPI flash held. A load that is only run is on [How to load a design onto an Arty A7](load-design.md).
+The write changes the on-board SPI flash, so step 1 keeps a copy of the bitstream region first. A load that is only run is on [How to load a design onto an Arty A7](load-design.md).
 
 What a correct run prints is waiting for a run: [test-designs issue #248](https://github.com/fpgas-online/fpgas.online-test-designs/issues/248).
 
@@ -21,11 +21,19 @@ What a correct run prints is waiting for a run: [test-designs issue #248](https:
 
 ## Steps
 
-1. On the Raspberry Pi, write the flash with `openFPGALoader -b arty --write-flash design.bit`, and the on-board SPI flash holds the design in place of what was there.
+1. On the Raspberry Pi, keep a copy of the bitstream region. That is the first 2228224 bytes of the flash, which the Arty's check reads. `ls -l backup.bin` shows 2228224 bytes. Copy `backup.bin` to your own machine: a netbooted Pi loses it at its next reboot.
 
-```console
-$ openFPGALoader -b arty --write-flash design.bit
-```
+   ```console
+   $ openFPGALoader -b arty --dump-flash --file-size 2228224 backup.bin
+   ```
+
+2. On the Raspberry Pi, write the design to the flash and read it back.
+
+   ```console
+   $ openFPGALoader -b arty --write-flash --verify design.bit
+   ```
+
+To put the old bitstream back, run step 2 with `backup.bin` in place of `design.bit`.
 
 ## Check
 

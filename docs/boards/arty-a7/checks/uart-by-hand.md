@@ -16,15 +16,21 @@ This procedure is waiting for its run: [test-designs issue #248](https://github.
 ## What you need
 
 - The Arty A7 joined to the Raspberry Pi by its USB cable ([Arty A7 wiring to a Raspberry Pi](../setup/wiring.md#the-uart-channel)).
-- `fpgas-arty-debug` on the Raspberry Pi, from the `fpgas-online-arty-debug` package ([How to install the Arty A7 packages](../setup/packages.md)).
+- The fpgas.online apt repository on the Raspberry Pi: [How to install the Arty A7 packages](../setup/packages.md). Step 1 installs the debug tool, which `fpgas-online-arty` does not bring.
 
 ## Steps
 
-1. On the Raspberry Pi, run the test with `sudo fpgas-arty-debug test uart`, which loads the UART design and runs its host script.
+1. On the Raspberry Pi, install the debug tool, `fpgas-arty-debug`.
 
-```console
-$ sudo fpgas-arty-debug test uart
-```
+   ```console
+   $ sudo apt install fpgas-online-arty-debug
+   ```
+
+2. On the Raspberry Pi, run the test, which loads the UART design and runs its host script.
+
+   ```console
+   $ sudo fpgas-arty-debug test uart
+   ```
 
 ## Check
 
@@ -35,7 +41,7 @@ $ sudo fpgas-arty-debug test uart
 | What you see | Likely cause | Fix |
 |---|---|---|
 | no `/dev/ttyUSB1` | the Arty's FTDI is not on USB; a board in that state cannot be programmed or reached on its console | run `lsusb`. If it does not list the FT2232H, `0403:6010`, check the USB cable between the board and the Pi |
-| the test talks to the wrong device | `/dev/ttyUSB0` is the JTAG channel and `/dev/ttyUSB1` the UART channel | name the port before `test`: `sudo fpgas-arty-debug --port /dev/ttyUSB1 test uart` |
+| the test talks to the wrong device | the tool uses `/dev/ttyUSB1`, and another USB serial device on the Pi has taken that name | find the UART channel's own port: in `ls -l /dev/serial/by-id/`, the Arty's entry ending in `-if01-port0` points at it. Name that port before `test`, for example `sudo fpgas-arty-debug --port /dev/ttyUSB2 test uart` |
 
 ## Next
 
