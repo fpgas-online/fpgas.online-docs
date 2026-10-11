@@ -20,10 +20,13 @@ Property names a part of the LiteX support and Value gives it. The values are fr
 | Default clock | `clk100` (100 MHz, pin E3) |
 | Toolchain | Vivado (proprietary) or openXC7 (open source) |
 
-## References
+## Outside documents
 
-- LiteX platform file: <https://github.com/litex-hub/litex-boards/blob/master/litex_boards/platforms/digilent_arty.py>
-- Digilent Arty A7 Reference Manual: <https://digilent.com/reference/programmable-logic/arty-a7/reference-manual>
-- [Digilent's Arty A7 reference page](https://digilent.com/reference/programmable-logic/arty-a7/start), for both the A7-35T and the A7-100T
-- [PMOD interface specification](../../pmod/index.md)
-- [Raspberry Pi PMOD HAT](../../pmod/rpi-hat.md)
+- [Digilent Arty A7 reference manual](https://digilent.com/reference/programmable-logic/arty-a7/reference-manual): the board's own manual.
+- [Digilent's Arty A7 reference page](https://digilent.com/reference/programmable-logic/arty-a7/start): the documents for both the A7-35T and the A7-100T.
+- [LiteX platform file for the Arty A7](https://github.com/litex-hub/litex-boards/blob/master/litex_boards/platforms/digilent_arty.py): the board's pins and resources.
+
+## On this site
+
+- [PMOD interface](../../pmod/index.md): the PMOD types the board's connectors follow.
+- [Raspberry Pi PMOD HAT](../../pmod/rpi-hat.md): the adapter between the board's PMOD cables and the Pi.

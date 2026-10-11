@@ -34,7 +34,9 @@ $ openFPGALoader -b arty design.bit
 
 ## If it fails
 
-- You see no `/dev/ttyUSB*` devices at all. The Arty's FTDI is disconnected, and a board in that state cannot be programmed or reached on its console. 
+| What you see | Likely cause | Fix |
+|---|---|---|
+| no `/dev/ttyUSB*` device at all | the Arty's FTDI is not on USB; a board in that state cannot be programmed or reached on its console | run `lsusb`: the FT2232 is `0403:6010`. If it is not listed, reseat the board's USB cable at both ends |
 
 ## Next
 

@@ -135,10 +135,11 @@ Straight through is the design, not a guarantee for any individual cable. The [P
 The full Raspberry Pi GPIO to PMOD pin to FPGA pin mappings for each board are on these pages:
 
 - [Arty A7 wiring to a Raspberry Pi](../arty-a7/setup/wiring.md)
-- [Tiny Tapeout FPGA demo board](../tt-fpga/index.md)
+- [Tiny Tapeout FPGA demo board pin mapping](../tt-fpga/overview/pin-mapping.md)
+- [Tiny Tapeout chip demo board wiring to a Raspberry Pi](../tt-asic/setup/wiring.md)
 
 ## References
 
 - [PMOD interface](index.md)
-- Digilent PMOD HAT Reference Manual: <https://digilent.com/reference/add-ons/pmod-hat/reference-manual>
+- [Digilent PMOD HAT reference manual](https://digilent.com/reference/add-ons/pmod-hat/reference-manual): the HAT's own manual.
 - Digilent PMOD HAT Product Page: <https://digilent.com/shop/pmod-hat-adapter/>

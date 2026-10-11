@@ -50,9 +50,17 @@ This procedure is waiting for its run: [test-designs issue #262](https://github.
    	$(PYTHON) host/identify_pmod_pins.py --gpios 2 3 4 5 6 7
    ```
 
+4. Build, load and scan the board with the three targets.
+
+   ```console
+   $ make gateware-yourboard
+   $ make program-yourboard
+   $ make scan-yourboard
+   ```
+
 ## Check
 
-Run `make gateware-yourboard`, `make program-yourboard` and `make scan-yourboard`. The scan prints a mapping table like the one quoted under [Check on the scan page](scan.md#check). It gives an FPGA pin name for each GPIO you passed.
+The scan prints a mapping table like the one quoted under [Check on the scan page](scan.md#check). It gives an FPGA pin name for each GPIO you passed.
 
 ## If it fails
 

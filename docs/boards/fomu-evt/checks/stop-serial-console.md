@@ -54,7 +54,11 @@ $ sudo fuser -k /dev/serial0
 $ sudo chmod 666 /dev/serial0
 ```
 
-7. Start the UART test with the arguments `--port /dev/serial0 --board fomu --skip-banner`; the test opens `/dev/serial0` at 115200 baud. The test is the check's `uart` test, described on the page under Next.
+7. Run the UART test. It opens `/dev/serial0` at 115200 baud, and it is the check's `uart` test, described on the page under Next.
+
+```console
+$ sudo fpgas-fomu-debug test uart
+```
 
 ## Check
 
