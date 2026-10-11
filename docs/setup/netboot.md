@@ -23,7 +23,7 @@ page](../sites/ps1.md) describes what ps1 provides.
 
 (the-provisioning-container)=
 - [The provisioning container](netboot/update-root.md#how-the-root-is-built): gone. The root used to be built
-  on the gateway through a `piroot` account; it is now built in CI, and that account is deleted.
+  on the gateway through a `piroot` account. The `nfsroot-build.yml` CI workflow builds it instead, and that account is deleted.
 
 (when-a-pi-does-not-boot)=
 - [When a Pi does not boot](netboot/not-booting.md): where its boot stops.
