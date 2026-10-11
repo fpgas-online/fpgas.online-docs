@@ -7,6 +7,7 @@ review: 2026-11-10
 
 # SQRL Acorn and LiteFury
 
+- Using this board on fpgas.online: [Acorn](../../user/boards/acorn/index.md), under User documentation.
 - [Acorn overview](overview/index.md): what the card is, how a design reaches it, and the documents behind these pages.
 - [Acorn variants](which-one.md): which card of the family you have.
 - [Setting up an Acorn](setup/index.md): the wiring, the cables and the software, for each host.
