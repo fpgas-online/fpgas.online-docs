@@ -7,6 +7,7 @@ review: 2026-11-10
 
 # Fomu EVT
 
+- Using this board on fpgas.online: [Fomu EVT](../../user/boards/fomu-evt/index.md), under User documentation.
 - [Fomu EVT overview](overview/index.md): what the board is, its pins, and how a design reaches it.
 - [Setting up a Fomu EVT](setup/index.md): the wiring to a Raspberry Pi, the packages, and loading a design.
 - [Fomu EVT checks](checks/index.md): the check that runs on the host, and each test by hand.
