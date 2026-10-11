@@ -709,6 +709,13 @@ pinout:
         with self.assertRaises(s.Stop):
             s.tt_demo_designs(texts, "fpgas-online/tinytapeout-fpga-demos", "abc123")
 
+    def test_a_missing_key_or_bad_yaml_stops_the_sync_naming_the_file(self):
+        texts = {"demos/tt_um_x/info.yaml": self.INFO.format(name="x", clock=1).replace("  clock_hz: 1\n", "")}
+        with self.assertRaisesRegex(s.Stop, "tt_um_x/info.yaml has no"):
+            s.tt_demo_designs(texts, "fpgas-online/tinytapeout-fpga-demos", "abc123")
+        with self.assertRaisesRegex(s.Stop, "is not YAML"):
+            s.tt_demo_designs({"demos/tt_um_y/info.yaml": "project: [unclosed"}, "f/r", "c")
+
     def test_a_repository_with_its_own_name_keeps_it(self):
         self.assertEqual(s.TT_DEMOS.full, "fpgas-online/tinytapeout-fpga-demos")
         self.assertEqual(s.INFRA.full, "fpgas-online/fpgas.online-infra")

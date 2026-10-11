@@ -14,8 +14,8 @@ tinytapeout.fpgas.online. It does not cover setting one up, which is
 ## The board
 
 The board is a Tiny Tapeout demo board with an FPGA breakout in place of a chip. Its iCE40UP5K runs a Tiny Tapeout
-design as the chip would, and the demo board's RP2350 drives the design's clock and pins. A Raspberry Pi holds the
-board's USB port. Each board has a camera.
+design as the chip would, and the demo board's RP2350 drives the design's clock and pins. The board is on a Raspberry
+Pi's USB port, and a camera over it shows the board.
 
 ## The board's page
 

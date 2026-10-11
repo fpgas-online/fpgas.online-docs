@@ -783,9 +783,17 @@ def tt_demo_designs(texts, full, commit):
     """The Tiny Tapeout FPGA demo board's bundled designs, one row each, from their info.yaml."""
     rows = ["| Design | What it does | Inputs | Clock | Source |", "|---|---|---|---|---|"]
     for src in sorted(texts):
-        info = yaml.safe_load(texts[src])
-        project, pinout = info["project"], info["pinout"]
-        name = project["top_module"]
+        try:
+            info = yaml.safe_load(texts[src])
+            project, pinout = info["project"], info["pinout"]
+            name = project["top_module"]
+            for key in ("title", "description", "clock_hz"):
+                project[key]
+        except yaml.YAMLError as e:
+            raise Stop(f"{src} is not YAML: {e}") from e
+        except (KeyError, TypeError) as e:
+            raise Stop(f"{src} has no {e}: a design's info.yaml needs project (top_module, title, "
+                       f"description, clock_hz) and pinout") from e
         inputs = "; ".join(f"`{pin}`: {use}" for pin, use in pinout.items() if pin.startswith("ui[") and use)
         where = f"https://github.com/{full}/tree/{commit}/{posixpath.dirname(src)}"
         cells = [f"{project['title']} (`{name}`)", project["description"], inputs or "none",
@@ -1444,7 +1452,8 @@ def stale_files(repos=None):
         if not OUR_COMMENT.search(head) or rel in dests or posixpath.dirname(rel) in owned:
             continue
         m = (re.search(r"change it in ([\w-]+)\.", head) or re.search(r"WRAPPERS \(([\w-]+)\)", head)
-             or re.search(r"https://github\.com/" + ORG + r"/fpgas\.online-([\w.-]+)\n", head))
+             or re.search(r"https://github\.com/" + ORG + r"/fpgas\.online-([\w.-]+)\n", head)
+             or re.search(r"https://github\.com/" + ORG + r"/([\w.-]+)\. Do not edit", head))
         found.setdefault(m.group(1) if m else "?", []).append(rel)
     return found
 

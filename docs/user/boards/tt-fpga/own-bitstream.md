@@ -35,7 +35,9 @@ reading **Running**. Drive it from the Commander's **Interact** tab.
 | What you see | Likely cause | Fix |
 |---|---|---|
 | `Bitstream too large` | the file is over 256 KiB | build it again for the iCE40UP5K; check it is the `.bin`, not another file |
-| an error naming the file or the name | the file is not an iCE40 bitstream, or the name is not allowed or is a bundled design's | check the file and choose another name |
+| `not an iCE40 bitstream` | the file is not an iCE40 bitstream | upload the `.bin` that `icepack` wrote |
+| `… is a demo name; pick another` | the name is a bundled design's | choose another name |
+| `… is the daemon's own name for its idle display; pick another` | the name is the one the Pi uses for its idle design | choose another name |
 | your upload is gone from the list | the Pi keeps 16 uploads, and it drops the oldest; a reboot of the Pi drops them all | upload it again |
 
 ## Next

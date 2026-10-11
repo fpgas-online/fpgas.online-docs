@@ -12,7 +12,7 @@ and to drive it**.
 
 ## What you need
 
-- A board's page from [the Tiny Tapeout site](https://tinytapeout.fpgas.online/), under FPGA, with "Use this board".
+- A board's page: on [the Tiny Tapeout site](https://tinytapeout.fpgas.online/), under "FPGA emulation boards", press **Use this board**.
 
 Everyone on the page drives the same board, so a design you run replaces the one another visitor was using.
 
@@ -21,7 +21,9 @@ Everyone on the page drives the same board, so a design you run replaces the one
 1. Under **Designs on this board**, choose a design. [The bundled designs](designs.md) says what each one does and
    which inputs it uses.
 2. Press its **Run** button. The page shows `Loading <design>…`, then `<design> is running`.
-3. In the Commander, open the **Interact** tab, and set the inputs the design uses.
+3. In the Commander, open the **Interact** tab and tick **ui_in**. The buttons 0 to 7 are the design's inputs `ui[0]` to `ui[7]`:
+   press the ones the design uses.
+4. Tick **uo_out** to see the design's outputs.
 
 :::{admonition} Figure to come
 :class: placeholder
@@ -31,7 +33,7 @@ The Tiny Tapeout board page with Designs on this board and the Commander's Inter
 
 ## Check
 
-The design's button reads **Running**, and the status log shows `design <design> loaded`. The camera shows the board's
+The design's button reads **Running**, and the status log shows `design <design> loaded`. The camera and the **uo_out** row show the board's
 outputs change as you set the inputs.
 
 ## If it fails
@@ -40,7 +42,8 @@ outputs change as you set the inputs.
 |---|---|---|
 | `another task is running` | the board was busy with another load | wait a moment, then press Run again |
 | `board not present` | the board is not on its Pi's USB | press **Power-cycle board** ([How to reset a board](../reset.md)), then try again |
-| `Could not reach the Pi` | the board's Pi is restarting or off | wait two minutes, then reload the page |
+| `Pi unreachable`, or `HTTP 502 Bad Gateway` | the board's Pi is restarting or off | wait two minutes, then reload the page |
+| `Could not reach the Pi` | your browser's connection to the site failed | check your connection, then reload the page |
 
 ## Next
 
