@@ -68,6 +68,6 @@ A garbled or "no signal" line in the scan has its cause and fix in the table und
 
 ## Next
 
-- [How to scan a board's wiring with the pin-id design](scan.md)
+- [How to scan an Arty A7's wiring with the pin-id design](scan.md)
 - [Pin-id scanner options](scanner-options.md)
 - [The pin-id design](../pin-id.md)
