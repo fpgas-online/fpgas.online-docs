@@ -12,6 +12,18 @@ review: 2026-11-10
 
 **Your two cables for an Acorn on a Raspberry Pi 5 have passed the bench check, and you are fitting them and the card.**
 
+The card goes in the M.2 slot of the HAT, marked here:
+
+![The M.2 HAT from above, with its M.2 slot marked](../../views/pi5-hat.top.m2-slot.png){.only-light}
+
+![The M.2 HAT from above, with its M.2 slot marked](../../views/pi5-hat.top.m2-slot-dark.png){.only-dark}
+
+The housings go on the HAT's 40-pin header, marked here with its pin 1:
+
+![The M.2 HAT from above, with its 40-pin header and pin 1 marked](../../views/pi5-hat.top.header.png){.only-light width="400px"}
+
+![The M.2 HAT from above, with its 40-pin header and pin 1 marked](../../views/pi5-hat.top.header-dark.png){.only-dark width="400px"}
+
 ```{include} ../../generated/acorn-build-pi5-fit.md
 :relative-images:
 ```

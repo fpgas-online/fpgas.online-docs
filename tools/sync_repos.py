@@ -207,6 +207,14 @@ TEST_DESIGNS = Repo(
                 "acorn.bottom.p1-dark.png",
                 "acorn.bottom.p2.png",
                 "acorn.bottom.p2-dark.png",
+                "pi5-hat.top.header.png",
+                "pi5-hat.top.header-dark.png",
+                "pi5-hat.top.m2-slot.png",
+                "pi5-hat.top.m2-slot-dark.png",
+                "pi5-hat.top.p1-pins.png",
+                "pi5-hat.top.p1-pins-dark.png",
+                "pi5-hat.top.p2-pins.png",
+                "pi5-hat.top.p2-pins-dark.png",
                 "pi5-hat.top.pins-19-26.png",
                 "pi5-hat.top.pins-19-26-dark.png",
                 "pi5-hat.top.pins-5-10.png",
@@ -549,7 +557,17 @@ TEST_DESIGNS = Repo(
             'docs/boards/acorn/setup/rpi-5/fitting.md',
             'How to fit the cables and the card (Raspberry Pi 5)',
             Interim('**Your two cables for an Acorn on a Raspberry Pi 5 have passed the bench check, and you '
-                    'are fitting them and the card.**'),
+                    'are fitting them and the card.**\n\n'
+                    'The card goes in the M.2 slot of the HAT, marked here:\n\n'
+                    "![The M.2 HAT from above, with its M.2 slot marked](../../views/pi5-hat.top.m2-slot.png)"
+                    '{.only-light}\n\n'
+                    "![The M.2 HAT from above, with its M.2 slot marked](../../views/pi5-hat.top.m2-slot-dark.png)"
+                    '{.only-dark}\n\n'
+                    "The housings go on the HAT's 40-pin header, marked here with its pin 1:\n\n"
+                    "![The M.2 HAT from above, with its 40-pin header and pin 1 marked]"
+                    '(../../views/pi5-hat.top.header.png){.only-light width="400px"}\n\n'
+                    "![The M.2 HAT from above, with its 40-pin header and pin 1 marked]"
+                    '(../../views/pi5-hat.top.header-dark.png){.only-dark width="400px"}'),
             (Include('docs/boards/acorn/generated/acorn-build-pi5-fit.md', relative_images=True),),
             kind='how-to',
             reader='someone fitting the cables and the Acorn on a Raspberry Pi 5',
