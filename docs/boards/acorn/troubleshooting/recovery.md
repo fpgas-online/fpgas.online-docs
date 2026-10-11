@@ -29,10 +29,12 @@ This procedure is waiting for its run: [test-designs issue #228](https://github.
 
 ## Steps
 
-1. On the Pi, link the header's GPIO chip as `gpiochip0` and read the IDCODE. It is `0x3636093` on a CLE-215+ (XC7A200T); a CLE-101 or LiteFury carries an XC7A100T and reports `0x3631093`.
+1. On the Pi, make sure `gpiochip0` is the header's GPIO chip, then read the IDCODE. It is `0x3636093` on a CLE-215+ (XC7A200T); a CLE-101 or LiteFury carries an XC7A100T and reports `0x3631093`.
+
+   ```{include} ../inc/gpiochip0.inc
+   ```
 
    ```console
-   $ sudo ln -sfn /dev/gpiochip15 /dev/gpiochip0
    $ openFPGALoader --cable libgpiod --pins 10:9:11:8 --detect
    ```
 

@@ -29,4 +29,4 @@ The FPGA drives K2 at its own baud rate, 1200 for pin-ID and 115200 for the UART
 
 JTAG uses the Pi's SPI0 pins. On a Pi 5 `pinctrl` shows GPIO8-11 unclaimed even with the SPI modules loaded, so they do not have to be unloaded.
 
-The 40-pin header is `/dev/gpiochip15`, but the `libgpiod` cable always opens `/dev/gpiochip0`. Without a link between the two, openFPGALoader fails with `JTAG init failed with: Unable to open gpio chip`. The link is made in devtmpfs, so it goes in again at each reboot. The `rp1pio` cable drives JTAG from the RP1's PIO block instead and needs `/dev/pio0`, which the check's `rp1-pio` test opens.
+The 40-pin header's chip is the one `gpiodetect` lists as `pinctrl-rp1`, `/dev/gpiochip15` under kernel 6.12. The `libgpiod` cable always opens `/dev/gpiochip0`. Without a link between the two, openFPGALoader fails with `JTAG init failed with: Unable to open gpio chip`. The link is made in devtmpfs, so it goes in again at each reboot. The `rp1pio` cable drives JTAG from the RP1's PIO block instead and needs `/dev/pio0`, which the check's `rp1-pio` test opens.
