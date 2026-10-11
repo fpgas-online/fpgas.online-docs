@@ -315,14 +315,10 @@ TEST_DESIGNS = Repo(
         "docs/verify/acorn.md": "docs/verify/acorn.md",
         "docs/verify/acorn-power-cycle.md": "docs/verify/acorn-power-cycle.md",
         "docs/verify/idcode-and-dna.md": "docs/verify/idcode-and-dna.md",
-        "docs/verify/not-done-yet.md": "docs/verify/not-done-yet.md",
         "docs/verify/acorn-wiring.md": "docs/verify/acorn-wiring.md",
         "docs/verify/common-failures.md": "docs/verify/common-failures.md",
         "docs/verify/report-and-state.md": "docs/verify/report-and-state.md",
-        "docs/verify/fleet.md": "docs/verify/fleet.md",
-        "docs/verify/current-results.md": "docs/verify/current-results.md",
         "docs/identity.md": "docs/verify/identity.md",
-        "docs/verify-goals.md": "docs/verify/goals.md",
     },
     # On GitHub the landing page lists them itself; Sphinx needs them in a toctree to place them in the
     # sidebar under it.
@@ -339,12 +335,9 @@ TEST_DESIGNS = Repo(
             ("Acorn", "acorn"),
             ("Acorn: power-cycle check", "acorn-power-cycle"),
             ("JTAG IDCODE and DNA", "idcode-and-dna"),
-            ("Not done yet", "not-done-yet"),
             ("Checking an Acorn's wiring", "acorn-wiring"),
             ("Common failures", "common-failures"),
             ("The report and state", "report-and-state"),
-            ("In fpgas.online", "fleet"),
-            ("Current results", "current-results"),
         ],
     },
     SECTIONS={
