@@ -10,7 +10,7 @@ review: 2026-11-10
 
 # How to prepare the JTAG cable's wires (Compute Blade)
 
-**You have the parts for an Acorn on a Compute Blade and are making the first of its two cables, from the Acorn's P1 socket (JTAG). On this page: cut the bought cable in half, find wire 1, check it with a meter, cut back the wires that are not used, crimp the rest.**
+**You have the parts for an Acorn on a Compute Blade and are making the first of its two cables, from the Acorn's P1 socket (JTAG). On this page: check that each half reaches, cut the bought cable in half, find wire 1, check it with a meter, cut back the wires that are not used, crimp the rest.**
 
 ```{include} ../../generated/acorn-build-blade-jtag-1.md
 :relative-images:
