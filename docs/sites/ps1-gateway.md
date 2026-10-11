@@ -1,65 +1,59 @@
+---
+type: reference
+owner: documentation maintainers
+reader: someone who looks after the ps1 site and needs its gateway, switch and power control
+review: 2026-11-10
+---
+
 # The ps1 gateway and switch
 
 **You look after the ps1 gateway and want to know what it serves, which switch port carries which host, and
-how to power-cycle one host.** You need root on the gateway.
+how to power-cycle one host**. You need root on the gateway.
 
 ## Gateway: val2
 
-The site notes (`docs/hardware/site-ps1.md` in fpgas.online-test-designs) call the gateway val2; Ansible
-calls it `ps1.fpgas.online`. Unless a row says otherwise, the table is the read made on the gateway itself on
-6 October 2026 at 08:14 Adelaide time (5 October, 16:45 Chicago time) by the fpgas.online coordinator, with
-Tim's permission. It found an install of about 25 September 2026, last booted on 26 September 2026. A second read on 7 October 2026 (12:55 Adelaide time) found
-the same boot directory, `config.txt` and `cmdline.txt`.
-
-The gateway, its switch and its tooling are Carl Karsten's own install: his
-[pici](https://github.com/CarlFK/pici) playbooks and the `pib` web application, not fpgas.online-infra.
-fpgas.online reads it; it does not deploy to it.
+The gateway, its switch and its tooling are the site operator's own install. They come from the
+[pici](https://github.com/CarlFK/pici) playbooks and the `pib` web application.
+None of it is built by fpgas.online-infra.
+fpgas.online reads the gateway and does not deploy to it. The site notes, `docs/hardware/site-ps1.md` in
+fpgas.online-test-designs, call it val2.
 
 | | |
 |---|---|
 | Name | ps1.fpgas.online; the machine calls itself `kas1` |
-| System | Debian 13 (trixie), kernel `6.12.107+deb13-amd64` |
+| System | Debian 13 (trixie) |
 | Uplink | `eth-uplink`, 76.227.131.147/25, on the public internet; no global IPv6 address |
 | Pi network | `eth-local`, 10.21.0.1/24 |
 | Boot service | dnsmasq: DHCP, DNS and TFTP (TFTP from `/srv/tftp`) |
-| Root service | NFS, two read-only exports (below) |
+| Root service | NFS, read-only ([below](#one-nfs-root)) |
 | Web | nginx in front of the board pages, the web SSH terminal and the video feeds |
 | Switch | Netgear FS728TPv2 at 10.21.0.200 ([below](#poe-switch)) |
 | Administrator login | `ssh root@ps1.fpgas.online`, with a key the gateway's administrator has installed |
 
-The Pi network is one flat `/24`. A Pi is recognised by its MAC and handed a reserved address
-(`10.21.0.1NN` for the host on port `eNN`, from `/etc/dnsmasq.d/pibs.conf`, which held 12 hosts on
-6 October 2026). dnsmasq gives 10.21.0.128 to 10.21.0.254 to anything it does not recognise, on a six-hour
-lease. Welland's one-network-per-port scheme is not used here.
+The Pi network is one flat `/24`. A Pi is recognised by its MAC and handed a reserved address from `/etc/dnsmasq.d/pibs.conf`.
+The host on port `eNN` gets `10.21.0.1NN` as its address. Anything else gets an address from 10.21.0.128 to
+10.21.0.254, on a six-hour lease. Welland's one-network-per-port scheme is not used here.
 
 ### One NFS root
 
-On 6 October 2026 the gateway served ONE root, `/srv/nfs/rpi/trixie/{boot,root}`, exported read-only to
-`10.21.0.1/24` (the Pi network); there was no `bookworm` root, though older versions of this page list one for the Arty hosts.
-Every Pi's TFTP directory (`/srv/tftp/<serial>`, 12 of them) was a link to the same `boot/`, so a change
-there changes every host at once. Its kernel command line
-mounts `nfsroot=10.21.0.1:/srv/nfs/rpi/trixie/root` and asks for a tmpfs overlay (`overlayroot=tmpfs`); the
-blades were seen running with that overlay on 2026-09-20. With it, anything a host writes, `/home/pi` included, is
-gone after a reboot or a power cycle ([The NFS root is shared and
-read-only](../setup/netboot.md#the-nfs-root-is-shared-and-read-only)).
+The gateway serves one root, `/srv/nfs/rpi/trixie/{boot,root}`, exported read-only to the Pi network. Every
+Pi's TFTP directory, `/srv/tftp/<serial>`, is a link to the same `boot/`, so a change there changes every host
+at once. The kernel command line mounts `nfsroot=10.21.0.1:/srv/nfs/rpi/trixie/root` with a tmpfs overlay
+(`overlayroot=tmpfs`). Anything a host writes, `/home/pi` included, is gone after a reboot or a power cycle
+([The NFS root is shared and read-only](../setup/netboot.md#the-nfs-root-is-shared-and-read-only)).
 
-The root's own files date from 17 June 2026 (a Raspberry Pi OS image); its boot directory was updated on
-25 September 2026 to kernel `6.18.50+rpt`. The blades read it as a 32-bit userspace on kernel
-`6.18.50+rpt-rpi-v8` (pi16 and pi20 at ps1, 5 October 2026). What packages are inside the root was not read.
-How it was built is not recorded. fpgas.online-infra's playbook builds a bookworm root at
-`/srv/nfs/rpi/bookworm` (`dist: bookworm` in `inventory/group_vars/all/srv.yml`, main, read 2026-10-07), so
-this root did not come from it as it stands.
+The root is a 32-bit Raspberry Pi OS userspace on a `6.18.50+rpt` kernel. It did not come from
+fpgas.online-infra, whose playbook builds a bookworm root at `/srv/nfs/rpi/bookworm`
+(`dist: bookworm` in `inventory/group_vars/all/srv.yml`).
 
 ## PoE switch
 
-One **Netgear FS728TPv2** at 10.21.0.200: 24 Fast Ethernet ports `e1` to `e24` and 4 Gigabit ports `g25` to
-`g28` (site notes). The gateway hands that address to the switch's MAC `a0:21:b7:af:4e:05`
-(`/etc/dnsmasq.d/switch.conf`, read 6 October 2026), and the `host_vars` give the same MAC with the
-FS728TPv2's PoE OID; its comments also name an HP ProCurve 2610 and a Netgear GS728TPP, which nothing has
-ruled out on the unit itself. The site notes record the gateway on `g25` by LLDP, and above it a Ubiquiti
-US-24-G1 (`PS1-SW-MODEM`). The port is the host's number: `piNN` is on `eNN`.
+One **Netgear FS728TPv2** at 10.21.0.200 has 24 Fast Ethernet ports, `e1` to `e24`, and 4 Gigabit ports,
+`g25` to `g28` (site notes). The gateway hands that address to the switch's MAC `a0:21:b7:af:4e:05`
+(`/etc/dnsmasq.d/switch.conf`). The site notes record the gateway on `g25`, and above it a Ubiquiti US-24-G1
+(`PS1-SW-MODEM`). The port is the host's number: `piNN` is on `eNN`.
 
-Which host is on which port, from the site notes' port inventory (undated; not read by fpgas.online):
+Which host is on which port, from the site notes' port inventory:
 
 | Port | Host | Board | Notes (site notes) |
 |---|---|---|---|
@@ -81,3 +75,13 @@ held in memory.
 
 ```{include} ps1-power-cycle.inc
 ```
+
+## What is planned
+
+- A record of which hosts the shared boot directory serves, with every host named once: [infra issue #273](https://github.com/fpgas-online/fpgas.online-infra/issues/273).
+- Which physical Compute Blade is pi14, pi16, pi18 and pi20 at ps1: [infra issue #269](https://github.com/fpgas-online/fpgas.online-infra/issues/269).
+- How the shared boot files set the header serial port for the blades' checks and for JTAG: [infra issue #270](https://github.com/fpgas-online/fpgas.online-infra/issues/270).
+- `fpgas-verify` in the shared root, so a blade keeps its packages across a boot: [infra issue #271](https://github.com/fpgas-online/fpgas.online-infra/issues/271).
+- A trixie root that fpgas.online-infra builds: [infra issue #72](https://github.com/fpgas-online/fpgas.online-infra/issues/72).
+- The switch model settled, among the three that `host_vars` names: [infra issue #73](https://github.com/fpgas-online/fpgas.online-infra/issues/73).
+- The Arty A7 hosts that do not answer, back in service: [infra issue #272](https://github.com/fpgas-online/fpgas.online-infra/issues/272).
