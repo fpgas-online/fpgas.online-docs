@@ -16,7 +16,7 @@ This page does not cover installing the daemon: [The Tiny Tapeout stack](../../.
 
 - A shell on the board's Raspberry Pi, with `sudo`.
 - The program that needs the port, ready to run on `/dev/ttboard`, the udev link to the board's USB serial port.
-- No file is copied to the board, nor written, replaced or deleted on it. A design reaches the board by streaming ([The Tiny Tapeout stack](../../../setup/tinytapeout.md)).
+- A program that copies, replaces or deletes no file on the board ([The Tiny Tapeout stack](../../../setup/tinytapeout.md)).
 
 ## Steps
 
@@ -26,7 +26,7 @@ This page does not cover installing the daemon: [The Tiny Tapeout stack](../../.
 
 ## Check
 
-The daemon runs again: `systemctl is-active fpgas-tt` prints `active`.
+The daemon runs again: `systemctl is-active fpgas-tt` prints `active`, and `sudo fuser /dev/ttboard` shows its python3 process.
 
 ```console
 $ systemctl is-active fpgas-tt

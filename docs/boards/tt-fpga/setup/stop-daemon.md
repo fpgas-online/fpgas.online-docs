@@ -15,7 +15,7 @@ The board drops off the public site until the daemon is started again. Why the d
 
 - A shell on the Raspberry Pi that has the board, with `sudo`. A Pi that is not routable from your machine is reached through its site's gateway, as [The welland gateway](../../../sites/welland-gateway.md#reaching-a-pi) shows.
 - The tool you want to run, one that opens `/dev/ttboard`, the udev link to the board's USB serial port.
-- No file is copied to the board, nor written, replaced or deleted on it. A design reaches the board by streaming ([The Tiny Tapeout stack](../../../setup/tinytapeout.md)).
+- A tool that copies, replaces or deletes no file on the board. A design reaches the board by streaming ([The Tiny Tapeout stack](../../../setup/tinytapeout.md)).
 
 ## Steps
 
@@ -25,7 +25,7 @@ The board drops off the public site until the daemon is started again. Why the d
 
 ## Check
 
-After step 3, `fuser /dev/ttboard` shows the daemon's python3 process again. The board's `status.json`, whose address is on [The Tiny Tapeout stack](../../../setup/tinytapeout.md), reports the daemon's `/health` and `reachable`.
+After step 3, `sudo fuser /dev/ttboard` shows the daemon's python3 process again. The board's `status.json`, whose address is on [The Tiny Tapeout stack](../../../setup/tinytapeout.md), reports the daemon's `/health` and `reachable`.
 
 ## If it fails
 

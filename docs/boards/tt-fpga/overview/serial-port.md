@@ -15,11 +15,11 @@ The steps to stop and start the owner are on [How to stop the fpgas-tt daemon an
 
 The demo board shows up on the Raspberry Pi as `/dev/ttyACM0`, with VID:PID `2e8a:0005` (MicroPython Board in FS mode). A udev symlink, **`/dev/ttboard`**, points at it, and it is the name the Pi daemon opens.
 
-The serial port has a permanent owner. Every Tiny Tapeout host runs the [`fpgas-tt`](https://github.com/fpgas-online/fpgas.online-tt) daemon, which holds `/dev/ttboard` open at 115200 baud. It fans the port out as a WebSocket on port 8765, with `WS /serial` and `GET /health`. The port is reachable only from the gateway, thanks to the per-port VLANs. While the daemon runs, `fuser /dev/ttyACM0` shows the daemon's python3 process.
+The serial port has a permanent owner. Every Tiny Tapeout host runs the [`fpgas-tt`](https://github.com/fpgas-online/fpgas.online-tt) daemon, which holds `/dev/ttboard` open at 115200 baud. It fans the port out as a WebSocket on port 8765, with `WS /serial` and `GET /health`. The port is reachable only from the gateway, thanks to the per-port VLANs. While the daemon runs, `sudo fuser /dev/ttboard` shows the daemon's python3 process.
 
 ## What that means for a tool
 
-Any tool that opens `/dev/ttyACM0` itself cannot do so while the daemon runs. The daemon is stopped first and started again afterwards. The tools documented for the board are the check's: [How to install the Tiny Tapeout FPGA packages](../setup/packages.md). The other way is to drive the board through the daemon's `/serial` socket.
+Any tool that opens `/dev/ttboard` itself cannot do so while the daemon runs. The daemon is stopped first and started again afterwards. The tools documented for the board are the check's: [How to install the Tiny Tapeout FPGA packages](../setup/packages.md). The other way is to drive the board through the daemon's `/serial` socket.
 
 The daemon must be started again, because the board is on a public web site while you work. With the daemon stopped, the board drops off the site. The bitstream-loading and design-listing features live in the daemon, as `/designs` and `/bitstream`, with demos from the `fpgas-online-tt-demos` package. The public site uses them.
 
