@@ -21,9 +21,12 @@ This procedure is waiting for its run: [test-designs issue #223](https://github.
 ## Steps
 
 1. Test the image first: detach the endpoint, load the `.bit` into SRAM over JTAG, bring PCIe back and check it.
-2. Keep what the flash holds: `sudo fpgas-acorn-flash dump backup.bin` reads the whole flash. Copy `backup.bin` off the Pi, because `/home/pi` is lost at the power cycle in step 4.
-3. Write the image with `sudo fpgas-acorn-flash write sqrl_acorn_operational.bin 0x400000 --idcode 0x3636093`.
-4. PoE-cycle the host's switch port, then bring PCIe back with `echo 1 | sudo tee /sys/bus/pci/rescan`.
+2. At the switch, PoE-cycle the host's port and wait more than 90 s. The card runs its flash image again, not the test load of step 1.
+3. On the Pi, keep what the flash holds: `sudo fpgas-acorn-flash dump backup.bin` reads all 32 MiB in about a minute.
+4. On the Pi, run `sudo chown pi backup.bin`. Copy the file off the Pi with `scp`, and check that it arrived: `/home/pi` is lost at the next power cycle.
+5. On the Pi, write the image with `sudo fpgas-acorn-flash write sqrl_acorn_operational.bin 0x400000 --idcode 0x3636093`. On a CLE-101 the IDCODE is `0x3631093`.
+6. At the switch, PoE-cycle the host's port and wait more than 90 s.
+7. On the Pi, check that the slot holds the image of step 5: `sudo fpgas-acorn-flash verify sqrl_acorn_operational.bin 0x400000`.
 
 :::{warning}
 **Do not write the flash with `litepcie_util flash_write`**. It checks nothing before it writes, and without an offset it writes `0x0`, the golden slot. The flash tool `fpgas-acorn-flash` checks the image against the slot and refuses `0x0` without `--i-know-this-writes-golden`.
@@ -31,11 +34,12 @@ This procedure is waiting for its run: [test-designs issue #223](https://github.
 
 ## Check
 
-The PCIe endpoint `10ee:7021` is enumerated again after the rescan.
+Step 7 passes, and `lspci -nn -s 0001:01:00.0` lists the design's ID `10ee:7021` without any JTAG load.
 
 ## If it fails
 
 - **The image does not boot, or the card does not come back.** Follow [How to recover an Acorn with a bad image](../troubleshooting/recovery.md).
+- **`fpgas-acorn-flash` refuses to start, because the `litepcie` module is loaded.** Unload it with `sudo rmmod litepcie`, then run the step again.
 - **`fpgas-acorn-flash` refuses the write.** The image does not match the slot. The operational slot wants the flavour with the watchdog and the IDCODE of the part that is there.
 
 ## Next

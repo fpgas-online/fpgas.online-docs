@@ -46,10 +46,17 @@ This procedure is waiting for its run: [test-designs issue #228](https://github.
    $ openFPGALoader --cable libgpiod --pins 10:9:11:8 golden.bit
    ```
 
-3. On the Pi, rescan the bus and list the card; it enumerates as the design ([the way back](../checks/pcie-by-hand.md)).
+3. On the Pi, bring the card back and list it; it enumerates as the design. If step 2's detach found the card, rescan:
 
    ```console
    $ echo 1 | sudo tee /sys/bus/pci/rescan
+   $ lspci -nn -s 0001:01:00.0
+   ```
+
+   If the detach reported `No such file or directory`, the PCIe host bridge removed itself at boot, with no link to the card. Bind it again, with no unbind first. This command waits for its run on a Pi 5 (test-designs issue #228):
+
+   ```console
+   $ echo 1000110000.pcie | sudo tee /sys/bus/platform/drivers/brcm-pcie/bind
    $ lspci -nn -s 0001:01:00.0
    ```
 
@@ -79,14 +86,8 @@ Memory controller [0580]: Xilinx Corporation Device [10ee:7021]
 - **Step 3 shows the SQRL ID `1e24:021f`, or no device:** the JTAG load did not take; go back to step 2 rather than writing flash.
 - **`Open file … FAIL` after a reboot:** the bitstream is gone, because `/home/pi` is a memory overlay (`overlayroot=tmpfs`); copy it again before each attempt.
 - **The board lost power before step 4 completed:** the flash still holds the corrupt golden image; start again from step 2.
-- **The rescan in step 3 finds nothing:** with no link at boot, the PCIe host bridge removed itself, so there is nothing to rescan. Bind it again, without an unbind first, then list the card. This command waits for its run on a Pi 5 (test-designs issue #228):
-
-  ```console
-  $ echo 1000110000.pcie | sudo tee /sys/bus/platform/drivers/brcm-pcie/bind
-  $ lspci -nn -s 0001:01:00.0
-  ```
-
-  If the bind reports `No such device`, the card still has no link: go back to step 2.
+- **The bind in step 3 reports `No such device`:** the card still has no link; go back to step 2.
+- **The rescan in step 3 finds nothing on a Pi that booted with the card:** re-probe the slot's root complex. The re-probe commands are under "If it fails" on [How to check an Acorn's PCIe link by hand on a Raspberry Pi 5](../checks/pcie-by-hand.md#if-it-fails).
 
 ## Next
 
