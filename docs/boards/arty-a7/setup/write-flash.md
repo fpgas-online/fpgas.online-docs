@@ -21,7 +21,7 @@ What a correct run prints is waiting for a run: [test-designs issue #248](https:
 
 ## Steps
 
-1. On the Raspberry Pi, keep a copy of the bitstream region. That is the first 2228224 bytes of the flash, which the Arty's check reads. `ls -l backup.bin` shows 2228224 bytes. Copy `backup.bin` to your own machine: a netbooted Pi loses it at its next reboot.
+1. On the Raspberry Pi, keep a copy of the bitstream region. On an Arty A7-35T that is the first 2228224 bytes of the flash, which the Arty's check reads. `ls -l backup.bin` shows 2228224 bytes. Copy `backup.bin` to your own machine: a netbooted Pi loses it at its next reboot.
 
    ```console
    $ openFPGALoader -b arty --dump-flash --file-size 2228224 backup.bin

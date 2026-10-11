@@ -19,7 +19,7 @@ This procedure is waiting for its run: [test-designs issue #248](https://github.
 
 - The three PMOD ribbon cables, HAT JA to Arty JA, JB to JB and JC to JC ([Arty A7 wiring to a Raspberry Pi](../setup/wiring.md#pmod-cables)).
 - The fpgas.online apt repository on the Raspberry Pi: [How to install the Arty A7 packages](../setup/packages.md). Step 1 installs the debug tool, which `fpgas-online-arty` does not bring.
-- Nothing else on the Pi using SPI0: the first step takes the bus away from it.
+- Nothing else on the Pi using SPI0: the test takes the bus away from it.
 
 ## Steps
 
@@ -29,13 +29,7 @@ This procedure is waiting for its run: [test-designs issue #248](https://github.
    $ sudo apt install fpgas-online-arty-debug
    ```
 
-2. On the Raspberry Pi, unload the SPI kernel modules, which frees GPIO7-11. Those carry HAT JA pin 1 (GPIO8) and HAT JB pins 1-4 (GPIO7 and the shared GPIO9, GPIO10 and GPIO11).
-
-   ```console
-   $ sudo rmmod spidev spi_bcm2835
-   ```
-
-3. On the Raspberry Pi, run the test, which loads the loopback design and runs its host script.
+2. On the Raspberry Pi, run the test. It unloads the SPI kernel modules `spidev` and `spi_bcm2835` itself, which frees GPIO7-11, then loads the loopback design and runs its host script. GPIO7-11 carry HAT JA pin 1 (GPIO8) and HAT JB pins 1-4 (GPIO7 and the shared GPIO9, GPIO10 and GPIO11).
 
    ```console
    $ sudo fpgas-arty-debug test pmod

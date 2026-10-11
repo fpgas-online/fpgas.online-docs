@@ -41,7 +41,7 @@ This procedure is waiting for its run: [test-designs issue #248](https://github.
 | What you see | Likely cause | Fix |
 |---|---|---|
 | no `/dev/ttyUSB1` | the Arty's FTDI is not on USB; a board in that state cannot be programmed or reached on its console | run `lsusb`. If it does not list the FT2232H, `0403:6010`, check the USB cable between the board and the Pi |
-| the test talks to the wrong device | the tool uses `/dev/ttyUSB1`, and another USB serial device on the Pi has taken that name | find the UART channel's own port: in `ls -l /dev/serial/by-id/`, the Arty's entry ending in `-if01-port0` points at it. Name that port before `test`, for example `sudo fpgas-arty-debug --port /dev/ttyUSB2 test uart` |
+| the test talks to the wrong device | the tool uses `/dev/ttyUSB1`, and another USB serial device on the Pi has taken that name | find the UART channel's own port: in `ls -l /dev/serial/by-id/`, the Arty's entry ending in `-if01-port0` points at it. Name that entry before `test`: `sudo fpgas-arty-debug --port /dev/serial/by-id/<the -if01-port0 entry> test uart` |
 
 ## Next
 
