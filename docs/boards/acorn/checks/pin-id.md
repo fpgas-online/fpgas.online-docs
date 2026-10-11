@@ -9,7 +9,7 @@ review: 2026-11-10
 
 **You have an Acorn wired to a Raspberry Pi 5 and want each P2 ball to send its own name.**
 
-On a card that runs the fpgas.online design, the boot check names a wrong wire: [How to run the Acorn check on a Raspberry Pi 5](rpi-5.md). This page reads each ball's own name instead. It needs that design in the card's flash, because step 7 checks for `10ee:7021`. On a Compute Blade the load differs: [How to run the pin ID test on an Acorn on a Compute Blade](pin-id-compute-blade.md).
+The boot check names a wrong wire on the fpgas.online design: [How to run the Acorn check on a Raspberry Pi 5](rpi-5.md). This page reads each ball's own name instead. It needs that design in the card's flash, because step 7 checks for `10ee:7021`. On a Compute Blade the load differs: [How to run the pin ID test on an Acorn on a Compute Blade](pin-id-compute-blade.md).
 
 This procedure is waiting for its run: [test-designs issue #229](https://github.com/fpgas-online/fpgas.online-test-designs/issues/229).
 
@@ -21,13 +21,13 @@ This procedure is waiting for its run: [test-designs issue #229](https://github.
 - An Acorn wired as on [Acorn wiring on a Raspberry Pi 5](../setup/rpi-5/wiring.md), in the M.2 HAT slot, where the card is at `0001:01:00.0`.
 - The fpgas.online design in the card's flash: `lspci -nn -s 0001:01:00.0` shows `10ee:7021` before you start. Step 7 checks the card by that ID.
 - At a site, the site operator's agreement first. The card is off the PCIe bus from step 2 to step 7, so nobody else can use it.
-- No other command using the card. In a second shell on the Pi, hold the Acorn lock that `fpgas-verify` and `fpgas-acorn-flash` take. Press Ctrl-C there after step 7.
+- No other command using the card. In a second shell on the Pi, hold the Acorn lock that `fpgas-verify` and `fpgas-acorn-flash` take. Go on only when it prints `lock held`, and press Ctrl-C there after step 7.
 
   ```console
-  $ sudo flock /run/lock/fpgas-acorn.lock sleep infinity
+  $ sudo flock /run/lock/fpgas-acorn.lock sh -c 'echo lock held; sleep infinity'
   ```
 
-- The pin-ID bitstream for your card's variant, `cle-101`, `cle-215` or `cle-215+` ([telling the variants apart](../which-one.md#telling-the-variants-apart)), in `PINID`:
+- The pin-ID bitstream for your card, in `PINID`. The file names say `cle-101` for a CLE-101, `cle-215p` for a CLE-215+ and `cle-215` for a CLE-215. Nothing read from the card tells a CLE-215+ from a CLE-215: [telling the variants apart](../which-one.md#telling-the-variants-apart).
 
   ```{include} ../inc/release-designs.inc
   ```
@@ -94,7 +94,9 @@ This procedure is waiting for its run: [test-designs issue #229](https://github.
    $ sudo openFPGALoader --cable libgpiod --pins 10:9:11:8 --reset
    ```
 
-   If `openFPGALoader` printed an error, stop here and leave GPIO14 an input: the FPGA may still run the pin-ID design.
+   If `openFPGALoader` printed an error, run step 6 once more. If it fails again, the FPGA may still run the pin-ID
+   design. Run only the first block of step 7 and keep GPIO3, GPIO4 and GPIO14 inputs. Ask the site operator, then
+   power-cycle the card.
 
 7. On the Pi, put the card back first and the serial pins last.
 
@@ -117,7 +119,7 @@ This procedure is waiting for its run: [test-designs issue #229](https://github.
    Last, set the four pins back to the function and pull that step 1 printed, and copy nothing after the `|`. Edit
    the lines below to match step 1 before you run them. They are for a Pi where step 1 printed
    `14: a4    pn | hi // GPIO14 = TXD0` and `15: a4    pu | hi // GPIO15 = RXD0`, and `ip` for GPIO3 and GPIO4.
-   A pin that step 1 printed as `ip` stays as step 3 left it.
+   A pin that step 1 printed as `ip` or `no` stays as step 3 left it.
 
    ```console
    $ sudo pinctrl set 14 a4 pn
@@ -140,12 +142,12 @@ Expect and Got on each row.
 
 Check whether step 2 detached the card: `lspci -nn -s 0001:01:00.0` then prints nothing. If it did, do steps 6 and 7 before you leave the Pi, whatever failed. If it did not, nothing was loaded: stop.
 
-- **The Pi crashes when a GPIO is set to output:** pin ID drives all four P2 balls, so a Pi output fights an FPGA output. Keep GPIO14 an input (`sudo pinctrl set 14 ip`) from step 3 until `lspci` shows the card in step 7.
+- **The Pi crashes when a GPIO is set to output:** pin ID drives all four P2 balls, so a Pi output fights an FPGA output. Keep GPIO3, GPIO4 and GPIO14 inputs, as step 3 sets them, until `lspci` shows the card in step 7.
 - **Got shows `(none)` on one row:** no signal reached that GPIO. The wire to that ball is open or on another pin: [Acorn wiring faults on a Raspberry Pi 5](../troubleshooting/rpi-5-wiring.md).
 - **Got shows a name that starts with `?`:** a signal reached that GPIO but did not decode. The wire is noisy or shared with another: [Acorn wiring faults on a Raspberry Pi 5](../troubleshooting/rpi-5-wiring.md).
 - **Got shows another row's name:** two wires are swapped: [Acorn wiring faults on a Raspberry Pi 5](../troubleshooting/rpi-5-wiring.md).
 - **Got shows `(none)` on every row:** the pin-ID design is not running. Run step 4 again and read its output for an error.
-- **`lspci` shows nothing in step 7:** the link may not be up yet. Wait ten seconds and rescan again. If it is still missing, run step 6 again, then step 7. If it is missing after that, the FPGA is not running the fpgas.online image. Leave GPIO14 an input. Ask the site operator, then power-cycle the card.
+- **`lspci` shows nothing in step 7:** the link may not be up yet. Wait ten seconds and rescan again. If it is still missing, run step 6 again, then step 7. If it is missing after that, the FPGA is not running the fpgas.online image. Leave GPIO3, GPIO4 and GPIO14 inputs. Ask the site operator, then power-cycle the card.
 
 ## Next
 
