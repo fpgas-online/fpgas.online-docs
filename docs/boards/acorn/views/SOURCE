@@ -1,0 +1,5 @@
+These files are copied from https://github.com/fpgas-online/fpgas.online-test-designs
+by tools/sync_repos.py. Do not edit them here: change them in test-designs.
+
+ref: main
+commit: 3d9b7617fc3229a61696c2a016d1ae7461064881

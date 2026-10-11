@@ -72,7 +72,9 @@ def shown(page):
             out.append((m["src"], "on the image, not its link", m))  # the hidden link would stay focusable
             continue
         attrs = m["link_attrs"] if m["link"] else m["attrs"]
-        out.append((m["src"], (attrs or "").strip("{}.") or None, m))
+        # the theme is the .only-light or .only-dark class among the attributes, beside any width
+        themes = [a.lstrip(".") for a in (attrs or "").strip("{}").split() if a.startswith(".")]
+        out.append((m["src"], " ".join(themes) or None, m))
     for m in DIRECTIVE.finditer(text):
         theme = THEME_OPTION.search(m["options"])
         if m["kind"] == "figure" and re.search(r":class: only-", m["options"]):

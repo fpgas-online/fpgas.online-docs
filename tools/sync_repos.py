@@ -191,6 +191,20 @@ _PS1_LOGIN = Include("docs/sites/ps1-login.inc", docs_owned=True)
 TEST_DESIGNS = Repo(
     "test-designs",
     FILES={
+        # The A2 diagram views of the card and the HAT, one per wiring step: labels only, no prose.
+        "docs/boards/acorn/views": (
+            "docs/wiring/acorn/generated/views",
+            [
+                "acorn.bottom.p1.png",
+                "acorn.bottom.p1-dark.png",
+                "acorn.bottom.p2.png",
+                "acorn.bottom.p2-dark.png",
+                "pi5-hat.top.pins-19-26.png",
+                "pi5-hat.top.pins-19-26-dark.png",
+                "pi5-hat.top.pins-5-10.png",
+                "pi5-hat.top.pins-5-10-dark.png",
+            ],
+        ),
         "docs/boards/acorn/generated": (
             "docs/wiring/acorn/generated",
             [
