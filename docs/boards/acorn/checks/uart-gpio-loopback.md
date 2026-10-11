@@ -73,7 +73,7 @@ This procedure is waiting for its run: [test-designs issue #230](https://github.
 
 ## Check
 
-Run step 6 twice. Each time it prints more bytes than step 5 when J2 and K2 both carry. That is the expected result; its run will show it (test-designs issue #230). Step 5 alone shows at most that K2 is driven: the design holds the idle line low, which the Pi reads as a break. The inverted bytes may arrive as framing errors, so the check counts bytes and cannot compare them; a loopback that can is [test-designs issue #297](https://github.com/fpgas-online/fpgas.online-test-designs/issues/297).
+Run step 6 twice. When J2 and K2 both carry, step 6 prints more bytes than step 5 each time. That is the expected result; its run will show it (test-designs issue #230). Step 5 alone shows at most that K2 is driven: the design holds the idle line low, which the Pi reads as a break. The inverted bytes may arrive as framing errors, so the check counts bytes and cannot compare them; a loopback that can is [test-designs issue #297](https://github.com/fpgas-online/fpgas.online-test-designs/issues/297).
 
 ## If it fails
 
@@ -83,7 +83,7 @@ Two items below send you to the pin-ID design. Read its hazard first:
 ```
 
 - **Step 5 and step 6 both print nothing:** K2 or GPIO15 is not connected, serial-getty holds the port, or the baud is wrong. Check that step 1 ran and step 5 set 115200. Then run pin ID and check that GPIO15 reads `K2`.
-- **Step 6 prints bytes, but no more than step 5:** nothing reached J2. J2 or GPIO14 is not connected, or K2 and J2 are not crossed over. Run pin ID and check that GPIO14 reads `J2`, then give GPIO14 back with `pinctrl set 14 a4` and run again from step 4.
+- **Step 6 prints no more bytes than step 5:** nothing reached J2. J2 or GPIO14 is not connected, or K2 and J2 are not crossed over. Run pin ID and check that GPIO14 reads `J2`, then give GPIO14 back with `pinctrl set 14 a4` and run again from step 4.
 - **After any failure:** step 7's PoE cycle puts the card and the Pi back.
 - **The Pi reboots when the design loads:** the kernel console is on the FPGA's serial port; fix it as in [the Pi's settings](../setup/rpi-5/pi-settings.md#kernel-console-on-the-fpga-uart).
 
