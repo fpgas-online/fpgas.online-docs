@@ -16,7 +16,7 @@ The boards to use at a given moment are on the lists of [welland](https://wellan
 - [Tiny Tapeout FPGA demo board](tt-fpga/index.md): run a bundled design, or load your own.
 - [NeTV2](netv2/index.md): a NeTV2 on welland, and how to load a design onto it.
 - [Fomu EVT](fomu-evt/index.md): a Fomu EVT on welland, and why a visitor cannot load a design onto it today.
-- [Arty A7](arty-a7/index.md): an Arty A7 on welland, none in service today, and how to load a design onto one.
+- [Arty A7](arty-a7/index.md): an Arty A7 on welland and ps1, and how to load a design onto one.
 - [Tiny Tapeout chip demo boards](tt-asic/index.md): select a project in the chip on tinytapeout.fpgas.online, and drive it.
 
 ## Every board's page

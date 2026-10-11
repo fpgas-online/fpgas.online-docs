@@ -7,18 +7,19 @@ review: 2026-11-10
 
 # An Arty A7 on fpgas.online
 
-This page explains what an Arty A7 is and what a visitor can do with one on welland.fpgas.online. It does not cover
+This page explains what an Arty A7 is and what a visitor can do with one on welland.fpgas.online or ps1.fpgas.online. It does not cover
 setting one up, which is [Digilent Arty A7](../../../boards/arty-a7/index.md) under Admin documentation.
 
-:::{admonition} Not in service today
+:::{admonition} No Arty A7 was in service when this was checked
 :class: warning
 
-No Arty A7 is in service at welland today, so none is on the list of boards. The cause is open in
-[infra issue #125](https://github.com/fpgas-online/fpgas.online-infra/issues/125). The recorded ports of welland's
-Arty A7 boards are down, and none of the reachable hosts showed the board's USB chip. At ps1, seven of eight Arty A7
-hosts did not answer the gateway on 6 October 2026
-([infra issue #272](https://github.com/fpgas-online/fpgas.online-infra/issues/272)). Read the pages below as what a
-visitor will find once a board is back.
+On 26 September 2026 no Arty A7 was online at welland.fpgas.online. The recorded ports were down, and none of the
+reachable hosts showed the board's USB chip
+([infra issue #125](https://github.com/fpgas-online/fpgas.online-infra/issues/125)). At ps1.fpgas.online, seven of eight
+Arty A7 hosts did not answer the gateway on 6 October 2026
+([infra issue #272](https://github.com/fpgas-online/fpgas.online-infra/issues/272)). Both issues are open.
+
+The board type on each site's list says whether one is back. Read the pages below as what a visitor will find then.
 :::
 
 ## The board
