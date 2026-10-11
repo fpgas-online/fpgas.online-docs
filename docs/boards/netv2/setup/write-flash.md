@@ -15,32 +15,34 @@ This procedure is waiting for its run: [test-designs issue #249](https://github.
 
 ## What you need
 
-- A NeTV2 wired as on [NeTV2 wiring to a Raspberry Pi](wiring.md#jtag), with openFPGALoader on the Pi.
+- A NeTV2 wired as on [NeTV2 wiring to a Raspberry Pi](wiring.md#jtag), with openFPGALoader on the Pi. The pins are `27:22:4:17`, in the order `TDI:TDO:TCK:TMS`.
 - The cable for your Pi: `-c rp1pio` on a Raspberry Pi 5, from the `openfpgaloader-fpgasonline-git` package; `--cable libgpiod` on a Raspberry Pi 3B+.
-- The FPGA's part and the size of its bitstream region. An XC7A35T board is `xc7a35tfgg484` and `0x220000`; an XC7A100T board is `xc7a100tfgg484` and `0x3B0000`. Which part a board has is in [FPGA device variants](../overview/specifications.md#fpga-device-variants).
-- A bitstream, here `design.bit`.
+- The FPGA's part and the size of its bitstream region in bytes. An XC7A35T board is `xc7a35tfgg484` and `2228224`; an XC7A100T board is `xc7a100tfgg484` and `3866624`.
+- Which of the two your board is: its JTAG scan reads `0x0362d093` on an XC7A35T and `0x03631093` on an XC7A100T ([FPGA device variants](../overview/specifications.md#fpga-device-variants)).
+- A bitstream, here `design.bit`, no larger than the region.
 
 ## Steps
 
 1. On a Raspberry Pi 5, run `lspci -D -s 0001:01:00.0`, the Pi 5's PCIe slot. A line there is an endpoint to detach; no line, go to step 3.
 2. On a Raspberry Pi 5, detach it with `echo 1 | sudo tee /sys/bus/pci/devices/0001:01:00.0/remove`. Run `lspci -D -s 0001:01:00.0` again: it prints nothing. If it still prints the line, stop.
-3. On the Pi, keep a copy of the bitstream region, with your cable, part and size in place of `CABLE`, `PART` and `SIZE`. Copy `backup.bin` off the Pi afterwards.
+3. On the Pi, keep a copy of the bitstream region. Put your cable, part and size in place of `CABLE`, `PART` and `SIZE`. `ls -l backup.bin` shows `SIZE` bytes. Copy `backup.bin` off the Pi.
 
    ```console
    $ sudo openFPGALoader CABLE --pins 27:22:4:17 --fpga-part PART --dump-flash --file-size SIZE backup.bin
    ```
 
-4. On the Pi, write the bitstream to the flash. Without `--fpga-part`, openFPGALoader writes nothing.
+4. On a Raspberry Pi 5, run `lspci -D -s 0001:01:00.0` again. If it prints a line, the card came back after step 3: repeat step 2.
+5. On the Pi, write the bitstream to the flash and read it back. Without `--fpga-part`, openFPGALoader writes nothing.
 
    ```console
-   $ sudo openFPGALoader CABLE --pins 27:22:4:17 --fpga-part PART --write-flash design.bit
+   $ sudo openFPGALoader CABLE --pins 27:22:4:17 --fpga-part PART --write-flash --verify design.bit
    ```
 
-The pin order is `TDI:TDO:TCK:TMS`.
+To put the old bitstream back, run step 5 with `backup.bin` in place of `design.bit`.
 
 ## Check
 
-Step 4's command ends without an error. On a Raspberry Pi 5 the endpoint stays detached until the FPGA next runs a design with a PCIe endpoint. That the FPGA then starts the design from flash at power-up waits for this page's run ([test-designs issue #249](https://github.com/fpgas-online/fpgas.online-test-designs/issues/249)).
+Step 5 prints no `Verification failed`. Read the output: on the stable openFPGALoader a failed write still exits with status 0. That the FPGA then starts the design from flash at power-up waits for this page's run ([test-designs issue #249](https://github.com/fpgas-online/fpgas.online-test-designs/issues/249)).
 
 ## If it fails
 
@@ -48,6 +50,7 @@ Step 4's command ends without an error. On a Raspberry Pi 5 the endpoint stays d
 |---|---|---|
 | The Pi crashes or drops off during the write | On a Raspberry Pi 5, the PCIe endpoint was still enumerated | Detach it as in steps 1 and 2, then write again |
 | `Can't program SPI flash: missing device-package information` | the command had no `--fpga-part` | run it again with the part from What you need |
+| `Verification failed at` an address | the flash does not hold what was written | write again; if it fails again, write `backup.bin` back |
 
 ## Next
 
