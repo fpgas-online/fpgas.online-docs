@@ -191,7 +191,7 @@ _PS1_LOGIN = Include("docs/sites/ps1-login.inc", docs_owned=True)
 TEST_DESIGNS = Repo(
     "test-designs",
     FILES={
-        # The A2 diagram views of the card and the HAT, one per wiring step: no words in them.
+        # The A2 diagram views of the card and the HAT, one per wiring step: labels only, no prose.
         "docs/boards/acorn/views": (
             "docs/wiring/acorn/generated/views",
             [
