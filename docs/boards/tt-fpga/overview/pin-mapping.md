@@ -95,16 +95,16 @@ Item names the part of the GPIO loopback test, and Value gives it.
 
 The command that frees the SPI pins is on [Tiny Tapeout FPGA demo board faults on the Raspberry Pi](../troubleshooting/pi-faults.md).
 
-## SPI flash
+## Configuration SPI
 
-These are dedicated iCE40 SPI pins on the FPGA breakout board, not shared with PMOD. Whether the breakout has a flash is [test-designs issue #258](https://github.com/fpgas-online/fpgas.online-test-designs/issues/258). Signal names the flash signal and iCE40 Pin the ball that carries it.
+These are the iCE40's dedicated SPI pins on the FPGA breakout board, not shared with PMOD. They go only to the demo board's microcontroller, which loads the bitstream over them; the breakout has no SPI flash. Signal names the SPI function and iCE40 Pin the ball that carries it.
 
-| Signal | iCE40 Pin |
+| Signal  | iCE40 Pin |
 | ------ | --------- |
-| CS_N   | 16        |
-| CLK    | 15        |
-| MISO   | 17        |
-| MOSI   | 14        |
+| SPI_SS  | 16        |
+| SPI_SCK | 15        |
+| SPI_SI  | 17        |
+| SPI_SO  | 14        |
 
 ## 7-segment display pins
 

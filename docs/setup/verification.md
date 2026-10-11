@@ -216,7 +216,7 @@ for:
 | Acorn | UART, DDR, SPI flash | `systemctl stop serial-getty@ttyAMA0` | As above. |
 | Acorn | PMOD loopback, PCIe enumeration | none | The loopback runs the NeTV2 one-bit serial path, and the PCIe test only reads the enumeration. |
 | TT FPGA | PMOD loopback | `rmmod spidev spi_bcm2835` | The loopback drives the FPGA through the PMOD HAT, over the same GPIO 7–11 the SPI modules claim. |
-| TT FPGA | UART, SPI flash | none | These go over the RP2350's USB CDC port, not the Pi's GPIO UART. |
+| TT FPGA | UART | none | These go over the RP2350's USB CDC port, not the Pi's GPIO UART. |
 
 A PoE cycle loses all of this: the mask, the unloaded modules and the pin
 functions are all runtime state on a read-only NFS root, so the pre-test is
