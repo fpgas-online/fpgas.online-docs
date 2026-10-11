@@ -9,6 +9,8 @@ review: 2026-11-10
 
 **You have an Acorn wired to a Compute Blade and want to see its JTAG answer, then load a design over it.**
 
+This page is for a blade the site operator has taken out of service for it; on a blade in the fleet the load is not run ([test-designs #241](https://github.com/fpgas-online/fpgas.online-test-designs/issues/241), [#237](https://github.com/fpgas-online/fpgas.online-test-designs/issues/237)).
+
 Which wire goes where is on [Acorn wiring on a Compute Blade](../setup/compute-blade/wiring.md). The line JTAG shares with the serial pair is on [The line JTAG and the serial port share on a Compute Blade](../setup/compute-blade/shared-line.md). On a Raspberry Pi 5 the commands differ: [How to run JTAG by hand on an Acorn on a Raspberry Pi 5](jtag-by-hand.md).
 
 This procedure is waiting for its run: [test-designs issue #237](https://github.com/fpgas-online/fpgas.online-test-designs/issues/237).
@@ -93,7 +95,7 @@ Never pass `--write-flash` here. An SRAM load is lost at power-off, so a reboot 
 
 ## If it fails
 
-- **`gpiod_line_request_set_values_subset: Assertion 'request' failed`:** the serial driver holds GPIO14 (`enable_uart=1`; `dmesg` says `pin gpio14 already requested by 1f00030000.serial`); boot with the header's serial port off ([why](jtag-and-the-pcie-endpoint.md#why-a-blade-needs-its-serial-port-off-for-jtag)).
+- **`gpiod_line_request_set_values_subset: Assertion 'request' failed`:** the serial driver holds GPIO14 (`enable_uart=1`; `dmesg` says `pin gpio14 already requested by 1f00030000.serial`). Ask the site operator, then boot with the header's serial port off ([why](jtag-and-the-pcie-endpoint.md#why-a-blade-needs-its-serial-port-off-for-jtag)).
 - **`--detect` lists no `idcode` line, or prints nothing:** the P1 cable is unmated or miswired; check TCK for the Acorn's pull-up and reseat P1.
 - **JTAG fails with `--pins 10:9:11:8`:** that is the Pi 5's pin order; use `--pins 2:3:4:14`.
 - **`Open file … FAIL` in under 0.1 s:** the bitstream is gone, because `/home/pi` is a memory overlay that loses its files at reboot; copy it again.
