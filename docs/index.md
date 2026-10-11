@@ -19,7 +19,7 @@ that a design can be loaded, driven and watched from anywhere.
 
 ## I want to
 
-- Use a board from a website: [Sites](sites/index.md) says what each site offers.
+- Use a board from a website: [Boards](user/boards/index.md), under User documentation. [Sites](sites/index.md) says what each site offers.
 - Know what is coming: [Roadmap](roadmap.md).
 - Set up a board on a Raspberry Pi at my bench: [Boards](boards/index.md), then the board's own pages.
 - Check that a board on a Raspberry Pi works: [Checking a board: fpgas-verify](verify/fpgas-verify.md).
