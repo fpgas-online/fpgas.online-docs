@@ -14,23 +14,24 @@ The board drops off the public site until the daemon is started again. Why the d
 ## What you need
 
 - A shell on the Raspberry Pi that has the board, with `sudo`. A Pi that is not routable from your machine is reached through its site's gateway, as [The welland gateway](../../../sites/welland-gateway.md#reaching-a-pi) shows.
-- The tool you want to run, one that opens `/dev/ttyACM0` itself.
+- The tool you want to run, one that opens `/dev/ttboard`, the udev link to the board's USB serial port.
+- A tool that copies, replaces or deletes no file on the board. A design reaches the board by streaming ([The Tiny Tapeout stack](../../../setup/tinytapeout.md)).
 
 ## Steps
 
-1. On the Pi, run `sudo systemctl stop fpgas-tt` to stop the daemon, which releases `/dev/ttyACM0`.
-2. On the Pi, run your tool on `/dev/ttyACM0`, and wait until it has closed the port.
+1. On the Pi, run `sudo systemctl stop fpgas-tt` to stop the daemon, which releases `/dev/ttboard`.
+2. On the Pi, run your tool on `/dev/ttboard`, and wait until it has closed the port.
 3. On the Pi, run `sudo systemctl start fpgas-tt` to start the daemon again, whether or not step 2 succeeded, which puts the board back on the public site.
 
 ## Check
 
-After step 3, `fuser /dev/ttyACM0` shows the daemon's python3 process again. The board's `status.json`, whose address is on [The Tiny Tapeout stack](../../../setup/tinytapeout.md), reports the daemon's `/health` and `reachable`.
+After step 3, `sudo fuser /dev/ttboard` shows the daemon's python3 process again. The board's `status.json`, whose address is on [The Tiny Tapeout stack](../../../setup/tinytapeout.md), reports the daemon's `/health` and `reachable`.
 
 ## If it fails
 
 | What you see | Likely cause | Fix |
 |---|---|---|
-| Your tool cannot open `/dev/ttyACM0` | The daemon holds the port | Stop the daemon first, as in step 1 |
+| Your tool cannot open `/dev/ttboard` | The daemon holds the port | Stop the daemon first, as in step 1 |
 | The board is missing from the public site after your tool ended | The daemon was not started again | Run step 3 |
 
 ## Next
