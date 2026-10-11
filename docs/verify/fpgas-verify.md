@@ -8,7 +8,7 @@
 `fpgas-verify` answers one question per Pi: **is this Pi and its FPGA board ready for users?** It finds the
 board, tests the board and its wiring to the Pi, and gives one result, pass or fail, with every fault it found.
 
-* What the tool must do: [fpgas-verify: what it must do](goals.md). Where this page and that one disagree,
+* What the tool must do: [fpgas-verify: what it must do](https://github.com/fpgas-online/fpgas.online-test-designs/blob/main/docs/verify-goals.md). Where this page and that one disagree,
   verify-goals.md says what the tool should do.
 * The code: [`verify/`](https://github.com/fpgas-online/fpgas.online-test-designs/tree/main/verify). The design notes:
   [fpgas-online-verify: boot-time FPGA board verification, packaged per board](https://github.com/fpgas-online/fpgas.online-test-designs/blob/main/docs/plans/2026-09-26-fpgas-online-verify-design.md).
@@ -20,7 +20,7 @@ This page has two parts:
 1. [Using verify as a standalone tool](#1-using-verify-as-a-standalone-tool): installing, running, reading the
    result, and what each board's check tests.
 2. [How verify is used in fpgas.online](#2-how-verify-is-used-in-fpgasonline): at every boot of every
-   netbooted Pi, the events it sends the site, and the [current results](current-results.md#current-results).
+   netbooted Pi, the events it sends the site, and the [current results](https://github.com/fpgas-online/fpgas.online-test-designs/blob/main/docs/verify/current-results.md#current-results).
 
 ---
 
@@ -86,7 +86,7 @@ One page for each task, in this order:
 
 (not-done-yet)=
 
-* [Not done yet](not-done-yet.md#not-done-yet): for you if you want to know what the check does not do yet.
+* [Not done yet](https://github.com/fpgas-online/fpgas.online-test-designs/blob/main/docs/verify/not-done-yet.md#not-done-yet): for you if you want to know what the check does not do yet.
 
 (checking-an-acorn-s-wiring)=
 
@@ -114,11 +114,11 @@ One page for each task, in this order:
 
 (collecting-every-pis-result)=
 
-* [How it is used in fpgas.online](fleet.md): for you if you run the fleet and want to know how the check is installed and run there, its events, how a deploy reaches it and how to collect every Pi's result.
+* [How it is used in fpgas.online](https://github.com/fpgas-online/fpgas.online-test-designs/blob/main/docs/verify/fleet.md): for you if you run the fleet and want to know how the check is installed and run there, its events, how a deploy reaches it and how to collect every Pi's result.
 
 (current-results)=
 
-* [Current results](current-results.md#current-results): for you if you want the last collected results on the Welland Pis.
+* [Current results](https://github.com/fpgas-online/fpgas.online-test-designs/blob/main/docs/verify/current-results.md#current-results): for you if you want the last collected results on the Welland Pis.
 
 ```{toctree}
 :hidden:
@@ -134,10 +134,7 @@ TT FPGA <tt-fpga>
 Acorn <acorn>
 Acorn: power-cycle check <acorn-power-cycle>
 JTAG IDCODE and DNA <idcode-and-dna>
-Not done yet <not-done-yet>
 Checking an Acorn's wiring <acorn-wiring>
 Common failures <common-failures>
 The report and state <report-and-state>
-In fpgas.online <fleet>
-Current results <current-results>
 ```
