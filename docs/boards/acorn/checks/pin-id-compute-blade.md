@@ -18,7 +18,7 @@ This procedure is waiting for its run: [test-designs issue #237](https://github.
 :::{warning}
 **Never load pin ID on a blade whose J2 wire has no 470 Ω resistor.**
 
-When the load finishes, the design drives J2, which is on GPIO14. openFPGALoader has left GPIO14 an output. With the resistor that is about 7 mA for a moment. Without it, two outputs are shorted together, which costs JTAG until a power cycle and can crash the host.
+When the load finishes, the design drives J2, which is on GPIO14. openFPGALoader has left GPIO14 an output. With the resistor that is about 7 mA for a moment. Without it, two outputs are shorted together, which costs JTAG until a power cycle (ask the site operator first) and can crash the host.
 :::
 
 ```{include} ../inc/gpio-contention.inc

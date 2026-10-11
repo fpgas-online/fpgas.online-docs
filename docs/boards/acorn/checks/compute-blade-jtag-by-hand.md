@@ -68,7 +68,7 @@ This procedure is waiting for its run: [test-designs issue #237](https://github.
    $ pinctrl set 2,4 no pu
    ```
 
-6. In a boot with the serial port on, give GPIO14 and GPIO15 back to the serial port with the line for your module. Do this only when the loaded design treats J2 as an input: the fpgas.online design does, pin ID does not. The UART function differs per module, and `pinctrl funcs 14,15` lists them.
+6. If this boot has the serial port on, give GPIO14 and GPIO15 back to the serial port with the line for your module. Do this only when the loaded design treats J2 as an input: the fpgas.online design does, pin ID does not. The UART function differs per module, and `pinctrl funcs 14,15` lists them.
 
    On a CM4 (BCM2711), GPIO14 is TXD0 and GPIO15 is RXD0 at `a0`:
 
