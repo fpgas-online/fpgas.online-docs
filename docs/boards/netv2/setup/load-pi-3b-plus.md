@@ -23,7 +23,7 @@ On these hosts the FPGA's serial TX pin is the Pi's kernel console UART. A bitst
 
 ## Steps
 
-1. On the Pi, run `sysctl kernel.sysrq` and `cat /proc/cmdline`, and confirm that `kernel.sysrq` reads 0 and the command line has no `console=serial0`.
+1. On the Pi, run `sysctl kernel.sysrq` and `cat /proc/cmdline`. If `kernel.sysrq` reads 1, run `sudo sysctl -w kernel.sysrq=0`. If the command line has `console=serial0`, stop: a design that drives serial TX crashes this host.
 2. On the Pi, run `sudo openFPGALoader --cable libgpiod --pins 27:22:4:17 --detect` to see the FPGA answer on JTAG.
 3. On the Pi, run `sudo openFPGALoader --cable libgpiod --pins 27:22:4:17 design.bit` to load the bitstream. The effective JTAG clock is about 5 MHz, so a load is slow.
 

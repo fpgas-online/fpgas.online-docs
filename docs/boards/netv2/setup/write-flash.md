@@ -9,7 +9,7 @@ review: 2026-11-10
 
 **You want a bitstream written to a NeTV2's SPI flash, so that it survives a power cycle.**
 
-The write overwrites whatever bitstream the flash holds, so keep a copy of that bitstream if you want it back. Loading into SRAM only is on [the Raspberry Pi 3B+ page](load-pi-3b-plus.md) and [the Raspberry Pi 5 page](load-pi-5.md).
+The write overwrites whatever bitstream the flash holds, and this page does not save it first. Loading into SRAM only is on [the Raspberry Pi 3B+ page](load-pi-3b-plus.md) and [the Raspberry Pi 5 page](load-pi-5.md).
 
 This procedure is waiting for its run: [test-designs issue #249](https://github.com/fpgas-online/fpgas.online-test-designs/issues/249).
 
@@ -20,21 +20,22 @@ This procedure is waiting for its run: [test-designs issue #249](https://github.
 
 ## Steps
 
-1. On a Raspberry Pi 5, detach the PCIe endpoint as in steps 1 and 2 of [the Raspberry Pi 5 page](load-pi-5.md#steps).
-2. On the Pi, run `sudo openFPGALoader --cable libgpiod --pins 27:22:4:17 --write-flash design.bit` to write the bitstream to the flash over GPIO bit-banged JTAG. On a Raspberry Pi 3B+ this is the only step.
-3. On a Raspberry Pi 5, run `echo 1 | sudo tee /sys/bus/pci/rescan` to bring the endpoint back, or reboot.
+1. On a Raspberry Pi 5, run `lspci -d 10ee:7011` to find the NeTV2's PCIe address, `0001:01:00.0` on a Pi 5.
+   If it printed nothing, there is nothing to detach: go to step 3.
+2. On a Raspberry Pi 5, detach the endpoint: `echo 1 | sudo tee /sys/bus/pci/devices/0001:01:00.0/remove`, with the address from step 1.
+3. On the Pi, run `sudo openFPGALoader --cable libgpiod --pins 27:22:4:17 --write-flash design.bit` to write the bitstream to the flash over GPIO bit-banged JTAG. On a Raspberry Pi 3B+ this is the only step.
 
 The pin order is `TDI:TDO:TCK:TMS`.
 
 ## Check
 
-The command ends without an error. After the next power cycle the FPGA runs the design from flash. On a Raspberry Pi 5, `lspci -d 10ee:7011` then lists a design with a PCIe endpoint.
+Step 3's command ends without an error. That the FPGA then starts the design from flash at power-up waits for this page's run ([test-designs issue #249](https://github.com/fpgas-online/fpgas.online-test-designs/issues/249)).
 
 ## If it fails
 
 | What you see | Likely cause | Fix |
 |---|---|---|
-| The Pi crashes or drops off during the write | On a Raspberry Pi 5, the PCIe endpoint was still enumerated | Detach it as in step 1, then write again |
+| The Pi crashes or drops off during the write | On a Raspberry Pi 5, the PCIe endpoint was still enumerated | Detach it as in steps 1 and 2, then write again |
 
 ## Next
 
