@@ -35,11 +35,18 @@ own bitstream. Each board has a camera feed.
 
 ## What the site plans to provide
 
-
-
 - Arty A7 boards a visitor can use again: [infra issue #125](https://github.com/fpgas-online/fpgas.online-infra/issues/125).
 - NeTV2 boards that pass their memory test: [test-designs issue #86](https://github.com/fpgas-online/fpgas.online-test-designs/issues/86) and [test-designs issue #91](https://github.com/fpgas-online/fpgas.online-test-designs/issues/91).
 - The Acorn cards that are installed and not in service: [test-designs issue #209](https://github.com/fpgas-online/fpgas.online-test-designs/issues/209).
 - The Tiny Tapeout boards whose hosts are down, back in service: [infra issue #274](https://github.com/fpgas-online/fpgas.online-infra/issues/274).
 - The Tiny Tapeout chip boards tt09 and tt10: [tt issue #20](https://github.com/fpgas-online/fpgas.online-tt/issues/20).
 - Driving the oldest chip board from the browser, which shows a camera feed only: [tt-commander-app issue #9](https://github.com/fpgas-online/tt-commander-app/issues/9).
+
+For running the site and its gateway:
+
+- Logins routed to a board by its own name: [infra issue #187](https://github.com/fpgas-online/fpgas.online-infra/issues/187), tracked in [infra issue #191](https://github.com/fpgas-online/fpgas.online-infra/issues/191).
+- Per-board ports that answer on the gateway's second global IPv6 address: [infra issue #264](https://github.com/fpgas-online/fpgas.online-infra/issues/264).
+- A jump account mode in which a restricted key can only hop: [infra issue #283](https://github.com/fpgas-online/fpgas.online-infra/issues/283).
+- Netbooted Pis that renew their DHCP lease: [infra issue #230](https://github.com/fpgas-online/fpgas.online-infra/issues/230).
+- Booting a Pi into another NFS root for a special job: [infra issue #176](https://github.com/fpgas-online/fpgas.online-infra/issues/176).
+- Sensor data from every Pi and the gateway, stored and graphed: [infra issue #263](https://github.com/fpgas-online/fpgas.online-infra/issues/263).

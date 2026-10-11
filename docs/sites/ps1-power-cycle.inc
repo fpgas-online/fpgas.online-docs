@@ -17,7 +17,7 @@ hardware, site notes) or pi24 (on no port, site notes).
 "Check PoE" button (read on `https://ps1.fpgas.online/fpgas/pi3.html` on 7 October 2026). The Compute Blades
 have no page there.
 
-**This is Carl's tooling on his gateway, not run by fpgas.online.** The gateway's files date from about
+**This is the site operator's tooling on their gateway, not run by fpgas.online.** The gateway's files date from about
 25 September 2026, when it was installed again. The gateway read of 6 October 2026 found `snmp_switch` 0.0.17
 in the web venv, `/srv/www/pib/venv`. It did not look for `poe.sh`, and did not open the settings file
 `/etc/environment.export`, because the file holds credentials. No role in fpgas.online-infra writes that name:
