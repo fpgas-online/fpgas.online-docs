@@ -9,7 +9,7 @@ review: 2026-11-10
 
 **You want to look up a figure or an FPGA pin of an Arty A7.**
 
-The page covers the device, serial pins, memory, Ethernet, PMOD connectors and flash. The board as a whole is on [The Arty A7 board](board.md). The wires to the Raspberry Pi are on [Arty A7 wiring to a Raspberry Pi](../setup/wiring.md).
+The page covers the device, serial pins, memory, Ethernet, PMOD connectors, and the flash with its part. The board as a whole is on [The Arty A7 board](board.md). The wires to the Raspberry Pi are on [Arty A7 wiring to a Raspberry Pi](../setup/wiring.md).
 
 ## Key specifications
 
@@ -209,6 +209,18 @@ Signal is the flash line and FPGA Pin is its ball.
 | MISO (DQ1) | K18 |
 | WP (DQ2) | L14 |
 | HOLD (DQ3) | M14 |
+
+### Which flash part a board has
+
+Digilent has fitted three 128 Mbit parts over the board's life, and they differ in software. The Arty A7 Reference Manual, section 5.2, gives the part by PCB revision and by a sticker with the part number. Manufacturer and P/N name the part, PCB revision and sticker say which boards have it, and Package marking is what the chip shows.
+
+| Manufacturer | P/N | PCB revision and sticker | Package marking |
+|---|---|---|---|
+| Micron | `N25Q128A13ESF40` | revision C or earlier, no sticker | none |
+| Spansion/Infineon | `S25FL128SAG[M\|N]FI00` | after C and up to E with no sticker, or E or later with a sticker | `FL128SAIF00` |
+| Spansion/Infineon | `S25FL127SABMFx00` | E or later with a sticker | `FL127SxF00` |
+
+The S25FL128S and the S25FL127S both answer JEDEC ID `0x012018`, so a JEDEC read tells the Micron part from the Spansion parts and no more. How to read the ID from the board is in the [test-designs Arty A7 page](https://github.com/fpgas-online/fpgas.online-test-designs/blob/main/docs/hardware/arty-a7.md#which-flash-part-a-board-has).
 
 ### Secondary SPI
 
