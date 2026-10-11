@@ -9,6 +9,8 @@ review: 2026-11-10
 
 **You have an Acorn in a Compute Blade and want to load the fpgas.online design and bring the card back on the PCIe bus.**
 
+This page is for a blade the site operator has taken out of service for it; on a blade in the fleet the load is not run ([test-designs #241](https://github.com/fpgas-online/fpgas.online-test-designs/issues/241), [#237](https://github.com/fpgas-online/fpgas.online-test-designs/issues/237)).
+
 The boot check reads the link by itself (`pcie-link`). On a blade it does not run `pcie-bar0`, because the card there is not converted: [Acorn tests and their wires on a Compute Blade](compute-blade-tests.md). The design is built for the CLE-215+, the CLE-215 and the CLE-101. On a Raspberry Pi 5 the addresses and the way back differ. That page is [How to check an Acorn's PCIe link by hand on a Raspberry Pi 5](pcie-by-hand.md).
 
 This procedure is waiting for its run: [test-designs issue #237](https://github.com/fpgas-online/fpgas.online-test-designs/issues/237).
@@ -95,7 +97,7 @@ Xilinx Corporation Device [10ee:7021]
 
 - **The Acorn does not appear in step 1:** the M.2 card is not seated; reseat it and read `dmesg | grep -i pci`.
 - **The blade reboots or SSH drops during the load:** the endpoint was still enumerated; detach it (step 2) before every load.
-- **`gpiod_line_request_set_values_subset: Assertion 'request' failed` in step 3:** the serial port was on; boot with it off.
+- **`gpiod_line_request_set_values_subset: Assertion 'request' failed` in step 3:** the serial port was on. Ask the site operator, then boot with it off.
 - **`bind` fails with `No such device`:** the link was down, so the root port is gone. Load a design that links (or `openFPGALoader --reset`), then `bind` again.
 - **The card still does not link:** check that the build's I/O report has the lane on B10 and B6.
 

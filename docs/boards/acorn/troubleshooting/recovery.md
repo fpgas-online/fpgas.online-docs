@@ -9,7 +9,7 @@ review: 2026-11-10
 
 **You have an Acorn on a Raspberry Pi 5 whose golden image is bad, and want to write a good one back over JTAG.**
 
-The images and the flash layout are on [the fpgas.online Acorn design](../overview/design.md). A bad operational image at 0x400000 needs nothing from you. The watchdog fires, the FPGA reloads from 0x0, the golden image brings PCIe up, and the host rewrites the operational slot. On a Compute Blade use `--pins 2:3:4:14` and the card's address from `lspci` ([how to run JTAG on a Compute Blade](../checks/compute-blade-jtag-by-hand.md)).
+The images and the flash layout are on [the fpgas.online Acorn design](../overview/design.md). A bad operational image at 0x400000 needs nothing from you. The watchdog fires, the FPGA reloads from 0x0, the golden image brings PCIe up, and the host rewrites the operational slot. A Compute Blade is recovered only once the site operator has taken it out of service. There, use `--pins 2:3:4:14` and the card's address from `lspci` ([how to run JTAG on a Compute Blade](../checks/compute-blade-jtag-by-hand.md)).
 
 This procedure is waiting for its run: [test-designs issue #228](https://github.com/fpgas-online/fpgas.online-test-designs/issues/228).
 
