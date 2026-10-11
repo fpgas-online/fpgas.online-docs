@@ -37,7 +37,7 @@ Each row of the next table is a setting of JTAG from a Pi 5 and its value. To ru
 | The 40-pin header's GPIO chip | `/dev/gpiochip15` |
 | Cable these pages use | `libgpiod`, which always opens `/dev/gpiochip0` |
 | Link before the `libgpiod` cable runs | `/dev/gpiochip15` as `/dev/gpiochip0`, made again at each boot |
-| Package in the Welland NFS root | `openfpgaloader-rp1pio` (openFPGALoader 1.1.1, from [mithro/rp1-jtag](https://github.com/mithro/rp1-jtag)) |
+| Package in the Welland NFS root | `openfpgaloader-fpgasonline-git`, from [fpgas.online-fpga-tools](https://github.com/fpgas-online/fpgas.online-fpga-tools) ([What runs on a Pi host](../../../../setup/pi.md)) |
 | Other cable of that package | `rp1pio` (RP1 PIO-driven JTAG), which needs `/dev/pio0` |
 
 Each row of the next table is an action of that openFPGALoader build and what it does to the card.

@@ -20,27 +20,27 @@ Reconfiguring the FPGA over JTAG while its PCIe endpoint is enumerated is a surp
 ## What you need
 
 - A NeTV2 wired as on [NeTV2 wiring to a Raspberry Pi](wiring.md#jtag), with its PCIe link in the Pi 5's PCIe connector.
-- The `openfpgaloader-rp1pio` package, which brings the `librp1jtag0` shared library. [The NeTV2 packages](packages.md) explain the repository that carries it.
+- The `openfpgaloader-fpgasonline-git` package, which carries the `rp1pio` cable ([What runs on a Pi host](../../../setup/pi.md)).
 - A bitstream, here `design.bit`.
 
 ## Steps
 
-1. On the Pi, run `lspci -d 10ee:7011` to find the NeTV2's PCIe address, which on a Pi 5 is `0001:01:00.0`, the slot the Acorn hosts use.
+1. On the Pi, run `lspci -D -d 10ee:` to list any Xilinx device. On a Pi 5 the NeTV2's address is `0001:01:00.0`, the slot the Acorn hosts use.
 2. On the Pi, run `echo 1 | sudo tee /sys/bus/pci/devices/0001:01:00.0/remove` with the address from step 1 to detach the endpoint. If `lspci` printed nothing, there is nothing to detach.
 3. On the Pi, run `sudo openFPGALoader --cable rp1pio --pins 27:22:4:17 design.bit` to load the bitstream through the RP1's PIO peripheral.
-4. On the Pi, run `echo 1 | sudo tee /sys/bus/pci/rescan` to bring the endpoint back, or reboot.
+4. On the Pi, run `echo 1 | sudo tee /sys/bus/pci/rescan` to bring the endpoint back. If the Pi booted with no link to the card, the PCIe host bridge removed itself, and a rescan finds nothing. Bind it again instead, with no unbind first: `echo 1000110000.pcie | sudo tee /sys/bus/platform/drivers/brcm-pcie/bind`.
 
 The pin order is `TDI:TDO:TCK:TMS`. The FPGA enumerates only after a bitstream is loaded, and from then on step 2 is mandatory.
 
 ## Check
 
-After step 4, `lspci -d 10ee:7011` lists the NeTV2 as a Xilinx device on a Gen2 x1 link, if the design has a PCIe endpoint.
+After step 4, `lspci -D -d 10ee:` lists the NeTV2 as a Xilinx device on a Gen2 x1 link, if the design has a PCIe endpoint.
 
 ## If it fails
 
 | What you see | Likely cause | Fix |
 |---|---|---|
-| openFPGALoader does not know the `rp1pio` cable | The openFPGALoader build lacks it; only the `openfpgaloader-rp1pio` package has it | Install the package, or run the same command with `--cable libgpiod`, which is slower because the RP1 adds latency to GPIO access |
+| openFPGALoader does not know the `rp1pio` cable | The openFPGALoader build lacks it; the `openfpgaloader-fpgasonline-git` package has it | Install the package, or run the same command with `--cable libgpiod`, which is slower because the RP1 adds latency to GPIO access |
 | The Pi crashes or drops off during the load | The endpoint was still enumerated | Detach it as in step 2, then load again |
 
 ## Next

@@ -53,12 +53,12 @@ no manual bump.
 Several tools used on the Pi hosts are packaged outside this organisation, each
 publishing its own signed APT repository per Debian suite:
 
-`openfpgaloader-rp1pio`, `librp1jtag0`
-: [mithro/rp1-jtag](https://github.com/mithro/rp1-jtag) — openFPGALoader built
-  with RP1 PIO JTAG acceleration. It also carries `--read-dna`, `--read-xadc`
-  and `--read-register`, which the version in Debian bookworm does not have.
-  It declares `Conflicts`/`Replaces` on Debian's `openfpgaloader`, since both
-  ship `/usr/bin/openFPGALoader`.
+`openfpgaloader-fpgasonline-git`, `openocd-fpgasonline-git`
+: [fpgas-online/fpgas.online-fpga-tools](https://github.com/fpgas-online/fpgas.online-fpga-tools)
+  — openFPGALoader and OpenOCD with the fpgas.online patches, among them the
+  `rp1pio` cable. They replace the retired `openfpgaloader-rp1pio` and
+  `openocd-rp1pio` from [mithro/rp1-jtag](https://github.com/mithro/rp1-jtag)
+  ([What runs on a Pi host](setup/pi.md)).
 
 `python3-netgear-switch-library`
 : [mithro/python-netgear-switch-library](https://github.com/mithro/python-netgear-switch-library)
