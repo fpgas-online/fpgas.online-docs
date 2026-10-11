@@ -60,11 +60,4 @@ switch `s`, port `pp` ([Network and power](../setup/network.md#two-addressing-sc
 upstream gateway sets which public address and port reach that ([What a site needs from its upstream
 network](../setup/upstream-gateway.md)). The Pis' password is public by design, and the login banner prints it.
 
-## What is planned
-
-- Logins routed to a board by its own name: [infra issue #187](https://github.com/fpgas-online/fpgas.online-infra/issues/187), tracked in [infra issue #191](https://github.com/fpgas-online/fpgas.online-infra/issues/191).
-- Per-board ports that answer on the gateway's second global IPv6 address: [infra issue #264](https://github.com/fpgas-online/fpgas.online-infra/issues/264).
-- A jump account mode in which a restricted key can only hop: [infra issue #283](https://github.com/fpgas-online/fpgas.online-infra/issues/283).
-- Netbooted Pis that renew their DHCP lease: [infra issue #230](https://github.com/fpgas-online/fpgas.online-infra/issues/230).
-- Booting a Pi into another NFS root for a special job: [infra issue #176](https://github.com/fpgas-online/fpgas.online-infra/issues/176).
-- Sensor data from every Pi and the gateway, stored and graphed: [infra issue #263](https://github.com/fpgas-online/fpgas.online-infra/issues/263).
+What is planned for the gateway is on [The welland site](welland.md#what-the-site-plans-to-provide).
