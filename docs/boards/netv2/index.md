@@ -7,6 +7,7 @@ review: 2026-11-10
 
 # Kosagi NeTV2
 
+- Using this board on fpgas.online: [NeTV2](../../user/boards/netv2/index.md), under User documentation.
 - [NeTV2 overview](overview/index.md): what the board is, its pins and figures, and how a design reaches it.
 - [Setting up a NeTV2](setup/index.md): the wiring, the packages, and loading a design on a Raspberry Pi 3B+ or a Raspberry Pi 5.
 - [NeTV2 checks](checks/index.md): the check that runs on the host, and where it is explained.

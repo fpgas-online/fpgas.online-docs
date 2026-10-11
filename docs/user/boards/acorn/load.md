@@ -31,11 +31,9 @@ see it**. The load goes into the FPGA's SRAM, so a reset brings back the image i
    $ echo 1 | sudo tee /sys/bus/pci/devices/0001:01:00.0/remove
    ```
 
-4. Link the header's GPIO chip as `gpiochip0`, because the loader's cable opens `gpiochip0` and the header is
-   `gpiochip15`.
+4. Make sure `gpiochip0` is the header's GPIO chip, because the loader's cable opens `gpiochip0`.
 
-   ```console
-   $ sudo ln -sfn /dev/gpiochip15 /dev/gpiochip0
+   ```{include} ../../../boards/acorn/inc/gpiochip0.inc
    ```
 
 5. Load the design into SRAM. Put your file's name in place of `design.bit`.
