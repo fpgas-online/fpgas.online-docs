@@ -45,3 +45,20 @@ rules. Each row gives a source, what the rules take from it, and one line in the
 |---|---|---|
 | [Write the Docs: documentation principles](https://www.writethedocs.org/guide/writing/docs-principles/) | staleness as a defect; one source for each fact | "Consider incorrect documentation to be worse than missing documentation" |
 | [iFixit on content quality](https://www.ifixit.com/Info/content-quality) | a review by someone other than the author | "at least one other team member gives the guide a close look" |
+
+## Which rule comes from which source
+
+The rule numbers are those of [What a page contains](page-contents.md). A source in a table above is named as it is there. Each of the other sources is named by its guide and page.
+
+| Rule | Limit | Source |
+|---|---|---|
+| 5.1 | a title of 65 characters | GOV.UK, write clear titles |
+| 5.2 | a sentence of 25 words | GOV.UK: use clear language |
+| 5.3 | a paragraph of 3 to 5 sentences | Google technical writing course, paragraphs: three to five; GOV.UK: use clear language: five at most |
+| 5.4 | a list of 2 to 7 items | Microsoft style guide, lists |
+| 5.5 | 2 callouts | Microsoft Learn Markdown reference |
+| 5.6 | no step or prerequisite in a callout | Google developer documentation style guide, notices |
+| 5.7 | 15 links | GitLab documentation style guide |
+| 5.8 | 5 heading levels | GitLab documentation style guide |
+| 5.9 | 7 entries under a sidebar heading | Mintlify navigation guide |
+| 5.10 | alt text of 150 characters | Microsoft style guide, alternative text |

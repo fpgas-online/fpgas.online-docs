@@ -34,7 +34,8 @@ that returns only the audit is sent back, because truth without use is half a re
 
 The review covers the change, as rendered. A problem outside the change is filed as an issue, not fixed in the
 same pull request. Every finding ends in one of two places: fixed in the pull request, or filed as an issue
-that the pull request names.
+that the pull request names. A finding that a page breaks a rule cites the rule's number from
+[What a page contains](page-contents.md).
 
 The review record holds the table of steps, the audit, and every stop of the bench run. None of it goes onto
 the page. Generator or tooling code in the same change gets a code review as well.
