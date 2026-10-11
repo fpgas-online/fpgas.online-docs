@@ -11,6 +11,7 @@ review: 2026-11-10
 - [What a page contains](page-contents.md): the rules for each page type, the limits, and the diagram set.
 - [Review and verification of a page](review.md): the two-pass review, the bench run, the build checks, and the merge gate.
 - [References on writing documentation](references.md): the sources behind the rules, and what each gives us.
+- [Where each limit comes from](limit-sources.md): the source of each numbered limit.
 
 ```{toctree}
 :hidden:
@@ -19,4 +20,5 @@ structure
 page-contents
 review
 references
+limit-sources
 ```
