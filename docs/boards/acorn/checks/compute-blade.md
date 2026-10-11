@@ -10,7 +10,9 @@ review: 2026-11-10
 
 # How to run the Acorn check on a Compute Blade
 
-**You have an Acorn on a Compute Blade, its two cables built and fitted, and want to know what the check on the blade says about the wiring. On a Compute Blade today it cannot yet prove the cables: the paragraph "What to expect on a Compute Blade today" below says why.**
+**You have an Acorn on a Compute Blade, its two cables built and fitted, and want to know what the check says about the wiring.**
+
+On a Compute Blade the check cannot prove the cables while the card is not converted: [The Acorn check](about.md) says why. The bench check with a meter, before fitting, is what the cables rest on: [How to check the cables on the bench (Compute Blade)](../setup/compute-blade/bench-check.md).
 
 Log in to the blade first. At ps1:
 
