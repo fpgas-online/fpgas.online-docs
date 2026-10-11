@@ -28,7 +28,7 @@ A Fomu's page is the page every board has: a terminal, an upload, the camera and
 
 ## Loading a design: not possible today
 
-A visitor cannot load a design into the Fomu today. The only way in is the Fomu's DFU bootloader, which waits about 3
+A visitor cannot load a design into the Fomu today: its page gives the terminal, the camera and Reset, but nothing to run. The only way in is the Fomu's DFU bootloader, which waits about 3
 minutes after the host powers up.
 
 At every boot the host's own check takes that window first. It loads its test design
