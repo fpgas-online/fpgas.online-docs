@@ -15,5 +15,5 @@ Each row gives what you see, the likely cause and the fix.
 
 | Problem | Likely cause | Fix |
 |---------|--------------|-----|
-| The Fomu is not in `lsusb` | It timed out of DFU after about 3 minutes, or it runs a test bitstream with no USB core | Power cycle the Pi's PoE port, which resets the Fomu and restarts the DFU bootloader; do not look for a dead board first |
-| The Fomu disappears from USB after programming | The custom test bitstreams (UART echo, GPIO loopback) include no USB | Nothing: this is expected; talk to the design on `/dev/serial0` |
+| The Fomu is not in `lsusb` | It timed out of DFU after about 3 minutes, or it runs a test bitstream with no USB core | Run `sudo fpgas-fomu-debug reset`, which resets the Fomu through the header and waits for foboot on USB. If foboot does not come back, ask the site operator, then power cycle the Pi's PoE port. Do not look for a dead board first |
+| The Fomu disappears from USB after programming | The custom test bitstreams (UART echo, GPIO loopback) include no USB | Nothing: this is expected; talk to the design on `/dev/serial0`. To load another design, run `sudo fpgas-fomu-debug reset` first |
