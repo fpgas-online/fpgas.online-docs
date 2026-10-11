@@ -13,37 +13,34 @@ This procedure is waiting for its run: [test-designs issue #223](https://github.
 
 ## What you need
 
-- The Acorn running the fpgas.online Acorn design from flash, and the flash tool from [How to install the Acorn packages](packages.md).
-- The replacement image as `sqrl_acorn_operational.bin`, and its `.bit`.
+- The Acorn running the fpgas.online Acorn design from flash, and the flash tool `fpgas-acorn-flash` from [How to install the Acorn packages](packages.md).
+- The replacement image as `sqrl_acorn_operational.bin`, and its `.bit`, kept on your own machine. Every power cycle clears `/home/pi`, so the steps copy them again.
 - The load command of [How to run JTAG by hand on an Acorn on a Raspberry Pi 5](../checks/jtag-by-hand.md).
 - The rescan command of [How to check an Acorn's PCIe link by hand on a Raspberry Pi 5](../checks/pcie-by-hand.md).
 
 ## Steps
 
-1. Test the image first: detach the endpoint, load the `.bit` into SRAM over JTAG, bring PCIe back and check it.
-2. Check what is in the slot before the write with `sudo python3 spi_flash.py verify sqrl_acorn_operational.bin 0x400000`.
-3. Write the image with `sudo python3 spi_flash.py write sqrl_acorn_operational.bin 0x400000 --idcode 0x3636093`.
-4. Warm-boot to `0x400000` over ICAP, or PoE-cycle the host's switch port, then bring PCIe back with `echo 1 | sudo tee /sys/bus/pci/rescan`.
-
-With the `litepcie` kernel module loaded, `litepcie_util` writes and reloads instead of steps 3 and 4:
-
-```console
-$ litepcie_util flash_write operational.bin 0x400000
-$ litepcie_util flash_reload        # ICAP warm boot from flash
-```
+1. Copy the `.bit` and `sqrl_acorn_operational.bin` into `/home/pi` on the Pi, and run every command there. Test the image first: detach the endpoint, load the `.bit` into SRAM over JTAG, bring PCIe back and check it.
+2. At the switch, PoE-cycle the host's port and wait more than 90 s. The card runs its flash image again, not the test load of step 1.
+3. On the Pi, keep what the flash holds: `sudo fpgas-acorn-flash dump backup.bin` reads all 32 MiB in about a minute.
+4. On the Pi, run `sudo chown pi backup.bin`. From your own machine, copy it off with `scp pi@HOST:backup.bin .`, adding the options your `ssh` login needs. Check that it arrived.
+5. Copy `sqrl_acorn_operational.bin` into `/home/pi` again, because the cycle in step 2 cleared it. On the Pi, write the image with `sudo fpgas-acorn-flash write sqrl_acorn_operational.bin 0x400000 --idcode 0x3636093`. On a CLE-101 the IDCODE is `0x3631093`.
+6. At the switch, PoE-cycle the host's port and wait more than 90 s.
+7. Copy `sqrl_acorn_operational.bin` into `/home/pi` again. On the Pi, check that the slot holds the image of step 5: `sudo fpgas-acorn-flash verify sqrl_acorn_operational.bin 0x400000`.
 
 :::{warning}
-**`litepcie_util` checks nothing before it writes.** `spi_flash.py` checks the image against the slot and refuses address `0x0` without `--i-know-this-writes-golden`. `litepcie_util` does neither.
+**Do not write the flash with `litepcie_util flash_write`**. It checks nothing before it writes, and without an offset it writes `0x0`, the golden slot. The flash tool `fpgas-acorn-flash` checks the image against the slot and refuses `0x0` without `--i-know-this-writes-golden`.
 :::
 
 ## Check
 
-The PCIe endpoint `10ee:7021` is enumerated again after the rescan.
+Step 7 passes, and `lspci -nn -s 0001:01:00.0` lists the design's ID `10ee:7021` without any JTAG load.
 
 ## If it fails
 
 - **The image does not boot, or the card does not come back.** Follow [How to recover an Acorn with a bad image](../troubleshooting/recovery.md).
-- **`spi_flash.py` refuses the write.** The image does not match the slot. The operational slot wants the flavour with the watchdog and the IDCODE of the part that is there.
+- **`fpgas-acorn-flash` refuses to start, because the `litepcie` module is loaded.** Unload it with `sudo rmmod litepcie`, then run the step again.
+- **`fpgas-acorn-flash` refuses the write.** The image does not match the slot. The operational slot wants the flavour with the watchdog and the IDCODE of the part that is there.
 
 ## Next
 
