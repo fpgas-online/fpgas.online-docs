@@ -62,7 +62,7 @@ This procedure is waiting for its run: [test-designs issue #230](https://github.
    $ timeout 3 cat /dev/ttyAMA0 | od -An -tx1
    ```
 
-6. On the Pi, unmask the getty that step 1 masked, so that it can run again after the next boot.
+6. On the Pi, unmask the getty that step 1 masked, so that systemd can start it again.
 
    ```console
    $ sudo systemctl unmask serial-getty@ttyAMA0
