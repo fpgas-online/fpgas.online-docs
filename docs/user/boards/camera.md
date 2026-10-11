@@ -16,6 +16,18 @@ Where the browser can take it, the page first shows a low-latency view, about 0.
 button swaps it for a slower stream with a window you can scroll back through, about 5 s behind. A **live** button
 swaps back. If the low-latency view gives no picture, the slower stream stays. The page tries the fast view a few times, then stops; reload the page to try again.
 
+```{figure} screenshots/camera-live.png
+:alt: The low-latency view of a Tiny Tapeout FPGA board: the purple board with a green LED lit, above a blue board. A clock is burned into the top left corner, and a rewind button sits at the top right.
+
+The low-latency view, with its **rewind** button. A Tiny Tapeout FPGA board, 11 Oct 2026.
+```
+
+```{figure} screenshots/camera-rewind.png
+:alt: The same board in the slower view after rewind was pressed, with the clock in the top left corner and a live button at the top right in place of rewind.
+
+The slower view after **rewind**, with its **live** button.
+```
+
 Both views run at 6 frames a second.
 
 When a host sends no picture, a box saying so stands in place of the player. The page asks again every 15 seconds,
@@ -39,15 +51,3 @@ On an Acorn host the camera points at the board's LEDs. The lens sits 60 mm abov
 A host with no camera of its own can send the picture of a USB HDMI grabber instead. On a NeTV2 host that is the
 board's HDMI output, not a view of the board. Which NeTV2 hosts have which, and what the other boards' cameras show, are
 [docs issue #189](https://github.com/fpgas-online/fpgas.online-docs/issues/189).
-
-```{figure} screenshots/camera-live.png
-:alt: The low-latency view of a Tiny Tapeout FPGA board: the purple board with a green LED lit, above a blue board. A clock is burned into the top left corner, and a rewind button sits at the top right.
-
-The low-latency view, with its **rewind** button. A Tiny Tapeout FPGA board, 11 Oct 2026.
-```
-
-```{figure} screenshots/camera-rewind.png
-:alt: The same board in the slower view after rewind was pressed, with the clock in the top left corner and a live button at the top right in place of rewind.
-
-The slower view after **rewind**, with its **live** button.
-```
