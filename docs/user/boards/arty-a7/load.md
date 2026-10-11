@@ -17,7 +17,7 @@ run**. The load goes into the FPGA's SRAM, so a reset or a power cycle ends it. 
 On 11 October 2026 the welland list showed no Arty A7; a board is listed only while its check passes
 ([infra issue #125](https://github.com/fpgas-online/fpgas.online-infra/issues/125)). The steps below are for a board
 that is back on that list. They cover welland only: the ps1 list shows host names, not board types
-([infra issue #272](https://github.com/fpgas-online/fpgas.online-infra/issues/272)).
+([the board page](../board-page.md)).
 :::
 
 ## What you need
