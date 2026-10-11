@@ -31,18 +31,18 @@ This procedure is waiting for its run: [test-designs issue #249](https://github.
    $ sudo openFPGALoader CABLE --pins 27:22:4:17 --fpga-part PART --dump-flash --file-size SIZE backup.bin
    ```
 
-4. On a Raspberry Pi 5, run `lspci -D -s 0001:01:00.0` again. If it prints a line, the card came back after step 3: repeat step 2.
+4. On a Raspberry Pi 5, run `lspci -D -s 0001:01:00.0` again. If it prints a line, the endpoint came back after step 3: repeat step 2.
 5. On the Pi, write the bitstream to the flash and read it back. Without `--fpga-part`, openFPGALoader writes nothing.
 
    ```console
    $ sudo openFPGALoader CABLE --pins 27:22:4:17 --fpga-part PART --write-flash --verify design.bit
    ```
 
-To put the old bitstream back, run step 5 with `backup.bin` in place of `design.bit`.
+To put the old bitstream back, run step 4, then step 5 with `backup.bin` in place of `design.bit`.
 
 ## Check
 
-Step 5 prints no `Verification failed`. Read the output: on the stable openFPGALoader a failed write still exits with status 0. That the FPGA then starts the design from flash at power-up waits for this page's run ([test-designs issue #249](https://github.com/fpgas-online/fpgas.online-test-designs/issues/249)).
+Step 5 prints no line with `failed` and no `Can't program SPI flash`. Read the output rather than the exit status: some openFPGALoader builds exit 0 after a failed write. That the FPGA then starts the design from flash at power-up waits for this page's run ([test-designs issue #249](https://github.com/fpgas-online/fpgas.online-test-designs/issues/249)).
 
 ## If it fails
 
