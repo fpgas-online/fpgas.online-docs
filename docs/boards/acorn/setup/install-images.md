@@ -29,9 +29,12 @@ Steps 5, 8 and 10 give no command: [docs issue #126](https://github.com/fpgas-on
 
 1. On the Pi, prove JTAG with `--detect`, detach the endpoint and load the operational `.bit` into SRAM, then rescan: PCIe enumerates `10ee:7021`.
 
+The `libgpiod` cable opens `gpiochip0`, which must be the header's GPIO chip.
+
+```{include} ../inc/gpiochip0.inc
+```
+
 ```console
-# Pi 5: the libgpiod cable opens gpiochip0; the 40-pin header is gpiochip15
-$ sudo ln -sfn /dev/gpiochip15 /dev/gpiochip0
 $ openFPGALoader --cable libgpiod --pins 10:9:11:8 --detect
 # Expected on a CLE-215+: idcode 0x3636093 (XC7A200T). No idcode line, or no output: stop here.
 ```
