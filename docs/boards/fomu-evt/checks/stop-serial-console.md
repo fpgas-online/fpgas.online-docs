@@ -56,14 +56,19 @@ $ sudo chmod 666 /dev/serial0
 
 7. With the Fomu in its DFU bootloader (`lsusb` lists `1209:5bf0`), run the UART test. It loads the UART echo design, then opens `/dev/serial0` at 115200 baud. It is the check's `uart` test, described on the page under Next.
 
+The UART echo design has no USB core, so after the test the Fomu is off USB. The second command puts foboot back for
+the next load: it resets the Fomu through the header and waits for `1209:5bf0` on USB.
+
 ```console
 $ sudo fpgas-fomu-debug test uart
+$ sudo fpgas-fomu-debug reset
 ```
 
 ## Check
 
 - Each command returns without an error.
 - The UART test reads its echo from the design on `/dev/serial0`.
+- After `fpgas-fomu-debug reset`, `lsusb` lists `1209:5bf0` again.
 
 ## If it fails
 
@@ -71,6 +76,8 @@ $ sudo fpgas-fomu-debug test uart
 |---|---|---|
 | `no GPIO UART on this host` | `/dev/serial0` does not exist on this Pi | Run the test on a Pi that has the GPIO UART |
 | The test cannot load the design; `lsusb` does not list `1209:5bf0` | The Fomu is out of its DFU bootloader | [Fomu EVT programming faults](../troubleshooting/programming-faults.md) |
+| `fpgas-fomu-debug reset: fail: foboot (1209:5bf0) did not come back on USB within 10 s` | The reset through the header did not restart foboot | Ask the site operator, then power-cycle the Fomu's host. Then check that `lsusb` lists `1209:5bf0` |
+| `fpgas-fomu-debug reset: error: the closing reset could not be done` | The Pi could not drive the Fomu's header: the host is not a Raspberry Pi, the header read failed, or a header line was left an output | Ask the site operator, then power-cycle the Fomu's host. Then check that `lsusb` lists `1209:5bf0` |
 | The test reads nothing, or the output is corrupt | The login console came back and consumes the serial data: `serial-getty` was stopped but not masked | Run the block again; the `mask` line keeps systemd from restarting it |
 
 ## Next

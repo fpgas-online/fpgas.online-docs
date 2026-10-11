@@ -29,10 +29,12 @@ The test bitstreams contain no USB core, so the Fomu leaves USB the moment one i
 
 ## The tool: openFPGALoader
 
-fpgas.online loads the board from its Raspberry Pi with `openFPGALoader -b fomu`, which speaks DFU itself and needs nothing else installed on the Fomu side. That is the path the test harness takes. It loads a `.bin` bitstream. The bootloader writes it to the flash's user image at offset 0x40000 (262144) and starts it, as the [foboot README](https://github.com/im-tomu/foboot#loading-and-running-other-bitstreams) describes. A power cycle starts the bootloader again, and the user image stays in the flash until the next DFU load.
+fpgas.online loads the board from its Raspberry Pi with `openFPGALoader -b fomu`, which speaks DFU itself and needs nothing else installed on the Fomu side. That is the path the test harness takes. It loads a `.bin` bitstream. The bootloader writes it to the flash's user image at offset 0x40000 (262144) and starts it, as the [foboot README](https://github.com/im-tomu/foboot#loading-and-running-other-bitstreams) describes.
+
+`sudo fpgas-fomu-debug reset` starts the bootloader again, and so does a power cycle, which the site operator does. The user image stays in the flash until the next DFU load.
 
 ## The bootloader's window
 
 The bootloader waits only for a limited window. If no DFU activity occurs within it, the bootloader warm-boots the iCE40 to load the user bitstream from the SPI flash. The user bitstream typically has no USB, so the Fomu then disappears from USB. The window is about 3 minutes.
 
-A PoE power cycle of the Pi resets the Fomu and restarts the DFU bootloader. The user image stays in the flash until the next DFU load, and the window starts over. A Fomu missing from USB is therefore usually not broken: the fixes are on [Fomu EVT programming faults](../troubleshooting/programming-faults.md).
+`sudo fpgas-fomu-debug reset`, from the `fpgas-online-fomu-debug` package, resets the Fomu through the header and waits for foboot (`1209:5bf0`) on USB. A PoE power cycle of the Pi, which the site operator does, also resets the Fomu and restarts the DFU bootloader. After either, the window starts over, and the user image stays in the flash until the next DFU load. A Fomu missing from USB is therefore usually not broken: the fixes are on [Fomu EVT programming faults](../troubleshooting/programming-faults.md).
