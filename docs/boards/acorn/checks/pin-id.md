@@ -9,7 +9,7 @@ review: 2026-11-10
 
 **You have an Acorn wired to a Raspberry Pi 5 and want each P2 ball to send its own name.**
 
-A card that runs the fpgas.online design needs no pin-ID design. Its boot check names a wrong wire: [How to run the Acorn check on a Raspberry Pi 5](rpi-5.md). On a Compute Blade the load differs: [How to run the pin ID test on an Acorn on a Compute Blade](pin-id-compute-blade.md).
+On a card that runs the fpgas.online design, the boot check names a wrong wire: [How to run the Acorn check on a Raspberry Pi 5](rpi-5.md). This page reads each ball's own name instead. It needs that design in the card's flash, because step 7 checks for `10ee:7021`. On a Compute Blade the load differs: [How to run the pin ID test on an Acorn on a Compute Blade](pin-id-compute-blade.md).
 
 This procedure is waiting for its run: [test-designs issue #229](https://github.com/fpgas-online/fpgas.online-test-designs/issues/229).
 
@@ -21,39 +21,50 @@ This procedure is waiting for its run: [test-designs issue #229](https://github.
 - An Acorn wired as on [Acorn wiring on a Raspberry Pi 5](../setup/rpi-5/wiring.md), in the M.2 HAT slot, where the card is at `0001:01:00.0`.
 - The fpgas.online design in the card's flash: `lspci -nn -s 0001:01:00.0` shows `10ee:7021` before you start. Step 7 checks the card by that ID.
 - At a site, the site operator's agreement first. The card is off the PCIe bus from step 2 to step 7, so nobody else can use it.
-- `openFPGALoader` with the `libgpiod` cable, and the pin order `10:9:11:8` for `--pins`.
-- The pin-ID bitstream in `PINID`:
+- No other command using the card. In a second shell on the Pi, hold the Acorn lock that `fpgas-verify` and `fpgas-acorn-flash` take. Press Ctrl-C there after step 7.
+
+  ```console
+  $ sudo flock /run/lock/fpgas-acorn.lock sleep infinity
+  ```
+
+- The pin-ID bitstream for your card's variant, `cle-101`, `cle-215` or `cle-215+` ([telling the variants apart](../which-one.md#telling-the-variants-apart)), in `PINID`:
 
   ```{include} ../inc/release-designs.inc
   ```
 
 - A checkout of [fpgas.online-test-designs](https://github.com/fpgas-online/fpgas.online-test-designs) on the Pi, for the pin-ID host scanner `designs/pmod-pin-id/host/identify_pmod_pins.py` and `designs/acorn-pcie/host/pcie_match_mps.py`. The steps run from the checkout's top directory.
-- `python3-libgpiod`, which the scanner needs and no Acorn package brings: `sudo apt install python3-libgpiod`.
+- `openFPGALoader` with the `libgpiod` cable. The scanner also needs `python3-libgpiod`, which no Acorn package brings: `sudo apt install python3-libgpiod`.
 
 ## Steps
 
-1. On the Pi, note how GPIO14 and GPIO15 are set, before step 3 changes GPIO14. Step 7 puts them back from this.
+1. On the Pi, note how the four scanned pins are set, before step 3 changes them. Step 7 puts them back from this.
 
    ```console
-   $ sudo pinctrl get 14,15
+   $ sudo pinctrl get 3,4,14,15
    ```
 
 2. On the Pi, detach the card's PCIe endpoint before the load
    ([why](jtag-and-the-pcie-endpoint.md#why-the-endpoint-is-detached-before-a-load)). Link the header's GPIO chip as
-   `gpiochip0`, because the `libgpiod` cable opens `gpiochip0`. The header's chip is the one `gpiodetect` lists as
-   `pinctrl-rp1`; its number varies from 11 to 15, and the line below is for `gpiochip15`. The link stays
-   afterwards: the Acorn tools expect it.
+   `gpiochip0`, because the `libgpiod` cable opens `gpiochip0`. The link stays afterwards: the Acorn tools expect it.
 
    ```console
    $ echo 1 | sudo tee /sys/bus/pci/devices/0001:01:00.0/remove
-   $ gpiodetect
+   $ sudo gpiodetect
+   $ ls -l /dev/gpiochip0
+   ```
+
+   The header's chip is the one `gpiodetect` lists as `pinctrl-rp1`; its number varies from 11 to 15. If
+   `/dev/gpiochip0` is already that chip, or a link to it, skip the link below. Otherwise put the number in place
+   of 15:
+
+   ```console
    $ sudo ln -sfn /dev/gpiochip15 /dev/gpiochip0
    ```
 
-3. On the Pi, make GPIO14 an input. The pin-ID design drives J2, which is on GPIO14.
+3. On the Pi, make GPIO3, GPIO4 and GPIO14 inputs. The pin-ID design drives J5, H5 and J2, which are on them.
 
    ```console
-   $ sudo pinctrl set 14 ip
+   $ for p in 3 4 14; do sudo pinctrl set $p ip; done
    ```
 
 4. On the Pi, load the pin-ID design; each ball then transmits its own name at 1200 baud.
@@ -72,8 +83,8 @@ This procedure is waiting for its run: [test-designs issue #229](https://github.
    [Pin-id scanner options](../../pin-id/scanner-options.md).
 
    When it ends, the scanner sets back each pin that had an alternate function when it started. GPIO15 goes back to
-   the serial port, which is safe because the Pi only reads it. GPIO14 stays an input, because step 3 came first;
-   without step 3 the Pi would drive J2 against the design
+   the serial port, which is safe because the Pi only reads it. GPIO3, GPIO4 and GPIO14 stay inputs, because step 3
+   came first; without step 3 the Pi would drive J2 against the design
    ([test-designs issue #308](https://github.com/fpgas-online/fpgas.online-test-designs/issues/308)).
 
 6. On the Pi, reset the FPGA over JTAG, so that it loads its flash image again. A reboot of the Pi alone does not:
@@ -103,10 +114,10 @@ This procedure is waiting for its run: [test-designs issue #229](https://github.
    $ sudo python3 designs/acorn-pcie/host/pcie_match_mps.py
    ```
 
-   Last, set GPIO14 and GPIO15 back to the function and pull that step 1 printed, and copy nothing after the `|`.
-   The lines below are for a Pi where step 1 printed `14: a4    pn | hi // GPIO14 = TXD0` and
-   `15: a4    pu | hi // GPIO15 = RXD0`. A pin whose function in step 1 was not `aN`, such as `ip` or `no`, is
-   left as it is.
+   Last, set the four pins back to the function and pull that step 1 printed, and copy nothing after the `|`. Edit
+   the lines below to match step 1 before you run them. They are for a Pi where step 1 printed
+   `14: a4    pn | hi // GPIO14 = TXD0` and `15: a4    pu | hi // GPIO15 = RXD0`, and `ip` for GPIO3 and GPIO4.
+   A pin that step 1 printed as `ip` stays as step 3 left it.
 
    ```console
    $ sudo pinctrl set 14 a4 pn
@@ -127,7 +138,7 @@ Expect and Got on each row.
 
 ## If it fails
 
-Whatever failed, do steps 6 and 7 before you leave the Pi, so that the card is back on the bus.
+Check whether step 2 detached the card: `lspci -nn -s 0001:01:00.0` then prints nothing. If it did, do steps 6 and 7 before you leave the Pi, whatever failed. If it did not, nothing was loaded: stop.
 
 - **The Pi crashes when a GPIO is set to output:** pin ID drives all four P2 balls, so a Pi output fights an FPGA output. Keep GPIO14 an input (`sudo pinctrl set 14 ip`) from step 3 until `lspci` shows the card in step 7.
 - **Got shows `(none)` on one row:** no signal reached that GPIO. The wire to that ball is open or on another pin: [Acorn wiring faults on a Raspberry Pi 5](../troubleshooting/rpi-5-wiring.md).
