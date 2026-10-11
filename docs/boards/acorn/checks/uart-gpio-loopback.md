@@ -55,7 +55,7 @@ This procedure is waiting for its run: [test-designs issue #230](https://github.
    $ openFPGALoader --cable libgpiod --pins 10:9:11:8 $LOOPBACK
    ```
 
-5. On the Pi, set the port and read it for three seconds without sending anything. Keep what it prints: none or a few `00` bytes.
+5. On the Pi, set the port and read it for three seconds without sending anything. Keep what it prints.
 
    ```console
    $ stty -F /dev/ttyAMA0 115200 raw -echo
@@ -69,11 +69,11 @@ This procedure is waiting for its run: [test-designs issue #230](https://github.
    $ timeout 3 cat /dev/ttyAMA0 | od -An -tx1
    ```
 
-7. At the switch, PoE-cycle the host's port and wait more than 90 s. The card loads its flash images again, and `lspci -nn -s 0001:01:00.0` lists it. The Pi's root is thrown away at every reboot ([Netboot and the NFS root](../../../setup/netboot.md)). On a netbooted Pi, step 1's mask, the `gpiochip0` link and the port settings go with it. On a Pi that boots from its own card, run `sudo systemctl unmask serial-getty@ttyAMA0` first.
+7. At the switch, PoE-cycle the host's port and wait more than 90 s. The card loads its flash images again, and `lspci -nn -s 0001:01:00.0` lists it. A netbooted Pi's root is thrown away at every reboot ([Netboot and the NFS root](../../../setup/netboot.md)). On a netbooted Pi, step 1's mask, the `gpiochip0` link and the port settings go with it. On a Pi that boots from its own card, run `sudo systemctl unmask serial-getty@ttyAMA0` first.
 
 ## Check
 
-Step 6 prints more bytes than step 5. That means J2 and K2 both carry. Step 5 alone shows at most that K2 is driven: the design holds the idle line low, which the Pi reads as a break. The inverted bytes may arrive as framing errors, so the check counts bytes and cannot compare them; a loopback that can is [test-designs issue #297](https://github.com/fpgas-online/fpgas.online-test-designs/issues/297).
+Run step 6 twice. Each time it prints more bytes than step 5 when J2 and K2 both carry. That is the expected result; its run will show it (test-designs issue #230). Step 5 alone shows at most that K2 is driven: the design holds the idle line low, which the Pi reads as a break. The inverted bytes may arrive as framing errors, so the check counts bytes and cannot compare them; a loopback that can is [test-designs issue #297](https://github.com/fpgas-online/fpgas.online-test-designs/issues/297).
 
 ## If it fails
 
@@ -82,8 +82,8 @@ Two items below send you to the pin-ID design. Read its hazard first:
 ```{include} ../inc/gpio-contention.inc
 ```
 
-- **Step 6 prints no more than step 5:** nothing reached J2. J2 or GPIO14 is not connected, or K2 and J2 are not crossed over. Run pin ID and check that GPIO14 reads `J2`, then give GPIO14 back with `pinctrl set 14 a4` before steps 4 to 6 again.
-- **Step 6 prints nothing either:** K2 or GPIO15 is not connected, serial-getty holds the port, or the baud is wrong. Check that step 1 ran and step 5 set 115200. Then run pin ID and check that GPIO15 reads `K2`.
+- **Step 5 and step 6 both print nothing:** K2 or GPIO15 is not connected, serial-getty holds the port, or the baud is wrong. Check that step 1 ran and step 5 set 115200. Then run pin ID and check that GPIO15 reads `K2`.
+- **Step 6 prints bytes, but no more than step 5:** nothing reached J2. J2 or GPIO14 is not connected, or K2 and J2 are not crossed over. Run pin ID and check that GPIO14 reads `J2`, then give GPIO14 back with `pinctrl set 14 a4` and run again from step 4.
 - **After any failure:** step 7's PoE cycle puts the card and the Pi back.
 - **The Pi reboots when the design loads:** the kernel console is on the FPGA's serial port; fix it as in [the Pi's settings](../setup/rpi-5/pi-settings.md#kernel-console-on-the-fpga-uart).
 
