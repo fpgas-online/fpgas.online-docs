@@ -64,6 +64,10 @@ def api_path(uri):
     rest = parts[2:]
     if not rest:
         return repo
+    if rest in (["issues"], ["pulls"]):
+        return f"{repo}/{rest[0]}?per_page=1"
+    if len(rest) == 3 and rest[:2] == ["releases", "tag"]:
+        return f"{repo}/releases/tags/{rest[2]}"
     if len(rest) == 2 and rest[0] == "issues" and rest[1].isdigit():
         return f"{repo}/issues/{rest[1]}"
     if len(rest) == 2 and rest[0] == "pull" and rest[1].isdigit():
@@ -98,7 +102,10 @@ def verdict(uri, get, sleep=time.sleep):
     get(path) returns the HTTP status as a string, or "no answer (...)". A 5xx, a 429 or no answer is
     asked again after each of WAITS. Raises SystemExit on any other status: a fault in this tool.
     """
-    path = api_path(uri)
+    try:
+        path = api_path(uri)
+    except ValueError as e:
+        raise SystemExit(f"check_links: {e}: add its form to api_path") from e
     answers = []
     for wait in (0, *WAITS):
         if wait:

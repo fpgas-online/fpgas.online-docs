@@ -131,18 +131,26 @@ class AskGitHub(unittest.TestCase):
              "repos/fpgas-online/tinytapeout-fpga-demos/contents/demos/tt_um_uart_hello?ref=da7d10db1ff62b0a346381530c7c59505ea6b2ad"),
             ("https://github.com/fpgas-online/fpgas.online-docs/tree/main", "repos/fpgas-online/fpgas.online-docs/contents/?ref=main"),
             ("https://github.com/fpgas-online/fpgas.online-tt/commit/1cf6b40", "repos/fpgas-online/fpgas.online-tt/commits/1cf6b40"),
+            ("https://github.com/fpgas-online/fpgas.online-docs/issues", "repos/fpgas-online/fpgas.online-docs/issues?per_page=1"),
+            ("https://github.com/fpgas-online/fpgas.online-test-designs/releases/tag/vivado-bitstreams-v0.0-496-gf162f60",
+             "repos/fpgas-online/fpgas.online-test-designs/releases/tags/vivado-bitstreams-v0.0-496-gf162f60"),
         ):
             self.assertEqual(c.api_path(uri), path, uri)
 
     def test_a_form_the_api_cannot_be_asked_about_is_a_fault(self):
         for uri in (
             "https://github.com/fpgas-online/fpgas.online-docs/actions/runs/1",
-            "https://github.com/fpgas-online/fpgas.online-docs/issues",
             "https://github.com/fpgas-online/x/issues/not-a-number",
+            "https://github.com/fpgas-online/x/releases",
             "https://example.org/fpgas-online/x",
         ):
             with self.assertRaises(ValueError, msg=uri):
                 c.api_path(uri)
+
+    def test_verdict_on_an_unmappable_link_stops_the_run(self):
+        with self.assertRaises(SystemExit) as e:
+            c.verdict("https://github.com/fpgas-online/x/actions", Answers("200").get)
+        self.assertIn("add its form to api_path", str(e.exception))
 
     def test_a_200_works_and_a_404_or_410_is_broken(self):
         uri = "https://github.com/fpgas-online/fpgas.online-tt/issues/19"
