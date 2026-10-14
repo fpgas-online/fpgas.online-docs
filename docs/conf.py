@@ -116,6 +116,10 @@ intersphinx_mapping = {
 # page itself is still checked. tools/check_links.py then fails the build for a
 # broken link into our own repositories and sites.
 linkcheck_anchors_ignore_for_url = [r"https://github\.com/.*"]
+# GitHub sometimes answers an issue page with a 500 that a moment later is a 200. With
+# Sphinx's default of one try, one such answer for a link of ours failed the build
+# (docs #216). A link still broken after three tries fails as before.
+linkcheck_retries = 3
 
 # -- the open items page ------------------------------------------------------
 # docs/open-items.md lists every {todo} box with {open-items} (docs/_ext/open_items.py): one line
