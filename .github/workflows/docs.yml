@@ -11,6 +11,10 @@ on:
 
 permissions:
   contents: read
+  # tools/check_links.py asks the GitHub API about links of ours that github.com
+  # answered with a 5xx or a 429: issues and pull requests among them.
+  issues: read
+  pull-requests: read
 
 jobs:
   build:
@@ -41,6 +45,8 @@ jobs:
         run: sphinx-build -b linkcheck docs docs/_build/linkcheck
 
       - name: No broken link into our own repositories and sites
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: python tools/check_links.py docs/_build/linkcheck/output.json
 
       - uses: actions/upload-artifact@v4
