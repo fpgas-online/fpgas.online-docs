@@ -491,7 +491,8 @@ fpgas.online-infra, `main`:
   — the site and PoE packages installed in one `pip` task, so there are no
   per-app task files any more (`snmp.yml` only populates `/etc/environment`).
   [`pistat.yml`](https://github.com/fpgas-online/fpgas.online-infra/blob/main/ansible/roles/site/tasks/pistat.yml)
-  installs redis and the dnsmasq `send_stat.conf` hook.
+  installs redis and, on a gateway without per-port switches, the dnsmasq `send_stat.conf` hook. A per-port
+  gateway gets `lease-events.conf` instead: [What runs on a gateway, service by service](gateway/services.md).
 - [`ansible/roles/site/templates/vhost.conf.j2`](https://github.com/fpgas-online/fpgas.online-infra/blob/main/ansible/roles/site/templates/vhost.conf.j2)
   and [`roles/ttsite/templates/vhost.conf.j2`](https://github.com/fpgas-online/fpgas.online-infra/blob/main/ansible/roles/ttsite/templates/vhost.conf.j2)
   / [`ws-board.conf.j2`](https://github.com/fpgas-online/fpgas.online-infra/blob/main/ansible/roles/ttsite/templates/ws-board.conf.j2)
