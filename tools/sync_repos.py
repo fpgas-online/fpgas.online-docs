@@ -341,6 +341,8 @@ TEST_DESIGNS = Repo(
         "docs/verify/more-results.md": "docs/verify/more-results.md",
         "docs/verify/help.md": "docs/verify/help.md",
         "docs/verify/tests.md": "docs/verify/tests.md",
+        # a section per check, generated in test-designs: the dashboards link each check's name here (site #140)
+        "docs/verify/checks.md": "docs/verify/checks.md",
         "docs/verify/tt-fpga.md": "docs/verify/tt-fpga.md",
         "docs/verify/acorn.md": "docs/verify/acorn.md",
         "docs/verify/acorn-power-cycle.md": "docs/verify/acorn-power-cycle.md",
@@ -361,6 +363,7 @@ TEST_DESIGNS = Repo(
             ("Reading the result: more", "more-results"),
             ("--help", "help"),
             ("What each check tests", "tests"),
+            ("Each check, one by one", "checks"),
             ("TT FPGA", "tt-fpga"),
             ("Acorn", "acorn"),
             ("Acorn: power-cycle check", "acorn-power-cycle"),
