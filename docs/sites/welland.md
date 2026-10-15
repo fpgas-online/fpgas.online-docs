@@ -47,6 +47,6 @@ For running the site and its gateway:
 - Logins routed to a board by its own name: [infra issue #187](https://github.com/fpgas-online/fpgas.online-infra/issues/187), tracked in [infra issue #191](https://github.com/fpgas-online/fpgas.online-infra/issues/191).
 - Per-board ports that answer on the gateway's second global IPv6 address: [infra issue #264](https://github.com/fpgas-online/fpgas.online-infra/issues/264).
 - A jump account mode in which a restricted key can only hop: [infra issue #283](https://github.com/fpgas-online/fpgas.online-infra/issues/283).
-- Netbooted Pis that renew their DHCP lease: [infra issue #230](https://github.com/fpgas-online/fpgas.online-infra/issues/230).
+- Netbooted Pis that renew their DHCP lease: built into the NFS root by [infra issue #230](https://github.com/fpgas-online/fpgas.online-infra/issues/230) ([The network after boot](../setup/netboot.md#the-network-after-boot)). A board renews once it boots a root built after that change; one on an older root does not.
 - Booting a Pi into another NFS root for a special job: [infra issue #176](https://github.com/fpgas-online/fpgas.online-infra/issues/176).
 - Sensor data from every Pi and the gateway, stored and graphed: [infra issue #263](https://github.com/fpgas-online/fpgas.online-infra/issues/263).
