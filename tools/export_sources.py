@@ -28,8 +28,6 @@ REPOS = {
         "docs/hardware/acorn.md",
         "docs/hardware/acorn-pinmap.md",
         "docs/hardware/acorn-pcie-programming.md",
-        "docs/hardware/acorn-pinmap-rpi5-wiring.png",
-        "docs/hardware/acorn-pinmap-computeblade-wiring.png",
         "docs/hardware/netv2.md",
         "docs/hardware/netv2-pin-mapping.md",
         "docs/hardware/fomu-evt.md",
