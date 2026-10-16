@@ -315,19 +315,17 @@ The upstream
 has drifted from the script on four points. The code is what is described
 above. (1) It documents `ssh_type: "tweed"` with a hard-wired tweed hop; the
 code uses `ssh_type: "gateway"` with a `gateway` key selecting from a
-`GATEWAYS` table that also holds PS1 (lines 29–32, 293–299).
-(2) Its programming section has no Acorn entry, although `PROGRAM_CMD["acorn"]`
-exists (line 108), gives the OpenOCD config as `alphamax-rpi.cfg` rather than
-`~/netv2/alphamax-rpi.cfg`, and does not mention that the five Welland NeTV2
-pool hosts run it without `sudo` (lines 113–122). (3) It calls
-`variant` NeTV2-only; `welland-pi2` is an Acorn carrying `"variant": "cle-215+"`
-(lines 68–71) and the variant-artifact selection at lines 407–413 is
-board-agnostic. (4) It glosses the `--pins 27:22:4:17` string as TCK:TDO:TDI:TMS;
+`GATEWAYS` table that also holds PS1.
+(2) Its programming section gives the OpenOCD config as `alphamax-rpi.cfg` rather than
+`~/netv2/alphamax-rpi.cfg` (`_NETV2_OPENOCD`), and does not mention that the five Welland NeTV2
+pool hosts run it without `sudo` (`PROGRAM_CMD` against `HOST_PROGRAM_CMD`). (3) It calls
+`variant` NeTV2-only; the Welland Acorn hosts (`welland-sw2-p…`) carry `"variant": "cle-215+"`,
+and the variant-artifact selection is board-agnostic. (4) It glosses the `--pins 27:22:4:17` string as TCK:TDO:TDI:TMS;
 openFPGALoader's order is TDI:TDO:TCK:TMS, as
 [NeTV2 wiring to a Raspberry Pi](../boards/netv2/setup/wiring.md#jtag) and
 [Acorn wiring on a Raspberry Pi 5](../boards/acorn/setup/rpi-5/wiring.md#p1-jtag) both give it for the same pin strings,
-and GPIO 10 is SPI0 MOSI (TDI) with GPIO 11 the clock. Line numbers are
-`verify_hardware.py` on `main` as read on 2026-09-04.
+and GPIO 10 is SPI0 MOSI (TDI) with GPIO 11 the clock. The names are those in
+`verify_hardware.py` on `main`, as read at test-designs b848279 (17 Oct 2026).
 :::
 
 ## Sources
