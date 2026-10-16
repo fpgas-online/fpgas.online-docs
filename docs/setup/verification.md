@@ -232,7 +232,7 @@ first, then a per-host override, then the board default.
 | Arty | `openFPGALoader -b arty <bitstream>` | USB JTAG through the on-board FTDI. |
 | Fomu | `openFPGALoader -b fomu <bitstream>` | USB DFU. |
 | Acorn | `rmmod spidev spi_bcm2835 2>&1; openFPGALoader -c rp1pio --pins 10:9:11:8 <bitstream>` | GPIO bit-bang JTAG on the Pi's SPI0 pins, which is why the SPI modules come out first. openFPGALoader's pin order is TDI:TDO:TCK:TMS, so GPIO 10 (SPI0 MOSI) is TDI and GPIO 11 (SCLK) is TCK; see [Acorn wiring on a Raspberry Pi 5](../boards/acorn/setup/rpi-5/wiring.md). As configured in the runner. On a host without `/dev/pio0` (the Welland Pi 5s) the `rp1pio` cable cannot run; use `--cable libgpiod` with the `gpiochip0` link, see [P1: JTAG](../boards/acorn/setup/rpi-5/pi-settings.md#jtag-from-the-pi). |
-| TT FPGA | `python3 ~/tt_fpga_program.py /dev/ttyACM0 <bitstream>` | Through the RP2350 over USB CDC. The PMOD loopback design appends `--gpio-release`. |
+| TT FPGA | `openFPGALoader -b tt_fpga -d /dev/ttyACM0 <bitstream>` | Through the RP2350 over USB CDC, with the fpgas.online-fpga-tools build of openFPGALoader (build 0.0.post105 or later), which also starts the 50 MHz clock and releases the RP2350's shared pins after every load. |
 | NeTV2 on `rpi5-netv2` | `sudo openFPGALoader -c rp1pio --pins 27:22:4:17 <bitstream>` | RP1 GPIO bit-bang JTAG on the 40-pin header, in openFPGALoader's TDI:TDO:TCK:TMS pin order; see [NeTV2 wiring to a Raspberry Pi](../boards/netv2/setup/wiring.md#jtag). As configured in the runner. On a host without `/dev/pio0` (the Welland Pi 5s) the `rp1pio` cable cannot run; use `--cable libgpiod` with the `gpiochip0` link, see [P1: JTAG](../boards/acorn/setup/rpi-5/pi-settings.md#jtag-from-the-pi). |
 | NeTV2 on `rpi3-netv2` | `sudo openocd -f ~/netv2/alphamax-rpi.cfg -c 'init; pld load 0 <bitstream>; exit'` | BCM2835 GPIO bit-bang JTAG. `pld load 0` is OpenOCD 0.10.x syntax, device index 0. |
 | NeTV2 on the Welland pool hosts | the same OpenOCD command **without** `sudo` | The gateway hop already lands as root on those Pis. |
@@ -242,9 +242,9 @@ absolute one before handing it over, using the home directory of whichever
 account that host is reached as.
 
 Programming counts as successful if the command exits 0 **or** its output
-contains `done 1` in any letter case — openFPGALoader prints the FPGA's DONE
-status bit, while
-`tt_fpga_program.py` only reports through its exit code.
+contains `done 1` in any letter case: openFPGALoader prints the FPGA's DONE
+status bit for a JTAG load. Its TT FPGA load reports through its exit code,
+which is non-zero when the stream, the clock or the pin release failed.
 
 Failure on a Fomu is treated as a DFU timeout rather than a fault. The EVT's
 DFU bootloader gives up after roughly three minutes and loads the user
@@ -284,8 +284,8 @@ under [Pin mapping](../boards/tt-fpga/overview/pin-mapping.md) and the HAT side 
 [Raspberry Pi PMOD HAT](../boards/pmod/rpi-hat.md).
 
 What the runner does differently is which of the two entry points it calls. For
-the PMOD loopback it programs in its own step, appending `--gpio-release` so
-the RP2350 drops off the shared traces before the Pi drives them. For the UART
+the PMOD loopback it programs in its own step with openFPGALoader, which leaves
+the RP2350 off the shared traces before the Pi drives them. For the UART
 and SPI-flash designs it does not program separately at all: it calls
 `tt_test_wrapper.py`, which programs the board, bridges its serial port and
 runs the test in one invocation, with a 240-second timeout instead of the
@@ -312,20 +312,17 @@ Pi.
 :::{todo}
 The upstream
 [verify-hardware.md](https://github.com/fpgas-online/fpgas.online-test-designs/blob/main/docs/verify-hardware.md)
-has drifted from the script on six points. The code is what is described
+has drifted from the script on four points. The code is what is described
 above. (1) It documents `ssh_type: "tweed"` with a hard-wired tweed hop; the
 code uses `ssh_type: "gateway"` with a `gateway` key selecting from a
-`GATEWAYS` table that also holds PS1 (lines 29–32, 293–299). (2) It says
-`EXTRA_UPLOADS` sends three helper scripts including `tt_pmod_wrapper.py`; the
-code sends two, `tt_fpga_program.py` and `tt_test_wrapper.py` (lines 273–278).
-(3) Its programming section has no Acorn entry, although `PROGRAM_CMD["acorn"]`
+`GATEWAYS` table that also holds PS1 (lines 29–32, 293–299).
+(2) Its programming section has no Acorn entry, although `PROGRAM_CMD["acorn"]`
 exists (line 108), gives the OpenOCD config as `alphamax-rpi.cfg` rather than
 `~/netv2/alphamax-rpi.cfg`, and does not mention that the five Welland NeTV2
-pool hosts run it without `sudo` (lines 113–122). (4) It does not mention the
-PMOD design's `--gpio-release` programming override (line 253). (5) It calls
+pool hosts run it without `sudo` (lines 113–122). (3) It calls
 `variant` NeTV2-only; `welland-pi2` is an Acorn carrying `"variant": "cle-215+"`
 (lines 68–71) and the variant-artifact selection at lines 407–413 is
-board-agnostic. (6) It glosses the `--pins 27:22:4:17` string as TCK:TDO:TDI:TMS;
+board-agnostic. (4) It glosses the `--pins 27:22:4:17` string as TCK:TDO:TDI:TMS;
 openFPGALoader's order is TDI:TDO:TCK:TMS, as
 [NeTV2 wiring to a Raspberry Pi](../boards/netv2/setup/wiring.md#jtag) and
 [Acorn wiring on a Raspberry Pi 5](../boards/acorn/setup/rpi-5/wiring.md#p1-jtag) both give it for the same pin strings,
