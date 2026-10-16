@@ -7,6 +7,15 @@
 
 For anyone who clicked a check's name on an fpgas.online dashboard, or who runs fpgas-verify on an Arty A7, NeTV2, Fomu EVT, TT FPGA demo board or Acorn: a section for every check, named as the dashboards name it, with, for each board type that gets it, what it checks and what the check runs, and the board types it is not for and why. How the whole check runs is on [what the check tests on each board](tests.md) and [what an Acorn check tests](acorn.md#acorn).
 
+The dashboards show the checks' columns in four groups; each check's section says its group.
+
+| Group | What it holds | Checks |
+|---|---|---|
+| `basic` | what every board with that hardware gets first: its JTAG, its cabling to the Pi | [`jtag`](#jtag), [`wiring`](#wiring) |
+| `memory` | the board's memories | [`flash`](#flash), [`ddr`](#ddr), [`spram`](#spram) |
+| `peripherals` | the board's other links to the Pi: serial, GPIO, Ethernet | [`p2-uart`](#p2-uart), [`p2-serial`](#p2-serial), [`p2-gpio`](#p2-gpio), [`uart`](#uart), [`ethernet`](#ethernet) |
+| `board-specific` | one board type's own hardware | [`pcie-link`](#pcie-link), [`pcie-bar0`](#pcie-bar0), [`rp1-pio`](#rp1-pio), [`scratch`](#scratch), [`power-cycle`](#power-cycle), [`header`](#header), [`foboot`](#foboot), [`foboot-after`](#foboot-after), [`sdk`](#sdk), [`dip-switches`](#dip-switches) |
+
 Checks: [Boot check](#boot-check), [Check ran](#check-ran), [`pcie-link`](#pcie-link), [`pcie-bar0`](#pcie-bar0), [`rp1-pio`](#rp1-pio), [`jtag`](#jtag), [`flash`](#flash), [`ddr`](#ddr), [`p2-uart`](#p2-uart), [`p2-serial`](#p2-serial), [`scratch`](#scratch), [`p2-gpio`](#p2-gpio), [`wiring`](#wiring), [`power-cycle`](#power-cycle), [`uart`](#uart), [`ethernet`](#ethernet), [`header`](#header), [`foboot`](#foboot), [`foboot-after`](#foboot-after), [`sdk`](#sdk), [`dip-switches`](#dip-switches), [`spram`](#spram).
 
 ## Boot check
@@ -18,6 +27,8 @@ The check fpgas-verify runs at every boot of a Pi with an FPGA board: it finds t
 When the boot check of the boot the Pi is running reported its result (its `fpga-verified` event). A Pi checks again at its next boot; until then this time does not change.
 
 ## pcie-link
+
+Group on the dashboards: `board-specific`.
 
 | Board | Variants | What it checks | What the check runs |
 |---|---|---|---|
@@ -33,6 +44,8 @@ The messages any check can give (a design that would not load, a test that did n
 
 ## pcie-bar0
 
+Group on the dashboards: `board-specific`.
+
 | Board | Variants | What it checks | What the check runs |
 |---|---|---|---|
 | Sqrl Acorn | every | over PCIe BAR0: the build running, the flash's identity, the device DNA, the XADC readings | over BAR0: which build runs (golden is a fault: the operational slot did not boot), the flash's identity, the device DNA and the XADC temperature and voltages |
@@ -47,6 +60,8 @@ The messages any check can give (a design that would not load, a test that did n
 
 ## rp1-pio
 
+Group on the dashboards: `board-specific`.
+
 | Board | Variants | What it checks | What the check runs |
 |---|---|---|---|
 | Sqrl Acorn | every | the Pi 5's RP1 PIO, which JTAG uses, is there and can be opened | on a Pi 5 / CM5: the RP1 PIO that openFPGALoader's rp1pio cable uses, /dev/pio0 there and openable ([`links.py`](https://github.com/fpgas-online/fpgas.online-test-designs/blob/main/verify/src/fpgas_online_verify/boards/acorn/links.py)) |
@@ -60,6 +75,8 @@ When it fails:
 The messages any check can give (a design that would not load, a test that did not finish, a tool or package missing, a planned test that has no boot-check test yet) are in [common failures](common-failures.md#common-failures).
 
 ## jtag
+
+Group on the dashboards: `basic`.
 
 | Board | Variants | What it checks | What the check runs |
 |---|---|---|---|
@@ -97,6 +114,8 @@ The messages any check can give (a design that would not load, a test that did n
 
 ## flash
 
+Group on the dashboards: `memory`.
+
 | Board | Variants | What it checks | What the check runs |
 |---|---|---|---|
 | Sqrl Acorn | every | both flash slots are read whole and match the release's images | both flash slots read whole and compared with the release's images |
@@ -121,6 +140,8 @@ The messages any check can give (a design that would not load, a test that did n
 
 ## ddr
 
+Group on the dashboards: `memory`.
+
 | Board | Variants | What it checks | What the check runs |
 |---|---|---|---|
 | Sqrl Acorn | every | the DRAM self-test over the whole DRAM: no errors, bandwidth at least the variant's minimum | the BIOS console read out (it lets the BIOS finish DRAM set-up, #47), then the DRAM BIST over the whole DRAM, two passes ([`bist.py`](https://github.com/fpgas-online/fpgas.online-test-designs/blob/main/verify/src/fpgas_online_verify/boards/acorn/bist.py)): no errors, and write and read bandwidth at least the variant's minimum ([`expected.toml`](https://github.com/fpgas-online/fpgas.online-test-designs/blob/main/docs/wiring/acorn/expected.toml)) |
@@ -142,6 +163,10 @@ The messages any check can give (a design that would not load, a test that did n
 
 ## p2-uart
 
+The Acorn only: its serial lines reach the Pi over its P2 cable. The check loads no design: it talks to the UARTBone bridge (Wishbone over the UART) in the gateware the Acorn is already running, at both baud rates, and reads the identifier, DNA and XADC through it. The other boards' serial links are tested by `uart` instead.
+
+Group on the dashboards: `peripherals`.
+
 | Board | Variants | What it checks | What the check runs |
 |---|---|---|---|
 | Sqrl Acorn | every | the UARTBone bridge on the P2 cable answers at both baud rates | the UARTBone bridge on P2 at both baud rates: identifier, DNA, XADC ([`links.py`](https://github.com/fpgas-online/fpgas.online-test-designs/blob/main/verify/src/fpgas_online_verify/boards/acorn/links.py)) |
@@ -155,6 +180,8 @@ When it fails:
 The messages any check can give (a design that would not load, a test that did not finish, a tool or package missing, a planned test that has no boot-check test yet) are in [common failures](common-failures.md#common-failures).
 
 ## p2-serial
+
+Group on the dashboards: `peripherals`.
 
 | Board | Variants | What it checks | What the check runs |
 |---|---|---|---|
@@ -170,6 +197,8 @@ The messages any check can give (a design that would not load, a test that did n
 
 ## scratch
 
+Group on the dashboards: `board-specific`.
+
 | Board | Variants | What it checks | What the check runs |
 |---|---|---|---|
 | Sqrl Acorn | every | the scratch register reads back what was written, over BAR0 and over the P2 UART | the ctrl scratch register written and read back over BAR0 and over the P2 UART |
@@ -184,6 +213,8 @@ The messages any check can give (a design that would not load, a test that did n
 
 ## p2-gpio
 
+Group on the dashboards: `peripherals`.
+
 | Board | Variants | What it checks | What the check runs |
 |---|---|---|---|
 | Sqrl Acorn | every | J5 and H5 on the P2 cable work in both directions | J5/H5 in both directions ([`links.py`](https://github.com/fpgas-online/fpgas.online-test-designs/blob/main/verify/src/fpgas_online_verify/boards/acorn/links.py)), on a setup whose cable carries them: the Pi 5 with the Waveshare HAT. On a Compute Blade (CM4 or CM5) they are not wired: the test is not run there, said so, and left out of `wiring` |
@@ -197,6 +228,8 @@ When it fails:
 The messages any check can give (a design that would not load, a test that did not finish, a tool or package missing, a planned test that has no boot-check test yet) are in [common failures](common-failures.md#common-failures).
 
 ## wiring
+
+Group on the dashboards: `basic`.
 
 | Board | Variants | What it checks | What the check runs |
 |---|---|---|---|
@@ -220,6 +253,8 @@ The messages any check can give (a design that would not load, a test that did n
 
 ## power-cycle
 
+Group on the dashboards: `board-specific`.
+
 | Board | Variants | What it checks | What the check runs |
 |---|---|---|---|
 | Sqrl Acorn | every | the FPGA restarted since the last boot's check (scratch holds its reset value or this boot's marker) | the FPGA restarted since the last check ([`check.power_cycle_verdict`](https://github.com/fpgas-online/fpgas.online-test-designs/blob/main/verify/src/fpgas_online_verify/boards/acorn/check.py)): the ctrl scratch register holds its reset value, or this boot's marker. The marker is written at the end of the check, the only write that is not put back; set `power-cycle-check = on` in /etc/fpgas-verify/*.ini to run it |
@@ -233,6 +268,10 @@ When it fails:
 The messages any check can give (a design that would not load, a test that did not finish, a tool or package missing, a planned test that has no boot-check test yet) are in [common failures](common-failures.md#common-failures).
 
 ## uart
+
+A UART test design is loaded into the FPGA and printable text echoes back over the board's own serial link to the Pi: the USB FT2232H on the Arty A7, the Pi header's UART on the NeTV2 and Fomu EVT, the RP2350's bridge on the TT FPGA demo board. The Acorn has no `uart`: its serial lines come over its P2 cable, and `p2-uart` tests them.
+
+Group on the dashboards: `peripherals`.
 
 | Board | Variants | What it checks | What the check runs |
 |---|---|---|---|
@@ -255,6 +294,8 @@ The messages any check can give (a design that would not load, a test that did n
 
 ## ethernet
 
+Group on the dashboards: `peripherals`.
+
 | Board | Variants | What it checks | What the check runs |
 |---|---|---|---|
 | Digilent Arty A7 | `a7-35` | the design answers ARP and ping through the Pi's USB Ethernet adapter cabled to its RJ45 | loads its test design, then runs [`test_ethernet.py`](https://github.com/fpgas-online/fpgas.online-test-designs/blob/main/designs/ethernet-test/host/test_ethernet.py) |
@@ -274,6 +315,8 @@ The messages any check can give (a design that would not load, a test that did n
 
 ## header
 
+Group on the dashboards: `board-specific`.
+
 | Board | Variants | What it checks | What the check runs |
 |---|---|---|---|
 | Fomu EVT | `evt` | over the Pi's header: CDONE, the iCE40 held in reset, the SPI flash's JEDEC and unique IDs | judges what the check read: before the tests, `fomu_header_id.py` over the Pi's header: it holds the iCE40 in reset (CRESET), reads the SPI flash's JEDEC and unique IDs, then lets it boot into foboot |
@@ -290,6 +333,8 @@ The messages any check can give (a design that would not load, a test that did n
 
 ## foboot
 
+Group on the dashboards: `board-specific`.
+
 | Board | Variants | What it checks | What the check runs |
 |---|---|---|---|
 | Fomu EVT | `evt` | foboot, its USB DFU bootloader, enumerates again after the reset | judges what the check read: after that reset, the Pi's USB is watched for foboot (1209:5bf0); nothing is loaded |
@@ -304,6 +349,8 @@ The messages any check can give (a design that would not load, a test that did n
 
 ## foboot-after
 
+Group on the dashboards: `board-specific`.
+
 | Board | Variants | What it checks | What the check runs |
 |---|---|---|---|
 | Fomu EVT | `evt` | the closing reset brings foboot back on USB, so the next user can load a design | the last step, after every test, only when header and foboot passed: the iCE40 is reset through the header back into foboot |
@@ -317,6 +364,8 @@ When it fails:
 The messages any check can give (a design that would not load, a test that did not finish, a tool or package missing, a planned test that has no boot-check test yet) are in [common failures](common-failures.md#common-failures).
 
 ## sdk
+
+Group on the dashboards: `board-specific`.
 
 | Board | Variants | What it checks | What the check runs |
 |---|---|---|---|
@@ -333,6 +382,8 @@ The messages any check can give (a design that would not load, a test that did n
 
 ## dip-switches
 
+Group on the dashboards: `board-specific`.
+
 | Board | Variants | What it checks | What the check runs |
 |---|---|---|---|
 | TT FPGA Demo Board | `tt-fpga` | every DIP switch on ui_in is off | loads its test design, then runs [`tt_dip_switches.py`](https://github.com/fpgas-online/fpgas.online-test-designs/blob/main/designs/_host/tt_dip_switches.py) |
@@ -346,6 +397,8 @@ When it fails:
 The messages any check can give (a design that would not load, a test that did not finish, a tool or package missing, a planned test that has no boot-check test yet) are in [common failures](common-failures.md#common-failures).
 
 ## spram
+
+Group on the dashboards: `memory`.
 
 | Board | Variants | What it checks | What the check runs |
 |---|---|---|---|
