@@ -9,15 +9,15 @@ review: 2026-11-10
 
 **You want to know which test designs exist for the board, what each verifies, and which script loads it.**
 
-This page lists the test designs under `designs/` and the host scripts that load them. What the check runs, what it leaves running and what it needs, including every DIP switch off, is on [fpgas-verify: the Tiny Tapeout demo boards](../../../verify/tt-fpga.md).
+This page lists the test designs under `designs/` and the host scripts that run them. Every design is loaded with `openFPGALoader -b tt_fpga`, from the [fpgas.online-fpga-tools](https://github.com/fpgas-online/fpgas.online-fpga-tools) build (`openfpgaloader-fpgasonline` or `-git`, build 0.0.post105 or later). What the check runs, what it leaves running and what it needs, including every DIP switch off, is on [fpgas-verify: the Tiny Tapeout demo boards](../../../verify/tt-fpga.md).
 
 Script names the file in the test-designs repository, and Purpose what it does.
 
 | Script | Purpose |
 |--------|---------|
-| [`tt_fpga_program.py`](https://github.com/fpgas-online/fpgas.online-test-designs/blob/main/designs/_host/tt_fpga_program.py) | Program a bitstream |
-| [`tt_test_wrapper.py`](https://github.com/fpgas-online/fpgas.online-test-designs/blob/main/designs/_host/tt_test_wrapper.py) | Program + UART bridge (PTY) + run test |
-| [`tt_pmod_wrapper.py`](https://github.com/fpgas-online/fpgas.online-test-designs/blob/main/designs/_host/tt_pmod_wrapper.py) | Program + release GPIOs + hand off to RPi GPIO test |
+| `openFPGALoader -b tt_fpga -d /dev/ttyACM0 <bitstream>` | Program a bitstream (not a script of the repository: our openFPGALoader build) |
+| [`tt_test_wrapper.py`](https://github.com/fpgas-online/fpgas.online-test-designs/blob/main/designs/_host/tt_test_wrapper.py) | Program (with openFPGALoader) + UART bridge (PTY) + run test |
+| [`tt_pmod_wrapper.py`](https://github.com/fpgas-online/fpgas.online-test-designs/blob/main/designs/_host/tt_pmod_wrapper.py) | Program (with openFPGALoader, which also releases the GPIOs) + hand off to RPi GPIO test |
 
 Test names the test, Bitstream its design, Wrapper the script that loads it, and What it verifies what a pass shows.
 
