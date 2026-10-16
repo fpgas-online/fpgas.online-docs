@@ -83,7 +83,7 @@ root sets `kernel.sysrq = 0` as well as keeping the console off that UART.
 - **A Tiny Tapeout board's own USB serial** is `/dev/ttboard`: a udev rule in `fpgas-online-tt`
   (`debian/60-fpgas-tt.rules`, main, read 2026-10-07) gives the demo board's RP2040/RP2350 CDC port that
   symlink, matching `2e8a:0005` and `2e8a:000f`, `GROUP="dialout"`, mode 0660. The `fpgas-tt` daemon holds the
-  port open permanently and fans it out over WebSocket, so `mpremote` and the programming scripts cannot open
+  port open permanently and fans it out over WebSocket, so `mpremote` and `openFPGALoader -b tt_fpga` cannot open
   it while the daemon runs ([The Tiny Tapeout stack](../tinytapeout.md);
   the consequences are under [Serial port
   ownership](../../boards/tt-fpga/overview/serial-port.md)).

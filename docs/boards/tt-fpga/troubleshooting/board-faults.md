@@ -23,7 +23,7 @@ What you see is the symptom, Likely cause the reason, and Fix what to do.
 
 ## RP2350 PWM first-call bug
 
-The first `PWM()` call on GPIO16 produces a stuck-HIGH output instead of oscillation. The [programming script](https://github.com/fpgas-online/fpgas.online-test-designs/blob/main/designs/_host/tt_fpga_program.py) that carries the workaround labels it "Workaround for RP2350 PWM bug". The workaround deinits and recreates the PWM object:
+The first `PWM()` call on GPIO16 produces a stuck-HIGH output instead of oscillation. Two places carry the workaround: openFPGALoader's `tt_fpga` load, after every load ([fpgas.online-fpga-tools patch 0033](https://github.com/fpgas-online/fpgas.online-fpga-tools/blob/main/patches/openfpgaloader/master/0033-tt_fpga-the-TTDBv3-project-clock-GPIO16-50-MHz-and-f.patch): "the first setup of an RP2350 PWM slice may not take"), and the UART bridge of [`tt_test_wrapper.py`](https://github.com/fpgas-online/fpgas.online-test-designs/blob/main/designs/_host/tt_test_wrapper.py) ("RP2350 PWM initialization bug"). The workaround deinits and recreates the PWM object:
 
 ```python
 clk = PWM(Pin(16))
