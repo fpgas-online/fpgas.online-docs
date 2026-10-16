@@ -33,7 +33,7 @@ Each test checks its bitstream's sha256 against the `-bitstreams` package's mani
 | Arty A7 | USB `0403:6010` | `openFPGALoader -b arty` | `/dev/ttyUSB1` | `jtag`, `uart`, `ddr`, `flash`, `ethernet`, `wiring` | `pmod` | FTDI serial, IDCODE, device DNA, flash JEDEC ID, sha256 of the flash's first 2.1 MiB |
 | NeTV2 | JTAG IDCODE over GPIO 4/17/27/22 | openocd (Pi 3/4), openFPGALoader `rp1pio` (Pi 5) | `/dev/ttyAMA0` | `jtag`, `uart`, `ddr`, `flash` (`ethernet` is planned but not run yet, which fails the board: [#341](https://github.com/fpgas-online/fpgas.online-test-designs/issues/341)), and `wiring` derived from `jtag` and `uart` | `ethernet`, `pmod`, `pmod-pin-id` (the Pmod pin-ID scan; there is no Pmod HAT cabling on the NeTV2) | IDCODE, device DNA, flash JEDEC ID, sha256 of the flash's boot image |
 | Fomu EVT | CDONE high on the Pi's header (GPIO17), or USB `1209:5bf0` (foboot) | openFPGALoader over DFU | `/dev/serial0` | `header`, `foboot` (both load nothing), `uart`, `flash` (after a reset back into foboot through the header), and `wiring` derived from `header` and `uart` | `pmod` and `pmod-pin-id`, which cannot pass on the EVT ([#202](https://github.com/fpgas-online/fpgas.online-test-designs/issues/202)) | the flash's JEDEC ID and unique ID, read over the header |
-| TT FPGA | USB `2e8a:0005`, `2e8a:000f` (and `2e8a:0003`, the RP2's boot loader, which fails) | `tt_fpga_program.py` over `mpremote` | `/dev/ttyACM0` | `sdk` (loads nothing), `dip-switches`, `wiring`, `uart`, `spram`; a board with a Tiny Tapeout chip: `sdk`, then `wiring` (nothing is loaded) | `pmod` | USB serial |
+| TT FPGA | USB `2e8a:0005`, `2e8a:000f` (and `2e8a:0003`, the RP2's boot loader, which fails) | `openFPGALoader -b tt_fpga` (through the RP2350) | `/dev/ttyACM0` | `sdk` (loads nothing), `dip-switches`, `wiring`, `uart`, `spram`; a board with a Tiny Tapeout chip: `sdk`, then `wiring` (nothing is loaded) | `pmod` | USB serial |
 
 * The Arty and NeTV2 are left running openFPGALoader's SPI-over-JTAG bridge (used to read the flash back), the
   Fomu its test design, and the TT FPGA a design that moves its display
@@ -94,14 +94,14 @@ a DFU load replaces foboot until the next reset. `fpgas-fomu-debug` runs it too.
 
 A section per check, with what it checks on each board and what it runs, is on [each check, what it tests](checks.md).
 
-The report puts each planned test in one of four groups:
+The report puts each planned test in one of four groups, and the dashboards group the check columns the same way: `basic`, the checks every board with that hardware gets first (its JTAG and its cabling to the Pi); `memory`; `peripherals`, the links to the Pi other than JTAG; `board-specific`, the checks of one board type's own hardware.
 
 | Group | Tests |
 |---|---|
-| `basic` | `jtag`, `header`, `wiring` |
+| `basic` | `jtag`, `wiring` |
 | `memory` | `flash`, `ddr`, `spram` |
 | `peripherals` | `uart`, `p2-uart`, `p2-serial`, `p2-gpio`, `ethernet` |
-| `board-specific` | `pcie-link`, `pcie-bar0`, `power-cycle`, `rp1-pio`, `scratch`, `foboot`, `foboot-after`, `sdk`, `dip-switches`, `pmod` |
+| `board-specific` | `pcie-link`, `pcie-bar0`, `power-cycle`, `rp1-pio`, `scratch`, `foboot`, `foboot-after`, `sdk`, `dip-switches`, `pmod`, `header` |
 
 ### The Arty A7 check at boot
 
@@ -113,9 +113,14 @@ The check finds the Arty by its FT2232H on USB (`0403:6010`). Then, in this orde
 2. It reads the device DNA with `openFPGALoader -b arty --read-dna` over the same FT2232H, which loads nothing.
    A DNA that cannot be read, or is all zeros or all ones, fails the board
    ([the device DNA](idcode-and-dna.md#the-device-dna)).
-3. It loads the UART, DDR, SPI flash (`flash`), Ethernet and PMOD pin identification (`wiring`) test designs into SRAM with
+3. It reads the SPI flash's identity with `openFPGALoader -b arty --flash-info-json FILE`: its JEDEC ID,
+   unique ID and SFDP, the board's [flash fields](identity.md#the-arty-and-netv2-flash). This loads
+   openFPGALoader's SPI-over-JTAG bridge in place of the running design, then the FPGA reloads from its flash,
+   so it runs before any test design. It runs only once steps 1 and 2 passed. A read that fails is the
+   identity's `flash_error`, and the board's result is `error`; the tests still run.
+4. It loads the UART, DDR, SPI flash (`flash`), Ethernet and PMOD pin identification (`wiring`) test designs into SRAM with
    openFPGALoader, one at a time, and runs each one's host test.
-4. It reads back the flash's boot image region (the first 2.1 MiB) through openFPGALoader's SPI-over-JTAG
+5. It reads back the flash's boot image region (the first 2.1 MiB) through openFPGALoader's SPI-over-JTAG
    bridge.
 
 About two of the tests:
@@ -127,8 +132,8 @@ About two of the tests:
 
 A failure in either fails the board, like any other test.
 
-What `changed` compares is the FTDI serial number, the IDCODE, the device DNA, the flash's JEDEC ID and the
-sha256 of that flash region. The Arty is left running the SPI-over-JTAG bridge, and comes back to its flash
+What `changed` compares is the FTDI serial number, the IDCODE, the device DNA, the flash's JEDEC ID (from step 3)
+and the sha256 of that flash region. The Arty is left running the SPI-over-JTAG bridge, and comes back to its flash
 image at the next power cycle. Only the PMOD loopback test is left to `fpgas-arty-debug`.
 
 ### The NeTV2 check at boot
@@ -144,6 +149,7 @@ Which tool drives JTAG depends on the Pi:
 |---|---|---|
 | The scan that finds the board | OpenOCD | openFPGALoader's raw scan |
 | The device DNA | openFPGALoader, `libgpiod` cable | openFPGALoader, `rp1pio` cable |
+| The flash's identity, and its readback | openFPGALoader, `libgpiod` cable | openFPGALoader, `rp1pio` cable |
 | Loading a test design | OpenOCD | openFPGALoader, `rp1pio` cable |
 
 Then, in this order:
@@ -155,11 +161,19 @@ Then, in this order:
 2. It reads the device DNA with `openFPGALoader --read-dna` on the same pins, which loads nothing, and puts the
    pins back as after the scan. A DNA that cannot be read, or is all zeros or all ones, fails the board
    ([the device DNA](idcode-and-dna.md#the-device-dna)).
-3. It loads the UART, DDR and SPI flash (`flash`) test designs into SRAM, and runs each design's host test on
+3. It reads the SPI flash's identity with `openFPGALoader <cable> --pins 27:22:4:17 --fpga-part <part>
+   --flash-info-json FILE` (`<part>` is `xc7a35tfgg484` or `xc7a100tfgg484`, from the IDCODE), and puts the pins
+   back as after the DNA read: its JEDEC ID, unique ID and SFDP, the board's
+   [flash fields](identity.md#the-arty-and-netv2-flash). This loads openFPGALoader's SPI-over-JTAG bridge in
+   place of the running design, then the FPGA reloads from its flash, so it runs before any test design. It runs
+   only once steps 1 and 2 passed. A read that fails is the identity's `flash_error`, and the board's result is
+   `error`; the tests still run.
+4. It loads the UART, DDR and SPI flash (`flash`) test designs into SRAM, and runs each design's host test on
    `/dev/ttyAMA0`.
-4. It reads back the flash's boot image region.
+5. It reads back the flash's boot image region.
 
-What `changed` compares is the IDCODE, the device DNA, the flash's JEDEC ID and the sha256 of that flash region.
+What `changed` compares is the IDCODE, the device DNA, the flash's JEDEC ID (from step 3) and the sha256 of that
+flash region.
 
 ### The Fomu EVT check at boot
 
