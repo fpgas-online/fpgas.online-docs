@@ -20,6 +20,9 @@ logins](access.md)).
 <a id="boot-time-configuration"></a>
 - [Boot-time configuration](pi/boot-config.md).
 
+(setup-port)=
+- [The setup / config port](https://github.com/fpgas-online/fpgas.online-infra/blob/main/docs/pi/setup-port.md): port 1 of each switch, where a Pi boots with nothing locked and is never offered.
+
 (model-differences)=
 - [Model differences and serial consoles](pi/models.md): Pi 3B+, Pi 4, Pi 5, CM4 and CM5, and freeing the header UART.
 
